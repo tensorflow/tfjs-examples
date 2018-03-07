@@ -22,7 +22,7 @@ import * as ui from './ui';
 let data;
 async function load() {
   data = new MnistData();
-  await data.load();
+  await data.loadDataset();
 }
 
 async function train() {

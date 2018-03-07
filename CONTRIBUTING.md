@@ -32,3 +32,7 @@ high-quality, curated examples. If you want to add a new example, please
 consult with us (in Github Issues) before creating a new example. We don't
 want to see you go through all of the work of creating a new example and us not
 being in a place to accept it.
+
+We certainly invite you to create examples and post them on Github for others
+to learn from. You can share your progress with others in community in Github
+Issues.

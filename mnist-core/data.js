@@ -43,14 +43,14 @@ export class MnistData {
     this.shuffledTestIndex = 0;
   }
 
-  async load() {
+  async loadDataset() {
     // Make a request for the MNIST sprited image.
     const img = new Image();
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d');
-    const imgRequest = new Promise(async (resolve, reject) => {
+    const imgRequest = new Promise((resolve, reject) => {
       img.crossOrigin = '';
-      img.onload = async () => {
+      img.onload = () => {
         img.width = img.naturalWidth;
         img.height = img.naturalHeight;
 
@@ -84,15 +84,18 @@ export class MnistData {
       img.src = MNIST_IMAGES_SPRITE_PATH;
     });
 
-    const requestPromise = fetch(MNIST_LABELS_PATH, {mode: 'arraybuffer'});
+    const labelsRequest = fetch(MNIST_LABELS_PATH, {mode: 'arraybuffer'});
     const [imgResponse, labelsResponse] =
-        await Promise.all([imgRequest, requestPromise]);
+        await Promise.all([imgRequest, labelsRequest]);
 
     this.datasetLabels = new Uint8Array(await labelsResponse.arrayBuffer());
 
+    // Create shuffled indices into the train/test set for when we select a
+    // random dataset element for training / validation.
     this.trainIndices = tf.util.createShuffledIndices(NUM_TRAIN_ELEMENTS);
     this.testIndices = tf.util.createShuffledIndices(NUM_TEST_ELEMENTS);
 
+    // Slice the the images and labels into train and test sets.
     this.trainImages =
         this.datasetImages.slice(0, IMAGE_SIZE * NUM_TRAIN_ELEMENTS);
     this.testImages = this.datasetImages.slice(IMAGE_SIZE * NUM_TRAIN_ELEMENTS);

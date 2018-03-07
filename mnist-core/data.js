@@ -17,37 +17,26 @@
 
 import * as tf from 'deeplearn';
 
-const TRAIN_TEST_RATIO = 5 / 6;
-
-const mnistConfig = {
-  'data': [
-    {
-      'name': 'images',
-      'path': 'https://storage.googleapis.com/learnjs-data/model-builder/' +
-          'mnist_images.png',
-      'dataType': 'png',
-      'shape': [28, 28, 1]
-    },
-    {
-      'name': 'labels',
-      'path': 'https://storage.googleapis.com/learnjs-data/model-builder/' +
-          'mnist_labels_uint8',
-      'dataType': 'uint8',
-      'shape': [10]
-    }
-  ],
-  modelConfigs: {}
-};
-
 const IMAGE_SIZE = 784;
 const NUM_CLASSES = 10;
 const NUM_DATASET_ELEMENTS = 65000;
+
+const TRAIN_TEST_RATIO = 5 / 6;
+
+const NUM_TRAIN_ELEMENTS = Math.floor(TRAIN_TEST_RATIO * NUM_DATASET_ELEMENTS);
+const NUM_TEST_ELEMENTS = NUM_DATASET_ELEMENTS - NUM_TRAIN_ELEMENTS;
 
 const MNIST_IMAGES_SPRITE_PATH =
     'https://storage.googleapis.com/learnjs-data/model-builder/mnist_images.png';
 const MNIST_LABELS_PATH =
     'https://storage.googleapis.com/learnjs-data/model-builder/mnist_labels_uint8';
 
+/**
+ * A class that fetches the sprited MNIST dataset and returns shuffled batches.
+ *
+ * NOTE: This will get much easier. For now, we do data fetching and
+ * manipulation manually.
+ */
 export class MnistData {
   constructor() {
     this.shuffledTrainIndex = 0;
@@ -56,46 +45,74 @@ export class MnistData {
 
   async load() {
     // Make a request for the MNIST sprited image.
-    this.datasetSprite = new Image();
-    const imgRequest = new Promise((resolve, reject) => {
-      this.datasetSprite.crossOrigin = '';
-      this.datasetSprite.onload = () => {
-        this.datasetSprite.width = this.datasetSprite.naturalWidth;
-        this.datasetSprite.height = this.datasetSprite.naturalHeight;
+    const img = new Image();
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    const imgRequest = new Promise(async (resolve, reject) => {
+      img.crossOrigin = '';
+      img.onload = async () => {
+        img.width = img.naturalWidth;
+        img.height = img.naturalHeight;
+
+        const datasetBytesBuffer =
+            new ArrayBuffer(NUM_DATASET_ELEMENTS * IMAGE_SIZE * 4);
+
+        const chunkSize = 5000;
+        canvas.width = img.width;
+        canvas.height = chunkSize;
+
+        for (let i = 0; i < NUM_DATASET_ELEMENTS / chunkSize; i++) {
+          const datasetBytesView = new Float32Array(
+              datasetBytesBuffer, i * IMAGE_SIZE * chunkSize * 4,
+              IMAGE_SIZE * chunkSize);
+          ctx.drawImage(
+              img, 0, i * chunkSize, img.width, chunkSize, 0, 0, img.width,
+              chunkSize);
+
+          const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+
+          for (let j = 0; j < imageData.data.length / 4; j++) {
+            // All channels hold an equal value since the image is grayscale, so
+            // just read the red channel.
+            datasetBytesView[j] = imageData.data[j * 4] / 255;
+          }
+        }
+        this.datasetImages = new Float32Array(datasetBytesBuffer);
+
         resolve();
       };
-      this.datasetSprite.src = MNIST_IMAGES_SPRITE_PATH;
+      img.src = MNIST_IMAGES_SPRITE_PATH;
     });
 
     const requestPromise = fetch(MNIST_LABELS_PATH, {mode: 'arraybuffer'});
     const [imgResponse, labelsResponse] =
         await Promise.all([imgRequest, requestPromise]);
 
-    this.labels = new Uint8Array(await labelsResponse.arrayBuffer());
-    // return dl.tensor2d(buffer, [buffer.length / NUM_CLASSES, NUM_CLASSES]);
+    this.datasetLabels = new Uint8Array(await labelsResponse.arrayBuffer());
 
-    this.dataset = new tf.XhrDataset(mnistConfig);
-    await this.dataset.fetchData();
+    this.trainIndices = tf.util.createShuffledIndices(NUM_TRAIN_ELEMENTS);
+    this.testIndices = tf.util.createShuffledIndices(NUM_TEST_ELEMENTS);
 
-    this.dataset.normalizeWithinBounds(0, -1, 1);
-    this.trainingData = this.getTrainingData();
-    this.testData = this.getTestData();
-
-    this.trainIndices =
-        tf.util.createShuffledIndices(this.trainingData[0].length);
-    this.testIndices = tf.util.createShuffledIndices(this.testData[0].length);
+    this.trainImages =
+        this.datasetImages.slice(0, IMAGE_SIZE * NUM_TRAIN_ELEMENTS);
+    this.testImages = this.datasetImages.slice(IMAGE_SIZE * NUM_TRAIN_ELEMENTS);
+    this.trainLabels =
+        this.datasetLabels.slice(0, NUM_CLASSES * NUM_TRAIN_ELEMENTS);
+    this.testLabels =
+        this.datasetLabels.slice(NUM_CLASSES * NUM_TRAIN_ELEMENTS);
   }
 
   nextTrainBatch(batchSize) {
-    return this.nextBatch(batchSize, this.trainingData, () => {
-      this.shuffledTrainIndex =
-          (this.shuffledTrainIndex + 1) % this.trainIndices.length;
-      return this.trainIndices[this.shuffledTrainIndex];
-    });
+    return this.nextBatch(
+        batchSize, [this.trainImages, this.trainLabels], () => {
+          this.shuffledTrainIndex =
+              (this.shuffledTrainIndex + 1) % this.trainIndices.length;
+          return this.trainIndices[this.shuffledTrainIndex];
+        });
   }
 
   nextTestBatch(batchSize) {
-    return this.nextBatch(batchSize, this.testData, () => {
+    return this.nextBatch(batchSize, [this.testImages, this.testLabels], () => {
       this.shuffledTestIndex =
           (this.shuffledTestIndex + 1) % this.testIndices.length;
       return this.testIndices[this.shuffledTestIndex];
@@ -103,55 +120,24 @@ export class MnistData {
   }
 
   nextBatch(batchSize, data, index) {
-    let xs = null;
-    let labels = null;
+    const batchImagesArray = new Float32Array(batchSize * IMAGE_SIZE);
+    const batchLabelsArray = new Uint8Array(batchSize * NUM_CLASSES);
 
     for (let i = 0; i < batchSize; i++) {
       const idx = index();
 
-      const x = data[0][idx].reshape([1, 784]);
-      xs = concatWithNulls(xs, x);
+      const image =
+          data[0].slice(idx * IMAGE_SIZE, idx * IMAGE_SIZE + IMAGE_SIZE);
+      batchImagesArray.set(image, i * IMAGE_SIZE);
 
-      const label = data[1][idx].reshape([1, 10]);
-      labels = concatWithNulls(labels, label);
+      const label =
+          data[1].slice(idx * NUM_CLASSES, idx * NUM_CLASSES + NUM_CLASSES);
+      batchLabelsArray.set(label, i * NUM_CLASSES);
     }
+
+    const xs = tf.tensor2d(batchImagesArray, [batchSize, IMAGE_SIZE]);
+    const labels = tf.tensor2d(batchLabelsArray, [batchSize, NUM_CLASSES]);
+
     return {xs, labels};
   }
-
-  getTrainingData() {
-    const [images, labels] = this.dataset.getData();
-
-    const end = Math.floor(TRAIN_TEST_RATIO * images.length);
-
-    return [images.slice(0, end), labels.slice(0, end)];
-  }
-
-  getTestData() {
-    const data = this.dataset.getData();
-    if (data == null) {
-      return null;
-    }
-    const [images, labels] = this.dataset.getData();
-
-    const start = Math.floor(TRAIN_TEST_RATIO * images.length);
-
-    return [images.slice(start), labels.slice(start)];
-  }
-}
-
-/**
- * TODO(nsthorat): Add math.stack, similar to np.stack, which will avoid the
- * need for us allowing concating with null values.
- */
-function concatWithNulls(x1, x2) {
-  if (x1 == null && x2 == null) {
-    return null;
-  }
-  if (x1 == null) {
-    return x2;
-  } else if (x2 === null) {
-    return x1;
-  }
-  const axis = 0;
-  return x1.concat(x2, axis);
 }

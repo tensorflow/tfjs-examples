@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import * as tf from 'deeplearn';
+import * as tf from '@tensorflow/tfjs';
 
 import {MnistData} from './data';
 

@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import * as tf from 'deeplearn';
+import * as tf from '@tensorflow/tfjs';
 
 const IMAGE_SIZE = 784;
 const NUM_CLASSES = 10;

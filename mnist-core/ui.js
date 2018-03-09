@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import * as tf from 'deeplearn';
+import * as tf from '@tensorflow/tfjs';
 
 const statusElement = document.getElementById('status');
 const messageElement = document.getElementById('message');

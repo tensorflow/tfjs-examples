@@ -1,6 +1,6 @@
 # TensorFlow.js Examples
 
-This repository contains a number of different examples implemented in
+This repository contains a set of examples implemented in
 [TensorFlow.js](http://js.tensorflow.org).
 
 Each example directory is completely standalone so you can copy the directory

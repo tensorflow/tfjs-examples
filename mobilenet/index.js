@@ -67,10 +67,11 @@ async function predict(imgElement) {
     // Normalize the image from [0, 255] to [-1, 1].
     const normalized = img.sub(offset).div(offset);
 
-    // Make a prediction through mobilenet. model.predict() requires a batched
-    // input so we reshape it to a single-element batch.
-    return mobilenet.predict(
-        normalized.reshape([1, IMAGE_SIZE, IMAGE_SIZE, 3]));
+    // Reshape to a single-element batch so we can pass it to predict.
+    const batched = normalized.reshape([1, IMAGE_SIZE, IMAGE_SIZE, 3]);
+
+    // Make a prediction through mobilenet.
+    return mobilenet.predict(batched);
   });
 
   // Convert logits to probabilities and class names.

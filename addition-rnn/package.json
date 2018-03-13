@@ -1,5 +1,5 @@
 {
-  "name": "tfjs-examples-mnist-core",
+  "name": "tfjs-examples-addition-rnn",
   "version": "0.1.0",
   "description": "",
   "main": "index.js",
@@ -7,7 +7,8 @@
   "private": true,
   "dependencies": {
     "@tensorflow/tfjs": "./tensorflow-tfjs-0.0.1.tgz",
-    "tfjs-layers": "./tfjs-layers-0.0.1.tgz"
+    "tfjs-layers": "./tfjs-layers-0.0.1.tgz",
+    "vega-embed": "^3.0.0"
   },
   "scripts": {
     "watch": "NODE_ENV=development parcel --no-hmr index.html ",
@@ -19,6 +20,7 @@
     "babel-preset-env": "~1.6.1",
     "clang-format": "~1.2.2",
     "parcel-bundler": "~1.6.2"
+
   },
   "babel": {
     "presets": [

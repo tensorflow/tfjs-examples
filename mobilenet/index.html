@@ -1,0 +1,73 @@
+<!--
+Copyright 2018 Google LLC
+Use of this source code is governed by an MIT-style
+license that can be found in the LICENSE file or at
+https://opensource.org/licenses/MIT.
+=============================================================================
+-->
+
+<!doctype html>
+
+<head>
+  <link rel="stylesheet" href="https://code.getmdl.io/1.3.0/material.cyan-teal.min.css" />
+</head>
+
+<style>
+  body {
+    padding: 20px;
+  }
+  .input-div {
+    padding: 5px;
+    font-family: monospace;
+  }
+  a {
+    color: blue;
+  }
+
+  p {
+    width: 500px;
+  }
+
+  #status {
+    margin-top: 30px;
+    font-size: 20px;
+  }
+  .pred-container {
+    margin-bottom: 20px;
+  }
+  .pred-container > div {
+    display: inline-block;
+    margin-right: 20px;
+    vertical-align: top;
+  }
+  .row {
+    display: table-row;
+  }
+  .cell {
+    display: table-cell;
+    padding-right: 20px;
+  }
+</style>
+
+<body>
+  <h3>TensorFlow.js: Using a pretrained MobileNet</h3>
+
+  <p>
+    This demo uses the pretrained MobileNet_25_224 model from Keras which you can find
+    <a href="https://github.com/fchollet/deep-learning-models/releases/download/v0.6/mobilenet_2_5_224_tf.h5">here</a>.
+
+    It is not trained to recognize human faces. For best performance, upload images of objects
+    like piano, coffee mugs, bottles, etc.
+  </p>
+
+  <div id="file-container" style="display: none">
+    Upload an image: <input type="file" id="files" name="files[]" multiple />
+  </div>
+
+  <div id="status"></div>
+
+  <div id="predictions"></div>
+
+  <img style="display: none" id="cat" src="cat.jpg" width=224 height=224/>
+</body>
+<script src="index.js"></script>

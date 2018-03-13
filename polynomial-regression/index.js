@@ -45,6 +45,7 @@ function drawAxes(canvas) {
   ctx.lineTo(bottomCoord[0], bottomCoord[1]);
   ctx.stroke();
 }
+
 // Draw x and y data in the canvas.
 //
 // Also draws the x and y axes.
@@ -64,6 +65,7 @@ function drawXYData(canvas, xyData) {
     ctx.stroke();
   }
 }
+
 // Calculate the arithmetic mean of a vector.
 //
 // Args:
@@ -78,6 +80,7 @@ function mean(vector) {
   }
   return sum / vector.length;
 }
+
 // Calculate the standard deviation of a vector.
 //
 // Args:
@@ -93,6 +96,7 @@ function stddev(vector) {
   }
   return Math.sqrt(squareSum / (vector.length - 1));
 }
+
 // Normalize a vector by its mean and standard deviation.
 function normalizeVector(vector, vectorMean, vectorStddev) {
   return vector.map(x => (x - vectorMean) / vectorStddev);
@@ -150,6 +154,7 @@ function toNormalizedTensors(xyData, order) {
     yMean, yStddev, tf.tensor2d(yNormalized, [batchSize, 1])
   ];
 }
+
 // Fit a model for polynomial regression.
 //
 // Args:
@@ -191,6 +196,7 @@ async function fitModel(xyData, epochs, learningRate) {
       model.trainableWeights[0].read().dataSync());
   return [model, xPowerMeans, xPowerStddevs, yMean, yStddev];
 }
+
 // Render the predictions made by the model.
 function renderModelPredictions(
     canvas, order, model, xPowerMeans, xPowerStddevs, yMean, yStddev) {
@@ -223,6 +229,7 @@ function renderModelPredictions(
     ctx.stroke();
   }
 }
+
 // Generate x-y data based on the size of the canvas.
 function generateXYData(canvas, coeffs) {
   const data = [];
@@ -234,6 +241,7 @@ function generateXYData(canvas, coeffs) {
   }
   return data;
 }
+
 // Fit a model and render the data and predictions.
 async function fitAndRender() {
   const epochs = +epochsElement.value;

@@ -1,0 +1,12 @@
+{
+  "name": "tfjs-examples",
+  "version": "0.1.0",
+  "description": "",
+  "main": "index.js",
+  "license": "Apache-2.0",
+  "private": true,
+  "dependencies": {
+    "@tensorflow/tfjs": "./tensorflow-tfjs-0.0.1.tgz",
+    "tfjs-layers": "./tfjs-layers-0.0.1.tgz"
+  }
+}

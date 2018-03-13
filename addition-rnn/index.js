@@ -23,7 +23,6 @@
  */
 
 import * as tf from '@tensorflow/tfjs';
-// TODO(cais): The two imports above may be combined eventually.
 import embed from 'vega-embed';
 
 // This forces the buffer sub data async extension to turn off.
@@ -32,7 +31,7 @@ import embed from 'vega-embed';
 // https://github.com/PAIR-code/deeplearnjs/pull/849
 tf.ENV.set('WEBGL_GET_BUFFER_SUB_DATA_ASYNC_EXTENSION_ENABLED', false);
 
-export class CharacterTable {
+class CharacterTable {
   /**
    * Constructor of CharacterTable.
    * @param chars A string that contains the characters that can appear
@@ -122,7 +121,7 @@ export class CharacterTable {
  * @param invert Whether to invert the strings in the question.
  * @returns The generated examples.
  */
-export function generateData(digits, numExamples, invert) {
+function generateData(digits, numExamples, invert) {
   const digitArray = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
   const arraySize = digitArray.length;
 
@@ -164,7 +163,7 @@ export function generateData(digits, numExamples, invert) {
   return output;
 }
 
-export function convertDataToTensors(data, charTable, digits) {
+function convertDataToTensors(data, charTable, digits) {
   const maxLen = digits + 1 + digits;
   const questions = data.map(datum => datum[0]);
   const answers = data.map(datum => datum[1]);
@@ -174,7 +173,7 @@ export function convertDataToTensors(data, charTable, digits) {
   ];
 }
 
-export function createAndCompileModel(
+function createAndCompileModel(
     layers, hiddenSize, rnnType, digits, vocabularySize) {
   const maxLen = digits + 1 + digits;
 
@@ -241,7 +240,7 @@ export function createAndCompileModel(
   return model;
 }
 
-export class AdditionRNNDemo {
+class AdditionRNNDemo {
   constructor(digits, trainingSize, rnnType, layers, hiddenSize) {
     // Prepare training data.
     const chars = '0123456789+ ';

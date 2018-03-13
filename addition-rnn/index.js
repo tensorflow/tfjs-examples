@@ -25,12 +25,6 @@
 import * as tf from '@tensorflow/tfjs';
 import embed from 'vega-embed';
 
-// This forces the buffer sub data async extension to turn off.
-// It looks like in new versions of chrome this has been turned on,
-// and deeplearn.js has a bug. See:
-// https://github.com/PAIR-code/deeplearnjs/pull/849
-tf.ENV.set('WEBGL_GET_BUFFER_SUB_DATA_ASYNC_EXTENSION_ENABLED', false);
-
 class CharacterTable {
   /**
    * Constructor of CharacterTable.

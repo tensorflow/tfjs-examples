@@ -177,7 +177,7 @@ async function fitModel(xyData, epochs, learningRate) {
       tf.layers.dense({units: 1, kernelInitializer: 'Zeros', useBias: false});
   const output = linearLayer.apply(input);
   const model = tf.model({inputs: input, outputs: output});
-  const sgd = new tf.optimizers.SGD({lr: learningRate});
+  const sgd = new tf.train.sgd(learningRate);
   model.compile({optimizer: sgd, loss: 'meanSquaredError'});
   await model.fit({
     x: xData,

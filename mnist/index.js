@@ -26,11 +26,11 @@ const BATCH_SIZE = 64;
 const model = tf.sequential({
   layers: [
     tf.layers.conv2d({
+      inputShape: [28, 28, 1],
       kernelSize: 5,
       filters: 8,
       strides: 1,
       activation: 'relu',
-      inputShape: [28, 28, 1],
       kernelInitializer: 'VarianceScaling'
     }),
     tf.layers.maxPooling2d({poolSize: [2, 2], strides: [2, 2]}),
@@ -51,6 +51,7 @@ const model = tf.sequential({
   ]
 });
 
+// TODO(nsthorat): Use tf.train.sgd() once compile supports core optimizers.
 const optimizer = new tf.optimizers.SGD({lr: LEARNING_RATE});
 model.compile({optimizer, loss: 'categoricalCrossentropy'});
 

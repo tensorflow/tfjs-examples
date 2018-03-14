@@ -52,7 +52,7 @@ const model = tf.sequential({
 });
 
 // TODO(nsthorat): Use tf.train.sgd() once compile supports core optimizers.
-const optimizer = new tf.train.sgd(LEARNING_RATE);
+const optimizer = tf.train.sgd(LEARNING_RATE);
 console.log('optimizer =', optimizer);  // DEBUG
 model.compile({optimizer, loss: 'categoricalCrossentropy'});
 

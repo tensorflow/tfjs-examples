@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2018 Google LLC All Rights Reserved.
+ * Copyright 2018 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -65,6 +65,8 @@ async function train() {
   ui.isTraining();
   for (let i = 0; i < 100; i++) {
     const batch = data.nextTrainBatch(BATCH_SIZE);
+    // The entire dataset doesn't fit into memory so we call fit repeatedly with
+    // batches.
     const history = await model.fit({
       x: batch.xs.reshape([BATCH_SIZE, 28, 28, 1]),
       y: batch.labels,

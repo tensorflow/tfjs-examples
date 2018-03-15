@@ -16,21 +16,35 @@
  */
 
 import * as tf from '@tensorflow/tfjs';
-import embed from 'vega-embed';
 
 import {getIrisData, IRIS_CLASSES, IRIS_NUM_CLASSES} from './data';
+import {clearEvaluateTable, getManualInputData, loadTrainParametersFromUI, plotAccuracies, plotLosses, renderEvaluateTable, renderLogitsForManualInput, setManualInputWinnerMessage, status, wireUpEvaluateTableCallbacks} from './ui';
+
+let model;
+
+async function loadHostedPretrainedModel() {
+  const HOSTED_MODEL_JSON_URL =
+      'https://storage.googleapis.com/tfjs-models/tfjs-layers/iris_v1/model.json';
+  status('Loading pretrained model from ' + HOSTED_MODEL_JSON_URL);
+  try {
+    model = await tf.loadModel(HOSTED_MODEL_JSON_URL);
+    status('Done loading pretrained model.');
+  } catch (err) {
+    status('Loading pretrained model failed.');
+  }
+}
 
 async function trainModel(xTrain, yTrain, xTest, yTest) {
   status('Training model... Please wait.');
-  const epochs = document.getElementById('train-epochs').value;
-  const learningRate = document.getElementById('learning-rate').value;
 
-  const model = tf.sequential({});
+  const params = loadTrainParametersFromUI();
+
+  const model = tf.sequential();
   model.add(tf.layers.dense(
       {units: 10, activation: 'sigmoid', inputShape: [xTrain.shape[1]]}));
   model.add(tf.layers.dense({units: 3, activation: 'softmax'}));
 
-  const optimizer = tf.train.adam(learningRate);
+  const optimizer = tf.train.adam(params.learningRate);
   model.compile({
     optimizer: optimizer,
     loss: 'categoricalCrossentropy',
@@ -42,7 +56,7 @@ async function trainModel(xTrain, yTrain, xTest, yTest) {
   const history = await model.fit({
     x: xTrain,
     y: yTrain,
-    epochs: epochs,
+    epochs: params.epochs,
     validationData: [xTest, yTest],
     callbacks: {
       onEpochEnd: async (epoch, logs) => {
@@ -76,79 +90,26 @@ async function trainModel(xTrain, yTrain, xTest, yTest) {
   return model;
 }
 
-function plotLosses(lossValues) {
-  embed(
-      '#lossCanvas', {
-        '$schema': 'https://vega.github.io/schema/vega-lite/v2.json',
-        'data': {'values': lossValues},
-        'mark': 'line',
-        'encoding': {
-          'x': {'field': 'epoch', 'type': 'quantitative'},
-          'y': {'field': 'loss', 'type': 'quantitative'},
-          'color': {'field': 'set', 'type': 'nominal'},
-        }
-      },
-      {});
-}
-
-function plotAccuracies(accuracyValues) {
-  embed(
-      '#accuracyCanvas', {
-        '$schema': 'https://vega.github.io/schema/vega-lite/v2.json',
-        'data': {'values': accuracyValues},
-        'mark': 'line',
-        'encoding': {
-          'x': {'field': 'epoch', 'type': 'quantitative'},
-          'y': {'field': 'accuracy', 'type': 'quantitative'},
-          'color': {'field': 'set', 'type': 'nominal'},
-        }
-      },
-      {});
-}
-
 async function predictOnManualInput(model) {
-  const winnerElement = document.getElementById('winner');
-  const logitsElement = document.getElementById('logits');
-
   if (model == null) {
-    winnerElement.textContent = 'ERROR: Load or train model first.'
+    setManualInputWinnerMessage('ERROR: Please load or train model first.');
     return;
   }
 
-  const inputData = [
-    Number(document.getElementById('petal-length').value),
-    Number(document.getElementById('petal-width').value),
-    Number(document.getElementById('sepal-length').value),
-    Number(document.getElementById('sepal-width').value),
-  ];
-
+  const inputData = getManualInputData();
   tf.tidy(() => {
     const input = tf.tensor2d([inputData], [1, 4]);
     const predictOut = model.predict(input);
 
     const logits = Array.from(predictOut.dataSync());
     const winner = IRIS_CLASSES[predictOut.argMax(-1).dataSync()[0]];
-
-    winnerElement.textContent = winner;
-    while (logitsElement.firstChild) {
-      logitsElement.removeChild(logitsElement.firstChild);
-    }
-    logitsToSpans(logits).map(logitSpan => {
-      logitsElement.appendChild(logitSpan);
-    });
+    setManualInputWinnerMessage(winner);
+    renderLogitsForManualInput(logits);
   });
 }
 
-async function clearEvaluateTable() {
-  const tableBody = document.getElementById('evaluate-tbody');
-  while (tableBody.children.length > 1) {
-    tableBody.removeChild(tableBody.children[1]);
-  }
-  await tf.nextFrame();
-}
-
 async function evaluateModelOnTestData(model, xTest, yTest) {
-  await clearEvaluateTable();
+  clearEvaluateTable();
   tf.tidy(() => {
     const xData = xTest.dataSync();
     const yTrue = yTest.argMax(-1).dataSync();
@@ -156,77 +117,9 @@ async function evaluateModelOnTestData(model, xTest, yTest) {
     const logits = Array.from(predictOut.dataSync());
     const yPred = predictOut.argMax(-1).dataSync();
 
-    const tableBody = document.getElementById('evaluate-tbody');
-
-    for (let i = 0; i < yTrue.length; ++i) {
-      const row = document.createElement('tr');
-      for (let j = 0; j < 4; ++j) {
-        const cell = document.createElement('td');
-        cell.textContent = xData[4 * i + j].toFixed(1);
-        row.appendChild(cell);
-      }
-      const truthCell = document.createElement('td');
-      truthCell.textContent = IRIS_CLASSES[yTrue[i]];
-      row.appendChild(truthCell);
-      const predCell = document.createElement('td');
-      predCell.textContent = IRIS_CLASSES[yPred[i]];
-      predCell.classList =
-          yPred[i] === yTrue[i] ? ['correct-prediction'] : ['wrong-prediction'];
-      row.appendChild(predCell);
-      const logitsCell = document.createElement('td');
-      const exampleLogits =
-          logits.slice(i * IRIS_NUM_CLASSES, (i + 1) * IRIS_NUM_CLASSES);
-      logitsToSpans(exampleLogits).map(logitSpan => {
-        logitsCell.appendChild(logitSpan);
-      });
-      row.appendChild(logitsCell);
-      tableBody.appendChild(row);
-    }
-
-    predictOnManualInput(model);
+    renderEvaluateTable(xData, yTrue, yPred, logits);
   });
-}
-
-let model;
-
-function status(statusText) {
-  document.getElementById('demo-status').textContent = statusText;
-}
-
-async function loadHostedPretrainedModel() {
-  const HOSTED_MODEL_JSON_URL =
-      'https://storage.googleapis.com/tfjs-models/tfjs-layers/iris_v1/model.json';
-  status('Loading pretrained model from ' + HOSTED_MODEL_JSON_URL);
-  return await tf.loadModel(HOSTED_MODEL_JSON_URL)
-      .then(loadedModel => {
-        model = loadedModel;
-        status('Done loading pretrained model.');
-      })
-      .catch(() => {
-        status('Loading pretrained model failed.');
-      });
-}
-
-function logitsToSpans(logits) {
-  let idxMax = -1;
-  let maxLogit = -1e12;
-  for (let i = 0; i < logits.length; ++i) {
-    if (logits[i] > maxLogit) {
-      maxLogit = logits[i];
-      idxMax = i;
-    }
-  }
-  const spans = [];
-  for (let i = 0; i < logits.length; ++i) {
-    const logitSpan = document.createElement('span');
-    logitSpan.textContent = logits[i].toFixed(3);
-    if (i === idxMax) {
-      logitSpan.style['font-weight'] = 'bold';
-    }
-    logitSpan.classList = ['logit-span'];
-    spans.push(logitSpan);
-  }
-  return spans;
+  predictOnManualInput(model);
 }
 
 async function iris() {
@@ -245,57 +138,7 @@ async function iris() {
         predictOnManualInput(model);
       });
 
-  const petalLength = document.getElementById('petal-length');
-  const petalWidth = document.getElementById('petal-width');
-  const sepalLength = document.getElementById('sepal-length');
-  const sepalWidth = document.getElementById('sepal-width');
-
-  const increment = 0.1;
-  document.getElementById('petal-length-inc').addEventListener('click', () => {
-    petalLength.value = (Number(petalLength.value) + increment).toFixed(1);
-    predictOnManualInput(model);
-  });
-  document.getElementById('petal-length-dec').addEventListener('click', () => {
-    petalLength.value = (Number(petalLength.value) - increment).toFixed(1);
-    predictOnManualInput(model);
-  });
-  document.getElementById('petal-width-inc').addEventListener('click', () => {
-    petalWidth.value = (Number(petalWidth.value) + increment).toFixed(1);
-    predictOnManualInput(model);
-  });
-  document.getElementById('petal-width-dec').addEventListener('click', () => {
-    petalWidth.value = (Number(petalWidth.value) - increment).toFixed(1);
-    predictOnManualInput(model);
-  });
-  document.getElementById('sepal-length-inc').addEventListener('click', () => {
-    sepalLength.value = (Number(sepalLength.value) + increment).toFixed(1);
-    predictOnManualInput(model);
-  });
-  document.getElementById('sepal-length-dec').addEventListener('click', () => {
-    sepalLength.value = (Number(sepalLength.value) - increment).toFixed(1);
-    predictOnManualInput(model);
-  });
-  document.getElementById('sepal-width-inc').addEventListener('click', () => {
-    sepalWidth.value = (Number(sepalWidth.value) + increment).toFixed(1);
-    predictOnManualInput(model);
-  });
-  document.getElementById('sepal-width-dec').addEventListener('click', () => {
-    sepalWidth.value = (Number(sepalWidth.value) - increment).toFixed(1);
-    predictOnManualInput(model);
-  });
-
-  document.getElementById('petal-length').addEventListener('change', () => {
-    predictOnManualInput(model);
-  });
-  document.getElementById('petal-width').addEventListener('change', () => {
-    predictOnManualInput(model);
-  });
-  document.getElementById('sepal-length').addEventListener('change', () => {
-    predictOnManualInput(model);
-  });
-  document.getElementById('sepal-width').addEventListener('change', () => {
-    predictOnManualInput(model);
-  });
+  wireUpEvaluateTableCallbacks(() => predictOnManualInput(model));
 }
 
 iris();

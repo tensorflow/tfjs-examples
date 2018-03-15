@@ -84,28 +84,15 @@ function convertToTensors(data, targets, testSplit) {
   const numTrainExamples = numExamples - numTestExamples;
 
   const xDims = data[0].length;
-  const xTrain = tf.buffer([numTrainExamples, xDims]);
-  const yTrain = tf.buffer([numTrainExamples, IRIS_NUM_CLASSES]);
-  const xTest = tf.buffer([numTestExamples, xDims]);
-  const yTest = tf.buffer([numTestExamples, IRIS_NUM_CLASSES]);
 
-  for (let i = 0; i < numTrainExamples; ++i) {
-    for (let j = 0; j < xDims; ++j) {
-      xTrain.set(data[i][j], i, j);
-      yTrain.set(1, i, targets[i]);
-    }
-  }
+  const xs = tf.tensor2d(data, [numExamples, xDims]);
+  const ys = tf.oneHot(tf.tensor1d(targets), IRIS_NUM_CLASSES);
 
-  for (let i = 0; i < numTestExamples; ++i) {
-    for (let j = 0; j < xDims; ++j) {
-      xTest.set(data[i + numTrainExamples][j], i, j);
-      yTest.set(1, i, targets[i + numTrainExamples]);
-    }
-  }
-
-  return [
-    xTrain.toTensor(), yTrain.toTensor(), xTest.toTensor(), yTest.toTensor()
-  ];
+  const xTrain = xs.slice([0, 0], [numTrainExamples, xDims]);
+  const xTest = xs.slice([numTrainExamples, 0], [numTestExamples, xDims]);
+  const yTrain = ys.slice([0, 0], [numTrainExamples, IRIS_NUM_CLASSES]);
+  const yTest = ys.slice([0, 0], [numTestExamples, IRIS_NUM_CLASSES]);
+  return [xTrain, yTrain, xTest, yTest];
 }
 
 /**
@@ -139,9 +126,10 @@ export function getIrisData(testSplit) {
       yTests.push(yTest);
     }
 
+    const concatAxis = 0;
     return [
-      tf.concat(xTrains, 0), tf.concat(yTrains, 0), tf.concat(xTests, 0),
-      tf.concat(yTests, 0)
+      tf.concat(xTrains, concatAxis), tf.concat(yTrains, concatAxis),
+      tf.concat(xTests, concatAxis), tf.concat(yTests, concatAxis)
     ];
   });
 }

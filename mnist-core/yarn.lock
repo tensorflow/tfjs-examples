@@ -2,12 +2,18 @@
 # yarn lockfile v1
 
 
-"@tensorflow/tfjs@./tensorflow-tfjs-0.0.1.tgz":
+"@tensorflow/tfjs-layers@0.0.1":
   version "0.0.1"
-  resolved "./tensorflow-tfjs-0.0.1.tgz#d5551b6d5a5ea9096c7771e03c540e3a5a7a8746"
+  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-layers/-/tfjs-layers-0.0.1.tgz#e988a897a89dc86f116969d5d49628d4eb79e9a0"
   dependencies:
+    underscore "~1.8.3"
+
+"@tensorflow/tfjs@0.0.1":
+  version "0.0.1"
+  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs/-/tfjs-0.0.1.tgz#9be38ff07544490445e72d6266c9706dd0cda5d0"
+  dependencies:
+    "@tensorflow/tfjs-layers" "0.0.1"
     deeplearn next
-    tfjs-layers "./tfjs-layers-0.0.1.tgz"
 
 abbrev@1:
   version "1.1.1"
@@ -3506,12 +3512,6 @@ tar@^2.2.1:
     block-stream "*"
     fstream "^1.0.2"
     inherits "2"
-
-tfjs-layers@./tfjs-layers-0.0.1.tgz:
-  version "0.0.1"
-  resolved "./tfjs-layers-0.0.1.tgz#d9e411ecf2cc7ca27954c7f398f5b8698cff1d62"
-  dependencies:
-    underscore "~1.8.3"
 
 through2@^2.0.0, through2@~2.0.3:
   version "2.0.3"

@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2018 Google Inc. All Rights Reserved.
+ * Copyright 2018 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -177,7 +177,7 @@ async function fitModel(xyData, epochs, learningRate) {
       tf.layers.dense({units: 1, kernelInitializer: 'Zeros', useBias: false});
   const output = linearLayer.apply(input);
   const model = tf.model({inputs: input, outputs: output});
-  const sgd = new tf.optimizers.SGD({lr: learningRate});
+  const sgd = tf.train.sgd(learningRate);
   model.compile({optimizer: sgd, loss: 'meanSquaredError'});
   await model.fit({
     x: xData,

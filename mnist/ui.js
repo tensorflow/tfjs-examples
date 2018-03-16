@@ -15,8 +15,6 @@
  * =============================================================================
  */
 
-import * as tf from '@tensorflow/tfjs';
-
 const statusElement = document.getElementById('status');
 const messageElement = document.getElementById('message');
 const imagesElement = document.getElementById('images');

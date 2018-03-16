@@ -1,0 +1,172 @@
+<!--
+Copyright 2018 Google LLC
+
+Use of this source code is governed by an MIT-style
+license that can be found in the LICENSE file or at
+https://opensource.org/licenses/MIT.
+=============================================================================
+-->
+
+<html>
+  <head>
+    <link rel="stylesheet" href="https://code.getmdl.io/1.3.0/material.cyan-teal.min.css" />
+  </head>
+
+  <body>
+
+  <style>
+    button {
+      font-size: 105%;
+    }
+    #demo-status {
+      font-family: Monospace;
+      font-weight: bold;
+    }
+    input {
+      width: 75px;
+    }
+
+    .input-div {
+      padding: 5px;
+      font-family: monospace;
+    }
+    td {
+      padding-left: 5px;
+      padding-right: 5px;
+      padding-bottom: 5px;
+    }
+    #predict-header {
+      font-weight: bold;
+    }
+    .output-div {
+      padding: 5px;
+      padding-top: 20px;
+      font-family: monospace;
+      font-weight: bold;
+    }
+    .input-label {
+      display: inline-block;
+      width: 150px;
+    }
+
+    .canvases {
+      display: inline-block;
+    }
+
+    #evaluate-table-title{
+      font-weight: bold;
+      font-family: monospace;
+      font-size: 110%;
+      margin-top: 1em;
+    }
+    #evaluate-table {
+      display: inline-block;
+    }
+
+    #evaluate-table td, #evaluate-table th {
+      font-family: monospace;
+      border: 1px solid #ddd;
+      padding: 8px;
+    }
+    #evaluate-table th {
+      padding-top: 12px;
+      padding-bottom: 12px;
+      text-align: left;
+      background-color: #4CAF50;
+      color: white;
+    }
+
+    .create-model {
+      display: inline-block;
+    }
+
+    .logit-span {
+      padding-right: 1em;
+    }
+    .correct-prediction {
+      background-color: greenyellow
+    }
+    .wrong-prediction {
+      background-color: red;
+    }
+  </style>
+
+  <body>
+    <h1>TensorFlow.js Layers: Iris Demo</h1>
+
+    <div>
+      <div class="horizontal-section">
+        <div class="create-model">
+          <div class="input-div">
+            <span class="input-label">Train Epochs:</span>
+            <input id="train-epochs" type="number" value="40"></input>
+          </div>
+          <div class="input-div">
+            <span class="input-label">Learning Rate:</span>
+            <input id="learning-rate" type="number" value="0.01"></input>
+          </div>
+          <button id="train-from-scratch">Train model from scratch</button>
+        </div>
+
+        <div class="create-model">
+          <button id="load-pretrained">Load pretrained model</button>
+        </div>
+
+        <div>
+          <span id="demo-status">Standing by.</span>
+        </div>
+
+        <div id="horizontal-section">
+          <div class="canvases" id="lossCanvas"></div>
+          <div class="canvases" id="accuracyCanvas"></div>
+        </div>
+
+        <div id="evaluate">
+          <div id="evaluate-table-title">
+            Text Examples
+          </div>
+          <table id="evaluate-table">
+            <tr>
+              <th>Petal length</th>
+              <th>Petal width</th>
+              <th>Sepal length</th>
+              <th>Sepal width</th>
+              <th>True class</th>
+              <th>Predicted class</th>
+              <th>Probabilities</th>
+            </tr>
+            <tbody id="evaluate-tbody">
+              <tr>
+                <td>
+                  <input id="petal-length" value="5.1"></input>
+                  <button id="petal-length-inc">+</button>
+                  <button id="petal-length-dec">-</button>
+                </td>
+                <td>
+                  <input id="petal-width" value="3.5"></input>
+                  <button id="petal-width-inc">+</button>
+                  <button id="petal-width-dec">-</button>
+                </td>
+                <td>
+                  <input id="sepal-length" value="1.4"></input>
+                  <button id="sepal-length-inc">+</button>
+                  <button id="sepal-length-dec">-</button>
+                </td>
+                <td>
+                  <input id="sepal-width" value="0.2"></input>
+                  <button id="sepal-width-inc">+</button>
+                  <button id="sepal-width-dec">-</button>
+                </td>
+                <td></td>
+                <td id="winner"></td>
+                <td id="logits"></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <script src="index.js"></script>
+  </body>
+</html>

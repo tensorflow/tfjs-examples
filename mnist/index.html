@@ -32,10 +32,23 @@ limitations under the License.
         width: 100px;
         margin: 10px;
       }
+      .canvases > div {
+        display: none;
+      }
+      .canvases {
+        display: inline-block;
+        width: 460px;
+      }
     </style>
 
     <div id="status">Loading data...</div>
     <div id="message"></div>
+
+    <div id="stats">
+      <div class="canvases" id="lossCanvas"></div>
+      <div class="canvases" id="accuracyCanvas"></div>
+    </div>
+
     <div id="images"></div>
     <script src="index.js"></script>
   </body>

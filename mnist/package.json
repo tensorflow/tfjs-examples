@@ -7,7 +7,8 @@
   "private": true,
   "dependencies": {
     "@tensorflow/tfjs": "./tensorflow-tfjs-0.0.1.tgz",
-    "tfjs-layers": "./tfjs-layers-0.0.1.tgz"
+    "tfjs-layers": "./tfjs-layers-0.0.1.tgz",
+    "vega-embed": "~3.0.0"
   },
   "scripts": {
     "watch": "NODE_ENV=development parcel --no-hmr --open index.html ",

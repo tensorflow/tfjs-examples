@@ -20,7 +20,7 @@ import * as tf from '@tensorflow/tfjs';
 import {MnistData} from './data';
 import * as ui from './ui';
 
-const model = tf.sequential({});
+const model = tf.sequential();
 
 model.add(tf.layers.conv2d({
   inputShape: [28, 28, 1],
@@ -43,18 +43,21 @@ model.add(tf.layers.flatten());
 model.add(tf.layers.dense(
     {units: 10, kernelInitializer: 'VarianceScaling', activation: 'softmax'}));
 
-const LEARNING_RATE = 0.1;
-// const optimizer = tf.train.sgd(LEARNING_RATE);
+const LEARNING_RATE = 0.01;
+const optimizer = tf.train.adam(LEARNING_RATE);
 model.compile({
-  optimizer: 'adam',
+  optimizer: optimizer,
   loss: 'categoricalCrossentropy',
   metrics: ['accuracy'],
 });
 
 const BATCH_SIZE = 64;
+const TRAIN_BATCHES = 100;
 
+// Every few batches, test accuracy over many examples. Ideally, we'd compute
+// accuracy over the whole test set, but for performance we'll use a subset.
 const TEST_BATCH_SIZE = 1000;
-const TEST_ITERATION_FREQUENCY = 10;
+const TEST_ITERATION_FREQUENCY = 5;
 
 async function train() {
   ui.isTraining();
@@ -62,15 +65,18 @@ async function train() {
   const lossValues = [];
   const accuracyValues = [];
 
-  for (let i = 0; i < 200; i++) {
+  for (let i = 0; i < TRAIN_BATCHES; i++) {
     const batch = data.nextTrainBatch(BATCH_SIZE);
 
-    const testBatch = i % TEST_ITERATION_FREQUENCY === 0 ?
-        data.nextTestBatch(TEST_BATCH_SIZE) :
-        null;
-    const validationData = testBatch != null ?
-        [testBatch.xs.reshape([TEST_BATCH_SIZE, 28, 28, 1]), testBatch.labels] :
-        null;
+    let testBatch;
+    let validationData;
+    // Every few batches test the accuracy of the mode.
+    if (i % TEST_ITERATION_FREQUENCY === 0) {
+      testBatch = data.nextTestBatch(TEST_BATCH_SIZE);
+      validationData = [
+        testBatch.xs.reshape([TEST_BATCH_SIZE, 28, 28, 1]), testBatch.labels
+      ];
+    }
 
     // The entire dataset doesn't fit into memory so we call fit repeatedly
     // with batches.
@@ -82,6 +88,7 @@ async function train() {
       epochs: 1
     });
 
+    // Plot loss / accuracy.
     lossValues.push(
         {'epoch': i, 'loss': history.history.loss[0], 'set': 'train'});
     ui.plotLosses(lossValues);
@@ -101,10 +108,9 @@ async function train() {
   }
 }
 
-async function test() {
+async function showPredictions() {
   const testExamples = 100;
   const batch = data.nextTestBatch(testExamples);
-  // const result = model.evaluate(testExamples.xs, testExamples.labels);
 
   const output = model.predict(batch.xs.reshape([-1, 28, 28, 1]));
 
@@ -124,6 +130,6 @@ async function load() {
 async function mnist() {
   await load();
   await train();
-  test();
+  showPredictions();
 }
 mnist();

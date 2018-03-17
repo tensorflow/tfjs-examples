@@ -52,7 +52,7 @@ model.compile({
 });
 
 const BATCH_SIZE = 64;
-const TRAIN_BATCHES = 150;
+const TRAIN_BATCHES = 100;
 
 // Every few batches, test accuracy over many examples. Ideally, we'd compute
 // accuracy over the whole test set, but for performance we'll use a subset.

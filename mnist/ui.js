@@ -66,6 +66,7 @@ export function plotLosses(lossValues) {
         'data': {'values': lossValues},
         'mark': {'type': 'line'},
         'width': 260,
+        'orient': 'vertical',
         'encoding': {
           'x': {'field': 'epoch', 'type': 'quantitative'},
           'y': {'field': 'loss', 'type': 'quantitative'},
@@ -82,6 +83,7 @@ export function plotAccuracies(accuracyValues) {
         'data': {'values': accuracyValues},
         'width': 260,
         'mark': {'type': 'line', 'legend': null},
+        'orient': 'vertical',
         'encoding': {
           'x': {'field': 'epoch', 'type': 'quantitative'},
           'y': {'field': 'accuracy', 'type': 'quantitative'},

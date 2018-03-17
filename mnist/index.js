@@ -43,7 +43,7 @@ model.add(tf.layers.flatten());
 model.add(tf.layers.dense(
     {units: 10, kernelInitializer: 'VarianceScaling', activation: 'softmax'}));
 
-const LEARNING_RATE = 0.2;
+const LEARNING_RATE = 0.15;
 const optimizer = tf.train.sgd(LEARNING_RATE);
 model.compile({
   optimizer: optimizer,
@@ -52,7 +52,7 @@ model.compile({
 });
 
 const BATCH_SIZE = 64;
-const TRAIN_BATCHES = 200;
+const TRAIN_BATCHES = 150;
 
 // Every few batches, test accuracy over many examples. Ideally, we'd compute
 // accuracy over the whole test set, but for performance we'll use a subset.

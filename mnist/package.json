@@ -6,7 +6,8 @@
   "license": "Apache-2.0",
   "private": true,
   "dependencies": {
-    "@tensorflow/tfjs": "0.0.2"
+    "@tensorflow/tfjs": "0.0.2",
+    "vega-embed": "~3.0.0"
   },
   "scripts": {
     "watch": "NODE_ENV=development parcel --no-hmr --open index.html ",

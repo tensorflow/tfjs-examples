@@ -15,6 +15,8 @@
  * =============================================================================
  */
 
+import embed from 'vega-embed';
+
 const statusElement = document.getElementById('status');
 const messageElement = document.getElementById('message');
 const imagesElement = document.getElementById('images');
@@ -46,9 +48,6 @@ export function showTestResults(batch, predictions, labels) {
     const prediction = predictions[i];
     const label = labels[i];
     const correct = prediction === label;
-    if (correct) {
-      totalCorrect++;
-    }
 
     pred.className = `pred ${(correct ? 'pred-correct' : 'pred-incorrect')}`;
     pred.innerText = `pred: ${prediction}`;
@@ -58,12 +57,40 @@ export function showTestResults(batch, predictions, labels) {
 
     imagesElement.appendChild(div);
   }
+}
 
-  const accuracy = 100 * totalCorrect / testExamples;
-  const displayStr =
-      `accuracy: ${accuracy.toFixed(2)}% (${totalCorrect} / ${testExamples})`;
-  messageElement.innerText = `${displayStr}\n`;
-  console.log(displayStr);
+export function plotLosses(lossValues) {
+  embed(
+      '#lossCanvas', {
+        '$schema': 'https://vega.github.io/schema/vega-lite/v2.json',
+        'data': {'values': lossValues},
+        'mark': {'type': 'line'},
+        'width': 260,
+        'orient': 'vertical',
+        'encoding': {
+          'x': {'field': 'batch', 'type': 'quantitative'},
+          'y': {'field': 'loss', 'type': 'quantitative'},
+          'color': {'field': 'set', 'type': 'nominal', 'legend': null},
+        }
+      },
+      {width: 360});
+}
+
+export function plotAccuracies(accuracyValues) {
+  embed(
+      '#accuracyCanvas', {
+        '$schema': 'https://vega.github.io/schema/vega-lite/v2.json',
+        'data': {'values': accuracyValues},
+        'width': 260,
+        'mark': {'type': 'line', 'legend': null},
+        'orient': 'vertical',
+        'encoding': {
+          'x': {'field': 'batch', 'type': 'quantitative'},
+          'y': {'field': 'accuracy', 'type': 'quantitative'},
+          'color': {'field': 'set', 'type': 'nominal', 'legend': null},
+        }
+      },
+      {'width': 360});
 }
 
 export function draw(image, canvas) {

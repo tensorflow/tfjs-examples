@@ -171,7 +171,7 @@ function createAndCompileModel(
     layers, hiddenSize, rnnType, digits, vocabularySize) {
   const maxLen = digits + 1 + digits;
 
-  const model = tf.sequential({});
+  const model = tf.sequential();
   switch (rnnType) {
     case 'SimpleRNN':
       model.add(tf.layers.simpleRNN({

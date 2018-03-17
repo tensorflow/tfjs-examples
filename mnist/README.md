@@ -2,11 +2,8 @@
 
 This example shows you how to train MNIST (using the layers API).
 
-<<<<<<< HEAD
 You can out the tutorial that accompanies this example [here](https://js.tensorflow.org/tutorials/mnist.html).
 
-=======
->>>>>>> origin
 This model will compute accuracy over 1000 random test set examples every 5
 steps, plotting loss and accuracy as the model is training. Training time can
 be reduced by computing accuracy over fewer examples less often.

@@ -88,14 +88,15 @@ async function train() {
       epochs: 1
     });
 
+    const loss = history.history.loss[0];
+    const accuracy = history.history.acc[0];
+
     // Plot loss / accuracy.
-    lossValues.push(
-        {'epoch': i, 'loss': history.history.loss[0], 'set': 'train'});
+    lossValues.push({'epoch': i, 'loss': loss, 'set': 'train'});
     ui.plotLosses(lossValues);
 
     if (testBatch != null) {
-      accuracyValues.push(
-          {'epoch': i, 'accuracy': history.history.acc[0], 'set': 'train'});
+      accuracyValues.push({'epoch': i, 'accuracy': accuracy, 'set': 'train'});
       ui.plotAccuracies(accuracyValues);
     }
 

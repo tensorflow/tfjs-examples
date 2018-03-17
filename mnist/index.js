@@ -92,11 +92,11 @@ async function train() {
     const accuracy = history.history.acc[0];
 
     // Plot loss / accuracy.
-    lossValues.push({'epoch': i, 'loss': loss, 'set': 'train'});
+    lossValues.push({'batch': i, 'loss': loss, 'set': 'train'});
     ui.plotLosses(lossValues);
 
     if (testBatch != null) {
-      accuracyValues.push({'epoch': i, 'accuracy': accuracy, 'set': 'train'});
+      accuracyValues.push({'batch': i, 'accuracy': accuracy, 'set': 'train'});
       ui.plotAccuracies(accuracyValues);
     }
 

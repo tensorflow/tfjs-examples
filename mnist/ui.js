@@ -59,6 +59,8 @@ export function showTestResults(batch, predictions, labels) {
   }
 }
 
+const lossLabelElement = document.getElementById('loss-label');
+const accuracyLabelElement = document.getElementById('accuracy-label');
 export function plotLosses(lossValues) {
   embed(
       '#lossCanvas', {
@@ -74,6 +76,8 @@ export function plotLosses(lossValues) {
         }
       },
       {width: 360});
+  lossLabelElement.innerText =
+      'last loss: ' + lossValues[lossValues.length - 1].loss.toFixed(2);
 }
 
 export function plotAccuracies(accuracyValues) {
@@ -91,6 +95,9 @@ export function plotAccuracies(accuracyValues) {
         }
       },
       {'width': 360});
+  accuracyLabelElement.innerText = 'last accuracy: ' +
+      (accuracyValues[accuracyValues.length - 1].accuracy * 100).toFixed(2) +
+      '%';
 }
 
 export function draw(image, canvas) {

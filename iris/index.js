@@ -100,13 +100,12 @@ async function evaluateModelOnTestData(model, xTest, yTest) {
   const xData = xTest.dataSync();
   const yTrue = yTest.argMax(-1).dataSync();
   const predictOut = await model.predict(xTest);
-  // const logits = Array.from(predictOut);  // TOD(cais): Remove
   const yPred = predictOut.argMax(-1);
 
   renderEvaluateTable(xData, yTrue, yPred.dataSync(), predictOut.dataSync());
   predictOnManualInput(model);
 
-  yPred.dispoe();
+  yPred.dispose();
   predictOut.dispose();
 }
 

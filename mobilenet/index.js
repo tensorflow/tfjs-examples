@@ -79,11 +79,17 @@ async function predict(imgElement) {
   // Convert logits to probabilities and class names.
   const classes = await getTopKClasses(logits, TOPK_PREDICTIONS);
   const totalTime = performance.now() - startTime;
-  logits.dispose();
   status(`Done in ${Math.floor(totalTime)}ms`);
 
   // Show the classes in the DOM.
   showResults(imgElement, classes);
+
+  // Release WebGL memory allocated for the intput tensor to and the output
+  // tensor from `mobilenet.predict` to prevent WebGL memory leak during
+  // repeated predictions. The tensors generated during the internal
+  // operations of `mobilenet.predict` call are released automatically.
+  batched.dispose();
+  logits.dispose();
 }
 
 /**
@@ -95,30 +101,28 @@ async function predict(imgElement) {
 export async function getTopKClasses(logits, topK) {
   const values = await logits.data();
 
-  return tf.tidy(() => {
-    const valuesAndIndices = [];
-    for (let i = 0; i < values.length; i++) {
-      valuesAndIndices.push({value: values[i], index: i});
-    }
-    valuesAndIndices.sort((a, b) => {
-      return b.value - a.value;
-    });
-    const topkValues = new Float32Array(topK);
-    const topkIndices = new Int32Array(topK);
-    for (let i = 0; i < topK; i++) {
-      topkValues[i] = valuesAndIndices[i].value;
-      topkIndices[i] = valuesAndIndices[i].index;
-    }
-
-    const topClassesAndProbs = [];
-    for (let i = 0; i < topkIndices.length; i++) {
-      topClassesAndProbs.push({
-        className: IMAGENET_CLASSES[topkIndices[i]],
-        probability: topkValues[i]
-      })
-    }
-    return topClassesAndProbs;
+  const valuesAndIndices = [];
+  for (let i = 0; i < values.length; i++) {
+    valuesAndIndices.push({value: values[i], index: i});
+  }
+  valuesAndIndices.sort((a, b) => {
+    return b.value - a.value;
   });
+  const topkValues = new Float32Array(topK);
+  const topkIndices = new Int32Array(topK);
+  for (let i = 0; i < topK; i++) {
+    topkValues[i] = valuesAndIndices[i].value;
+    topkIndices[i] = valuesAndIndices[i].index;
+  }
+
+  const topClassesAndProbs = [];
+  for (let i = 0; i < topkIndices.length; i++) {
+    topClassesAndProbs.push({
+      className: IMAGENET_CLASSES[topkIndices[i]],
+      probability: topkValues[i]
+    })
+  }
+  return topClassesAndProbs;
 }
 
 //

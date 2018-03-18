@@ -114,6 +114,7 @@ async function showPredictions() {
   const axis = 1;
   const labels = Array.from(batch.labels.argMax(axis).dataSync());
   const predictions = Array.from(output.argMax(axis).dataSync());
+  output.dispose();
 
   ui.showTestResults(batch, predictions, labels);
 }

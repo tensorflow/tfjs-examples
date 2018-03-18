@@ -53,32 +53,20 @@ async function trainModel(xTrain, yTrain, xTest, yTest) {
 
   const lossValues = [];
   const accuracyValues = [];
-  const history = await model.fit({
-    x: xTrain,
-    y: yTrain,
+  const history = await model.fit(xTrain, yTrain, {
     epochs: params.epochs,
     validationData: [xTest, yTest],
     callbacks: {
       onEpochEnd: async (epoch, logs) => {
+        lossValues.push({'epoch': epoch, 'loss': logs['loss'], 'set': 'train'});
         lossValues.push(
-            {'epoch': epoch, 'loss': logs['loss'].dataSync(), 'set': 'train'});
-        lossValues.push({
-          'epoch': epoch,
-          'loss': logs['val_loss'].dataSync(),
-          'set': 'validation'
-        });
+            {'epoch': epoch, 'loss': logs['val_loss'], 'set': 'validation'});
         plotLosses(lossValues);
 
-        accuracyValues.push({
-          'epoch': epoch,
-          'accuracy': logs['acc'].dataSync(),
-          'set': 'train'
-        });
-        accuracyValues.push({
-          'epoch': epoch,
-          'accuracy': logs['val_acc'].dataSync(),
-          'set': 'validation'
-        });
+        accuracyValues.push(
+            {'epoch': epoch, 'accuracy': logs['acc'], 'set': 'train'});
+        accuracyValues.push(
+            {'epoch': epoch, 'accuracy': logs['val_acc'], 'set': 'validation'});
         plotAccuracies(accuracyValues);
 
         await tf.nextFrame();
@@ -97,29 +85,28 @@ async function predictOnManualInput(model) {
   }
 
   const inputData = getManualInputData();
-  tf.tidy(() => {
-    const input = tf.tensor2d([inputData], [1, 4]);
-    const predictOut = model.predict(input);
-
-    const logits = Array.from(predictOut.dataSync());
-    const winner = IRIS_CLASSES[predictOut.argMax(-1).dataSync()[0]];
-    setManualInputWinnerMessage(winner);
-    renderLogitsForManualInput(logits);
-  });
+  const input = tf.tensor2d([inputData], [1, 4]);
+  const predictOut = await model.predict(input);
+  const logits = Array.from(predictOut.dataSync());
+  const winner = IRIS_CLASSES[predictOut.argMax(-1).dataSync()[0]];
+  setManualInputWinnerMessage(winner);
+  renderLogitsForManualInput(logits);
+  input.dispose();
+  predictOut.dispose();
 }
 
 async function evaluateModelOnTestData(model, xTest, yTest) {
   clearEvaluateTable();
-  tf.tidy(() => {
-    const xData = xTest.dataSync();
-    const yTrue = yTest.argMax(-1).dataSync();
-    const predictOut = model.predict(xTest);
-    const logits = Array.from(predictOut.dataSync());
-    const yPred = predictOut.argMax(-1).dataSync();
+  const xData = xTest.dataSync();
+  const yTrue = yTest.argMax(-1).dataSync();
+  const predictOut = await model.predict(xTest);
+  const yPred = predictOut.argMax(-1);
 
-    renderEvaluateTable(xData, yTrue, yPred, logits);
-  });
+  renderEvaluateTable(xData, yTrue, yPred.dataSync(), predictOut.dataSync());
   predictOnManualInput(model);
+
+  yPred.dispose();
+  predictOut.dispose();
 }
 
 async function iris() {

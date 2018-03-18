@@ -179,9 +179,7 @@ async function fitModel(xyData, epochs, learningRate) {
   const model = tf.model({inputs: input, outputs: output});
   const sgd = tf.train.sgd(learningRate);
   model.compile({optimizer: sgd, loss: 'meanSquaredError'});
-  await model.fit({
-    x: xData,
-    y: yData,
+  await model.fit(xData, yData, {
     batchSize: batchSize,
     epochs: epochs,
   });
@@ -192,7 +190,7 @@ async function fitModel(xyData, epochs, learningRate) {
 }
 
 // Render the predictions made by the model.
-function renderModelPredictions(
+async function renderModelPredictions(
     canvas, order, model, xPowerMeans, xPowerStddevs, yMean, yStddev) {
   const ctx = canvas.getContext('2d');
   const width = canvas.width;
@@ -212,8 +210,9 @@ function renderModelPredictions(
     x += xStep;
     n++;
   }
-  const normalizedYs =
-      model.predict(tf.tensor2d(xPowers, [n, order + 1])).dataSync();
+  const predictOut = await model.predict(tf.tensor2d(xPowers, [n, order + 1]));
+  const normalizedYs = predictOut.dataSync();
+  predictOut.dispose();
   ctx.beginPath();
   let canvasXY = world2canvas(canvas, xs[0], normalizedYs[0] * yStddev + yMean);
   ctx.moveTo(canvasXY[0], canvasXY[1]);
@@ -256,7 +255,7 @@ async function fitAndRender() {
   const xPowerStddevs = fitOutputs[2];
   const yMean = fitOutputs[3];
   const yStddev = fitOutputs[4];
-  renderModelPredictions(
+  await renderModelPredictions(
       canvas, order, model, xPowerMeans, xPowerStddevs, yMean, yStddev);
 }
 

@@ -2,18 +2,25 @@
 # yarn lockfile v1
 
 
-"@tensorflow/tfjs-layers@0.0.1":
+"@tensorflow/tfjs-core@0.0.1":
   version "0.0.1"
-  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-layers/-/tfjs-layers-0.0.1.tgz#e988a897a89dc86f116969d5d49628d4eb79e9a0"
+  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-core/-/tfjs-core-0.0.1.tgz#087be00020ed2e581c9e35dea2ca8dd2be537707"
+  dependencies:
+    seedrandom "~2.4.3"
+    utf8 "~2.1.2"
+
+"@tensorflow/tfjs-layers@0.0.4":
+  version "0.0.4"
+  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-layers/-/tfjs-layers-0.0.4.tgz#aafd3c3dc8e2230997cbff0aebd3f13d2ef5a820"
   dependencies:
     underscore "~1.8.3"
 
-"@tensorflow/tfjs@0.0.1":
-  version "0.0.1"
-  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs/-/tfjs-0.0.1.tgz#9be38ff07544490445e72d6266c9706dd0cda5d0"
+"@tensorflow/tfjs@0.0.3":
+  version "0.0.3"
+  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs/-/tfjs-0.0.3.tgz#92950df61b1382d8a5bf40d18fa6c496dbeeee1d"
   dependencies:
-    "@tensorflow/tfjs-layers" "0.0.1"
-    deeplearn next
+    "@tensorflow/tfjs-core" "0.0.1"
+    "@tensorflow/tfjs-layers" "0.0.4"
 
 "@types/json-stable-stringify@^1.0.32":
   version "1.0.32"
@@ -1424,13 +1431,6 @@ deep-extend@~0.4.0:
 deep-is@~0.1.3:
   version "0.1.3"
   resolved "https://registry.yarnpkg.com/deep-is/-/deep-is-0.1.3.tgz#b369d6fb5dbc13eecf524f91b070feedc357cf34"
-
-deeplearn@next:
-  version "0.6.0-alpha5"
-  resolved "https://registry.yarnpkg.com/deeplearn/-/deeplearn-0.6.0-alpha5.tgz#1651d717eb2be1e38e5108d298545631da8cb7a3"
-  dependencies:
-    seedrandom "~2.4.3"
-    utf8 "~2.1.2"
 
 define-properties@^1.1.2:
   version "1.1.2"

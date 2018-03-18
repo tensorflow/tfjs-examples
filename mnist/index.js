@@ -80,13 +80,9 @@ async function train() {
 
     // The entire dataset doesn't fit into memory so we call fit repeatedly
     // with batches.
-    const history = await model.fit({
-      x: batch.xs.reshape([BATCH_SIZE, 28, 28, 1]),
-      y: batch.labels,
-      batchSize: BATCH_SIZE,
-      validationData,
-      epochs: 1
-    });
+    const history = await model.fit(
+        batch.xs.reshape([BATCH_SIZE, 28, 28, 1]), batch.labels,
+        {batchSize: BATCH_SIZE, validationData, epochs: 1});
 
     const loss = history.history.loss[0];
     const accuracy = history.history.acc[0];
@@ -113,7 +109,7 @@ async function showPredictions() {
   const testExamples = 100;
   const batch = data.nextTestBatch(testExamples);
 
-  const output = model.predict(batch.xs.reshape([-1, 28, 28, 1]));
+  const output = await model.predict(batch.xs.reshape([-1, 28, 28, 1]));
 
   const axis = 1;
   const labels = Array.from(batch.labels.argMax(axis).dataSync());

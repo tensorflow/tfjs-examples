@@ -327,15 +327,18 @@ class AdditionRNNDemo {
           this.textXsForDisplay.dispose();
         }
         this.testXsForDisplay = this.testXs.slice(
-            [0, 0, 0], [numTestExamples, this.testXs.shape[1], this.testXs.shape[2]]);
+            [0, 0, 0],
+            [numTestExamples, this.testXs.shape[1], this.testXs.shape[2]]);
       }
       const predictOut = await this.model.predict(this.testXsForDisplay);
       const examples = [];
       const isCorrect = [];
       tf.tidy(() => {
         for (let k = 0; k < numTestExamples; ++k) {
-          const scores = predictOut.slice(
-              [k, 0, 0], [1, predictOut.shape[1], predictOut.shape[2]])
+          const scores =
+              predictOut
+                  .slice(
+                      [k, 0, 0], [1, predictOut.shape[1], predictOut.shape[2]])
                   .as2D(predictOut.shape[1], predictOut.shape[2]);
           const decoded = this.charTable.decode(scores);
           examples.push(this.testData[k][0] + ' = ' + decoded);
@@ -351,8 +354,7 @@ class AdditionRNNDemo {
       for (let i = 0; i < examples.length; ++i) {
         const exampleDiv = document.createElement('div');
         exampleDiv.textContent = examples[i];
-        exampleDiv.className =
-            isCorrect[i] ? 'answer-correct' : 'answer-wrong';
+        exampleDiv.className = isCorrect[i] ? 'answer-correct' : 'answer-wrong';
         examplesDiv.appendChild(exampleDiv);
       }
 

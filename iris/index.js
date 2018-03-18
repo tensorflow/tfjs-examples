@@ -58,25 +58,15 @@ async function trainModel(xTrain, yTrain, xTest, yTest) {
     validationData: [xTest, yTest],
     callbacks: {
       onEpochEnd: async (epoch, logs) => {
+        lossValues.push({'epoch': epoch, 'loss': logs['loss'], 'set': 'train'});
         lossValues.push(
-            {'epoch': epoch, 'loss': logs['loss'], 'set': 'train'});
-        lossValues.push({
-          'epoch': epoch,
-          'loss': logs['val_loss'],
-          'set': 'validation'
-        });
+            {'epoch': epoch, 'loss': logs['val_loss'], 'set': 'validation'});
         plotLosses(lossValues);
 
-        accuracyValues.push({
-          'epoch': epoch,
-          'accuracy': logs['acc'],
-          'set': 'train'
-        });
-        accuracyValues.push({
-          'epoch': epoch,
-          'accuracy': logs['val_acc'],
-          'set': 'validation'
-        });
+        accuracyValues.push(
+            {'epoch': epoch, 'accuracy': logs['acc'], 'set': 'train'});
+        accuracyValues.push(
+            {'epoch': epoch, 'accuracy': logs['val_acc'], 'set': 'validation'});
         plotAccuracies(accuracyValues);
 
         await tf.nextFrame();

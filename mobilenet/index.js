@@ -34,7 +34,7 @@ const mobilenetDemo = async () => {
 
   // Warmup the model. This isn't necessary, but makes the first prediction
   // faster.
-  mobilenet.predict(tf.zeros([1, IMAGE_SIZE, IMAGE_SIZE, 3]));
+  await mobilenet.predict(tf.zeros([1, IMAGE_SIZE, IMAGE_SIZE, 3]));
 
   status('');
 
@@ -61,7 +61,7 @@ async function predict(imgElement) {
   status('Predicting...');
 
   const startTime = performance.now();
-  const logits = tf.tidy(() => {
+  const batched = tf.tidy(() => {
     // tf.fromPixels() returns a Tensor from an image element.
     const img = tf.fromPixels(imgElement).toFloat();
 
@@ -70,16 +70,16 @@ async function predict(imgElement) {
     const normalized = img.sub(offset).div(offset);
 
     // Reshape to a single-element batch so we can pass it to predict.
-    const batched = normalized.reshape([1, IMAGE_SIZE, IMAGE_SIZE, 3]);
-
-    // Make a prediction through mobilenet.
-    return mobilenet.predict(batched);
+    return normalized.reshape([1, IMAGE_SIZE, IMAGE_SIZE, 3]);
   });
+
+  // Make a prediction through mobilenet.
+  const logits = await mobilenet.predict(batched);
 
   // Convert logits to probabilities and class names.
   const classes = await getTopKClasses(logits, TOPK_PREDICTIONS);
   const totalTime = performance.now() - startTime;
-
+  logits.dispose();
   status(`Done in ${Math.floor(totalTime)}ms`);
 
   // Show the classes in the DOM.
@@ -95,28 +95,30 @@ async function predict(imgElement) {
 export async function getTopKClasses(logits, topK) {
   const values = await logits.data();
 
-  const valuesAndIndices = [];
-  for (let i = 0; i < values.length; i++) {
-    valuesAndIndices.push({value: values[i], index: i});
-  }
-  valuesAndIndices.sort((a, b) => {
-    return b.value - a.value;
-  });
-  const topkValues = new Float32Array(topK);
-  const topkIndices = new Int32Array(topK);
-  for (let i = 0; i < topK; i++) {
-    topkValues[i] = valuesAndIndices[i].value;
-    topkIndices[i] = valuesAndIndices[i].index;
-  }
+  return tf.tidy(() => {
+    const valuesAndIndices = [];
+    for (let i = 0; i < values.length; i++) {
+      valuesAndIndices.push({value: values[i], index: i});
+    }
+    valuesAndIndices.sort((a, b) => {
+      return b.value - a.value;
+    });
+    const topkValues = new Float32Array(topK);
+    const topkIndices = new Int32Array(topK);
+    for (let i = 0; i < topK; i++) {
+      topkValues[i] = valuesAndIndices[i].value;
+      topkIndices[i] = valuesAndIndices[i].index;
+    }
 
-  const topClassesAndProbs = [];
-  for (let i = 0; i < topkIndices.length; i++) {
-    topClassesAndProbs.push({
-      className: IMAGENET_CLASSES[topkIndices[i]],
-      probability: topkValues[i]
-    })
-  }
-  return topClassesAndProbs;
+    const topClassesAndProbs = [];
+    for (let i = 0; i < topkIndices.length; i++) {
+      topClassesAndProbs.push({
+        className: IMAGENET_CLASSES[topkIndices[i]],
+        probability: topkValues[i]
+      })
+    }
+    return topClassesAndProbs;
+  });
 }
 
 //

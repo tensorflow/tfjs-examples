@@ -92,15 +92,17 @@ class CharacterTable {
    * @returns The decoded string.
    */
   decode(x, calcArgmax = true) {
-    if (calcArgmax) {
-      x = x.argMax(1);
-    }
-    const xData = x.dataSync();  // TODO(cais): Performance implication?
-    let output = '';
-    for (const index of Array.from(xData)) {
-      output += this.indicesChar[index];
-    }
-    return output;
+    return tf.tidy(() => {
+      if (calcArgmax) {
+        x = x.argMax(1);
+      }
+      const xData = x.dataSync();  // TODO(cais): Performance implication?
+      let output = '';
+      for (const index of Array.from(xData)) {
+        output += this.indicesChar[index];
+      }
+      return output;
+    });
   }
 }
 
@@ -253,17 +255,12 @@ class AdditionRNNDemo {
   }
 
   async train(iterations, batchSize, numTestExamples) {
-    const testXs =
-        tf.backend.sliceAlongFirstAxis(this.testXs, 0, numTestExamples);
-
     const lossValues = [];
     const accuracyValues = [];
     const examplesPerSecValues = [];
     for (let i = 0; i < iterations; ++i) {
       const beginMs = performance.now();
-      const history = await this.model.fit({
-        x: this.trainXs,
-        y: this.trainYs,
+      const history = await this.model.fit(this.trainXs, this.trainYs, {
         epochs: 1,
         batchSize,
         validationData: [this.testXs, this.testYs],
@@ -324,30 +321,41 @@ class AdditionRNNDemo {
           },
           {});
 
+      if (this.testXsForDisplay == null ||
+          this.testXsForDisplay.shape[0] !== numTestExamples) {
+        if (this.textXsForDisplay) {
+          this.textXsForDisplay.dispose();
+        }
+        this.testXsForDisplay = this.testXs.slice(
+            [0, 0, 0], [numTestExamples, this.testXs.shape[1], this.testXs.shape[2]]);
+      }
+      const predictOut = await this.model.predict(this.testXsForDisplay);
+      const examples = [];
+      const isCorrect = [];
       tf.tidy(() => {
-        const predictOut = this.model.predict(testXs);
-        const examples = [];
-        const isCorrect = [];
         for (let k = 0; k < numTestExamples; ++k) {
-          const scores = tf.backend.sliceAlongFirstAxis(predictOut, k, 1)
-                             .as2D(predictOut.shape[1], predictOut.shape[2]);
+          const scores = predictOut.slice(
+              [k, 0, 0], [1, predictOut.shape[1], predictOut.shape[2]])
+                  .as2D(predictOut.shape[1], predictOut.shape[2]);
           const decoded = this.charTable.decode(scores);
           examples.push(this.testData[k][0] + ' = ' + decoded);
           isCorrect.push(this.testData[k][1].trim() === decoded.trim());
         }
-
-        const examplesDiv = document.getElementById('testExamples');
-        while (examplesDiv.firstChild) {
-          examplesDiv.removeChild(examplesDiv.firstChild);
-        }
-        for (let i = 0; i < examples.length; ++i) {
-          const exampleDiv = document.createElement('div');
-          exampleDiv.textContent = examples[i];
-          exampleDiv.className =
-              isCorrect[i] ? 'answer-correct' : 'answer-wrong';
-          examplesDiv.appendChild(exampleDiv);
-        }
       });
+      predictOut.dispose();
+
+      const examplesDiv = document.getElementById('testExamples');
+      while (examplesDiv.firstChild) {
+        examplesDiv.removeChild(examplesDiv.firstChild);
+      }
+      for (let i = 0; i < examples.length; ++i) {
+        const exampleDiv = document.createElement('div');
+        exampleDiv.textContent = examples[i];
+        exampleDiv.className =
+            isCorrect[i] ? 'answer-correct' : 'answer-wrong';
+        examplesDiv.appendChild(exampleDiv);
+      }
+
       await tf.nextFrame();
     }
   }

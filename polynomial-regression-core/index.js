@@ -78,7 +78,7 @@ function predict(x) {
  * labels is a tensor with the y values the model should have predicted.
  */
 function loss(prediction, labels) {
-  // Having a good error metric is key for training a machine learning model
+  // Having a good error function is key for training a machine learning model
   const error = prediction.sub(labels).square().mean();
   return error;
 }

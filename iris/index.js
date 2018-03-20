@@ -103,15 +103,15 @@ async function predictOnManualInput(model) {
     return;
   }
 
-  // Use a `tf.tidy` scope to make sure that WebGL memory allocated for the is
-  // released at the end.
+  // Use a `tf.tidy` scope to make sure that WebGL memory allocated for the
+  // `predict` call are released at the end.
   tf.tidy(() => {
     // Prepare input data as a 2D `tf.Tensor`.
     const inputData = getManualInputData();
     const input = tf.tensor2d([inputData], [1, 4]);
 
     // Call `model.predict` to get the prediction output as probabilities for
-    // the the Iris flower categories.
+    // the Iris flower categories.
 
     const predictOut = model.predict(input);
     const logits = Array.from(predictOut.dataSync());

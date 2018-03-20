@@ -104,7 +104,7 @@ async function predictOnManualInput(model) {
   }
 
   // Use a `tf.tidy` scope to make sure that WebGL memory allocated for the
-  // `predict` call are released at the end.
+  // `predict` call is released at the end.
   tf.tidy(() => {
     // Prepare input data as a 2D `tf.Tensor`.
     const inputData = getManualInputData();

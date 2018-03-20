@@ -78,6 +78,7 @@ const IRIS_DATA = [
 
 /**
  * Convert Iris data arrays to `tf.Tensor`s.
+ *
  * @param data The Iris input feature data, an `Array` of `Array`s, each element
  *   of which is assumed to be a length-4 `Array` (for petal length, petal
  *   width, sepal length, sepal width).

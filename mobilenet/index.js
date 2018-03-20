@@ -33,10 +33,9 @@ const mobilenetDemo = async () => {
   mobilenet = await tf.loadModel(MOBILENET_MODEL_PATH);
 
   // Warmup the model. This isn't necessary, but makes the first prediction
-  // faster.
-  tf.tidy(() => {
-    mobilenet.predict(tf.zeros([1, IMAGE_SIZE, IMAGE_SIZE, 3]));
-  });
+  // faster. Call `dispose` to release the WebGL memory allocated for the return
+  // value of `predict`.
+  mobilenet.predict(tf.zeros([1, IMAGE_SIZE, IMAGE_SIZE, 3])).dispose();
 
   status('');
 

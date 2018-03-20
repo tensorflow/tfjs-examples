@@ -109,14 +109,15 @@ async function showPredictions() {
   const testExamples = 100;
   const batch = data.nextTestBatch(testExamples);
 
-  const output = await model.predict(batch.xs.reshape([-1, 28, 28, 1]));
+  tf.tidy(() => {
+    const output = model.predict(batch.xs.reshape([-1, 28, 28, 1]));
 
-  const axis = 1;
-  const labels = Array.from(batch.labels.argMax(axis).dataSync());
-  const predictions = Array.from(output.argMax(axis).dataSync());
-  output.dispose();
+    const axis = 1;
+    const labels = Array.from(batch.labels.argMax(axis).dataSync());
+    const predictions = Array.from(output.argMax(axis).dataSync());
 
-  ui.showTestResults(batch, predictions, labels);
+    ui.showTestResults(batch, predictions, labels);
+  });
 }
 
 let data;

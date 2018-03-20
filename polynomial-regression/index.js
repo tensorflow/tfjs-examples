@@ -190,7 +190,7 @@ async function fitModel(xyData, epochs, learningRate) {
 }
 
 // Render the predictions made by the model.
-async function renderModelPredictions(
+function renderModelPredictions(
     canvas, order, model, xPowerMeans, xPowerStddevs, yMean, yStddev) {
   const ctx = canvas.getContext('2d');
   const width = canvas.width;
@@ -210,9 +210,9 @@ async function renderModelPredictions(
     x += xStep;
     n++;
   }
-  const predictOut = await model.predict(tf.tensor2d(xPowers, [n, order + 1]));
+
+  const predictOut = model.predict(tf.tensor2d(xPowers, [n, order + 1]));
   const normalizedYs = predictOut.dataSync();
-  predictOut.dispose();
   ctx.beginPath();
   let canvasXY = world2canvas(canvas, xs[0], normalizedYs[0] * yStddev + yMean);
   ctx.moveTo(canvasXY[0], canvasXY[1]);

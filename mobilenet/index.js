@@ -21,7 +21,7 @@ import {IMAGENET_CLASSES} from './imagenet_classes';
 
 const MOBILENET_MODEL_PATH =
     // tslint:disable-next-line:max-line-length
-    'https://storage.googleapis.com/tfjs-models/tfjs-layers/mobilenet_v1_0.25_224/model.json';
+    'https://storage.googleapis.com/tfjs-models/tfjs/mobilenet_v1_0.25_224/model.json';
 
 const IMAGE_SIZE = 224;
 const TOPK_PREDICTIONS = 10;
@@ -34,7 +34,9 @@ const mobilenetDemo = async () => {
 
   // Warmup the model. This isn't necessary, but makes the first prediction
   // faster.
-  await mobilenet.predict(tf.zeros([1, IMAGE_SIZE, IMAGE_SIZE, 3]));
+  tf.tidy(() => {
+    mobilenet.predict(tf.zeros([1, IMAGE_SIZE, IMAGE_SIZE, 3]));
+  });
 
   status('');
 
@@ -74,7 +76,7 @@ async function predict(imgElement) {
   });
 
   // Make a prediction through mobilenet.
-  const logits = await mobilenet.predict(batched);
+  const logits = mobilenet.predict(batched);
 
   // Convert logits to probabilities and class names.
   const classes = await getTopKClasses(logits, TOPK_PREDICTIONS);

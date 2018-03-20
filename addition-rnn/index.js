@@ -330,10 +330,11 @@ class AdditionRNNDemo {
             [0, 0, 0],
             [numTestExamples, this.testXs.shape[1], this.testXs.shape[2]]);
       }
-      const predictOut = await this.model.predict(this.testXsForDisplay);
+
       const examples = [];
       const isCorrect = [];
       tf.tidy(() => {
+        const predictOut = this.model.predict(this.testXsForDisplay);
         for (let k = 0; k < numTestExamples; ++k) {
           const scores =
               predictOut
@@ -345,7 +346,6 @@ class AdditionRNNDemo {
           isCorrect.push(this.testData[k][1].trim() === decoded.trim());
         }
       });
-      predictOut.dispose();
 
       const examplesDiv = document.getElementById('testExamples');
       while (examplesDiv.firstChild) {

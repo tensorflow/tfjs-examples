@@ -19,6 +19,9 @@ import embed from 'vega-embed';
 
 import {IRIS_CLASSES, IRIS_NUM_CLASSES} from './data';
 
+/**
+ * Clear the evaluation table.
+ */
 export function clearEvaluateTable() {
   const tableBody = document.getElementById('evaluate-tbody');
   while (tableBody.children.length > 1) {
@@ -26,7 +29,18 @@ export function clearEvaluateTable() {
   }
 }
 
-export function plotLosses(lossValues) {
+/**
+ * Plot new loss values.
+ *
+ * @param lossValues An `Array` of data to append to.
+ * @param epoch Training epoch number.
+ * @param newTrainLoss The new training loss, as a single `Number`.
+ * @param newValidationLoss The new validation loss, as a single `Number`.
+ */
+export function plotLosses(lossValues, epoch, newTrainLoss, newValidationLoss) {
+  lossValues.push({'epoch': epoch, 'loss': newTrainLoss, 'set': 'train'});
+  lossValues.push(
+      {'epoch': epoch, 'loss': newValidationLoss, 'set': 'validation'});
   embed(
       '#lossCanvas', {
         '$schema': 'https://vega.github.io/schema/vega-lite/v2.json',
@@ -41,7 +55,20 @@ export function plotLosses(lossValues) {
       {});
 }
 
-export function plotAccuracies(accuracyValues) {
+/**
+ * Plot new accuracy values.
+ *
+ * @param lossValues An `Array` of data to append to.
+ * @param epoch Training epoch number.
+ * @param newTrainLoss The new training accuracy, as a single `Number`.
+ * @param newValidationLoss The new validation accuracy, as a single `Number`.
+ */
+export function plotAccuracies(
+    accuracyValues, epoch, newTrainAccuracy, newValidationAccuracy) {
+  accuracyValues.push(
+      {'epoch': epoch, 'accuracy': newTrainAccuracy, 'set': 'train'});
+  accuracyValues.push(
+      {'epoch': epoch, 'accuracy': newValidationAccuracy, 'set': 'validation'});
   embed(
       '#accuracyCanvas', {
         '$schema': 'https://vega.github.io/schema/vega-lite/v2.json',
@@ -56,6 +83,9 @@ export function plotAccuracies(accuracyValues) {
       {});
 }
 
+/**
+ * Get manually input Iris data from the input boxes.
+ */
 export function getManualInputData() {
   return [
     Number(document.getElementById('petal-length').value),

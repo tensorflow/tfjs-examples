@@ -135,7 +135,7 @@ async function translation() {
     targetSeq.set(1, 0, 0, targetTokenIndex['\t']);
 
     // Sample loop for a batch of sequences.
-    // (to simplfy, here we assume that a batch of size 1).
+    // (to simplify, here we assume that a batch of size 1).
     let stopCondition = false;
     let decodedSentence = '';
     while (!stopCondition) {

@@ -1,0 +1,52 @@
+<!--
+Copyright 2018 Google LLC. All Rights Reserved.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+==============================================================================
+-->
+
+<!doctype html>
+<head>
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.8.3/underscore-min.js"></script>
+</head>
+
+<style>
+  .input-div {
+    padding: 5px;
+    font-family: monospace;
+  }
+  .input-output-label {
+    display: inline-block;
+  }
+
+</style>
+
+<body>
+  <h1>TensorFlow.js Layers: Sequence-to-Sequence (English-French Translation) Demo</h1>
+  <div class="input-div">
+    <span class="input-output-label">Input English sentence:</span>
+    <input id="englishSentence" value="Go."></input>
+  </div>
+  <div class="input-div">
+    <span class="input-output-label">Output French sentence:</span>
+    <input class="input-box" id="frenchSentence" readonly="true"></input>
+  </div>
+  <div>
+    <button class="output-box" id="translate">translate</button>
+  </div>
+
+  <script src='index.js'></script>
+</body>

@@ -1,13 +1,14 @@
-# TensorFlow.js Example: Iris Classification
+# TensorFlow.js Example: Sequence-to-Sequence English-French Translation
 
-This demo shows how to perform classification on the
-[classic Iris flower data set](https://en.wikipedia.org/wiki/Iris_flower_data_set)
-using the Layers API of TensorFlow.js.
+This demo shows how to perform sequence-to-sequence prediction using the Layers
+API of TensorFlow.js.
 
-It demonstrates loading a pretrained model hosted at a URL, using `tf.loadModel()`
+It demonstrates loading a pretrained model hosted at a URL, using
+`tf.loadModel()`
 
-The model consists of two `Dense` layers: one with a `relu` activation followed
-by another with a `softmax` activation.
+The model was trained in Python Keras, based on the [lstm_seq2seq](https://github.com/keras-team/keras/blob/master/examples/lstm_seq2seq.py)
+example.  The training data was 149,861 English-French sentence pairs available
+from [http://www.manythings.org/anki](http://www.manythings.org/anki).
 
 To launch the demo, do
 

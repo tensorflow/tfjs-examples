@@ -186,7 +186,7 @@ async function translation() {
   }
 
   // Encode a string (e.g., a sentence) as a Tensor3D that can be fed directly
-  // into the Keras model.
+  // into the TensorFlow.js model.
   function encodeString(str) {
     const strLen = str.length;
     const encoded = tf.buffer([1, maxEncoderSeqLength, numEncoderTokens]);

@@ -17,8 +17,8 @@
 import * as tf from '@tensorflow/tfjs';
 
 /**
- * A datset for webcam controls which allows the user to add example Tensors for
- * particular labels. This object will concat them into two large xs and ys.
+ * A dataset for webcam controls which allows the user to add example Tensors
+ * for particular labels. This object will concat them into two large xs and ys.
  */
 export class ControllerDataset {
   constructor(numClasses) {

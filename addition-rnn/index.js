@@ -178,21 +178,21 @@ function createAndCompileModel(
     case 'SimpleRNN':
       model.add(tf.layers.simpleRNN({
         units: hiddenSize,
-        recurrentInitializer: 'GlorotNormal',
+        recurrentInitializer: 'glorotNormal',
         inputShape: [maxLen, vocabularySize]
       }));
       break;
     case 'GRU':
       model.add(tf.layers.gru({
         units: hiddenSize,
-        recurrentInitializer: 'GlorotNormal',
+        recurrentInitializer: 'glorotNormal',
         inputShape: [maxLen, vocabularySize]
       }));
       break;
     case 'LSTM':
       model.add(tf.layers.lstm({
         units: hiddenSize,
-        recurrentInitializer: 'GlorotNormal',
+        recurrentInitializer: 'glorotNormal',
         inputShape: [maxLen, vocabularySize]
       }));
       break;
@@ -204,21 +204,21 @@ function createAndCompileModel(
     case 'SimpleRNN':
       model.add(tf.layers.simpleRNN({
         units: hiddenSize,
-        recurrentInitializer: 'GlorotNormal',
+        recurrentInitializer: 'glorotNormal',
         returnSequences: true
       }));
       break;
     case 'GRU':
       model.add(tf.layers.gru({
         units: hiddenSize,
-        recurrentInitializer: 'GlorotNormal',
+        recurrentInitializer: 'glorotNormal',
         returnSequences: true
       }));
       break;
     case 'LSTM':
       model.add(tf.layers.lstm({
         units: hiddenSize,
-        recurrentInitializer: 'GlorotNormal',
+        recurrentInitializer: 'glorotNormal',
         returnSequences: true
       }));
       break;

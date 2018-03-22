@@ -14,6 +14,7 @@
  * limitations under the License.
  * =============================================================================
  */
+import * as tf from '@tensorflow/tfjs';
 
 const pacmanElement = document.getElementById('pacman');
 const PACMAN_FPS = 15;
@@ -48,7 +49,7 @@ const denseUnitsElement = document.getElementById('dense-units');
 export const getDenseUnits = () => +denseUnitsElement.value;
 const statusElement = document.getElementById('status');
 
-function startPacman() {
+export function startPacman() {
   fireEvent('N');
 }
 
@@ -56,6 +57,13 @@ export function predictClass(classId) {
   const control = CONTROL_CODES[classId];
   fireEvent(control);
   status(CONTROLS[classId]);
+}
+
+export function isPredicting() {
+  statusElement.style.visibility = 'visible';
+}
+export function donePredicting() {
+  statusElement.style.visibility = 'hidden';
 }
 
 export function status(msg) {
@@ -78,7 +86,10 @@ function fireEvent(keyCode) {
   document.dispatchEvent(e);
 }
 
-let addExampleHandler;
+export let addExampleHandler;
+export function setExampleHandler(handler) {
+  addExampleHandler = handler;
+}
 let mouseDown = false;
 const totals = [0, 0, 0, 0];
 
@@ -111,6 +122,13 @@ leftButton.addEventListener('mouseup', () => mouseDown = false);
 
 rightButton.addEventListener('mousedown', () => handler(3));
 rightButton.addEventListener('mouseup', () => mouseDown = false);
+
+export function drawThumb(img, label) {
+  if (thumbDisplayed[label] == null) {
+    const thumbCanvas = document.getElementById(CONTROLS[label] + '-thumb');
+    draw(img, thumbCanvas);
+  }
+}
 
 export function draw(image, canvas) {
   const [width, height] = [224, 224];

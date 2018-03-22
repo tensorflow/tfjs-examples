@@ -21,8 +21,6 @@ import {ControllerDataset} from './controller_dataset';
 import * as ui from './ui';
 import {Webcam} from './webcam';
 
-console.log('page loaded...');
-
 let isPredicting = false;
 const NUM_CLASSES = 4;
 
@@ -77,13 +75,14 @@ async function train() {
     callbacks: {
       onBatchEnd: async (batch, logs) => {
         trainStatus.innerText = 'Cost: ' + logs.loss.toFixed(5);
+        await tf.nextFrame();
       }
     }
   });
 }
 
 async function predict() {
-  statusElement.style.visibility = 'visible';
+  ui.isPredicting();
   let lastTime = performance.now();
   while (isPredicting) {
     const prediction = tf.tidy(() => {
@@ -104,19 +103,17 @@ async function predict() {
 
     await tf.nextFrame();
   }
-  statusElement.style.visibility = 'hidden';
+  ui.donePredicting();
 }
 
-ui.addExampleHandler = label => {
-  const thumbCanvas = document.getElementById(CONTROLS[label] + '-thumb');
+ui.setExampleHandler(label => {
   tf.tidy(() => {
     const img = webcam.capture();
-    if (thumbDisplayed[label] == null) {
-      ui.draw(img, thumbCanvas);
-    }
     controllerDataset.addExample(getActivation(img), label);
+
+    ui.drawThumb(img, label);
   });
-};
+});
 
 function getActivation(img) {
   return tf.tidy(() => mobilenet.predict(img.expandDims(0)));

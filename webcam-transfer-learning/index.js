@@ -26,11 +26,6 @@ const NUM_CLASSES = 4;
 const PACMAN_FPS = 15;
 Pacman.FPS = PACMAN_FPS;
 
-// This forces the buffer sub data async extension to turn off.
-// It looks like in new versions of chrome this has been turned on,
-// and deeplearn.js has a bug.
-tf.ENV.set('WEBGL_GET_BUFFER_SUB_DATA_ASYNC_EXTENSION_ENABLED', false);
-
 const CONTROLS = ['up', 'down', 'left', 'right'];
 const CONTROL_CODES = ['ARROW_UP', 'ARROW_DOWN', 'ARROW_LEFT', 'ARROW_RIGHT'];
 

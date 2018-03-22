@@ -52,8 +52,7 @@ async function train() {
         activation: 'relu',
         kernelInitializer: 'varianceScaling',
         kernelRegularizer: 'l1l2',
-        useBias: true,
-        inputShape: [1000]
+        useBias: true
       }),
       tf.layers.dense({
         units: NUM_CLASSES,

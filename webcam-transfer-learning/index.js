@@ -18,16 +18,13 @@
 import * as tf from '@tensorflow/tfjs';
 
 import {ControllerDataset} from './controller_dataset';
+import * as ui from './ui';
 import {Webcam} from './webcam';
+
+console.log('page loaded...');
 
 let isPredicting = false;
 const NUM_CLASSES = 4;
-
-const PACMAN_FPS = 15;
-Pacman.FPS = PACMAN_FPS;
-
-const CONTROLS = ['up', 'down', 'left', 'right'];
-const CONTROL_CODES = ['ARROW_UP', 'ARROW_DOWN', 'ARROW_LEFT', 'ARROW_RIGHT'];
 
 const webcamElement = document.getElementById('webcam');
 const webcam = new Webcam(webcamElement);
@@ -48,7 +45,7 @@ async function train() {
   model = tf.sequential({
     layers: [
       tf.layers.flatten({inputShape: [7, 7, 256]}), tf.layers.dense({
-        units: getDenseUnits(),
+        units: ui.getDenseUnits(),
         activation: 'relu',
         kernelInitializer: 'varianceScaling',
         kernelRegularizer: 'l1l2',
@@ -64,11 +61,11 @@ async function train() {
     ]
   });
 
-  const sgd = tf.train.adam(getLearningRate());
+  const sgd = tf.train.adam(ui.getLearningRate());
   model.compile({optimizer: sgd, loss: 'categoricalCrossentropy'});
 
   const batchSize =
-      Math.floor(controllerDataset.xs.shape[0] * getBatchSizeFraction());
+      Math.floor(controllerDataset.xs.shape[0] * ui.getBatchSizeFraction());
   if (!(batchSize > 0)) {
     throw new Error(
         `Batch size is 0 or NaN. Please choose a non-zero fraction.`);
@@ -76,7 +73,7 @@ async function train() {
 
   model.fit(controllerDataset.xs, controllerDataset.ys, {
     batchSize,
-    epochs: getEpochs(),
+    epochs: ui.getEpochs(),
     callbacks: {
       onBatchEnd: async (batch, logs) => {
         trainStatus.innerText = 'Cost: ' + logs.loss.toFixed(5);
@@ -96,38 +93,36 @@ async function predict() {
     });
 
     const classId = (await prediction.as1D().argMax().data())[0];
-    const control = CONTROL_CODES[classId];
-    fireEvent(control);
+
+    ui.predictClass(classId);
 
     const elapsed = performance.now() - lastTime;
-
-    lastTime = performance.now();
-    statusElement.innerText = CONTROLS[classId];
     document.getElementById('inferenceTime').innerText =
         'inference: ' + elapsed + 'ms';
+
+    lastTime = performance.now();
 
     await tf.nextFrame();
   }
   statusElement.style.visibility = 'hidden';
 }
 
-function addExample(label) {
+ui.addExampleHandler = label => {
   const thumbCanvas = document.getElementById(CONTROLS[label] + '-thumb');
   tf.tidy(() => {
     const img = webcam.capture();
     if (thumbDisplayed[label] == null) {
-      draw(img, thumbCanvas);
+      ui.draw(img, thumbCanvas);
     }
     controllerDataset.addExample(getActivation(img), label);
   });
-}
+};
 
 function getActivation(img) {
   return tf.tidy(() => mobilenet.predict(img.expandDims(0)));
 }
 
 async function loadMobilenet() {
-  // TODO(nsthorat): Move these to GCP when they are no longer JSON.
   const model = await tf.loadModel(
       // tslint:disable-next-line:max-line-length
       'https://storage.googleapis.com/tfjs-models/tfjs/mobilenet_v1_0.25_224/model.json');
@@ -137,74 +132,12 @@ async function loadMobilenet() {
   return tf.model({inputs: model.inputs, outputs: layer.output});
 }
 
-let mouseDown = false;
-const totals = [0, 0, 0, 0];
-
-const upButton = document.getElementById('up');
-const downButton = document.getElementById('down');
-const leftButton = document.getElementById('left');
-const rightButton = document.getElementById('right');
-
-const thumbDisplayed = {};
-
-async function handler(label) {
-  mouseDown = true;
-  const className = CONTROLS[label];
-  const button = document.getElementById(className);
-  while (mouseDown) {
-    addExample(label);
-    button.innerText = className + ' (' + (totals[label]++) + ')';
-    await tf.nextFrame();
-  }
-}
-
-function draw(image, canvas) {
-  const [width, height] = [224, 224];
-  const ctx = canvas.getContext('2d');
-  const imageData = new ImageData(width, height);
-  const data = image.dataSync();
-  for (let i = 0; i < height * width; ++i) {
-    const j = i * 4;
-    imageData.data[j + 0] = (data[i * 3 + 0] + 1) * 127;
-    imageData.data[j + 1] = (data[i * 3 + 1] + 1) * 127;
-    imageData.data[j + 2] = (data[i * 3 + 2] + 1) * 127;
-    imageData.data[j + 3] = 255;
-  }
-  ctx.putImageData(imageData, 0, 0);
-}
-
-upButton.addEventListener('mousedown', () => handler(0));
-upButton.addEventListener('mouseup', () => mouseDown = false);
-
-downButton.addEventListener('mousedown', () => handler(1));
-downButton.addEventListener('mouseup', () => mouseDown = false);
-
-leftButton.addEventListener('mousedown', () => handler(2));
-leftButton.addEventListener('mouseup', () => mouseDown = false);
-
-rightButton.addEventListener('mousedown', () => handler(3));
-rightButton.addEventListener('mouseup', () => mouseDown = false);
-
 document.getElementById('train').addEventListener('click', () => train());
 document.getElementById('predict').addEventListener('click', () => {
-  startPacman();
+  ui.startPacman();
   isPredicting = true;
   predict();
 });
-
-// Set hyper params from values above.
-const learningRateElement = document.getElementById('learningRate');
-const getLearningRate = () => +learningRateElement.value;
-
-const batchSizeFractionElement = document.getElementById('batchSizeFraction');
-const getBatchSizeFraction = () => +batchSizeFractionElement.value;
-
-const epochsElement = document.getElementById('epochs');
-const getEpochs = () => +epochsElement.value;
-
-const denseUnitsElement = document.getElementById('dense-units');
-const getDenseUnits = () => +denseUnitsElement.value;
-const statusElement = document.getElementById('status');
 
 async function init() {
   await webcam.setup();
@@ -213,35 +146,8 @@ async function init() {
   // Warm up the model.
   tf.tidy(() => getActivation(webcam.capture()));
 
-  // Show the controls once everything has loaded.
-  document.getElementById('controls').style.display = '';
-  document.getElementsByClassName('train-container')[0].style.visibility =
-      'visible';
-  document.getElementById('cost-container').style.visibility = 'visible';
-  statusElement.style.visibility = 'hidden';
+  ui.init();
 }
-
-const pacmanElement = document.getElementById('pacman');
-
-function startPacman() {
-  fireEvent('N');
-}
-function fireEvent(keyCode) {
-  const e = new KeyboardEvent('keydown');
-
-  Object.defineProperty(e, 'keyCode', {
-    get: () => {
-      return KEY[keyCode];
-    }
-  });
-
-  pacmanElement.dispatchEvent(e);
-  document.dispatchEvent(e);
-}
-
-PACMAN.init(
-    pacmanElement,
-    'http://storage.googleapis.com/tfjs-examples/webcam-transfer-learning/');
 
 // Initialize the application.
 init();

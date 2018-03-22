@@ -25,6 +25,12 @@ export class ControllerDataset {
     this.numClasses = numClasses;
   }
 
+  /**
+   * Adds an example to the controller dataset.
+   * @param {Tensor} example A tensor representing the example. It can be an image,
+   *     an activation, or any other type of Tensor.
+   * @param {number} label The label of the example. Should be an umber.
+   */
   addExample(example, label) {
     const y = tf.tidy(() => tf.oneHot(tf.tensor1d([label]), this.numClasses));
 

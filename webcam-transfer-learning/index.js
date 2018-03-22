@@ -83,7 +83,6 @@ async function train() {
 
 async function predict() {
   ui.isPredicting();
-  let lastTime = performance.now();
   while (isPredicting) {
     const prediction = tf.tidy(() => {
       const img = webcam.capture();
@@ -94,13 +93,6 @@ async function predict() {
     const classId = (await prediction.as1D().argMax().data())[0];
 
     ui.predictClass(classId);
-
-    const elapsed = performance.now() - lastTime;
-    document.getElementById('inferenceTime').innerText =
-        'inference: ' + elapsed + 'ms';
-
-    lastTime = performance.now();
-
     await tf.nextFrame();
   }
   ui.donePredicting();

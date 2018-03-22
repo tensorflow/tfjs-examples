@@ -16,22 +16,12 @@
  */
 import * as tf from '@tensorflow/tfjs';
 
-const pacmanElement = document.getElementById('pacman');
-const PACMAN_FPS = 15;
-Pacman.FPS = PACMAN_FPS;
-
 const CONTROLS = ['up', 'down', 'left', 'right'];
-const CONTROL_CODES = ['ARROW_UP', 'ARROW_DOWN', 'ARROW_LEFT', 'ARROW_RIGHT'];
+const CONTROL_LABELS = ['↑', '↓', '←', '→'];
+const CONTROL_CODES = [38, 40, 37, 39];
 
 export function init() {
-  PACMAN.init(
-      pacmanElement,
-      'http://storage.googleapis.com/tfjs-examples/webcam-transfer-learning/');
-
-  document.getElementById('controls').style.display = '';
-  document.getElementsByClassName('train-container')[0].style.visibility =
-      'visible';
-  document.getElementById('cost-container').style.visibility = 'visible';
+  document.getElementById('controller').style.display = '';
   statusElement.style.visibility = 'hidden';
 }
 
@@ -50,13 +40,12 @@ export const getDenseUnits = () => +denseUnitsElement.value;
 const statusElement = document.getElementById('status');
 
 export function startPacman() {
-  fireEvent('N');
+  google.pacman.startGameplay();
 }
 
 export function predictClass(classId) {
-  const control = CONTROL_CODES[classId];
-  fireEvent(control);
-  status(CONTROLS[classId]);
+  google.pacman.keyPressed(CONTROL_CODES[classId]);
+  status(CONTROL_LABELS[classId]);
 }
 
 export function isPredicting() {
@@ -68,22 +57,6 @@ export function donePredicting() {
 
 export function status(msg) {
   statusElement.innerText = msg;
-}
-
-/**
- * Fires a keyboard event on the pacman element.
- */
-function fireEvent(keyCode) {
-  const e = new KeyboardEvent('keydown');
-
-  Object.defineProperty(e, 'keyCode', {
-    get: () => {
-      return KEY[keyCode];
-    }
-  });
-
-  pacmanElement.dispatchEvent(e);
-  document.dispatchEvent(e);
 }
 
 export let addExampleHandler;
@@ -106,7 +79,7 @@ async function handler(label) {
   const button = document.getElementById(className);
   while (mouseDown) {
     addExampleHandler(label);
-    button.innerText = className + ' (' + (totals[label]++) + ')';
+    button.innerText = CONTROL_LABELS[label] + ' (' + (totals[label]++) + ')';
     await tf.nextFrame();
   }
 }

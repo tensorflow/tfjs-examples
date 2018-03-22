@@ -19,7 +19,6 @@ limitations under the License.
 <link rel="stylesheet" href="https://code.getmdl.io/1.3.0/material.cyan-teal.min.css" />
 <link href="https://fonts.googleapis.com/css?family=Roboto:300,400,500" rel="stylesheet">
 <script src="https://storage.googleapis.com/tfjs-examples/webcam-transfer-learning/modernizr-1.5.min.js"></script>
-<script src="https://storage.googleapis.com/tfjs-examples/webcam-transfer-learning/pacman.js"></script>
 <script defer src="https://code.getmdl.io/1.3.0/material.min.js"></script>
 
 <title>Webcam Pacman</title>
@@ -32,18 +31,20 @@ limitations under the License.
   }
   #container {
     display: flex;
+    flex-direction: column;
+    align-items: center;
     flex-wrap: nowrap;
     justify-content: center;
     width: 100%;
-  }
-  #container div {
-    position: relative;
-    display: flex;
+    margin-top: 40px;
   }
   #controller {
-    margin-right: 30px;
-    flex-direction: column;
-    width: 500px;
+    margin-top: 40px;
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    width: 770px;
+    align-items: center;
   }
   #webcam-container {
     width: 100%;
@@ -61,6 +62,10 @@ limitations under the License.
     justify-content: center;
   }
   #status {
+    position: absolute;
+    top: 160px;
+    font-family: monospace;
+    color: white;
     width: 100%;
     text-align: center;
     font-size: 22px;
@@ -70,22 +75,23 @@ limitations under the License.
     position: relative;
     top: 0;
     left: 0;
-    width: 120px;
-    height: 120px;
+    width: 80px;
+    height: 80px;
     transform: scaleX(-1);
   }
   #container .default-thumb {
     position: absolute;
     top: 0;
     left: 0;
-    width: 120px;
-    height: 120px;
+    width: 80px;
+    height: 80px;
   }
   .default-thumb i {
-    font-size: 120px;
+    font-size: 80px;
   }
   #up, #down, #left, #right {
-    width: 120px;
+    padding: 0;
+    width: 80px;
   }
   .train-container {
     justify-content: center;
@@ -104,14 +110,13 @@ limitations under the License.
   }
   .dropdown {
     flex-direction: column;
-    width: 80px;
-    margin-right: 15px;
+    width: 135px;
+    margin-bottom: 10px;
   }
   .dropdown label {
     color: #777;
     font-size: 13px;
     display: block;
-    margin-bottom: 6px;
     font-weight: 300;
   }
   .dropdown .select {
@@ -152,15 +157,19 @@ limitations under the License.
   }
 
   #controller > div {
-    border-top: 2px dashed #ccc;
-    padding-top: 15px;
-    padding-bottom: 15px;
+    border-left: 1px dashed #ccc;
+    padding-left: 20px;
+    margin-right: 20px;
   }
 
   #container #pacman-container {
-    display: block;
+    padding: 2px;
+    background: #000;
+    border-radius: 8px;
+    transform: scale(1.2);
   }
   .class-controller {
+    position: relative;
     flex-direction: column;
   }
   .hyper-params {
@@ -170,6 +179,9 @@ limitations under the License.
   #train-status {
     margin-top: 20px;
     font-size: 20px;
+  }
+  #train-container button {
+    margin-bottom: 10px;
   }
   header {
     border-bottom: solid 1px rgba(0,0,0,0.4);
@@ -184,26 +196,60 @@ limitations under the License.
     line-height: 1.45em;
     font-weight: 300;
     color: rgba(255, 255, 255, 0.7);
-    padding-top: 40px;
-    padding-bottom: 40px;
+    padding-top: 20px;
+    padding-bottom: 20px;
   }
   header b {
     font-weight: 400;
     color: rgba(255, 255, 255, 1);
   }
+  /* Rules for the pacman game. */
+  #logo {
+    width: 554px;
+    height: 186px;
+    position: relative;
+    margin-bottom: 9px;
+    background: url('https://storage.googleapis.com/tfjs-examples/webcam-transfer-learning/bck.png');
+  }
+  #logo-l {
+    width: 200px;
+    height: 2px;
+    left: 177px;
+    top: 157px;
+    background: #990;
+    position: absolute;
+    display: none;
+    overflow: hidden;
+  }
+  #logo-b{
+    position: absolute;
+    left: 0;
+    background: #ff0;
+    height: 8px;
+    width: 0;
+  }
 </style>
 <header>
   Turn your <b>Web Camera</b> into a controller using a <b>Neural Network</b>.
 </header>
-<div id="status">Loading mobilenet...</div>
-
 <div id="container">
-  <!-- Left side -->
-  <div id="controller">
-    <div id="webcam-container">
+  <!-- Top -->
+  <div id="pacman-container">
+    <div id="logo">
+      <div id="status">Loading mobilenet...</div>
+      <div id="logo-l">
+        <div id="logo-b">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bottom -->
+  <div id="controller" style="display: none;">
+    <div id="webcam-container" style="border: none;">
       <video autoplay playsinline muted id="webcam" width="224" height="224"></video>
     </div>
-    <div id="controls" style="display: none"> <!-- This gets unhidden when the model loads. -->
+    <div id="controls">
       <table>
         <tr>
           <td></td>
@@ -213,7 +259,7 @@ limitations under the License.
                 <i class="material-icons">photo</i>
               </div>
               <canvas width=224 height=224 id="up-thumb" class="thumb"></canvas>
-              <button class="mdl-button mdl-js-button mdl-button--raised" id="up">up</button>
+              <button class="mdl-button mdl-js-button mdl-button--raised" id="up">↑</button>
             </div>
           </td>
           <td></td>
@@ -225,7 +271,7 @@ limitations under the License.
                 <i class="material-icons">photo</i>
               </div>
               <canvas width=224 height=224 id="left-thumb" class="thumb"></canvas>
-              <button class="mdl-button mdl-js-button mdl-button--raised" id="left">left</button>
+              <button class="mdl-button mdl-js-button mdl-button--raised" id="left">←</button>
             </div>
           </td>
           <td>
@@ -234,7 +280,7 @@ limitations under the License.
                 <i class="material-icons">photo</i>
               </div>
               <canvas width=224 height=224 id="down-thumb" class="thumb"></canvas>
-              <button class="mdl-button mdl-js-button mdl-button--raised" id="down">down</button>
+              <button class="mdl-button mdl-js-button mdl-button--raised" id="down">↓</button>
             </div>
           </td>
           <td>
@@ -243,13 +289,13 @@ limitations under the License.
                 <i class="material-icons">photo</i>
               </div>
               <canvas width=224 height=224 id="right-thumb" class="thumb"></canvas>
-              <button class="mdl-button mdl-js-button mdl-button--raised" id="right">right</button>
+              <button class="mdl-button mdl-js-button mdl-button--raised" id="right">→</button>
             </div>
           </td>
         </tr>
       </table>
     </div>
-    <div class="train-container" style="visibility: hidden">
+    <div id="train-container">
       <!-- Hyper params -->
       <div class="hyper-params">
         <!-- Learning rate -->
@@ -302,19 +348,12 @@ limitations under the License.
           </div>
         </div>
         <button class="mdl-button mdl-js-button mdl-button--raised" id="train">Train</button>
+        <button class="mdl-button mdl-js-button mdl-button--raised" id="predict">Play</button>
       </div>
       <!-- Cost -->
       <div id="train-status"></div>
     </div>
-    <div id="cost-container">
-      <button class="mdl-button mdl-js-button mdl-button--raised" id="predict">Play</button>
-      <div id="inferenceTime"></div>
-    </div>
-  </div>
-
-  <!-- Right side -->
-  <div id="pacman-container">
-    <div id="pacman"></div>
   </div>
 </div>
+<script src="https://storage.googleapis.com/tfjs-examples/webcam-transfer-learning/pacman-google.js"></script>
 <script src="index.js"></script>

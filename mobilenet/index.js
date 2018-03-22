@@ -62,7 +62,7 @@ async function predict(imgElement) {
   status('Predicting...');
 
   const startTime = performance.now();
-  const batched = tf.tidy(() => {
+  const logits = tf.tidy(() => {
     // tf.fromPixels() returns a Tensor from an image element.
     const img = tf.fromPixels(imgElement).toFloat();
 
@@ -71,11 +71,11 @@ async function predict(imgElement) {
     const normalized = img.sub(offset).div(offset);
 
     // Reshape to a single-element batch so we can pass it to predict.
-    return normalized.reshape([1, IMAGE_SIZE, IMAGE_SIZE, 3]);
-  });
+    const batched = normalized.reshape([1, IMAGE_SIZE, IMAGE_SIZE, 3]);
 
-  // Make a prediction through mobilenet.
-  const logits = mobilenet.predict(batched);
+    // Make a prediction through mobilenet.
+    return mobilenet.predict(batched);
+  });
 
   // Convert logits to probabilities and class names.
   const classes = await getTopKClasses(logits, TOPK_PREDICTIONS);
@@ -84,13 +84,6 @@ async function predict(imgElement) {
 
   // Show the classes in the DOM.
   showResults(imgElement, classes);
-
-  // Release WebGL memory allocated for the intput tensor to and the output
-  // tensor from `mobilenet.predict` to prevent WebGL memory leak during
-  // repeated predictions. The tensors generated during the internal
-  // operations of `mobilenet.predict` call are released automatically.
-  batched.dispose();
-  logits.dispose();
 }
 
 /**

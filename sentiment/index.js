@@ -16,118 +16,71 @@
  */
 
 import * as tf from '@tensorflow/tfjs';
+import * as loader from './loader';
+import * as ui from './ui';
 
-let model;
+const HOSTED_MODEL_JSON_URL =
+    'https://storage.googleapis.com/tfjs-models/tfjs/sentiment_cnn_v1/model.json';
+const HOSTED_METADATA_JSON_URL =
+    'https://storage.googleapis.com/tfjs-models/tfjs/sentiment_cnn_v1/metadata.json';
 
-function status(statusText) {
-  document.getElementById('status').textContent = statusText;
-}
-
-/**
- * Load pretrained model stored at a remote URL.
- *
- * @return An instance of `tf.Model` with model topology and weights loaded.
- */
-async function loadHostedPretrainedModel() {
-  const HOSTED_MODEL_JSON_URL =
-      'https://storage.googleapis.com/tfjs-models/tfjs/sentiment_cnn_v1/model.json';
-  status('Loading pretrained model from ' + HOSTED_MODEL_JSON_URL);
-  try {
-    model = await tf.loadModel(HOSTED_MODEL_JSON_URL);
-    status('Done loading pretrained model.');
-  } catch (err) {
-    console.log(err);
-    status('Loading pretrained model failed.');
+class SentimentPredictor {
+  /**
+   * Initializes the Sentiment demo.
+   */
+  async init() {
+    this.model = await loader.loadHostedPretrainedModel(HOSTED_MODEL_JSON_URL);
+    await this.loadMetadata();
+    return this;
   }
-}
 
-/**
- * Load metadata file stored at a remote URL.
- *
- * @return An object containing metadata as key-value pairs.
- */
-async function loadHostedMetadata() {
-  const HOSTED_METADATA_JSON_URL =
-      'https://storage.googleapis.com/tfjs-models/tfjs/sentiment_cnn_v1/metadata.json';
-  status('Loading metadata from ' + HOSTED_METADATA_JSON_URL);
-  try {
-    const metadataJson = await fetch(HOSTED_METADATA_JSON_URL);
-    const metadata = await metadataJson.json();
-    status('Done loading metadata.');
-    return metadata;
-  } catch (err) {
-    console.log(err);
-    status('Loading metadata failed.');
+  async loadMetadata() {
+    const sentimentMetadata =
+        await loader.loadHostedMetadata(HOSTED_METADATA_JSON_URL);
+    ui.showMetadata(sentimentMetadata);
+    this.indexFrom = sentimentMetadata['index_from'];
+    this.maxLen = sentimentMetadata['max_len'];
+    console.log('indexFrom = ' + this.indexFrom);
+    console.log('maxLen = ' + this.maxLen);
+
+    this.wordIndex = sentimentMetadata['word_index']
   }
-}
 
-/**
- * The main function of the Sentiment demo.
- *
- * Loads the pretrained model and metadata, and registers a listener to run
- * inference on the contents of the text box when a button is clicked.
- */
-async function sentiment() {
-  const sentimentMetadataJSON = await loadHostedMetadata();
-  await loadHostedPretrainedModel();
-
-  document.getElementById('modelType').textContent =
-      sentimentMetadataJSON['model_type'];
-  document.getElementById('vocabularySize').textContent =
-      sentimentMetadataJSON['vocabulary_size'];
-  document.getElementById('maxLen').textContent =
-      sentimentMetadataJSON['max_len'];
-
-  const exampleReviews = {
-    'positive':
-        'die hard mario fan and i loved this game br br this game starts slightly boring but trust me it\'s worth it as soon as you start your hooked the levels are fun and exiting they will hook you OOV your mind turns to mush i\'m not kidding this game is also orchestrated and is beautifully done br br to keep this spoiler free i have to keep my mouth shut about details but please try this game it\'ll be worth it br br story 9 9 action 10 1 it\'s that good OOV 10 attention OOV 10 average 10',
-    'negative':
-        'the mother in this movie is reckless with her children to the point of neglect i wish i wasn\'t so angry about her and her actions because i would have otherwise enjoyed the flick what a number she was take my advise and fast forward through everything you see her do until the end also is anyone else getting sick of watching movies that are filmed so dark anymore one can hardly see what is being filmed as an audience we are impossibly involved with the actions on the screen so then why the hell can\'t we have night vision'
-  };
-  const testExampleSelect = document.getElementById('test-example-select');
-  const reviewText = document.getElementById('review-text');
-  const runInference = document.getElementById('run-inference');
-  testExampleSelect.addEventListener('change', () => {
-    reviewText.value = exampleReviews[testExampleSelect.value];
-  });
-  reviewText.value = exampleReviews['positive'];
-
-  const indexFrom = sentimentMetadataJSON['index_from'];
-  const maxLen = sentimentMetadataJSON['max_len'];
-  console.log('indexFrom = ' + indexFrom);
-  console.log('maxLen = ' + maxLen);
-
-  const wordIndex = sentimentMetadataJSON['word_index']
-
-  runInference.addEventListener('click', async () => {
+  predict(text) {
     // Convert to lower case and remove all punctuations.
-    const inputText = reviewText.value.trim()
-                          .toLowerCase()
-                          .replace(/(\.|\,|\!)/g, '')
-                          .split(' ');
-    status(inputText);
+    const inputText =
+        text.trim().toLowerCase().replace(/(\.|\,|\!)/g, '').split(' ');
+    ui.status(inputText);
     // Look up word indices.
-    const inputBuffer = tf.buffer([1, maxLen], 'float32');
+    const inputBuffer = tf.buffer([1, this.maxLen], 'float32');
     for (let i = 0; i < inputText.length; ++i) {
       // TODO(cais): Deal with OOV words.
       const word = inputText[i];
-      status(word);
-      inputBuffer.set(wordIndex[word] + indexFrom, 0, i);
+      ui.status(word);
+      inputBuffer.set(this.wordIndex[word] + this.indexFrom, 0, i);
     }
     const input = inputBuffer.toTensor();
-    console.log('inputBuffer.values:', inputBuffer.values);
 
-    status('Running inference');
+    ui.status('Running inference');
     const beginMs = performance.now();
-    const predictOut = model.predict(input);
+    const predictOut = this.model.predict(input);
     const score = predictOut.dataSync()[0];
     predictOut.dispose();
     const endMs = performance.now();
 
-    status(
-        'Inference result (0 - negative; 1 - positive): ' + score +
-        ' (elapsed: ' + (endMs - beginMs) + ' ms)');
-  });
+    return {score: score, elapsed: (endMs - beginMs)};
+  }
+};
+
+
+/**
+ * Loads the pretrained model and metadata, and registers the predict
+ * function with the UI.
+ */
+async function setupSentiment() {
+  const predictor = await new SentimentPredictor().init();
+  ui.setPredictFunction(x => predictor.predict(x));
+  ui.prepUI(x => predictor.predict(x));
 }
 
-sentiment();
+setupSentiment();

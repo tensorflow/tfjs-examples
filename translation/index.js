@@ -16,9 +16,8 @@
  */
 
 import * as tf from '@tensorflow/tfjs';
-
-import {loadHostedMetadata, loadHostedPretrainedModel} from './loader';
-import {setEnglish, setTranslationFunction, status} from './ui';
+import * as loader from './loader';
+import * as ui from './ui';
 
 const HOSTED_MODEL_JSON_URL =
     'https://storage.googleapis.com/tfjs-models/tfjs/translation_en_fr_v1/model.json';
@@ -31,7 +30,7 @@ class Translator {
    * Initializes the Translation demo.
    */
   async init() {
-    const model = await loadHostedPretrainedModel(HOSTED_MODEL_JSON_URL);
+    const model = await loader.loadHostedPretrainedModel(HOSTED_MODEL_JSON_URL);
     await this.loadMetadata();
     this.prepareEncoderModel(model);
     this.prepareDecoderModel(model);
@@ -40,7 +39,7 @@ class Translator {
 
   async loadMetadata() {
     const translationMetadata =
-        await loadHostedMetadata(HOSTED_METADATA_JSON_URL);
+        await loader.loadHostedMetadata(HOSTED_METADATA_JSON_URL);
     this.maxDecoderSeqLength = translationMetadata['max_decoder_seq_length'];
     this.maxEncoderSeqLength = translationMetadata['max_encoder_seq_length'];
     console.log('maxDecoderSeqLength = ' + this.maxDecoderSeqLength);
@@ -168,10 +167,10 @@ class Translator {
 
   /** Translate the given English sentence into French. */
   translate(inputSentence) {
-    status('Translating...');
+    ui.status('Translating...');
     const inputSeq = this.encodeString(inputSentence);
     const decodedSentence = this.decodeSequence(inputSeq);
-    status('');
+    ui.status('');
     return decodedSentence;
   }
 }
@@ -182,8 +181,8 @@ class Translator {
  */
 async function setupTranslator() {
   const translator = await new Translator().init();
-  setTranslationFunction(x => translator.translate(x));
-  setEnglish('Go.', x => translator.translate(x));
+  ui.setTranslationFunction(x => translator.translate(x));
+  ui.setEnglish('Go.', x => translator.translate(x));
 }
 
 setupTranslator();

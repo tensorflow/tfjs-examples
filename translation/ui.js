@@ -27,7 +27,6 @@ export function setEnglish(text, translate) {
 export function setTranslationFunction(translate) {
   const englishElement = document.getElementById('englishSentence');
   englishElement.addEventListener('input', (e) => {
-    // setEnglish(e.value);
     const inputSentence = englishElement.value;
     document.getElementById('frenchSentence').textContent =
         translate(inputSentence);

@@ -15,188 +15,108 @@
  * =============================================================================
  */
 
-
 import * as tf from '@tensorflow/tfjs';
 
-let model;
+import {loadHostedMetadata, loadHostedPretrainedModel} from './loader';
+import {setEnglish, setTranslationFunction, status} from './ui';
 
-function status(statusText) {
-  document.getElementById('status').textContent = statusText;
-}
+const HOSTED_MODEL_JSON_URL =
+    'https://storage.googleapis.com/tfjs-models/tfjs/translation_en_fr_v1/model.json';
 
-/**
- * Load pretrained model stored at a remote URL.
- *
- * @return An instance of `tf.Model` with model topology and weights loaded.
- */
-async function loadHostedPretrainedModel() {
-  const HOSTED_MODEL_JSON_URL =
-      'https://storage.googleapis.com/tfjs-models/tfjs/translation_en_fr_v1/model.json';
-  status('Loading pretrained model from ' + HOSTED_MODEL_JSON_URL);
-  try {
-    model = await tf.loadModel(HOSTED_MODEL_JSON_URL);
-    status('Done loading pretrained model.');
-  } catch (err) {
-    console.log(err);
-    status('Loading pretrained model failed.');
+const HOSTED_METADATA_JSON_URL =
+    'https://storage.googleapis.com/tfjs-models/tfjs/translation_en_fr_v1/metadata.json';
+
+class Translator {
+  /**
+   * The main function of the Translation demo.
+   *
+   * Loads the pretrained model and metadata, and registers a listener to
+   * translate the contents of the English text box into French when the
+   * Translate button is clicked.
+   */
+  async init() {
+    const model = await loadHostedPretrainedModel(HOSTED_MODEL_JSON_URL);
+    await this.loadMetadata();
+    this.prepareEncoderModel(model);
+    this.prepareDecoderModel(model);
+    return this;
   }
-}
 
-/**
- * Load metadata file stored at a remote URL.
- *
- * @return An object containing metadata as key-value pairs.
- */
-async function loadHostedMetadata() {
-  const HOSTED_METADATA_JSON_URL =
-      'https://storage.googleapis.com/tfjs-models/tfjs/translation_en_fr_v1/metadata.json';
-  status('Loading metadata from ' + HOSTED_METADATA_JSON_URL);
-  try {
-    const metadataJson = await fetch(HOSTED_METADATA_JSON_URL);
-    const metadata = await metadataJson.json();
-    status('Done loading metadata.');
-    return metadata;
-  } catch (err) {
-    console.log(err);
-    status('Loading metadata failed.');
+  async loadMetadata() {
+    const translationMetadata =
+        await loadHostedMetadata(HOSTED_METADATA_JSON_URL);
+    this.maxDecoderSeqLength = translationMetadata['max_decoder_seq_length'];
+    this.maxEncoderSeqLength = translationMetadata['max_encoder_seq_length'];
+    console.log('maxDecoderSeqLength = ' + this.maxDecoderSeqLength);
+    console.log('maxEncoderSeqLength = ' + this.maxEncoderSeqLength);
+    this.inputTokenIndex = translationMetadata['input_token_index'];
+    this.targetTokenIndex = translationMetadata['target_token_index'];
+    this.reverseTargetCharIndex =
+        Object.keys(this.targetTokenIndex)
+            .reduce(
+                (obj, key) => (obj[this.targetTokenIndex[key]] = key, obj), {});
   }
-}
 
-/**
- * The main function of the Translation demo.
- *
- * Loads the pretrained model and metadata, and registers a listener to
- * translate the contents of the English text box into French when the
- * Translate button is clicked.
- */
-async function translation() {
-  const translationMetadata = await loadHostedMetadata();
-  console.log(translationMetadata);
-  await loadHostedPretrainedModel();
+  prepareEncoderModel(model) {
+    this.numEncoderTokens = model.input[0].shape[2];
+    console.log('numEncoderTokens = ' + this.numEncoderTokens);
 
-  const maxDecoderSeqLength = translationMetadata['max_decoder_seq_length'];
-  const maxEncoderSeqLength = translationMetadata['max_encoder_seq_length'];
-  console.log('maxDecoderSeqLength = ' + maxDecoderSeqLength);
-  console.log('maxEncoderSeqLength = ' + maxEncoderSeqLength);
-  const inputTokenIndex = translationMetadata['input_token_index'];
-  const targetTokenIndex = translationMetadata['target_token_index'];
+    const encoderInputs = model.input[0];
+    const stateH = model.layers[2].output[1];
+    const stateC = model.layers[2].output[2];
+    const encoderStates = [stateH, stateC];
 
-  const reverseInputCharIndex = _.invert(inputTokenIndex);
-  const reverseTargetCharIndex = _.invert(targetTokenIndex);
+    this.encoderModel =
+        tf.model({inputs: encoderInputs, outputs: encoderStates});
+  }
 
-  const numEncoderTokens = model.input[0].shape[2];
-  const numDecoderTokens = model.input[1].shape[2];
-  console.log('numEncoderTokens = ' + numEncoderTokens);
-  console.log('numDecoderTokens = ' + numDecoderTokens);
+  prepareDecoderModel(model) {
+    this.numDecoderTokens = model.input[1].shape[2];
+    console.log('numDecoderTokens = ' + this.numDecoderTokens);
 
-  const encoderInputs = model.input[0];
-  console.assert(model.layers[2].constructor.name === 'LSTM');
-  const stateH = model.layers[2].output[1];
-  const stateC = model.layers[2].output[2];
-  const encoderStates = [stateH, stateC];
+    const stateH = model.layers[2].output[1];
+    const latentDim = stateH.shape[stateH.shape.length - 1];
+    console.log('latentDim = ' + latentDim);
+    const decoderStateInputH =
+        tf.input({shape: [latentDim], name: 'decoder_state_input_h'});
+    const decoderStateInputC =
+        tf.input({shape: [latentDim], name: 'decoder_state_input_c'});
+    const decoderStateInputs = [decoderStateInputH, decoderStateInputC];
 
-  const encoderModel =
-      tf.model({inputs: encoderInputs, outputs: encoderStates});
+    const decoderLSTM = model.layers[3];
+    const decoderInputs = decoderLSTM.input[0];
+    const applyOutputs =
+        decoderLSTM.apply(decoderInputs, {initialState: decoderStateInputs});
+    let decoderOutputs = applyOutputs[0];
+    const decoderStateH = applyOutputs[1];
+    const decoderStateC = applyOutputs[2];
+    const decoderStates = [decoderStateH, decoderStateC];
 
-  const latentDim = stateH.shape[stateH.shape.length - 1];
-  console.log('latentDim = ' + latentDim);
-  const decoderStateInputH =
-      tf.input({shape: [latentDim], name: 'decoder_state_input_h'});
-  const decoderStateInputC =
-      tf.input({shape: [latentDim], name: 'decoder_state_input_c'});
-  const decoderStateInputs = [decoderStateInputH, decoderStateInputC];
-
-  console.assert(model.layers[3].constructor.name === 'LSTM');
-  const decoderLSTM = model.layers[3];
-  const decoderInputs = decoderLSTM.input[0];
-  const applyOutputs =
-      decoderLSTM.apply(decoderInputs, {initialState: decoderStateInputs});
-  let decoderOutputs = applyOutputs[0];
-  const decoderStateH = applyOutputs[1];
-  const decoderStateC = applyOutputs[2];
-  const decoderStates = [decoderStateH, decoderStateC];
-
-  const decoderDense = model.layers[4];
-  console.assert(decoderDense.constructor.name === 'Dense');
-  decoderOutputs = decoderDense.apply(decoderOutputs);
-  const decoderModel = tf.model({
-    inputs: [decoderInputs].concat(decoderStateInputs),
-    outputs: [decoderOutputs].concat(decoderStates)
-  });
-
-  async function decodeSequence(inputSeq) {
-    // Encode the inputs state vectors.
-    let statesValue = await encoderModel.predict(inputSeq);
-
-    // Generate empty target sequence of length 1.
-    let targetSeq = tf.buffer([1, 1, numDecoderTokens]);
-    // Populate the first character of the target sequence with the start
-    // character.
-    targetSeq.set(1, 0, 0, targetTokenIndex['\t']);
-
-    // Sample loop for a batch of sequences.
-    // (to simplify, here we assume that a batch of size 1).
-    let stopCondition = false;
-    let decodedSentence = '';
-    while (!stopCondition) {
-      const predictOutputs = await decoderModel.predict(
-          [targetSeq.toTensor()].concat(statesValue));
-      const outputTokens = predictOutputs[0];
-      const h = predictOutputs[1];
-      const c = predictOutputs[2];
-
-      // Sample a token.
-      // TODO(cais): Replace the following with tf.argmax when
-      //   it is available.
-      const outputTokenShape = outputTokens.shape;
-      const logits =
-          tf.backend
-              .sliceAlongFirstAxis(
-                  tf.backend.sliceAlongFirstAxis(outputTokens, 0, 1).reshape([
-                    outputTokenShape[1], outputTokenShape[2]
-                  ]),
-                  outputTokenShape[1] - 1, 1)
-              .dataSync();
-      let maxLogit;
-      let sampledTokenIndex;
-      for (let i = 0; i < logits.length; ++i) {
-        if (i === 0 || logits[i] > maxLogit) {
-          maxLogit = logits[i];
-          sampledTokenIndex = i;
-        }
-      }
-      const sampledChar = reverseTargetCharIndex[sampledTokenIndex];
-      decodedSentence += sampledChar;
-
-      // Exit condition: either hit max length or find stop character.
-      if (sampledChar === '\n' ||
-          decodedSentence.length > maxDecoderSeqLength) {
-        stopCondition = true;
-      }
-
-      // Update the target sequence (of length 1).
-      targetSeq = tf.buffer([1, 1, numDecoderTokens]);
-      targetSeq.set(1, 0, 0, sampledTokenIndex);
-
-      // Update states.
-      statesValue = [h, c];
-    }
-
-    return decodedSentence;
+    const decoderDense = model.layers[4];
+    decoderOutputs = decoderDense.apply(decoderOutputs);
+    this.decoderModel = tf.model({
+      inputs: [decoderInputs].concat(decoderStateInputs),
+      outputs: [decoderOutputs].concat(decoderStates)
+    });
   }
 
   // Encode a string (e.g., a sentence) as a Tensor3D that can be fed directly
   // into the TensorFlow.js model.
-  function encodeString(str) {
+  encodeString(str) {
     const strLen = str.length;
-    const encoded = tf.buffer([1, maxEncoderSeqLength, numEncoderTokens]);
+    const encoded =
+        tf.buffer([1, this.maxEncoderSeqLength, this.numEncoderTokens]);
     for (let i = 0; i < strLen; ++i) {
-      if (i >= maxEncoderSeqLength) {
+      if (i >= this.maxEncoderSeqLength) {
         console.error(
             'Input sentence exceeds maximum encoder sequence length: ' +
-            maxEncoderSeqLength);
+            this.maxEncoderSeqLength);
       }
-      const tokenIndex = inputTokenIndex[str[i]];
+
+      console.log('maxEncoderSeqLength = ' + this.maxEncoderSeqLength);
+      console.log('numEncoderTokens = ' + this.numEncoderTokens);
+      console.log('inputTokenIndex = ' + this.inputTokenIndex);
+      const tokenIndex = this.inputTokenIndex[str[i]];
       if (tokenIndex == null) {
         console.error(
             'Character not found in input token index: "' + tokenIndex + '"');
@@ -207,16 +127,71 @@ async function translation() {
     return encoded.toTensor();
   }
 
-  async function doTranslation() {
-    const inputSentence = $('#englishSentence').val();
-    const inputSeq = encodeString(inputSentence);
-    const decodedSentence = await decodeSequence(inputSeq);
-    $('#frenchSentence').val(decodedSentence);
+  decodeSequence(inputSeq) {
+    // Encode the inputs state vectors.
+    let statesValue = this.encoderModel.predict(inputSeq);
+
+    // Generate empty target sequence of length 1.
+    let targetSeq = tf.buffer([1, 1, this.numDecoderTokens]);
+    // Populate the first character of the target sequence with the start
+    // character.
+    targetSeq.set(1, 0, 0, this.targetTokenIndex['\t']);
+
+    // Sample loop for a batch of sequences.
+    // (to simplify, here we assume that a batch of size 1).
+    let stopCondition = false;
+    let decodedSentence = '';
+    console.log(this.reverseTargetCharIndex);
+    while (!stopCondition) {
+      const predictOutputs =
+          this.decoderModel.predict([targetSeq.toTensor()].concat(statesValue));
+      const outputTokens = predictOutputs[0];
+      const h = predictOutputs[1];
+      const c = predictOutputs[2];
+
+      console.log(outputTokens);
+      // Sample a token.
+      const outputTokenShape = outputTokens.shape;
+      const logits = tf.backend.sliceAlongFirstAxis(
+          tf.backend.sliceAlongFirstAxis(outputTokens, 0, 1).reshape([
+            outputTokenShape[1], outputTokenShape[2]
+          ]),
+          outputTokenShape[1] - 1, 1);
+      const sampledTokenIndex = logits.argMax().asScalar().dataSync()[0];
+      console.log(sampledTokenIndex);
+      const sampledChar = this.reverseTargetCharIndex[sampledTokenIndex];
+      decodedSentence += sampledChar;
+
+      // Exit condition: either hit max length or find stop character.
+      if (sampledChar === '\n' ||
+          decodedSentence.length > this.maxDecoderSeqLength) {
+        stopCondition = true;
+      }
+
+      // Update the target sequence (of length 1).
+      targetSeq = tf.buffer([1, 1, this.numDecoderTokens]);
+      targetSeq.set(1, 0, 0, sampledTokenIndex);
+
+      // Update states.
+      statesValue = [h, c];
+    }
+
+    return decodedSentence;
   }
 
-  $('#translate').click(doTranslation);
-
-  doTranslation();
+  translate(inputSentence) {
+    const inputSeq = this.encodeString(inputSentence);
+    const decodedSentence = this.decodeSequence(inputSeq);
+    return decodedSentence;
+  }
 }
 
-translation();
+async function setupTranslator() {
+  const translator = new Translator();
+  await translator.init();
+  setTranslationFunction((x) => translator.translate(x));
+  // setTranslator(translator);
+  setEnglish('Go.');
+}
+
+setupTranslator();

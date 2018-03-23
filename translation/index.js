@@ -28,11 +28,7 @@ const HOSTED_METADATA_JSON_URL =
 
 class Translator {
   /**
-   * The main function of the Translation demo.
-   *
-   * Loads the pretrained model and metadata, and registers a listener to
-   * translate the contents of the English text box into French when the
-   * Translate button is clicked.
+   * Initializes the Translation demo.
    */
   async init() {
     const model = await loadHostedPretrainedModel(HOSTED_MODEL_JSON_URL);
@@ -100,8 +96,10 @@ class Translator {
     });
   }
 
-  // Encode a string (e.g., a sentence) as a Tensor3D that can be fed directly
-  // into the TensorFlow.js model.
+  /**
+   * Encode a string (e.g., a sentence) as a Tensor3D that can be fed directly
+   * into the TensorFlow.js model.
+   */
   encodeString(str) {
     const strLen = str.length;
     const encoded =
@@ -113,15 +111,11 @@ class Translator {
             this.maxEncoderSeqLength);
       }
 
-      console.log('maxEncoderSeqLength = ' + this.maxEncoderSeqLength);
-      console.log('numEncoderTokens = ' + this.numEncoderTokens);
-      console.log('inputTokenIndex = ' + this.inputTokenIndex);
       const tokenIndex = this.inputTokenIndex[str[i]];
       if (tokenIndex == null) {
         console.error(
             'Character not found in input token index: "' + tokenIndex + '"');
       }
-      console.log('"' + str[i] + '" --> ' + tokenIndex);
       encoded.set(1, 0, i, tokenIndex);
     }
     return encoded.toTensor();
@@ -141,7 +135,6 @@ class Translator {
     // (to simplify, here we assume that a batch of size 1).
     let stopCondition = false;
     let decodedSentence = '';
-    console.log(this.reverseTargetCharIndex);
     while (!stopCondition) {
       const predictOutputs =
           this.decoderModel.predict([targetSeq.toTensor()].concat(statesValue));
@@ -149,16 +142,10 @@ class Translator {
       const h = predictOutputs[1];
       const c = predictOutputs[2];
 
-      console.log(outputTokens);
       // Sample a token.
-      const outputTokenShape = outputTokens.shape;
-      const logits = tf.backend.sliceAlongFirstAxis(
-          tf.backend.sliceAlongFirstAxis(outputTokens, 0, 1).reshape([
-            outputTokenShape[1], outputTokenShape[2]
-          ]),
-          outputTokenShape[1] - 1, 1);
-      const sampledTokenIndex = logits.argMax().asScalar().dataSync()[0];
-      console.log(sampledTokenIndex);
+      // We know that outputTokens.shape is [1, 1, n], so no need for slicing.
+      const logits = outputTokens.reshape([outputTokens.shape[2]]);
+      const sampledTokenIndex = logits.argMax().dataSync()[0];
       const sampledChar = this.reverseTargetCharIndex[sampledTokenIndex];
       decodedSentence += sampledChar;
 
@@ -179,19 +166,24 @@ class Translator {
     return decodedSentence;
   }
 
+  /** Translate the given English sentence into French. */
   translate(inputSentence) {
+    status('Translating...');
     const inputSeq = this.encodeString(inputSentence);
     const decodedSentence = this.decodeSequence(inputSeq);
+    status('');
     return decodedSentence;
   }
 }
 
+/**
+ * Loads the pretrained model and metadata, and registers the translation
+ * function with the UI.
+ */
 async function setupTranslator() {
-  const translator = new Translator();
-  await translator.init();
-  setTranslationFunction((x) => translator.translate(x));
-  // setTranslator(translator);
-  setEnglish('Go.');
+  const translator = await new Translator().init();
+  setTranslationFunction(x => translator.translate(x));
+  setEnglish('Go.', x => translator.translate(x));
 }
 
 setupTranslator();

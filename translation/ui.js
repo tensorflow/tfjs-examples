@@ -19,8 +19,9 @@ export function status(statusText) {
   document.getElementById('status').textContent = statusText;
 }
 
-export function setEnglish(text) {
-  document.getElementById('englishSentence').textContent = text;
+export function setEnglish(text, translate) {
+  document.getElementById('englishSentence').value = text;
+  document.getElementById('frenchSentence').textContent = translate(text);
 }
 
 export function setTranslationFunction(translate) {
@@ -28,18 +29,7 @@ export function setTranslationFunction(translate) {
   englishElement.addEventListener('input', (e) => {
     // setEnglish(e.value);
     const inputSentence = englishElement.value;
-    document.getElementById('frenchSentence').value = translate(inputSentence);
+    document.getElementById('frenchSentence').textContent =
+        translate(inputSentence);
   });
 }
-
-/*
-export function setTranslator(translator) {
-  const englishElement = document.getElementById('englishSentence');
-  englishElement.addEventListener('change', () => {
-    const inputSentence = englishElement.textContent;
-    console.log(translator);
-    console.log(translator.maxDecoderSeqLength);
-    document.getElementById('frenchSentence').textContent =
-        translator.translate.bind(translator)(inputSentence);
-  });
-}*/

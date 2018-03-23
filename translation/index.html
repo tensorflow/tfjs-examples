@@ -28,23 +28,27 @@ limitations under the License.
   .input-output-label {
     display: inline-block;
   }
+  .output {
+    font-weight: bold;
+  }
 
 </style>
 
 <body>
   <h1>TensorFlow.js Layers: Sequence-to-Sequence (English-French Translation) Demo</h1>
+  <div>
+    <span id="status">Standing by.</span>
+  </div>
+  <hr>
   <div class="input-div">
     <span class="input-output-label">Input English sentence:</span>
-    <input id="englishSentence"></input>
+    <input id="englishSentence" size=16 maxlength="16"></input>
   </div>
   <div class="input-div">
     <span class="input-output-label">Output French sentence:</span>
-    <input class="input-box" id="frenchSentence" readonly="true"></input>
+    <span class="output" id="frenchSentence"></span>
   </div>
-  <div>
-    <button class="output-box" id="translate">translate</button>
-    <span id="status">Standing by.</span>
-  </div>
+  <hr>
 
   <script src="index.js"></script>
 </body>

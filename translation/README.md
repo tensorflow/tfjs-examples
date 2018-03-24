@@ -16,3 +16,5 @@ To launch the demo, do
 yarn
 yarn watch
 ```
+
+[See this example live!](https://storage.googleapis.com/tfjs-examples/translation/dist/index.html)

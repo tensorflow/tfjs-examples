@@ -102,6 +102,8 @@ async function train() {
       testBatch.xs.dispose();
       testBatch.labels.dispose();
     }
+
+    await tf.nextFrame();
   }
 }
 

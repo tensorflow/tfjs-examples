@@ -6,7 +6,7 @@
   "license": "Apache-2.0",
   "private": true,
   "dependencies": {
-    "@tensorflow/tfjs": "0.0.6",
+    "@tensorflow/tfjs": "0.0.7",
     "vega-embed": "^3.0.0"
   },
   "scripts": {

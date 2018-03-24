@@ -9,18 +9,18 @@
     seedrandom "~2.4.3"
     utf8 "~2.1.2"
 
-"@tensorflow/tfjs-layers@0.0.6":
-  version "0.0.6"
-  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-layers/-/tfjs-layers-0.0.6.tgz#b771777d45c37722e700bc36c72e23cc0ae07766"
+"@tensorflow/tfjs-layers@0.0.7":
+  version "0.0.7"
+  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-layers/-/tfjs-layers-0.0.7.tgz#0cc26dcbf51e9e12f6a32435d9210503618b6ddc"
   dependencies:
     underscore "~1.8.3"
 
-"@tensorflow/tfjs@0.0.6":
-  version "0.0.6"
-  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs/-/tfjs-0.0.6.tgz#454270161c55184013d2f78f088370da3275c42b"
+"@tensorflow/tfjs@0.0.7":
+  version "0.0.7"
+  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs/-/tfjs-0.0.7.tgz#f0f13ace2e964726dbb5753e8583ad84804138e2"
   dependencies:
     "@tensorflow/tfjs-core" "0.0.2"
-    "@tensorflow/tfjs-layers" "0.0.6"
+    "@tensorflow/tfjs-layers" "0.0.7"
 
 abbrev@1:
   version "1.1.1"

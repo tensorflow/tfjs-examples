@@ -12,7 +12,7 @@
   },
   "scripts": {
     "watch": "NODE_ENV=development parcel --no-hmr --open index.html ",
-    "build": "NODE_ENV=production parcel build index.html  --no-minify --public-url /"
+    "build": "NODE_ENV=production parcel build index.html  --no-minify --public-url ./"
   },
   "devDependencies": {
     "babel-plugin-transform-runtime": "~6.23.0",

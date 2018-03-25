@@ -46,13 +46,11 @@ async function train() {
         units: ui.getDenseUnits(),
         activation: 'relu',
         kernelInitializer: 'varianceScaling',
-        kernelRegularizer: 'l1l2',
         useBias: true
       }),
       tf.layers.dense({
         units: NUM_CLASSES,
         kernelInitializer: 'varianceScaling',
-        kernelRegularizer: 'l1l2',
         useBias: false,
         activation: 'softmax'
       })

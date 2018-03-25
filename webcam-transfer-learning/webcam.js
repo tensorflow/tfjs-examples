@@ -47,7 +47,7 @@ export class Webcam {
       const batchedImage = croppedImage.expandDims(0);
 
       // Normalize the image between -1 and 1.
-      return croppedImage.asType('float32').div(oneTwentySeven).sub(one);
+      return batchedImage.asType('float32').div(oneTwentySeven).sub(one);
     });
   }
 

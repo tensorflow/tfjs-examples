@@ -43,7 +43,7 @@ async function loadMobilenet() {
 
   // Return a model that outputs an internal activation.
   const layer = mobilenet.getLayer('conv_pw_13_relu');
-  return tf.model({inputs: model.inputs, outputs: layer.output});
+  return tf.model({inputs: mobilenet.inputs, outputs: layer.output});
 }
 
 // When the UI buttons are pressed, read a frame from the webcam and associate
@@ -115,7 +115,7 @@ async function train() {
     callbacks: {
       onBatchEnd: async (batch, logs) => {
         // Log the cost for every batch that is fed.
-        trainStatus('Cost: ' + logs.loss.toFixed(5));
+        ui.trainStatus('Cost: ' + logs.loss.toFixed(5));
         await tf.nextFrame();
       }
     }
@@ -141,7 +141,7 @@ async function predict() {
 
       // Returns the index with the maximum probability. This number corresponds
       // to the class the model thinks is the most probable given the input.
-      return prediction.as1D().argMax();
+      return logits.as1D().argMax();
     });
 
     const classId = (await predictedClass.data())[0];
@@ -172,7 +172,7 @@ async function init() {
   // Warm up the model. This uploads weights to the GPU and compiles the WebGL
   // programs so the first time we collect data from the webcam it will be
   // quick.
-  tf.tidy(() => getActivation(webcam.capture()));
+  tf.tidy(() => mobilenet.predict(webcam.capture()));
 
   ui.init();
 }

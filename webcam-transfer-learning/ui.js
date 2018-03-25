@@ -25,7 +25,7 @@ export function init() {
   statusElement.style.visibility = 'hidden';
 }
 
-const trainStatus = document.getElementById('train-status');
+const trainStatusElement = document.getElementById('train-status');
 
 // Set hyper params from UI values.
 const learningRateElement = document.getElementById('learningRate');
@@ -64,7 +64,7 @@ export function status(msg) {
   statusElement.innerText = msg;
 }
 export function trainStatus(msg) {
-  trainStatus.innerText = msg;
+  trainStatusElement.innerText = msg;
 }
 
 export let addExampleHandler;

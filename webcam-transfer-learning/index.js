@@ -133,15 +133,15 @@ async function predict() {
 
       // Make a prediction through mobilenet, getting the internal activation of
       // the mobilenet model.
-      const act = mobilenet.predict(img);
+      const activation = mobilenet.predict(img);
 
       // Make a prediction through our newly-trained model using the activation
       // from mobilenet as input.
-      const logits = model.predict(act);
+      const predictions = model.predict(activation);
 
       // Returns the index with the maximum probability. This number corresponds
       // to the class the model thinks is the most probable given the input.
-      return logits.as1D().argMax();
+      return predictions.as1D().argMax();
     });
 
     const classId = (await predictedClass.data())[0];

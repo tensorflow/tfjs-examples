@@ -38,7 +38,6 @@ let model;
 // we'll use as input to our classifier model.
 async function loadMobilenet() {
   const mobilenet = await tf.loadModel(
-      // tslint:disable-next-line:max-line-length
       'https://storage.googleapis.com/tfjs-models/tfjs/mobilenet_v1_0.25_224/model.json');
 
   // Return a model that outputs an internal activation.

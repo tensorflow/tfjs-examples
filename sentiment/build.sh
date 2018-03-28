@@ -61,7 +61,7 @@ mkdir -p "${DATA_ROOT}"
 # Run Python script to generate the pretrained model and weights files.
 # Make sure you install the tensorflowjs pip package first.
 
-python "${SCRIPTS_DIR}/imdb.py" \
+python "${DEMO_DIR}/python/imdb.py" \
     "${MODEL_TYPE}" \
     --epochs "${TRAIN_EPOCHS}" \
     --artifacts_dir "${DATA_ROOT}"

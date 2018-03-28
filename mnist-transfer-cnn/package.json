@@ -1,5 +1,5 @@
 {
-  "name": "tfjs-examples-polynomial-regression",
+  "name": "tfjs-examples-mnist-transfer-cnn",
   "version": "0.1.0",
   "description": "",
   "main": "index.js",
@@ -9,7 +9,8 @@
     "node": ">=8.9.0"
   },
   "dependencies": {
-    "@tensorflow/tfjs": "0.6.1"
+    "@tensorflow/tfjs": "0.6.1",
+    "vega-embed": "~3.0.0"
   },
   "scripts": {
     "watch": "NODE_ENV=development parcel --no-hmr --open index.html ",

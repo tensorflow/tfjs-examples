@@ -77,9 +77,10 @@ async function handler(label) {
   mouseDown = true;
   const className = CONTROLS[label];
   const button = document.getElementById(className);
+  const total = document.getElementById(className + '-total');
   while (mouseDown) {
     addExampleHandler(label);
-    button.innerText = CONTROL_LABELS[label] + ' (' + (totals[label]++) + ')';
+    total.innerText = totals[label]++;
     await tf.nextFrame();
   }
 }

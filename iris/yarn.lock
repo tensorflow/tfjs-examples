@@ -8,18 +8,18 @@
   dependencies:
     seedrandom "~2.4.3"
 
-"@tensorflow/tfjs-layers@0.1.1":
-  version "0.1.1"
-  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-layers/-/tfjs-layers-0.1.1.tgz#7d6854755608a6faf68de02cb2aa8cd71246fc69"
+"@tensorflow/tfjs-layers@0.1.2":
+  version "0.1.2"
+  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-layers/-/tfjs-layers-0.1.2.tgz#fead9860495a0bdb1525645ed7614675e8decaaf"
   dependencies:
     underscore "~1.8.3"
 
-"@tensorflow/tfjs@0.6.0":
-  version "0.6.0"
-  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs/-/tfjs-0.6.0.tgz#d09a920589757f3d8174cb1d782f82ba7c145e16"
+"@tensorflow/tfjs@0.6.1":
+  version "0.6.1"
+  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs/-/tfjs-0.6.1.tgz#8cb0133a0f2d8d6068c0742d8ceb998ef39899b0"
   dependencies:
     "@tensorflow/tfjs-core" "0.6.0"
-    "@tensorflow/tfjs-layers" "0.1.1"
+    "@tensorflow/tfjs-layers" "0.1.2"
 
 "@types/json-stable-stringify@^1.0.32":
   version "1.0.32"

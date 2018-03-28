@@ -17,8 +17,7 @@
 
 import * as tf from '@tensorflow/tfjs';
 import * as ui from './ui';
-
-'use strict';
+import * as util from './util';
 
 /**
  * Load pretrained model stored at a remote URL.
@@ -42,12 +41,12 @@ export async function loadHostedPretrainedModel(url) {
  *
  * @return An object containing metadata as key-value pairs.
  */
-export async function loadHostedData(url, util) {
+export async function loadHostedData(url, numClasses) {
   ui.status('Loading data from ' + url);
   try {
     const raw = await fetch(url);
     const data = await raw.json();
-    const result = util.convertDataToTensors(data);
+    const result = util.convertDataToTensors(data, numClasses);
     result['data'] = data;
     ui.status('Done loading data.');
     return result;

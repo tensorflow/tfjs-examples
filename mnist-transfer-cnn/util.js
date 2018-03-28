@@ -17,93 +17,83 @@
 
 import * as tf from '@tensorflow/tfjs';
 
-'use strict';
-
-export class Util {
-  constructor(imageSize, numClasses) {
-    this.imageSize = imageSize;
-    this.numClasses = numClasses;
+// Convert an image vector (length 784) representing an MNIST image into
+// human-friendly a text representation.
+//
+// Args:
+//   imageVector: An Array of Numbers of length `imageSize * imageSize`.
+//
+// Returns:
+//   A String representing the image.
+export function imageVectorToText(imageVector, imageSize) {
+  if (imageVector.length !== imageSize * imageSize) {
+    throw new Error(
+        'Incorrect length of image vector (expected ' + imageSize * imageSize +
+        '; got ' + imageVector.length + ')');
   }
-
-  // Convert an image vector (length 784) representing an MNIST image into
-  // human-friendly a text representation.
-  //
-  // Args:
-  //   imageVector: An Array of Numbers of length `imageSize * imageSize`.
-  //
-  // Returns:
-  //   A String representing the image.
-  imageVectorToText(imageVector) {
-    if (imageVector.length !== this.imageSize * this.imageSize) {
-      throw new Error(
-          'Incorrect length of image vector (expected ' +
-          this.imageSize * this.imageSize + '; got ' + imageVector.length +
-          ')');
+  let text = '';
+  for (let i = 0; i < imageSize * imageSize; ++i) {
+    if (i % imageSize === 0 && i > 0) {
+      text += '\n';
     }
-    let text = '';
-    for (let i = 0; i < this.imageSize * this.imageSize; ++i) {
-      if (i % this.imageSize === 0 && i > 0) {
-        text += '\n';
-      }
-      const numString = imageVector[i].toString();
-      text += ' '.repeat(numString.length < 4 ? 4 - numString.length : 0) +
-          numString;
-    }
-    return text;
+    const numString = imageVector[i].toString();
+    text +=
+        ' '.repeat(numString.length < 4 ? 4 - numString.length : 0) + numString;
   }
+  return text;
+}
 
-  // Convert a text representation of an MNIST image into an deeplearn Tensor4D
-  // of shape [1, imageSize, imageSize, 1].
-  //
-  // Args:
-  //   text: A String representing the MNIST image.
-  //
-  // Returns:
-  //   A Tensor4D instance representing the image, in a size-1 batch.
-  //     Shape: [1, imageSize, imageSize, 1].
-  textToImageArray(text) {
-    // Split into rows.
-    const pixels = [];
-    const rows = text.split('\n');
-    for (const row of rows) {
-      const tokens = row.split(' ');
-      for (const token of tokens) {
-        if (token.length > 0) {
-          pixels.push(Number.parseInt(token) / 255);
-        }
+// Convert a text representation of an MNIST image into an deeplearn Tensor4D
+// of shape [1, imageSize, imageSize, 1].
+//
+// Args:
+//   text: A String representing the MNIST image.
+//
+// Returns:
+//   A Tensor4D instance representing the image, in a size-1 batch.
+//     Shape: [1, imageSize, imageSize, 1].
+export function textToImageArray(text, imageSize) {
+  // Split into rows.
+  const pixels = [];
+  const rows = text.split('\n');
+  for (const row of rows) {
+    const tokens = row.split(' ');
+    for (const token of tokens) {
+      if (token.length > 0) {
+        pixels.push(Number.parseInt(token) / 255);
       }
     }
-    if (pixels.length !== this.imageSize * this.imageSize) {
-      throw new Error(
-          'Incorrect length of image vector (expected ' +
-          this.imageSize * this.imageSize + '; got ' + pixels.length + ')');
-    }
-    return tf.tensor4d(pixels, [1, this.imageSize, this.imageSize, 1]);
   }
+  if (pixels.length !== imageSize * imageSize) {
+    throw new Error(
+        'Incorrect length of image vector (expected ' + imageSize * imageSize +
+        '; got ' + pixels.length + ')');
+  }
+  return tf.tensor4d(pixels, [1, imageSize, imageSize, 1]);
+}
 
-  indexToOneHot(index) {
-    const oneHot = [];
-    for (let i = 0; i < this.numClasses; ++i) {
-      oneHot.push(i === index ? 1 : 0);
-    }
-    return oneHot;
+export function indexToOneHot(index, numClasses) {
+  const oneHot = [];
+  for (let i = 0; i < numClasses; ++i) {
+    oneHot.push(i === index ? 1 : 0);
   }
+  return oneHot;
+}
 
-  convertDataToTensors(data) {
-    const numExamples = data.length;
-    const imgRows = data[0].x.length;
-    const imgCols = data[0].x[0].length;
-    const xs = [];
-    const ys = [];
-    data.map(example => {
-      xs.push(example.x);
-      ys.push(this.indexToOneHot(example.y));
-    });
-    let xsTensor = tf.reshape(
-        tf.tensor3d(xs, [numExamples, imgRows, imgCols]),
-        [numExamples, imgRows, imgCols, 1]);
-    xsTensor = tf.mul(tf.scalar(1 / 255), xsTensor);
-    let ysTensor = tf.tensor2d(ys, [numExamples, this.numClasses]);
-    return {x: xsTensor, y: ysTensor};
-  }
+export function convertDataToTensors(data, numClasses) {
+  const numExamples = data.length;
+  const imgRows = data[0].x.length;
+  const imgCols = data[0].x[0].length;
+  const xs = [];
+  const ys = [];
+  data.map(example => {
+    xs.push(example.x);
+    ys.push(this.indexToOneHot(example.y, numClasses));
+  });
+  let xsTensor = tf.reshape(
+      tf.tensor3d(xs, [numExamples, imgRows, imgCols]),
+      [numExamples, imgRows, imgCols, 1]);
+  xsTensor = tf.mul(tf.scalar(1 / 255), xsTensor);
+  const ysTensor = tf.tensor2d(ys, [numExamples, numClasses]);
+  return {x: xsTensor, y: ysTensor};
 }

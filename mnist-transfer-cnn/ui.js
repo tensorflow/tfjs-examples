@@ -16,18 +16,17 @@
  */
 
 import * as tf from '@tensorflow/tfjs';
-
-'use strict';
+import * as util from './util';
 
 export function status(statusText, statusColor) {
   document.getElementById('status').textContent = statusText;
   document.getElementById('status').style.color = statusColor;
 }
 
-export function prepUI(predict, retrain, testExamples, util) {
-  setPredictFunction(predict, testExamples, util);
+export function prepUI(predict, retrain, testExamples, imageSize) {
+  setPredictFunction(predict, testExamples, imageSize);
   const imageInput = document.getElementById('image-input');
-  imageInput.value = util.imageVectorToText(testExamples['5_1']);
+  imageInput.value = util.imageVectorToText(testExamples['5_1'], imageSize);
   predict(imageInput.value);
   setRetrainFunction(retrain);
 }
@@ -40,7 +39,7 @@ export function getEpochs() {
   return Number.parseInt(document.getElementById('epochs').value);
 }
 
-function setPredictFunction(predict, testExamples, util) {
+function setPredictFunction(predict, testExamples, imageSize) {
   const imageInput = document.getElementById('image-input');
   imageInput.addEventListener('keyup', () => {
     const result = predict(imageInput.value);
@@ -49,7 +48,7 @@ function setPredictFunction(predict, testExamples, util) {
   const testImageSelect = document.getElementById('test-image-select');
   testImageSelect.addEventListener('change', () => {
     imageInput.value =
-        util.imageVectorToText(testExamples[testImageSelect.value]);
+        util.imageVectorToText(testExamples[testImageSelect.value], imageSize);
     predict(imageInput.value);
   });
 }

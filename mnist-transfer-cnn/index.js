@@ -18,9 +18,7 @@
 import * as tf from '@tensorflow/tfjs';
 import * as loader from './loader';
 import * as ui from './ui';
-import * as _util from './util';
-
-'use strict';
+import * as util from './util';
 
 const HOSTED_MODEL_JSON_URL =
     'https://storage.googleapis.com/tfjs-models/tfjs/mnist_transfer_cnn_v1/model.json';
@@ -35,9 +33,8 @@ class MnistTransferCNNPredictor {
    */
   async init() {
     this.model = await loader.loadHostedPretrainedModel(HOSTED_MODEL_JSON_URL);
-    const imageSize = this.model.layers[0].batchInputShape[1];
-    const numClasses = 5;
-    this.util = new _util.Util(imageSize, numClasses);
+    this.imageSize = this.model.layers[0].batchInputShape[1];
+    this.numClasses = 5;
 
     await this.loadRetrainData();
     this.prepTestExamples();
@@ -47,10 +44,10 @@ class MnistTransferCNNPredictor {
   async loadRetrainData() {
     console.log('Loading data for transfer learning...');
     ui.status('Loading data for transfer learning...');
-    this.gte5TrainData =
-        await loader.loadHostedData(HOSTED_TRAIN_DATA_JSON_URL, this.util);
+    this.gte5TrainData = await loader.loadHostedData(
+        HOSTED_TRAIN_DATA_JSON_URL, this.numClasses);
     this.gte5TestData =
-        await loader.loadHostedData(HOSTED_TEST_DATA_JSON_URL, this.util);
+        await loader.loadHostedData(HOSTED_TEST_DATA_JSON_URL, this.numClasses);
     ui.status('Done loading data for transfer learning.');
   }
 
@@ -84,7 +81,7 @@ class MnistTransferCNNPredictor {
   predict(imageText) {
     tf.tidy(() => {
       try {
-        const image = this.util.textToImageArray(imageText);
+        const image = util.textToImageArray(imageText, this.imageSize);
         const predictOut = this.model.predict(image);
         const winner = predictOut.argMax();
 
@@ -141,7 +138,7 @@ async function setupMnistTransferCNN() {
   const predictor = await new MnistTransferCNNPredictor().init();
   ui.prepUI(
       x => predictor.predict(x), x => predictor.retrainModel(),
-      predictor.testExamples, predictor.util);
+      predictor.testExamples, predictor.imageSize);
 }
 
 setupMnistTransferCNN();

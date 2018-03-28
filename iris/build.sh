@@ -17,14 +17,31 @@
 
 # Builds the Iris demo for TensorFlow.js Layers.
 # Usage example: do this from the 'iris' directory:
-#   ./scripts/build-iris-demo.sh
+#   ./build.sh
 #
 # Then open the demo HTML page in your browser, e.g.,
-#   http://localhost:8000/dist
+#   http://localhost:8000
 
 set -e
 
 DEMO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+DEMO_PORT=8000
+TRAIN_EPOCHS=100
+while true; do
+  if [[ "$1" == "--port" ]]; then
+    DEMO_PORT=$2
+    shift 2
+  elif [[ "$1" == "--epochs" ]]; then
+    TRAIN_EPOCHS=$2
+    shift 2
+  elif [[ -z "$1" ]]; then
+    break
+  else
+    echo "ERROR: Unrecognized argument: $1"
+    exit 1
+  fi
+done
 
 DATA_ROOT="${DEMO_DIR}/dist/data"
 rm -rf "${DATA_ROOT}"
@@ -33,7 +50,9 @@ mkdir -p "${DATA_ROOT}"
 # Run Python script to generate the pretrained model and weights files.
 # Make sure you install the tensorflowjs pip package first.
 
-python "${DEMO_DIR}/python/iris.py" --artifacts_dir "${DATA_ROOT}"
+python "${DEMO_DIR}/python/iris.py" \
+    --epochs "${TRAIN_EPOCHS}" \
+    --artifacts_dir "${DATA_ROOT}"
 
 cd ${DEMO_DIR}
 yarn
@@ -42,8 +61,8 @@ yarn build
 echo
 echo "-----------------------------------------------------------"
 echo "Once the HTTP server has started, you can view the demo at:"
-echo "  http://localhost:${DEMO_PORT}/dist"
+echo "  http://localhost:${DEMO_PORT}"
 echo "-----------------------------------------------------------"
 echo
 
-node_modules/http-server/bin/http-server -p "${DEMO_PORT}"
+node_modules/http-server/bin/http-server ./dist -p "${DEMO_PORT}"

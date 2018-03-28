@@ -26,8 +26,7 @@ import unittest
 
 import numpy as np
 
-from scripts import mnist_transfer_cnn
-
+from . import mnist_transfer_cnn
 
 class MnistTest(unittest.TestCase):
 

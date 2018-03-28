@@ -20,7 +20,7 @@
 #   ./build-mnist-transfer-cnn-demo.sh
 #
 # Then open the demo HTML page in your browser, e.g.,
-#   http://localhost:8000/dist
+#   http://localhost:8000
 
 set -e
 
@@ -63,8 +63,8 @@ yarn build
 echo
 echo "------------------------------------------------------------------"
 echo "Once the HTTP server has started, you can view the demo at:"
-echo "  http://localhost:${DEMO_PORT}/dist"
+echo "  http://localhost:${DEMO_PORT}"
 echo "------------------------------------------------------------------"
 echo
 
-node_modules/http-server/bin/http-server -p "${DEMO_PORT}"
+node_modules/http-server/bin/http-server ./dist -p "${DEMO_PORT}"

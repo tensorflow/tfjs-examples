@@ -18,8 +18,7 @@ import unittest
 import numpy as np
 import keras
 
-from scripts import imdb
-
+from . import imdb
 
 class IMDBTest(unittest.TestCase):
 

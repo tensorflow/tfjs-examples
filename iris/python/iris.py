@@ -16,7 +16,7 @@ import keras
 import numpy as np
 import tensorflowjs as tfjs
 
-from scripts import iris_data
+import iris_data
 
 
 def train(epochs,

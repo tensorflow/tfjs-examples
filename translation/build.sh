@@ -1,24 +1,31 @@
 #!/usr/bin/env bash
 
-# Copyright 2018 Google LLC
+# Copyright 2018 Google LLC. All Rights Reserved.
 #
-# Use of this source code is governed by an MIT-style
-# license that can be found in the LICENSE file or at
-# https://opensource.org/licenses/MIT.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 # =============================================================================
 
 # Builds the sequence-to-sequence English-French translation demo for
 # TensorFlow.js Layers.
-# Usage example: do under the root of the source repository:
-#   ./scripts/build-translation-demo.sh ~/ml-data/fra-eng/fra.txt
+# Usage example: do this in the 'translation' directory:
+#   ./build.sh ~/ml-data/fra-eng/fra.txt
 #
 # You can specify the number of training epochs by using the --epochs flag.
 # For example:
-#   ./scripts/build-translation-demo.sh ~/ml-data/fra-eng/fra.txt --epochs 10
-#
+#   ./build.sh ~/ml-data/fra-eng/fra.txt --epochs 10
 #
 # Then open the demo HTML page in your browser, e.g.,
-#   google-chrome demos/translation_demo.html &
+#   http://localhost:8000
 
 set -e
 
@@ -34,7 +41,7 @@ fi
 shift 1
 
 if [[ ! -f ${TRAIN_DATA_PATH} ]]; then
-  echo "ERORR: Cannot find training data at path '${TRAIN_DATA_PATH}'"
+  echo "ERROR: Cannot find training data at path '${TRAIN_DATA_PATH}'"
   exit 1
 fi
 
@@ -62,9 +69,6 @@ mkdir -p "${DATA_ROOT}"
 # Run Python script to generate the pretrained model and weights files.
 # Make sure you install the tensorflowjs pip package first.
 
-# Train the model and generate:
-#   * saved model in TensorFlow.js
-#   * metadata JSON file.
 python "${DEMO_DIR}/translation.py" \
     "${TRAIN_DATA_PATH}" \
     --recurrent_initializer glorot_uniform \
@@ -81,8 +85,8 @@ yarn build
 echo
 echo "-----------------------------------------------------------"
 echo "Once the HTTP server has started, you can view the demo at:"
-echo "  http://localhost:${DEMO_PORT}/dist"
+echo "  http://localhost:${DEMO_PORT}"
 echo "-----------------------------------------------------------"
 echo
 
-node_modules/http-server/bin/http-server -p "${DEMO_PORT}"
+node_modules/http-server/bin/http-server ./dist -p "${DEMO_PORT}"

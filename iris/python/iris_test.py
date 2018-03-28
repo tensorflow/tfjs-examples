@@ -16,7 +16,7 @@ import shutil
 import tempfile
 import unittest
 
-from scripts import iris
+import iris
 
 
 class IrisTest(unittest.TestCase):

@@ -14,8 +14,7 @@ import unittest
 
 import numpy as np
 
-from scripts import iris_data
-
+import iris_data
 
 class IrisDataTest(unittest.TestCase):
 

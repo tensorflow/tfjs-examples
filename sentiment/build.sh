@@ -16,7 +16,7 @@
 
 set -e
 
-SCRIPTS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+DEMO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 if [[ $# -lt 1 ]]; then
   echo "Usage:"
@@ -46,25 +46,28 @@ while true; do
   fi
 done
 
-# Build TensorFlow.js Layers standalone.
-"${SCRIPTS_DIR}/build-standalone.sh"
 
-DEMO_PATH="${SCRIPTS_DIR}/../dist/demo"
-mkdir -p "${DEMO_PATH}"
+DATA_ROOT="${DEMO_DIR}/dist/data"
+rm -rf "${DATA_ROOT}"
+mkdir -p "${DATA_ROOT}"
 
+# Run Python script to generate the pretrained model and weights files.
 # Make sure you install the tensorflowjs pip package first.
 
-PYTHONPATH="${SCRIPTS_DIR}/.." python "${SCRIPTS_DIR}/imdb.py" \
+python "${SCRIPTS_DIR}/imdb.py" \
     "${MODEL_TYPE}" \
     --epochs "${TRAIN_EPOCHS}" \
-    --artifacts_dir "${DEMO_PATH}/imdb"
+    --artifacts_dir "${DATA_ROOT}"
+
+cd ${DEMO_DIR}
+yarn
+yarn build
 
 echo
 echo "-----------------------------------------------------------"
 echo "Once the HTTP server has started, you can view the demo at:"
-echo "  http://localhost:${DEMO_PORT}/demos/imdb_demo.html"
+echo "  http://localhost:${DEMO_PORT}/dist"
 echo "-----------------------------------------------------------"
 echo
 
-cd "${SCRIPTS_DIR}/.."
 node_modules/http-server/bin/http-server -p "${DEMO_PORT}"

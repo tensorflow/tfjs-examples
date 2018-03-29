@@ -27,14 +27,20 @@ let model;
  *
  * @return An instance of `tf.Model` with model topology and weights loaded.
  */
-async function loadHostedPretrainedModel() {
-  const HOSTED_MODEL_JSON_URL =
-      'https://storage.googleapis.com/tfjs-models/tfjs/iris_v1/model.json';
+async function loadHostedPretrainedModel(local) {
+  let HOSTED_MODEL_JSON_URL;
+  if (local) {
+    HOSTED_MODEL_JSON_URL = 'http://localhost:1235/resources/model.json';
+  } else {
+    HOSTED_MODEL_JSON_URL =
+        'https://storage.googleapis.com/tfjs-models/tfjs/iris_v1/model.json';
+  }
   status('Loading pretrained model from ' + HOSTED_MODEL_JSON_URL);
   try {
     model = await tf.loadModel(HOSTED_MODEL_JSON_URL);
     status('Done loading pretrained model.');
   } catch (err) {
+    console.log(err);
     status('Loading pretrained model failed.');
   }
 }
@@ -155,10 +161,17 @@ async function iris() {
         evaluateModelOnTestData(model, xTest, yTest);
       });
 
-  document.getElementById('load-pretrained')
+  document.getElementById('load-pretrained-remote')
       .addEventListener('click', async () => {
         clearEvaluateTable();
-        await loadHostedPretrainedModel();
+        await loadHostedPretrainedModel(false);
+        predictOnManualInput(model);
+      });
+
+  document.getElementById('load-pretrained-local')
+      .addEventListener('click', async () => {
+        clearEvaluateTable();
+        await loadHostedPretrainedModel(true);
         predictOnManualInput(model);
       });
 

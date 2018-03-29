@@ -227,5 +227,6 @@ export function loadTrainParametersFromUI() {
 }
 
 export function status(statusText) {
+  console.log(statusText);
   document.getElementById('demo-status').textContent = statusText;
 }

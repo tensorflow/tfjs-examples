@@ -22,7 +22,7 @@ const CONTROL_CODES = [38, 40, 37, 39];
 
 export function init() {
   document.getElementById('controller').style.display = '';
-  statusElement.style.visibility = 'hidden';
+  statusElement.style.display = 'none';
 }
 
 // Set hyper params from UI values.

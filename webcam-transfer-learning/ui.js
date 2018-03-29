@@ -17,12 +17,11 @@
 import * as tf from '@tensorflow/tfjs';
 
 const CONTROLS = ['up', 'down', 'left', 'right'];
-const CONTROL_LABELS = ['↑', '↓', '←', '→'];
 const CONTROL_CODES = [38, 40, 37, 39];
 
 export function init() {
   document.getElementById('controller').style.display = '';
-  statusElement.style.visibility = 'hidden';
+  statusElement.style.display = 'none';
 }
 
 // Set hyper params from UI values.
@@ -45,7 +44,7 @@ export function startPacman() {
 
 export function predictClass(classId) {
   google.pacman.keyPressed(CONTROL_CODES[classId]);
-  status(CONTROL_LABELS[classId]);
+  document.body.setAttribute('data-active', CONTROLS[classId]);
 }
 
 export function isPredicting() {
@@ -53,10 +52,6 @@ export function isPredicting() {
 }
 export function donePredicting() {
   statusElement.style.visibility = 'hidden';
-}
-
-export function status(msg) {
-  statusElement.innerText = msg;
 }
 
 export let addExampleHandler;
@@ -80,9 +75,11 @@ async function handler(label) {
   const total = document.getElementById(className + '-total');
   while (mouseDown) {
     addExampleHandler(label);
+    document.body.setAttribute('data-active', CONTROLS[label]);
     total.innerText = totals[label]++;
     await tf.nextFrame();
   }
+  document.body.removeAttribute('data-active');
 }
 
 upButton.addEventListener('mousedown', () => handler(0));

@@ -49,10 +49,18 @@ header b {
   font-weight: 400;
 }
 
+/** Loading message. */
+#status {
+  color: #f8f8f8;
+  font-weight: 300;
+  margin: 12px 0;
+  text-align: center;
+}
+
 /* Rules for the pacman game. */
 #pacman-container {
   background: black;
-  padding: 25px 0;
+  padding: 25px 0 40px;
 }
 #logo {
   background: url('https://storage.googleapis.com/tfjs-examples/assets/webcam-transfer-learning/bck.png');
@@ -66,6 +74,8 @@ header b {
 #logo #pcm-c {
   border-top: none;
   margin: 0 auto;
+  position: relative;
+  top: 20px;
 }
 #logo-l {
   background: #990;
@@ -282,6 +292,13 @@ header b {
   display: inline-block;
   padding: 9px;
   position: relative;
+  transition: box-shadow 0.3s;
+}
+[data-active="up"] .panel-row-top .thumb-box-outer,
+[data-active="down"] .panel-row-bottom .thumb-box-outer,
+[data-active="left"] .panel-cell-left .thumb-box-outer,
+[data-active="right"] .panel-cell-right .thumb-box-outer {
+  box-shadow: 0 0 4px 4px #ffaa00;
 }
 .thumb-box-inner {
   border: 1px solid #585858;

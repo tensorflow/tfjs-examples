@@ -49,6 +49,14 @@ header b {
   font-weight: 400;
 }
 
+/** Loading message. */
+#status {
+  color: #f8f8f8;
+  font-weight: 300;
+  margin: 12px 0;
+  text-align: center;
+}
+
 /* Rules for the pacman game. */
 #pacman-container {
   background: black;

@@ -15,24 +15,19 @@
 # limitations under the License.
 # =============================================================================
 
-# Builds the Iris demo for TensorFlow.js Layers.
-# Usage example: do this from the 'iris' directory:
-#   ./build.sh
-#
-# Then open the demo HTML page in your browser, e.g.,
-#   http://localhost:8000
+# Builds resources for the MNIST Transfer CNN demo.
+# Note this is not necessary to run the demo, because we already provide hosted
+# pre-built resources.
+# Usage example: do this from the 'mnist-transfer-cnn' directory:
+#   ./build-resources.sh
 
 set -e
 
 DEMO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-DEMO_PORT=8000
-TRAIN_EPOCHS=100
+TRAIN_EPOCHS=5
 while true; do
-  if [[ "$1" == "--port" ]]; then
-    DEMO_PORT=$2
-    shift 2
-  elif [[ "$1" == "--epochs" ]]; then
+  if [[ "$1" == "--epochs" ]]; then
     TRAIN_EPOCHS=$2
     shift 2
   elif [[ -z "$1" ]]; then
@@ -43,16 +38,18 @@ while true; do
   fi
 done
 
-DATA_ROOT="${DEMO_DIR}/dist/data"
-rm -rf "${DATA_ROOT}"
-mkdir -p "${DATA_ROOT}"
+RESOURCES_ROOT="${DEMO_DIR}/dist/resources"
+rm -rf "${RESOURCES_ROOT}"
+mkdir -p "${RESOURCES_ROOT}"
 
 # Run Python script to generate the pretrained model and weights files.
-# Make sure you install the tensorflowjs pip package first.
+# Make sure you have installed the tensorfowjs pip package first.
 
-python "${DEMO_DIR}/python/iris.py" \
+python "${DEMO_DIR}/python/mnist_transfer_cnn.py" \
     --epochs "${TRAIN_EPOCHS}" \
-    --artifacts_dir "${DATA_ROOT}"
+    --artifacts_dir "${RESOURCES_ROOT}" \
+    --gte5_data_path_prefix "${RESOURCES_ROOT}/gte5" \
+    --gte5_cutoff 1024
 
 cd ${DEMO_DIR}
 yarn
@@ -60,9 +57,7 @@ yarn build
 
 echo
 echo "-----------------------------------------------------------"
-echo "Once the HTTP server has started, you can view the demo at:"
-echo "  http://localhost:${DEMO_PORT}"
+echo "Resources written to ${RESOURCES_ROOT}."
+echo "You can now run the demo with 'yarn watch'."
 echo "-----------------------------------------------------------"
 echo
-
-node_modules/http-server/bin/http-server ./dist -p "${DEMO_PORT}"

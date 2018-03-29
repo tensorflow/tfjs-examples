@@ -15,17 +15,15 @@
 # limitations under the License.
 # =============================================================================
 
-# Builds the sequence-to-sequence English-French translation demo for
-# TensorFlow.js Layers.
+# Builds resources for the sequence-to-sequence English-French translation demo.
+# Note this is not necessary to run the demo, because we already provide hosted
+# pre-built resources.
 # Usage example: do this in the 'translation' directory:
 #   ./build.sh ~/ml-data/fra-eng/fra.txt
 #
 # You can specify the number of training epochs by using the --epochs flag.
 # For example:
-#   ./build.sh ~/ml-data/fra-eng/fra.txt --epochs 10
-#
-# Then open the demo HTML page in your browser, e.g.,
-#   http://localhost:8000
+#   ./build-resources.sh ~/ml-data/fra-eng/fra.txt --epochs 10
 
 set -e
 
@@ -46,12 +44,8 @@ if [[ ! -f ${TRAIN_DATA_PATH} ]]; then
 fi
 
 TRAIN_EPOCHS=100
-DEMO_PORT=8000
 while true; do
-  if [[ "$1" == "--port" ]]; then
-    DEMO_PORT=$2
-    shift 2
-  elif [[ "$1" == "--epochs" ]]; then
+  if [[ "$1" == "--epochs" ]]; then
     TRAIN_EPOCHS=$2
     shift 2
   elif [[ -z "$1" ]]; then
@@ -62,9 +56,9 @@ while true; do
   fi
 done
 
-DATA_ROOT="${DEMO_DIR}/dist/data"
-rm -rf "${DATA_ROOT}"
-mkdir -p "${DATA_ROOT}"
+RESOURCES_ROOT="${DEMO_DIR}/dist/resources"
+rm -rf "${RESOURCES_ROOT}"
+mkdir -p "${RESOURCES_ROOT}"
 
 # Run Python script to generate the pretrained model and weights files.
 # Make sure you install the tensorflowjs pip package first.
@@ -72,7 +66,7 @@ mkdir -p "${DATA_ROOT}"
 python "${DEMO_DIR}/translation.py" \
     "${TRAIN_DATA_PATH}" \
     --recurrent_initializer glorot_uniform \
-    --artifacts_dir "${DATA_ROOT}" \
+    --artifacts_dir "${RESOURCES_ROOT}" \
     --epochs "${TRAIN_EPOCHS}"
 # TODO(cais): This --recurrent_initializer is a workaround for the limitation
 # in TensorFlow.js Layers that the default recurrent initializer "Orthogonal" is
@@ -84,9 +78,7 @@ yarn build
 
 echo
 echo "-----------------------------------------------------------"
-echo "Once the HTTP server has started, you can view the demo at:"
-echo "  http://localhost:${DEMO_PORT}"
+echo "Resources written to ${RESOURCES_ROOT}."
+echo "You can now run the demo with 'yarn watch'."
 echo "-----------------------------------------------------------"
 echo
-
-node_modules/http-server/bin/http-server ./dist -p "${DEMO_PORT}"

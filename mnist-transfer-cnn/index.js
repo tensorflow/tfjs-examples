@@ -20,19 +20,28 @@ import * as loader from './loader';
 import * as ui from './ui';
 import * as util from './util';
 
-const HOSTED_MODEL_JSON_URL =
-    'https://storage.googleapis.com/tfjs-models/tfjs/mnist_transfer_cnn_v1/model.json';
-const HOSTED_TRAIN_DATA_JSON_URL =
-    'https://storage.googleapis.com/tfjs-models/tfjs/mnist_transfer_cnn_v1/gte5.train.json';
-const HOSTED_TEST_DATA_JSON_URL =
-    'https://storage.googleapis.com/tfjs-models/tfjs/mnist_transfer_cnn_v1/gte5.test.json';
+const HOSTED_URLS = {
+  model:
+      'https://storage.googleapis.com/tfjs-models/tfjs/mnist_transfer_cnn_v1/model.json',
+  train:
+      'https://storage.googleapis.com/tfjs-models/tfjs/mnist_transfer_cnn_v1/gte5.train.json',
+  test:
+      'https://storage.googleapis.com/tfjs-models/tfjs/mnist_transfer_cnn_v1/gte5.test.json'
+};
+
+const LOCAL_URLS = {
+  model: 'http://localhost:1235/resources/model.json',
+  train: 'http://localhost:1235/resources/gte5.train.json',
+  test: 'http://localhost:1235/resources/gte5.test.json'
+};
 
 class MnistTransferCNNPredictor {
   /**
    * Initializes the MNIST Transfer CNN demo.
    */
-  async init() {
-    this.model = await loader.loadHostedPretrainedModel(HOSTED_MODEL_JSON_URL);
+  async init(urls) {
+    this.urls = urls;
+    this.model = await loader.loadHostedPretrainedModel(urls.model);
     this.imageSize = this.model.layers[0].batchInputShape[1];
     this.numClasses = 5;
 
@@ -44,10 +53,10 @@ class MnistTransferCNNPredictor {
   async loadRetrainData() {
     console.log('Loading data for transfer learning...');
     ui.status('Loading data for transfer learning...');
-    this.gte5TrainData = await loader.loadHostedData(
-        HOSTED_TRAIN_DATA_JSON_URL, this.numClasses);
+    this.gte5TrainData =
+        await loader.loadHostedData(this.urls.train, this.numClasses);
     this.gte5TestData =
-        await loader.loadHostedData(HOSTED_TEST_DATA_JSON_URL, this.numClasses);
+        await loader.loadHostedData(this.urls.test, this.numClasses);
     ui.status('Done loading data for transfer learning.');
   }
 
@@ -135,10 +144,31 @@ class MnistTransferCNNPredictor {
  * and retrain functions with the UI.
  */
 async function setupMnistTransferCNN() {
-  const predictor = await new MnistTransferCNNPredictor().init();
-  ui.prepUI(
-      x => predictor.predict(x), x => predictor.retrainModel(),
-      predictor.testExamples, predictor.imageSize);
+  if (await loader.urlExists(HOSTED_URLS.model)) {
+    ui.status('Model available: ' + HOSTED_URLS.model);
+    const button = document.getElementById('load-pretrained-remote');
+    button.addEventListener('click', async () => {
+      const predictor = await new MnistTransferCNNPredictor().init(HOSTED_URLS);
+      ui.prepUI(
+          x => predictor.predict(x), x => predictor.retrainModel(),
+          predictor.testExamples, predictor.imageSize);
+    });
+    button.style.display = 'inline-block';
+  }
+
+  if (await loader.urlExists(LOCAL_URLS.model)) {
+    ui.status('Model available: ' + LOCAL_URLS.model);
+    const button = document.getElementById('load-pretrained-local');
+    button.addEventListener('click', async () => {
+      const predictor = await new MnistTransferCNNPredictor().init(LOCAL_URLS);
+      ui.prepUI(
+          x => predictor.predict(x), x => predictor.retrainModel(),
+          predictor.testExamples, predictor.imageSize);
+    });
+    button.style.display = 'inline-block';
+  }
+
+  ui.status('Standing by.');
 }
 
 setupMnistTransferCNN();

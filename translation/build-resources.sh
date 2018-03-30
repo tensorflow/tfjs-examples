@@ -63,7 +63,7 @@ mkdir -p "${RESOURCES_ROOT}"
 # Run Python script to generate the pretrained model and weights files.
 # Make sure you install the tensorflowjs pip package first.
 
-python "${DEMO_DIR}/translation.py" \
+python "${DEMO_DIR}/python/translation.py" \
     "${TRAIN_DATA_PATH}" \
     --recurrent_initializer glorot_uniform \
     --artifacts_dir "${RESOURCES_ROOT}" \

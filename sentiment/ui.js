@@ -23,6 +23,7 @@ const exampleReviews = {
 };
 
 export function status(statusText) {
+  console.log(statusText);
   document.getElementById('status').textContent = statusText;
 }
 
@@ -36,6 +37,7 @@ export function showMetadata(sentimentMetadataJSON) {
 }
 
 export function prepUI(predict) {
+  setPredictFunction(predict);
   const testExampleSelect = document.getElementById('test-example-select');
   testExampleSelect.addEventListener('change', () => {
     setReviewText(exampleReviews[testExampleSelect.value], predict);
@@ -62,7 +64,12 @@ function setReviewText(text, predict) {
   doPredict(predict);
 }
 
-export function setPredictFunction(predict) {
+function setPredictFunction(predict) {
   const reviewText = document.getElementById('review-text');
   reviewText.addEventListener('input', () => doPredict(predict));
+}
+
+export function disableLoadModelButtons() {
+  document.getElementById('load-pretrained-remote').style.display = 'none';
+  document.getElementById('load-pretrained-local').style.display = 'none';
 }

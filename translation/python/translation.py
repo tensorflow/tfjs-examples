@@ -78,7 +78,7 @@ def read_data():
 
   # Save the token indices to file.
   metadata_json_path = os.path.join(
-      FLAGS.artifacts_dir, 'translation.metadata.json')
+      FLAGS.artifacts_dir, 'metadata.json')
   if not os.path.isdir(os.path.dirname(metadata_json_path)):
     os.makedirs(os.path.dirname(metadata_json_path))
   with io.open(metadata_json_path, 'w', encoding='utf-8') as f:

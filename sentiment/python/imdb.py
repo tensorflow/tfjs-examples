@@ -203,7 +203,7 @@ def main():
 
   if not os.path.isdir(FLAGS.artifacts_dir):
     os.makedirs(FLAGS.artifacts_dir)
-  metadata_json_path = os.path.join(FLAGS.artifacts_dir, 'imdb.metadata.json')
+  metadata_json_path = os.path.join(FLAGS.artifacts_dir, 'metadata.json')
   json.dump(metadata, open(metadata_json_path, 'wt'))
   print('\nSaved model metadata at: %s' % metadata_json_path)
 

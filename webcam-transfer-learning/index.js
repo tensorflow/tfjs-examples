@@ -72,7 +72,7 @@ async function train() {
     epochs: ui.getEpochs(),
     callbacks: {
       onBatchEnd: async (batch, logs) => {
-        trainStatus.innerText = 'Cost: ' + logs.loss.toFixed(5);
+        trainStatus.innerText = 'Loss: ' + logs.loss.toFixed(5);
         await tf.nextFrame();
       }
     }

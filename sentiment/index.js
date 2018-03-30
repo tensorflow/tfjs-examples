@@ -19,24 +19,33 @@ import * as tf from '@tensorflow/tfjs';
 import * as loader from './loader';
 import * as ui from './ui';
 
-const HOSTED_MODEL_JSON_URL =
-    'https://storage.googleapis.com/tfjs-models/tfjs/sentiment_cnn_v1/model.json';
-const HOSTED_METADATA_JSON_URL =
-    'https://storage.googleapis.com/tfjs-models/tfjs/sentiment_cnn_v1/metadata.json';
+
+const HOSTED_URLS = {
+  model:
+      'https://storage.googleapis.com/tfjs-models/tfjs/sentiment_cnn_v1/model.json',
+  metadata:
+      'https://storage.googleapis.com/tfjs-models/tfjs/sentiment_cnn_v1/metadata.json'
+};
+
+const LOCAL_URLS = {
+  model: 'http://localhost:1235/resources/model.json',
+  metadata: 'http://localhost:1235/resources/metadata.json'
+};
 
 class SentimentPredictor {
   /**
    * Initializes the Sentiment demo.
    */
-  async init() {
-    this.model = await loader.loadHostedPretrainedModel(HOSTED_MODEL_JSON_URL);
+  async init(urls) {
+    this.urls = urls;
+    this.model = await loader.loadHostedPretrainedModel(urls.model);
     await this.loadMetadata();
     return this;
   }
 
   async loadMetadata() {
     const sentimentMetadata =
-        await loader.loadHostedMetadata(HOSTED_METADATA_JSON_URL);
+        await loader.loadHostedMetadata(this.urls.metadata);
     ui.showMetadata(sentimentMetadata);
     this.indexFrom = sentimentMetadata['index_from'];
     this.maxLen = sentimentMetadata['max_len'];
@@ -50,13 +59,11 @@ class SentimentPredictor {
     // Convert to lower case and remove all punctuations.
     const inputText =
         text.trim().toLowerCase().replace(/(\.|\,|\!)/g, '').split(' ');
-    ui.status(inputText);
     // Look up word indices.
     const inputBuffer = tf.buffer([1, this.maxLen], 'float32');
     for (let i = 0; i < inputText.length; ++i) {
       // TODO(cais): Deal with OOV words.
       const word = inputText[i];
-      ui.status(word);
       inputBuffer.set(this.wordIndex[word] + this.indexFrom, 0, i);
     }
     const input = inputBuffer.toTensor();
@@ -78,9 +85,27 @@ class SentimentPredictor {
  * function with the UI.
  */
 async function setupSentiment() {
-  const predictor = await new SentimentPredictor().init();
-  ui.setPredictFunction(x => predictor.predict(x));
-  ui.prepUI(x => predictor.predict(x));
+  if (await loader.urlExists(HOSTED_URLS.model)) {
+    ui.status('Model available: ' + HOSTED_URLS.model);
+    const button = document.getElementById('load-pretrained-remote');
+    button.addEventListener('click', async () => {
+      const predictor = await new SentimentPredictor().init(HOSTED_URLS);
+      ui.prepUI(x => predictor.predict(x));
+    });
+    button.style.display = 'inline-block';
+  }
+
+  if (await loader.urlExists(LOCAL_URLS.model)) {
+    ui.status('Model available: ' + LOCAL_URLS.model);
+    const button = document.getElementById('load-pretrained-local');
+    button.addEventListener('click', async () => {
+      const predictor = await new SentimentPredictor().init(LOCAL_URLS);
+      ui.prepUI(x => predictor.predict(x));
+    });
+    button.style.display = 'inline-block';
+  }
+
+  ui.status('Standing by.');
 }
 
 setupSentiment();

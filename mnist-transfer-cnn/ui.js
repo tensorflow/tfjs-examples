@@ -19,6 +19,7 @@ import * as tf from '@tensorflow/tfjs';
 import * as util from './util';
 
 export function status(statusText, statusColor) {
+  console.log(statusText);
   document.getElementById('status').textContent = statusText;
   document.getElementById('status').style.color = statusColor;
 }
@@ -105,4 +106,9 @@ export function setPredictResults(predictOut, winner) {
   }
   predictValues.innerHTML = valTds;
   document.getElementById('winner').textContent = winner;
+}
+
+export function disableLoadModelButtons() {
+  document.getElementById('load-pretrained-remote').style.display = 'none';
+  document.getElementById('load-pretrained-local').style.display = 'none';
 }

@@ -35,6 +35,9 @@ let model;
 const controllerDataset = new ControllerDataset(NUM_CLASSES);
 
 async function train() {
+  if (controllerDataset.xs == null) {
+    throw new Error('Add some examples before training.');
+  }
   trainStatus.innerHTML = 'Training...';
   await tf.nextFrame();
   await tf.nextFrame();

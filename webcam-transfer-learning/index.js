@@ -62,6 +62,10 @@ ui.setExampleHandler(label => {
  * Sets up and trains the classifier.
  */
 async function train() {
+  if (controllerDataset.xs == null) {
+    throw new Error('Add some examples before training!');
+  }
+
   // Creates a 2-layer fully connected model. By creating a separate model,
   // rather than adding layers to the mobilenet model, we "freeze" the weights
   // of the mobilenet model, and only train weights from the new model.
@@ -113,8 +117,12 @@ async function train() {
     epochs: ui.getEpochs(),
     callbacks: {
       onBatchEnd: async (batch, logs) => {
+<<<<<<< HEAD
         // Log the cost for every batch that is fed.
         ui.trainStatus('Cost: ' + logs.loss.toFixed(5));
+=======
+        trainStatus.innerText = 'Loss: ' + logs.loss.toFixed(5);
+>>>>>>> origin
         await tf.nextFrame();
       }
     }

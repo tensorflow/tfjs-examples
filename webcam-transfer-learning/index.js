@@ -117,7 +117,7 @@ async function train() {
     epochs: ui.getEpochs(),
     callbacks: {
       onBatchEnd: async (batch, logs) => {
-        trainStatus.innerText = 'Loss: ' + logs.loss.toFixed(5);
+        ui.trainStatus('Loss: ' + logs.loss.toFixed(5));
         await tf.nextFrame();
       }
     }
@@ -155,7 +155,7 @@ async function predict() {
 }
 
 document.getElementById('train').addEventListener('click', async () => {
-  ui.isTraining();
+  ui.trainStatus('Training...');
   await tf.nextFrame();
   await tf.nextFrame();
   isPredicting = false;

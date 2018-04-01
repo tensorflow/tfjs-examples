@@ -55,6 +55,9 @@ export function isPredicting() {
 export function donePredicting() {
   statusElement.style.visibility = 'hidden';
 }
+export function trainStatus(status) {
+  trainStatusElement.innerText = status;
+}
 
 export let addExampleHandler;
 export function setExampleHandler(handler) {

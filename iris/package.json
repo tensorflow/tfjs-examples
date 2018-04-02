@@ -14,7 +14,7 @@
   },
   "scripts": {
     "watch": "./serve.sh",
-    "build": "NODE_ENV=production parcel build index.html --no-minify --public-url /"
+    "build": "NODE_ENV=production parcel build index.html --no-minify --public-url ./"
   },
   "devDependencies": {
     "babel-plugin-transform-runtime": "~6.23.0",

@@ -3,13 +3,12 @@
 This repository contains a set of examples implemented in
 [TensorFlow.js](http://js.tensorflow.org).
 
-Each example directory is completely standalone so you can copy the directory
+Each example directory is standalone so the directory can be copied
 to another project.
 
 ## How to build an example
-
-To build an example, first `cd` into the directory and run `yarn` to install
-the dependencies of the example, and `yarn watch` to build it, for example:
+`cd` into the directory, run `yarn` to install
+the dependencies of the example, and `yarn watch` to build it. For example:
 
 ```sh
 cd mnist-core
@@ -22,8 +21,7 @@ yarn watch
 The convention is that each example contains two scripts:
 
 - `yarn watch`: starts a local development HTTP server which watches the
-filesystem for changes so you can edit the code (JS or HTML) and immediately
-see changes when you refresh the page.
+filesystem for changes so you can edit the code (JS or HTML) and see changes when you refresh the page immediately.
 
 - `yarn build`: generates a `dist/` folder which contains the build artifacts and
 can be used for deployment.

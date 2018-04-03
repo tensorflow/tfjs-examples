@@ -13,6 +13,10 @@
 // limitations under the License.
 // ==============================================================================
 
+// This tiny example illustrates how little code is necessary build /
+// train / predict from a model in TensorFlow.js.  Edit this code
+// and refresh the index.html to quickly explore the API.
+
 // Tiny TFJS train / predict example.
 async function myFirstTfjs() {
   // Create a simple model.

@@ -87,7 +87,7 @@ export class Webcam {
         navigator.getUserMedia(
             {video: true},
             stream => {
-              this.webcamElement.src = window.URL.createObjectURL(stream);
+              this.webcamElement.srcObject = stream;
               this.webcamElement.addEventListener('loadeddata', async () => {
                 this.adjustVideoSize(
                     this.webcamElement.videoWidth,

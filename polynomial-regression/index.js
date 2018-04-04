@@ -88,7 +88,7 @@ function stddev(vector) {
   for (const x of vector) {
     squareSum += (x - vectorMean) * (x - vectorMean);
   }
-  return Math.sqrt(squareSum / (vector.length - 1));
+  return Math.sqrt(squareSum / vector.length);
 }
 
 // Normalize a vector by its mean and standard deviation.

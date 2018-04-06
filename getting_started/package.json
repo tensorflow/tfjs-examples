@@ -10,7 +10,7 @@
   },
   "dependencies": { },
   "scripts": {
-    "watch": "node_modules/http-server/bin/http-server dist -p 1234 ",
+    "watch": "npm run build && node_modules/http-server/bin/http-server dist -p 1234 ",
     "build": "mkdir -p dist/ && cp index.html dist/ && cp index.js dist/"
   },
   "devDependencies": {

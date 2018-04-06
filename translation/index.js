@@ -19,18 +19,26 @@ import * as tf from '@tensorflow/tfjs';
 import * as loader from './loader';
 import * as ui from './ui';
 
-const HOSTED_MODEL_JSON_URL =
-    'https://storage.googleapis.com/tfjs-models/tfjs/translation_en_fr_v1/model.json';
 
-const HOSTED_METADATA_JSON_URL =
-    'https://storage.googleapis.com/tfjs-models/tfjs/translation_en_fr_v1/metadata.json';
+const HOSTED_URLS = {
+  model:
+      'https://storage.googleapis.com/tfjs-models/tfjs/translation_en_fr_v1/model.json',
+  metadata:
+      'https://storage.googleapis.com/tfjs-models/tfjs/translation_en_fr_v1/metadata.json'
+};
+
+const LOCAL_URLS = {
+  model: 'http://localhost:1235/resources/model.json',
+  metadata: 'http://localhost:1235/resources/metadata.json'
+};
 
 class Translator {
   /**
    * Initializes the Translation demo.
    */
-  async init() {
-    const model = await loader.loadHostedPretrainedModel(HOSTED_MODEL_JSON_URL);
+  async init(urls) {
+    this.urls = urls;
+    const model = await loader.loadHostedPretrainedModel(urls.model);
     await this.loadMetadata();
     this.prepareEncoderModel(model);
     this.prepareDecoderModel(model);
@@ -39,7 +47,7 @@ class Translator {
 
   async loadMetadata() {
     const translationMetadata =
-        await loader.loadHostedMetadata(HOSTED_METADATA_JSON_URL);
+        await loader.loadHostedMetadata(this.urls.metadata);
     this.maxDecoderSeqLength = translationMetadata['max_decoder_seq_length'];
     this.maxEncoderSeqLength = translationMetadata['max_encoder_seq_length'];
     console.log('maxDecoderSeqLength = ' + this.maxDecoderSeqLength);
@@ -180,9 +188,29 @@ class Translator {
  * function with the UI.
  */
 async function setupTranslator() {
-  const translator = await new Translator().init();
-  ui.setTranslationFunction(x => translator.translate(x));
-  ui.setEnglish('Go.', x => translator.translate(x));
+  if (await loader.urlExists(HOSTED_URLS.model)) {
+    ui.status('Model available: ' + HOSTED_URLS.model);
+    const button = document.getElementById('load-pretrained-remote');
+    button.addEventListener('click', async () => {
+      const translator = await new Translator().init(HOSTED_URLS);
+      ui.setTranslationFunction(x => translator.translate(x));
+      ui.setEnglish('Go.', x => translator.translate(x));
+    });
+    button.style.display = 'inline-block';
+  }
+
+  if (await loader.urlExists(LOCAL_URLS.model)) {
+    ui.status('Model available: ' + LOCAL_URLS.model);
+    const button = document.getElementById('load-pretrained-local');
+    button.addEventListener('click', async () => {
+      const translator = await new Translator().init(LOCAL_URLS);
+      ui.setTranslationFunction(x => translator.translate(x));
+      ui.setEnglish('Go.', x => translator.translate(x));
+    });
+    button.style.display = 'inline-block';
+  }
+
+  ui.status('Standing by.');
 }
 
 setupTranslator();

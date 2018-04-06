@@ -3,3 +3,4 @@ dist
 .cache
 yarn-error.log
 *.tgz
+*.pyc

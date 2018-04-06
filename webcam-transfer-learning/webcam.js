@@ -16,24 +16,43 @@
  */
 import * as tf from '@tensorflow/tfjs';
 
-const oneTwentySeven = tf.scalar(127);
-const one = tf.scalar(1);
-
 /**
  * A class that wraps webcam video elements to capture Tensor4Ds.
  */
 export class Webcam {
+  /**
+   * @param {HTMLVideoElement} webcamElement A HTMLVideoElement representing the webcam feed.
+   */
   constructor(webcamElement) {
     this.webcamElement = webcamElement;
   }
 
+  /**
+   * Captures a frame from the webcam and normalizes it between -1 and 1.
+   * Returns a batched image (1-element batch) of shape [1, w, h, c].
+   */
   capture() {
     return tf.tidy(() => {
-      const img = this.cropImage(tf.fromPixels(this.webcamElement));
-      return img.asType('float32').div(oneTwentySeven).sub(one);
+      // Reads the image as a Tensor from the webcam <video> element.
+      const webcamImage = tf.fromPixels(this.webcamElement);
+
+      // Crop the image so we're using the center square of the rectangular
+      // webcam.
+      const croppedImage = this.cropImage(webcamImage);
+
+      // Expand the outer most dimension so we have a batch size of 1.
+      const batchedImage = croppedImage.expandDims(0);
+
+      // Normalize the image between -1 and 1. The image comes in between 0-255,
+      // so we divide by 127 and subtract 1.
+      return batchedImage.toFloat().div(tf.scalar(127)).sub(tf.scalar(1));
     });
   }
 
+  /**
+   * Crops an image tensor so we get a square image with no white space.
+   * @param {Tensor4D} img An input image Tensor to crop.
+   */
   cropImage(img) {
     const size = Math.min(img.shape[0], img.shape[1]);
     const centerHeight = img.shape[0] / 2;
@@ -43,6 +62,12 @@ export class Webcam {
     return img.slice([beginHeight, beginWidth, 0], [size, size, 3]);
   }
 
+  /**
+   * Adjusts the video size so we can make a centered square crop without
+   * including whitespace.
+   * @param {number} width The real width of the video element.
+   * @param {number} height The real height of the video element.
+   */
   adjustVideoSize(width, height) {
     const aspectRatio = width / height;
     if (width >= height) {
@@ -62,7 +87,7 @@ export class Webcam {
         navigator.getUserMedia(
             {video: true},
             stream => {
-              this.webcamElement.src = window.URL.createObjectURL(stream);
+              this.webcamElement.srcObject = stream;
               this.webcamElement.addEventListener('loadeddata', async () => {
                 this.adjustVideoSize(
                     this.webcamElement.videoWidth,
@@ -70,9 +95,8 @@ export class Webcam {
                 resolve();
               }, false);
             },
-            (error) => {
-              console.error(error);
-              reject(null);
+            error => {
+              document.querySelector('#no-webcam').style.display = 'block';
             });
       } else {
         reject();

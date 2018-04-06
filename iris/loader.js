@@ -51,21 +51,3 @@ export async function loadHostedPretrainedModel(url) {
     ui.status('Loading pretrained model failed.');
   }
 }
-
-/**
- * Load metadata file stored at a remote URL.
- *
- * @return An object containing metadata as key-value pairs.
- */
-export async function loadHostedMetadata(url) {
-  ui.status('Loading metadata from ' + url);
-  try {
-    const metadataJson = await fetch(url);
-    const metadata = await metadataJson.json();
-    ui.status('Done loading metadata.');
-    return metadata;
-  } catch (err) {
-    console.error(err);
-    ui.status('Loading metadata failed.');
-  }
-}

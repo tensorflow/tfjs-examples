@@ -1,0 +1,20 @@
+{
+  "name": "tfjs-examples-micro",
+  "version": "0.1.0",
+  "description": "",
+  "main": "index.js",
+  "license": "Apache-2.0",
+  "private": true,
+  "engines": {
+    "node": ">=8.9.0"
+  },
+  "dependencies": { },
+  "scripts": {
+    "watch": "npm run build && node_modules/http-server/bin/http-server dist -p 1234 ",
+    "build": "mkdir -p dist/ && cp index.html dist/ && cp index.js dist/"
+  },
+  "devDependencies": {
+    "clang-format": "~1.2.2",
+    "http-server": "~0.10.0"
+  }
+}

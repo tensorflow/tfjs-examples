@@ -15,6 +15,12 @@ cd mnist-core
 yarn
 yarn watch
 ```
+If you use `npm`, you can:
+```sh
+cd mnist-core
+npm install
+npm run watch
+```
 
 ### Details
 

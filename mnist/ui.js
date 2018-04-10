@@ -41,7 +41,7 @@ export function showTestResults(batch, predictions, labels) {
     div.className = 'pred-container';
 
     const canvas = document.createElement('canvas');
-    canvas.setAttribute('class', 'prediction-canvas');
+    canvas.className = 'prediction-canvas';
     draw(image.flatten(), canvas);
 
     const pred = document.createElement('div');

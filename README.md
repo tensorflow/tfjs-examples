@@ -26,10 +26,10 @@ npm run watch
 
 The convention is that each example contains two scripts:
 
-- `yarn watch`: starts a local development HTTP server which watches the
+- `yarn watch` or `npm run watch`: starts a local development HTTP server which watches the
 filesystem for changes so you can edit the code (JS or HTML) and see changes when you refresh the page immediately.
 
-- `yarn build`: generates a `dist/` folder which contains the build artifacts and
+- `yarn build` or `npm run build`: generates a `dist/` folder which contains the build artifacts and
 can be used for deployment.
 
 ## Contributing

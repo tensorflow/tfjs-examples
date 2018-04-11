@@ -286,7 +286,7 @@ class AdditionRNNDemo {
             'data': {'values': lossValues},
             'mark': 'line',
             'encoding': {
-              'x': {'field': 'epoch', 'type': 'quantitative'},
+              'x': {'field': 'epoch', 'type': 'ordinal'},
               'y': {'field': 'loss', 'type': 'quantitative'},
               'color': {'field': 'set', 'type': 'nominal'},
             }
@@ -302,7 +302,7 @@ class AdditionRNNDemo {
             'data': {'values': accuracyValues},
             'mark': 'line',
             'encoding': {
-              'x': {'field': 'epoch', 'type': 'quantitative'},
+              'x': {'field': 'epoch', 'type': 'ordinal'},
               'y': {'field': 'accuracy', 'type': 'quantitative'},
               'color': {'field': 'set', 'type': 'nominal'},
             }
@@ -315,7 +315,7 @@ class AdditionRNNDemo {
             'data': {'values': examplesPerSecValues},
             'mark': 'line',
             'encoding': {
-              'x': {'field': 'epoch', 'type': 'quantitative'},
+              'x': {'field': 'epoch', 'type': 'ordinal'},
               'y': {'field': 'examples/s', 'type': 'quantitative'},
             }
           },

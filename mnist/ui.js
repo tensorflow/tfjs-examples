@@ -71,7 +71,7 @@ export function plotLosses(lossValues) {
         'width': 260,
         'orient': 'vertical',
         'encoding': {
-          'x': {'field': 'batch', 'type': 'quantitative'},
+          'x': {'field': 'batch', 'type': 'ordinal'},
           'y': {'field': 'loss', 'type': 'quantitative'},
           'color': {'field': 'set', 'type': 'nominal', 'legend': null},
         }
@@ -90,7 +90,7 @@ export function plotAccuracies(accuracyValues) {
         'mark': {'type': 'line', 'legend': null},
         'orient': 'vertical',
         'encoding': {
-          'x': {'field': 'batch', 'type': 'quantitative'},
+          'x': {'field': 'batch', 'type': 'ordinal'},
           'y': {'field': 'accuracy', 'type': 'quantitative'},
           'color': {'field': 'set', 'type': 'nominal', 'legend': null},
         }

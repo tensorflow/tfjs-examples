@@ -58,14 +58,14 @@
        {
          'mark': 'point',
          'encoding': {
-           'x': {'field': 'x', 'type': 'quantitative'},
+           'x': {'field': 'x', 'type': 'ordinal'},
            'y': {'field': 'y', 'type': 'quantitative'}
          }
        },
        {
          'mark': 'line',
          'encoding': {
-           'x': {'field': 'x', 'type': 'quantitative'},
+           'x': {'field': 'x', 'type': 'ordinal'},
            'y': {'field': 'pred', 'type': 'quantitative'},
            'color': {'value': 'tomato'}
          },

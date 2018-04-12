@@ -6,16 +6,26 @@ This repository contains a set of examples implemented in
 Each example directory is standalone so the directory can be copied
 to another project.
 
+# Dependencies
+
+Except for `getting_started`, all the examples require the following dependencies to be installed.
+
+ - Node.js version 8.9 or higher
+ - [NPM cli](https://docs.npmjs.com/cli/npm) OR [Yarn](https://yarnpkg.com/en/)
+
+
 ## How to build an example
-`cd` into the directory, run `yarn` to install
-the dependencies of the example, and `yarn watch` to build it. For example:
+`cd` into the directory
+
+If you are using `yarn`:
 
 ```sh
 cd mnist-core
 yarn
 yarn watch
 ```
-If you use `npm`, you can:
+
+If you are using `npm`:
 ```sh
 cd mnist-core
 npm install

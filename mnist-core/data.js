@@ -84,7 +84,7 @@ export class MnistData {
       img.src = MNIST_IMAGES_SPRITE_PATH;
     });
 
-    const labelsRequest = fetch(MNIST_LABELS_PATH, {mode: 'arraybuffer'});
+    const labelsRequest = fetch(MNIST_LABELS_PATH);
     const [imgResponse, labelsResponse] =
         await Promise.all([imgRequest, labelsRequest]);
 

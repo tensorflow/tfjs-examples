@@ -23,27 +23,10 @@
     "clang-format": "~1.2.2",
     "parcel-bundler": "~1.6.2"
   },
-  "babel": {
-    "presets": [
-      [
-        "env",
-        {
-          "modules": false,
-          "targets": {
-            "browsers": [
-              "> 1%",
-              "last 3 versions",
-              "ie >= 9",
-              "ios >= 8",
-              "android >= 4.2"
-            ]
-          },
-          "useBuiltIns": false
-        }
-      ]
-    ],
-    "plugins": [
-      "transform-runtime"
-    ]
-  }
+  "browserslist": [
+    "> 1%",
+    "ie >= 11",
+    "ios >= 10",
+    "android >= 6"
+  ]
 }

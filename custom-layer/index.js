@@ -17,104 +17,18 @@
 
 import * as tf from '@tensorflow/tfjs';
 
+import {baseMnistModel} from './base_mnist_model';
+import {customMnistModel} from './custom_mnist_model';
 import {MnistData} from './data';
 import * as ui from './ui';
 
-/**
- * This custom layer is similar to the 'relu' non-linear Activation `Layer`, but
- * it keeps both the negative and positive signal.  The input is centered at the
- * mean value, and then the negative activations and positive activations are
- * separated into different channels, meaning that there are twice as many
- * output channels as input channels.
- *
- * Implementing a custom `Layer` in general invovles specifying a `call`
- * function, and possibly also a `computeOutputShape` and `build` function. This
- * layer does not need a custom `build` function because it does not store any
- * variables.
- *
- * TODO(bileschi): File a github issue for the loading / saving of custom
- * layers.
- */
-class Antirectifier extends tf.layers.Layer {
-  constructor() {
-    super({});
-    // TODO(bileschi): Can we point to documentation on masking here?
-    this.supportsMasking = true;
-  }
+// Create a convolutional MNIST model, as outlined in
+// @tensorflow/tfjs-examples/mnist
+const baseModel = baseMnistModel();
+// Create an augmented MNIST model with a custom layer.  See inside
+// custom_mnist_model.js to see how it is done.
+const customModel = customMnistModel();
 
-  /**
-   * This layer only works on 4D Tensors [batch, height, width, channels],
-   * and produces output with twice as many channels.
-   *
-   * layer.computeOutputShapes must be overridden in the case that the output
-   * shape is not the same as the input shape.
-   * @param {*} inputShapes
-   */
-  computeOutputShape(inputShape) {
-    return [inputShape[0], inputShape[1], inputShape[2], 2 * inputShape[3]]
-  }
-
-  call(inputs, kwargs) {
-    this.invokeCallHook(inputs, kwargs);
-    const origShape = inputs[0].shape;
-    const flatShape =
-        [origShape[0], origShape[1] * origShape[2] * origShape[3]];
-    const flattened = inputs[0].reshape(flatShape);
-    const centered = tf.sub(flattened, flattened.mean(1).expandDims(1));
-    const pos = centered.relu().reshape(origShape);
-    const neg = centered.neg().relu().reshape(origShape);
-    return tf.concat([pos, neg], 3);
-  }
-}
-
-// Set up base model
-const baseModel = tf.sequential();
-baseModel.add(tf.layers.conv2d({
-  inputShape: [28, 28, 1],
-  kernelSize: 5,
-  filters: 8,
-  strides: 1,
-  activation: 'relu',
-  kernelInitializer: 'varianceScaling'
-}));
-baseModel.add(tf.layers.maxPooling2d({poolSize: [2, 2], strides: [2, 2]}));
-baseModel.add(tf.layers.conv2d({
-  kernelSize: 5,
-  filters: 16,
-  strides: 1,
-  activation: 'relu',
-  kernelInitializer: 'varianceScaling'
-}));
-baseModel.add(tf.layers.maxPooling2d({poolSize: [2, 2], strides: [2, 2]}));
-baseModel.add(tf.layers.flatten());
-baseModel.add(tf.layers.dense(
-    {units: 10, kernelInitializer: 'varianceScaling', activation: 'softmax'}));
-
-
-// Set up the custom model using new Antirectifier instead of relu activation.
-const customModel = tf.sequential();
-customModel.add(tf.layers.conv2d({
-  inputShape: [28, 28, 1],
-  kernelSize: 5,
-  filters: 8,
-  strides: 1,
-  activation: 'linear',
-  kernelInitializer: 'varianceScaling'
-}));
-customModel.add(new Antirectifier());
-customModel.add(tf.layers.maxPooling2d({poolSize: [2, 2], strides: [2, 2]}));
-customModel.add(tf.layers.conv2d({
-  kernelSize: 5,
-  filters: 16,
-  strides: 1,
-  activation: 'linear',
-  kernelInitializer: 'varianceScaling'
-}));
-customModel.add(new Antirectifier());
-customModel.add(tf.layers.maxPooling2d({poolSize: [2, 2], strides: [2, 2]}));
-customModel.add(tf.layers.flatten());
-customModel.add(tf.layers.dense(
-    {units: 10, kernelInitializer: 'varianceScaling', activation: 'softmax'}));
 
 // Compile both models.
 const LEARNING_RATE = 0.15;

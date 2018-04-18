@@ -15,6 +15,7 @@
  * =============================================================================
  */
 import * as tf from '@tensorflow/tfjs';
+import {CONTINUOUS_DOMAIN_SCALES} from '../polynomial-regression-core/node_modules/vega-lite/build/src/scale';
 
 /**
  * This custom layer is similar to the 'relu' non-linear Activation `Layer`, but
@@ -63,11 +64,17 @@ class Antirectifier extends tf.layers.Layer {
    *   example code.
    */
   call(inputs, kwargs) {
+    console.log('inside layer call');
+    console.log(inputs);
+    let input = inputs;
+    if (Array.isArray(input)) {
+      input = input[0];
+    }
     this.invokeCallHook(inputs, kwargs);
-    const origShape = inputs[0].shape;
+    const origShape = input.shape;
     const flatShape =
         [origShape[0], origShape[1] * origShape[2] * origShape[3]];
-    const flattened = inputs[0].reshape(flatShape);
+    const flattened = input.reshape(flatShape);
     const centered = tf.sub(flattened, flattened.mean(1).expandDims(1));
     const pos = centered.relu().reshape(origShape);
     const neg = centered.neg().relu().reshape(origShape);
@@ -75,43 +82,6 @@ class Antirectifier extends tf.layers.Layer {
   }
 }
 
-
-/**
- * Creates and returns a Keras model with a custom Layer.
- */
-export function customMnistModel() {
-  // Set up the custom model using new Antirectifier instead of relu activation.
-  const customModel = tf.sequential();
-  customModel.add(tf.layers.conv2d({
-    inputShape: [28, 28, 1],
-    kernelSize: 5,
-    filters: 8,
-    strides: 1,
-    activation: 'linear',
-    kernelInitializer: 'varianceScaling'
-  }));
-  //
-  // Here (and below) is the place that the custom layer is used.
-  customModel.add(new Antirectifier());
-  //
-  customModel.add(tf.layers.maxPooling2d({poolSize: [2, 2], strides: [2, 2]}));
-  customModel.add(tf.layers.conv2d({
-    kernelSize: 5,
-    filters: 16,
-    strides: 1,
-    activation: 'linear',
-    kernelInitializer: 'varianceScaling'
-  }));
-  //
-  // Here (and above) is the place that the custom layer is used.
-  customModel.add(new Antirectifier());
-  //
-  customModel.add(tf.layers.maxPooling2d({poolSize: [2, 2], strides: [2, 2]}));
-  customModel.add(tf.layers.flatten());
-  customModel.add(tf.layers.dense({
-    units: 10,
-    kernelInitializer: 'varianceScaling',
-    activation: 'softmax'
-  }));
-  return customModel;
+export function antirectifier() {
+  return new Antirectifier();
 }

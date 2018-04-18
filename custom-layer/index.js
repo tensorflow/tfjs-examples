@@ -22,21 +22,37 @@ import {antirectifier} from './custom_layer';
 function customLayerDemo() {
   let imgElement = document.getElementById('cat');
   let img = tf.fromPixels(imgElement).toFloat();
-  console.log('input');
-  console.log(img)
   // Layer expects first dimension to be batch.
   img = img.expandDims(0);
-  console.log('expanded input');
-  console.log(img)
   const layer = antirectifier();
   const layerOutput = layer.apply(img);
-  console.log('output');
-  console.log(layerOutput);
-  const [posImg, negImg] = tf.split(layerOutput, 1, 1, 1, 2);
-  console.log('negImg');
-  console.log(negImg);
-  console.log('posImg');
-  console.log(posImg);
+  const [posTensor, negTensor] = tf.split(layerOutput, 2, 3);
+  const posCanvas = document.createElement('canvas');
+  tensorToCanvas(posTensor, posCanvas);
+  document.getElementById('output_image_1').appendChild(posCanvas);
+  const negCanvas = document.createElement('canvas');
+  tensorToCanvas(negTensor, negCanvas);
+  document.getElementById('output_image_2').appendChild(negCanvas);
 }
+
+function tensorToCanvas(tensor, canvas) {
+  const ctx = canvas.getContext('2d');
+  const [batch, height, width, nChan] = tensor.shape;
+  console.assert(nChan == 3);
+  console.assert(batch == 1);
+  canvas.width = width;
+  canvas.height = height;
+  const imageData = new ImageData(width, height);
+  const data = tensor.dataSync();
+  for (let i = 0; i < height * width; ++i) {
+    const i4 = i * 4;
+    const i3 = i * 3;
+    imageData.data[i4 + 0] = data[i3 + 0];
+    imageData.data[i4 + 1] = data[i3 + 1];
+    imageData.data[i4 + 2] = data[i3 + 2];
+    imageData.data[i4 + 3] = 255;
+  }
+  ctx.putImageData(imageData, 0, 0);
+};
 
 customLayerDemo();

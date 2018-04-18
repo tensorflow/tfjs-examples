@@ -27,42 +27,12 @@ limitations under the License.
       padding: 15px;
     }
 
-    canvas {
+    img {
       width: 400px;
     }
 
-    .prediction-canvas {
-      width: 100px;
-    }
-
-    .pred {
-      font-size: 20px;
-      line-height: 25px;
-      width: 100px;
-    }
-
-    .pred-correct {
-      background-color: #00cf00;
-    }
-
-    .pred-incorrect {
-      background-color: red;
-    }
-
-    .pred-container {
-      display: inline-block;
-      width: 100px;
-      margin: 10px;
-    }
-
-    #lossCanvas>div,
-    #accuracyCanvas>div {
-      display: none;
-    }
-
-    .canvases {
-      display: inline-block;
-      width: 460px;
+    canvas {
+      width: 400px;
     }
   </style>
 
@@ -70,7 +40,7 @@ limitations under the License.
     <h3>TensorFlow.js: Working with Custom Layers</h3>
     <h4>Illustrates the application of a custom layer.</h4>
 
-    <img id="cat" src="cat.jpg" width=224 height=224/>
+    <img id="cat" src="cat.jpg" />
     <div id="output_image_1"></div>
     <div id="output_image_2"></div>
 

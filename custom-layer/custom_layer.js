@@ -64,8 +64,6 @@ class Antirectifier extends tf.layers.Layer {
    *   example code.
    */
   call(inputs, kwargs) {
-    console.log('inside layer call');
-    console.log(inputs);
     let input = inputs;
     if (Array.isArray(input)) {
       input = input[0];

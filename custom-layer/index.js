@@ -21,12 +21,10 @@ import {antirectifier} from './custom_layer';
 
 function customLayerDemo() {
   let imgElement = document.getElementById('cat');
-  let img = tf.fromPixels(imgElement).toFloat();
-  // Layer expects first dimension to be batch.
-  img = img.expandDims(0);
+  // Layer expects first dimension to be batch, therefore expandDims.
+  const img = tf.fromPixels(imgElement).toFloat().expandDims(0);
   const layer = antirectifier();
-  const layerOutput = layer.apply(img);
-  const [posTensor, negTensor] = tf.split(layerOutput, 2, 3);
+  const [posTensor, negTensor] = tf.split(layer.apply(img), 2, 3);
   const posCanvas = document.createElement('canvas');
   tensorToCanvas(posTensor, posCanvas);
   document.getElementById('output_image_1').appendChild(posCanvas);
@@ -47,9 +45,9 @@ function tensorToCanvas(tensor, canvas) {
   for (let i = 0; i < height * width; ++i) {
     const i4 = i * 4;
     const i3 = i * 3;
-    imageData.data[i4 + 0] = data[i3 + 0];
-    imageData.data[i4 + 1] = data[i3 + 1];
-    imageData.data[i4 + 2] = data[i3 + 2];
+    imageData.data[i4 + 0] = data[i3 + 0] * 2;
+    imageData.data[i4 + 1] = data[i3 + 1] * 2;
+    imageData.data[i4 + 2] = data[i3 + 2] * 2;
     imageData.data[i4 + 3] = 255;
   }
   ctx.putImageData(imageData, 0, 0);

@@ -29,8 +29,8 @@ import {CONTINUOUS_DOMAIN_SCALES} from '../polynomial-regression-core/node_modul
  * layer does not need a custom `build` function because it does not store any
  * variables.
  *
- * TODO(bileschi): File a github issue for the loading / saving of custom
- * layers.
+ * Custom layers currently can not be saved / loaded.  Tracking issue at
+ * https://github.com/tensorflow/tfjs/issues/254
  */
 class Antirectifier extends tf.layers.Layer {
   constructor() {

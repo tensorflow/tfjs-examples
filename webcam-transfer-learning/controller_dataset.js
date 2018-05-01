@@ -33,7 +33,8 @@ export class ControllerDataset {
    */
   addExample(example, label) {
     // One-hot encode the label.
-    const y = tf.tidy(() => tf.oneHot(tf.tensor1d([label]), this.numClasses));
+    const y = tf.tidy(
+        () => tf.oneHot(tf.tensor1d([label]).toInt(), this.numClasses));
 
     if (this.xs == null) {
       // For the first example that gets added, keep example and y so that the

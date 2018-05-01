@@ -47,7 +47,7 @@ export function plotLosses(lossValues, epoch, newTrainLoss, newValidationLoss) {
         'data': {'values': lossValues},
         'mark': 'line',
         'encoding': {
-          'x': {'field': 'epoch', 'type': 'quantitative'},
+          'x': {'field': 'epoch', 'type': 'ordinal'},
           'y': {'field': 'loss', 'type': 'quantitative'},
           'color': {'field': 'set', 'type': 'nominal'},
         }
@@ -75,7 +75,7 @@ export function plotAccuracies(
         'data': {'values': accuracyValues},
         'mark': 'line',
         'encoding': {
-          'x': {'field': 'epoch', 'type': 'quantitative'},
+          'x': {'field': 'epoch', 'type': 'ordinal'},
           'y': {'field': 'accuracy', 'type': 'quantitative'},
           'color': {'field': 'set', 'type': 'nominal'},
         }

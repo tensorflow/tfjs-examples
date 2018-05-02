@@ -78,6 +78,13 @@ class Antirectifier extends tf.layers.Layer {
     const neg = centered.neg().relu().reshape(origShape);
     return tf.concat([pos, neg], 3);
   }
+
+  /**
+   * Layers must implement "getClassName".
+   */
+  getClassName() {
+    return 'Antirectifier';
+  }
 }
 
 export function antirectifier() {

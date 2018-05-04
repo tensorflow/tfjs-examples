@@ -52,9 +52,8 @@ export class StrikeZoneModel extends PitchModel {
 
     const model = tf.sequential();
     model.add(tf.layers.dense(
-        {units: 100, activation: 'relu', inputShape: [this.fields.length]}));
-    model.add(tf.layers.dense({units: 50, activation: 'relu'}));
-    model.add(tf.layers.dense({units: 20, activation: 'relu'}));
+        {units: 20, activation: 'relu', inputShape: [this.fields.length]}));
+    model.add(tf.layers.dense({units: 10, activation: 'relu'}));
     model.add(tf.layers.dense({units: 2, activation: 'softmax'}));
     model.compile({
       optimizer: tf.train.adam(),

@@ -19,7 +19,7 @@
  * Basic in-memory-shuffle.
  */
 // tslint:disable-next-line:no-any
-function shuffle(array: any[]): any[] {
+export function shuffle(array: any[]): any[] {
   let currentIndex = array.length, temporaryValue, randomIndex;
   while (0 !== currentIndex) {
     randomIndex = Math.floor(Math.random() * currentIndex);
@@ -35,7 +35,7 @@ function shuffle(array: any[]): any[] {
 /**
  * Normalize a value between a given range.
  */
-function normalize(value: number, min: number, max: number): number {
+export function normalize(value: number, min: number, max: number): number {
   if (min === undefined || max === undefined) {
     return value;
   }

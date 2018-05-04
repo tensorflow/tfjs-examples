@@ -5,20 +5,28 @@
   "main": "index.js",
   "scripts": {
     "build": "tsc",
-    "link-local": "yalc link"
+    "link-local": "yalc link",
+    "download-training-data": "./scripts/download-training-data.sh",
+    "start-server": "ts-node src/server/server.ts",
+    "train-pitch-type-model": "ts-node src/train/train-pitch-type-model.ts",
+    "train-strike-zone-model": "ts-node src/train/train-strike-zone-model.ts"
   },
   "author": "Apache-2.0",
   "license": "ISC",
   "devDependencies": {
     "@tensorflow/tfjs": "^0.10.3",
+    "@tensorflow/tfjs-node": "link:.yalc/@tensorflow/tfjs-node",
     "@types/socket.io": "^1.4.33",
     "@types/uuid": "^3.4.3",
     "baseball-pitchfx-types": "^0.0.4",
     "clang-format": "^1.2.3",
+    "node-simple-timer": "^0.0.1",
     "socket.io": "^2.1.0",
+    "ts-node": "^6.0.2",
     "tslint": "^5.9.1",
     "typescript": "^2.8.3",
     "uuid": "^3.2.1",
     "yalc": "^1.0.0-pre.22"
-  }
+  },
+  "dependencies": {}
 }

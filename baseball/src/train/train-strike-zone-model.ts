@@ -16,32 +16,23 @@
  */
 
 import {bindTensorFlowBackend} from '@tensorflow/tfjs-node';
-import {PitchTypeModel} from '../pitch-type-model';
-import {Socket} from './socket';
+import {Timer} from 'node-simple-timer';
 
-// Enable TFJS-Node backend
+import {StrikeZoneModel} from '../strike-zone-model';
+
 bindTensorFlowBackend();
 
-const pitchModel = new PitchTypeModel();
-const socket = new Socket(pitchModel);
+async function test() {
+  const model = new StrikeZoneModel();
+  const timer = new Timer();
 
-async function run() {
-  socket.listen();
-  await pitchModel.train(1);
-
-  setInterval(async () => {
-    await pitchModel.train(1);
-    socket.broadcastUpdatedPredictions();
-
-    // TODO(kreeger): Showcase live data.
-
-    // const rand = (Math.floor(Math.random() * 5) + 2);
-    // if (count % rand === 0) {
-    //   // socket.addNewRandom(1);
-    // } else {
-    //   socket.broadcastUpdatedPredictions();
-    // }
-  }, 5000);
+  for (let i = 0; i < 10; i++) {
+    timer.start();
+    await model.train(1);
+    timer.end();
+    console.log('  > epoch train time: ', timer.seconds());
+    timer.reset();
+  }
 }
 
-run();
+test();

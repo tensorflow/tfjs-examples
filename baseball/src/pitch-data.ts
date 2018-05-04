@@ -19,6 +19,7 @@ import * as tf from '@tensorflow/tfjs';
 import {sizeFromShape} from '@tensorflow/tfjs-core/dist/util';
 import {Pitch, PitchKeys} from 'baseball-pitchfx-types';
 import {readFileSync} from 'fs';
+import {normalize, shuffle} from './utils';
 
 /**
  * Map of training fields for a Pitch with a min/max range for data

@@ -5,7 +5,6 @@
     "sourceMap": true,
     "removeComments": true,
     "preserveConstEnums": true,
-    "declaration": true,
     "target": "es6",
     "lib": [
       "es2017",

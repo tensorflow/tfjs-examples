@@ -1,0 +1,24 @@
+{
+  "name": "tfjs-examples-baseball",
+  "version": "0.1.0",
+  "description": "Deep learning models for classifying baseball metrics",
+  "main": "index.js",
+  "scripts": {
+    "build": "tsc",
+    "link-local": "yalc link"
+  },
+  "author": "Apache-2.0",
+  "license": "ISC",
+  "devDependencies": {
+    "@tensorflow/tfjs": "^0.10.3",
+    "@types/socket.io": "^1.4.33",
+    "@types/uuid": "^3.4.3",
+    "baseball-pitchfx-types": "^0.0.4",
+    "clang-format": "^1.2.3",
+    "socket.io": "^2.1.0",
+    "tslint": "^5.9.1",
+    "typescript": "^2.8.3",
+    "uuid": "^3.2.1",
+    "yalc": "^1.0.0-pre.22"
+  }
+}

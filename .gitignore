@@ -4,3 +4,5 @@ dist
 yarn-error.log
 *.tgz
 *.pyc
+*_data.json
+.yalc

@@ -26,7 +26,7 @@ async function test() {
   const model = new PitchTypeModel();
   const timer = new Timer();
 
-  for (let i = 0; i < 10; i++) {
+  for (let i = 0; i < 100; i++) {
     timer.start();
     await model.train(1);
     timer.end();

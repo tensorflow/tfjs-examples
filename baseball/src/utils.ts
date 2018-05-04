@@ -41,3 +41,10 @@ export function normalize(value: number, min: number, max: number): number {
   }
   return (value - min) / (max - min);
 }
+
+/**
+ * Returns a random int between 0 and the supplied max.
+ */
+export function getRandomInt(max: number) {
+  return Math.floor(Math.random() * Math.floor(max));
+}

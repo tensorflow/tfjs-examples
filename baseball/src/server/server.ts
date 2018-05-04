@@ -32,15 +32,6 @@ async function run() {
   setInterval(async () => {
     await pitchModel.train(1);
     socket.broadcastUpdatedPredictions();
-
-    // TODO(kreeger): Showcase live data.
-
-    // const rand = (Math.floor(Math.random() * 5) + 2);
-    // if (count % rand === 0) {
-    //   // socket.addNewRandom(1);
-    // } else {
-    //   socket.broadcastUpdatedPredictions();
-    // }
   }, 5000);
 }
 

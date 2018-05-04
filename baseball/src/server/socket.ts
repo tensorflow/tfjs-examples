@@ -24,28 +24,10 @@ import * as uuid from 'uuid';
 
 import {loadPitchData} from '../pitch-data';
 import {PitchTypeModel} from '../pitch-type-model';
+import {getRandomInt, shuffle} from '../utils';
 
 const PORT = 8001;
 const PITCH_COUNT = 12;
-
-// TODO(kreeger): Clean this up (utils).
-export function getRandomInt(max: number) {
-  return Math.floor(Math.random() * Math.floor(max));
-}
-
-// TODO(kreeger): Clean this up (utils).
-function shuffle(array: Pitch[]): Pitch[] {
-  let currentIndex = array.length, temporaryValue, randomIndex;
-  while (0 !== currentIndex) {
-    randomIndex = Math.floor(Math.random() * currentIndex);
-    currentIndex -= 1;
-
-    temporaryValue = array[currentIndex];
-    array[currentIndex] = array[randomIndex];
-    array[randomIndex] = temporaryValue;
-  }
-  return array;
-}
 
 export class Socket {
   server: Server;

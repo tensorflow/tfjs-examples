@@ -13,8 +13,7 @@
     "train-pitch-type-model": "ts-node src/train/train-pitch-type-model.ts",
     "train-strike-zone-model": "ts-node src/train/train-strike-zone-model.ts"
   },
-  "author": "Apache-2.0",
-  "license": "ISC",
+  "license": "Apache-2.0",
   "devDependencies": {
     "@tensorflow/tfjs": "^0.10.3",
     "@tensorflow/tfjs-node": "link:.yalc/@tensorflow/tfjs-node",

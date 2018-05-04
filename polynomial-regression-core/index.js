@@ -21,7 +21,7 @@ import {plotData, plotDataAndPredictions, renderCoefficients} from './ui';
 
 /**
  * We want to learn the coefficients that give correct solutions to the
- * following quadratic equation:
+ * following cubic equation:
  *      y = a * x^3 + b * x^2 + c * x + d
  * In other words we want to learn values for:
  *      a
@@ -91,9 +91,9 @@ function loss(prediction, labels) {
  */
 async function train(xs, ys, numIterations) {
   for (let iter = 0; iter < numIterations; iter++) {
-    // optimizer.minimize is where the training happens. 
+    // optimizer.minimize is where the training happens.
 
-    // The function it takes must return a numerical estimate (i.e. loss) 
+    // The function it takes must return a numerical estimate (i.e. loss)
     // of how well we are doing using the current state of
     // the variables we created at the start.
 
@@ -105,7 +105,7 @@ async function train(xs, ys, numIterations) {
       const pred = predict(xs);
       return loss(pred, ys);
     });
-    
+
     // Use tf.nextFrame to not block the browser.
     await tf.nextFrame();
   }

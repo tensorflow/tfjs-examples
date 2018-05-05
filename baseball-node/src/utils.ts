@@ -16,23 +16,6 @@
  */
 
 /**
- * Basic in-memory-shuffle.
- */
-// tslint:disable-next-line:no-any
-export function shuffle(array: any[]): any[] {
-  let currentIndex = array.length, temporaryValue, randomIndex;
-  while (0 !== currentIndex) {
-    randomIndex = Math.floor(Math.random() * currentIndex);
-    currentIndex -= 1;
-
-    temporaryValue = array[currentIndex];
-    array[currentIndex] = array[randomIndex];
-    array[randomIndex] = temporaryValue;
-  }
-  return array;
-}
-
-/**
  * Normalize a value between a given range.
  */
 export function normalize(value: number, min: number, max: number): number {

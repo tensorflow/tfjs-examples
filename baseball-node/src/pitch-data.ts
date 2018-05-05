@@ -19,7 +19,7 @@ import * as tf from '@tensorflow/tfjs';
 import {sizeFromShape} from '@tensorflow/tfjs-core/dist/util';
 import {Pitch, PitchKeys} from 'baseball-pitchfx-types';
 import {readFileSync} from 'fs';
-import {normalize, shuffle} from './utils';
+import {normalize} from './utils';
 
 /**
  * Map of training fields for a Pitch with a min/max range for data
@@ -89,7 +89,8 @@ export class PitchData {
 
     // Load and convert training data to batches.
     this.batches = [] as PitchDataBatch[];
-    const pitchData = shuffle(loadPitchData(filename));
+    const pitchData = loadPitchData(filename);
+    tf.util.shuffle(pitchData);
     let index = 0;
     while (index < pitchData.length) {
       this.batches.push(

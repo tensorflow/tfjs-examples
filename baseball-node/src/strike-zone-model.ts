@@ -41,24 +41,29 @@ export class StrikeZoneModel extends PitchModel {
     super('strike-zone');
 
     this.fields = [
-      {key: 'px', min: PX_MIN, max: PX_MAX},
-      {key: 'pz', min: PZ_MIN, max: PZ_MAX},
-      {key: 'sz_top', min: SZ_TOP_MIN, max: SZ_TOP_MAX},
-      {key: 'sz_bot', min: SZ_BOT_MIN, max: SZ_BOT_MAX},
-      {key: 'left_handed_batter'}
+      {key : 'px', min : PX_MIN, max : PX_MAX},
+      {key : 'pz', min : PZ_MIN, max : PZ_MAX},
+      {key : 'sz_top', min : SZ_TOP_MIN, max : SZ_TOP_MAX},
+      {key : 'sz_bot', min : SZ_BOT_MIN, max : SZ_BOT_MAX},
+      {key : 'left_handed_batter'}
     ];
 
-    this.data = this.loadData('strike_zone_training_data.json', 50);
+    this.data =
+        new PitchData('dist/strike_zone_training_data.json', 50, this.fields, 2,
+                      (pitch) => pitch.type === 'S' ? 0 : 1);
 
     const model = tf.sequential();
-    model.add(tf.layers.dense(
-        {units: 20, activation: 'relu', inputShape: [this.fields.length]}));
-    model.add(tf.layers.dense({units: 10, activation: 'relu'}));
-    model.add(tf.layers.dense({units: 2, activation: 'softmax'}));
+    model.add(tf.layers.dense({
+      units : 20,
+      activation : 'relu',
+      inputShape : [ this.fields.length ]
+    }));
+    model.add(tf.layers.dense({units : 10, activation : 'relu'}));
+    model.add(tf.layers.dense({units : 2, activation : 'softmax'}));
     model.compile({
-      optimizer: tf.train.adam(),
-      loss: 'categoricalCrossentropy',
-      metrics: ['accuracy']
+      optimizer : tf.train.adam(),
+      loss : 'categoricalCrossentropy',
+      metrics : [ 'accuracy' ]
     });
     this.model = model;
   }
@@ -72,15 +77,9 @@ export class StrikeZoneModel extends PitchModel {
     const values = predict.dataSync();
 
     let list = [] as StrikeZoneClass[];
-    list.push({value: values[0], strike: 1});
-    list.push({value: values[1], strike: 0});
+    list.push({value : values[0], strike : 1});
+    list.push({value : values[1], strike : 0});
     list = list.sort((a, b) => b.value - a.value);
     return list;
-  }
-
-  private loadData(filename: string, batchSize: number): PitchData {
-    return new PitchData(filename, batchSize, this.fields, 2, (pitch) => {
-      return pitch.type === 'S' ? 0 : 1;
-    });
   }
 }

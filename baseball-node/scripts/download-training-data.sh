@@ -21,6 +21,8 @@ PITCH_TYPE_TEST_DATA="https://storage.googleapis.com/mlb-pitch-data/pitch_type_t
 STRIKE_ZONE_TRAINING_DATA="https://storage.googleapis.com/mlb-pitch-data/strike_zone_training_data.json.gz"
 STRIKE_ZONE_TEST_DATA="https://storage.googleapis.com/mlb-pitch-data/strike_zone_test_data.json.gz"
 
+mkdir -p
+
 curl -L $PITCH_TYPE_TRAINING_DATA | gunzip > dist/pitch_type_training_data.json
 curl -L $PITCH_TYPE_TEST_DATA | gunzip > dist/pitch_type_test_data.json
 

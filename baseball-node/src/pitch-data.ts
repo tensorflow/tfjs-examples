@@ -18,7 +18,6 @@
 import * as tf from '@tensorflow/tfjs';
 import {Pitch, PitchKeys} from 'baseball-pitchfx-types';
 import {readFileSync} from 'fs';
-import {normalize} from './utils';
 
 /**
  * Map of training fields for a Pitch with a min/max range for data
@@ -146,4 +145,11 @@ function pitchTrainDataArray(
     values.push(normalize(pitch[field.key] as number, field.min, field.max));
   }
   return values;
+}
+
+function normalize(value: number, min: number, max: number): number {
+  if (min === undefined || max === undefined) {
+    return value;
+  }
+  return (value - min) / (max - min);
 }

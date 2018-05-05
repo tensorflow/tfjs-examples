@@ -16,20 +16,16 @@
  */
 
 // tslint:disable-next-line:max-line-length
-import * as tf from '@tensorflow/tfjs';
-// tslint:disable-next-line:max-line-length
 import {Pitch, pitchFromType, PitchPredictionMessage, PitchPredictionUpdateMessage} from 'baseball-pitchfx-types';
-// tslint:disable-next-line:no-require-imports
 import {createServer, Server} from 'http';
 import * as socketio from 'socket.io';
 import * as uuid from 'uuid';
 
 import {loadPitchData} from '../pitch-data';
 import {PitchTypeModel} from '../pitch-type-model';
-import {getRandomInt} from '../utils';
 
 const PORT = 8001;
-const PITCH_COUNT = 12;
+const PITCH_CLASSES = 7;
 
 export class Socket {
   server: Server;
@@ -46,11 +42,12 @@ export class Socket {
 
     this.pitchPredictionMessages = [];
     this.pitches = loadPitchData('dist/pitch_type_test_data.json');
-    tf.util.shuffle(this.pitches);
 
-    for (let i = 0; i < PITCH_COUNT; i++) {
-      this.pitchPredictionMessages.push(this.generateResponse(
-          this.pitches[getRandomInt(this.pitches.length)]));
+    // Select 1 pitch each from the dataset.
+    const range = this.pitches.length / PITCH_CLASSES;
+    for (let i = 0; i < PITCH_CLASSES; i++) {
+      this.pitchPredictionMessages.unshift(
+          this.generateResponse(this.pitches[range * i]));
     }
   }
 
@@ -70,13 +67,12 @@ export class Socket {
     const updates = [] as PitchPredictionUpdateMessage[];
     const predictions = this.pitchPredictionMessages;
     predictions.forEach((prediction) => {
-      updates.push(this.generatePredictionUpdateMessage(
+      updates.unshift(this.generatePredictionUpdateMessage(
           prediction.uuid, prediction.pitch));
     });
-    if (updates.length > 0) {
-      console.log(`  > sending : ${updates.length} prediction updates`);
-      this.io.emit('prediction_updates', updates);
-    }
+
+    console.log(`  > sending : ${updates.length} prediction updates`);
+    this.io.emit('prediction_updates', updates);
   }
 
   generateResponse(pitch: Pitch): PitchPredictionMessage {

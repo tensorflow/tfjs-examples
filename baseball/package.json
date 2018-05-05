@@ -1,8 +1,7 @@
 {
-  "name": "tfjs-examples-baseball",
+  "name": "tfjs-examples-baseball-node",
   "version": "0.1.0",
   "description": "Deep learning models for classifying baseball metrics",
-  "main": "index.js",
   "scripts": {
     "build": "tsc",
     "build-client": "webpack",

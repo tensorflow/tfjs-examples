@@ -45,7 +45,7 @@ export class Socket {
     this.io = socketio(this.server);
 
     this.pitchPredictionMessages = [];
-    this.pitches = loadPitchData('pitch_type_test_data.json');
+    this.pitches = loadPitchData('dist/pitch_type_test_data.json');
     tf.util.shuffle(this.pitches);
 
     for (let i = 0; i < PITCH_COUNT; i++) {

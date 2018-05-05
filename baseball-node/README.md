@@ -19,6 +19,8 @@ Next, start the client:
 yarn start-client
 ```
 
+Open the client running at: http://localhost:8080/
+
 In a new shell, start the server:
 ```sh
 yarn start-server

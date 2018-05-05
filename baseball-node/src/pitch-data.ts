@@ -16,7 +16,6 @@
  */
 
 import * as tf from '@tensorflow/tfjs';
-import {sizeFromShape} from '@tensorflow/tfjs-core/dist/util';
 import {Pitch, PitchKeys} from 'baseball-pitchfx-types';
 import {readFileSync} from 'fs';
 import {normalize} from './utils';
@@ -108,7 +107,7 @@ export class PitchData {
    */
   generateBatch(pitches: Pitch[]): PitchDataBatch {
     const shape = [pitches.length, this.fields.length];
-    const data = new Float32Array(sizeFromShape(shape));
+    const data = new Float32Array(tf.util.sizeFromShape(shape));
     const labels = [] as number[];
 
     return tf.tidy(() => {

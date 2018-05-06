@@ -28,13 +28,14 @@ export class PitchPoller {
   }
 
   poll() {
-    timer(500, 15000)
+    timer(500, 10000)
         .flatMap(value => {
           const date = new Date();
           if (!this.load) {
             date.setDate(date.getDate() - 1);
             this.load = true;
           }
+          console.log('Getting pitches for ', date);
           return getDatePitches(date);
         })
         .startWith([])

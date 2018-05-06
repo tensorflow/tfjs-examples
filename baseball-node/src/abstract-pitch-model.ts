@@ -20,6 +20,12 @@ import {Pitch} from 'baseball-pitchfx-types';
 
 import {PitchData, PitchDataBatch, PitchTrainFields} from './pitch-data';
 
+/** Info about progress during training. */
+export interface TrainProgress {
+  accuracy: number;
+  loss: number;
+}
+
 /**
  * Abstract base class for defining Pitch ML models.
  */
@@ -43,11 +49,11 @@ export abstract class PitchModel {
    * Trains a model with saved training data for a given number of epochs.
    * @param epochs Number of passes through the training data.
    */
-  async train(epochs: number) {
+  async train(epochs: number, callback: (progress: TrainProgress) => void) {
     const batches = this.data.pitchBatches();
     for (let i = 0; i < epochs; i++) {
       for (let j = 0; j < batches.length; j++) {
-        await this.trainInternal(batches[j], j % 10 === 0);
+        await this.trainInternal(batches[j], callback, j % 10 === 0);
       }
     }
   }
@@ -55,23 +61,25 @@ export abstract class PitchModel {
   /**
    * Trains the model with a specific list of pitches.
    * @param pitches An array of Pitch objects for training.
-   * @param epochs Number of training loops with the pitches.
    */
-  async trainWithPitches(pitches: Pitch[], epochs = 1) {
+  async trainWithPitches(
+      pitches: Pitch[], callback: (progress: TrainProgress) => void) {
     const batch = this.data.generateBatch(pitches);
-    for (let i = 0; i < epochs; i++) {
-      this.trainInternal(batch, true);
-    }
+    this.trainInternal(batch, callback, true);
   }
 
-  private async trainInternal(batch: PitchDataBatch, log = false) {
+  private async trainInternal(
+      batch: PitchDataBatch, callback: (progress: TrainProgress) => void,
+      log = false) {
     await this.model.fit(batch.pitches, batch.labels, {
       epochs: 1,
       shuffle: false,
       validationData: [batch.pitches, batch.labels],
+      batchSize: 100,
       callbacks: {
         onEpochEnd: async (epoch, logs) => {
           if (log) {
+            callback({accuracy: logs.acc, loss: logs.loss});
             console.log(
                 `[${this.modelName} : step ${this.totalTrainSteps}] loss: ${
                     logs.loss.toFixed(4)} accuracy: ${logs.acc.toFixed(4)}`);

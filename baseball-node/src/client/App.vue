@@ -19,6 +19,7 @@ limitations under the License.
       <button type="button" class="btn btn-primary" v-on:click="loadLive">
         Load Live Data
       </button>
+      <div id="accuracyCanvas"></div>
     </div>
 
     <div class="row d-flex">
@@ -26,7 +27,7 @@ limitations under the License.
         <div class="card" v-if="predictions.length === 0">
           <div class="card-body text-center" style="color: #80868b">
             <span v-if="connected">Waiting for live pitch data...</span>
-            <span v-if="!connected">Connecting to server...</span>
+            <span v-if="!connected">Waiting for pitch server...</span>
           </div>
         </div>
       </div>
@@ -108,6 +109,10 @@ body {
 
 .content {
   padding-top: 20px;
+}
+
+#accuracyCanvas > div {
+  display: none;
 }
 
 .footer {

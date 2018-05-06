@@ -18,6 +18,8 @@
 import {createServer, Server} from 'http';
 import * as socketio from 'socket.io';
 
+import {TrainProgress} from '../abstract-pitch-model';
+
 import {PitchCache} from './cache';
 
 const PORT = 8001;
@@ -61,6 +63,10 @@ export class Socket {
       this.io.emit('pitch_predictions', this.pitchCache.predictionQueue);
       this.pitchCache.clearQueue();
     }
+  }
+
+  sendProgress(progress: TrainProgress) {
+    this.io.emit('progress', progress);
   }
 
   broadcastUpdatedPredictions(): void {

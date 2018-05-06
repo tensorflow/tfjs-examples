@@ -41,16 +41,17 @@ function toggleLiveData() {
 }
 
 function scheduleTrainingDataLoop() {
+  console.log('  > Using test data');
   pitchCache.loadTestData();
 
   intervalId = setInterval(async () => {
-    await pitchModel.train(1);
+    await pitchModel.train(1, progress => socket.sendProgress(progress));
     socket.broadcastUpdatedPredictions();
 
     if (useLiveData) {
       clearInterval(intervalId);
     }
-  }, 5000);
+  }, 2000);
 }
 
 function scheduleLiveDataLoop() {
@@ -64,14 +65,15 @@ function scheduleLiveDataLoop() {
 
     if (pitchCache.trainSize() > 0) {
       console.log(`  > Training with ${pitchCache.trainSize()} live pitches`);
-      await pitchModel.trainWithPitches(pitchCache.trainCache, 2);
+      await pitchModel.trainWithPitches(
+          pitchCache.trainCache, progress => socket.sendProgress(progress));
       pitchCache.clearTrainCache();
     }
 
     if (pitchCache.queueSize() > 0) {
       socket.broadcastPredictions();
     } else {
-      await pitchModel.train(1);
+      await pitchModel.train(1, progress => socket.sendProgress(progress));
       socket.broadcastUpdatedPredictions();
     }
   });

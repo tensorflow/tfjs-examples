@@ -11,7 +11,7 @@ This package contains 3 components:
 ## Running the Demo
 First, prepare the environment:
 ```sh
-yarn && yarn download-training-data
+yarn && yarn download-data
 ```
 
 Next, start the client:

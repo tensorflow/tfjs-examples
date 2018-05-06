@@ -19,7 +19,10 @@
 import {PitchPredictionMessage, PitchPredictionUpdateMessage} from 'baseball-pitchfx-types';
 import {UniqueQueue} from 'containers.js';
 import * as socketioClient from 'socket.io-client';
+import embed from 'vega-embed';
 import Vue from 'vue';
+
+import {TrainProgress} from '../abstract-pitch-model';
 
 import Pitch from './Pitch.vue';
 
@@ -35,6 +38,8 @@ const data = {
   socket: socketioClient
 };
 
+const accuracy: Array<{batch: number, accuracy: number}> = [];
+
 // tslint:disable-next-line:no-default-export
 export default Vue.extend({
   data() {
@@ -43,7 +48,9 @@ export default Vue.extend({
   components: {Pitch},
   // tslint:disable-next-line:object-literal-shorthand
   mounted: function() {
-    this.$data.socket = socketioClient(SOCKET);
+    this.$data.socket = socketioClient(
+        SOCKET, {reconnectionDelay: 300, reconnectionDelayMax: 300});
+    this.$data.socket.connect();
 
     this.$data.socket.on(
         'pitch_predictions', (data: PitchPredictionMessage[]) => {
@@ -77,12 +84,16 @@ export default Vue.extend({
       this.predictionsQueue.clear();
     });
 
+    this.$data.socket.on(
+        'progress', (progress: TrainProgress) => plotProgress(progress));
+
     this.$data.socket.on('connect', () => {
       this.$data.connected = true;
     });
   },
 
   methods: {
+    // tslint:disable-next-line:object-literal-shorthand
     loadLive: function() {
       this.$data.predictionMap.clear();
       this.$data.predictions = [];
@@ -91,3 +102,20 @@ export default Vue.extend({
     }
   }
 });
+
+function plotProgress(progress: TrainProgress) {
+  accuracy.push({batch: accuracy.length + 1, accuracy: progress.accuracy});
+  embed(
+      '#accuracyCanvas', {
+        '$schema': 'https://vega.github.io/schema/vega-lite/v2.json',
+        'data': {'values': accuracy},
+        'width': 260,
+        'mark': {'type': 'line', 'legend': null, 'orient': 'vertical'},
+        'encoding': {
+          'x': {'field': 'batch', 'type': 'quantitative'},
+          'y': {'field': 'accuracy', 'type': 'quantitative'},
+          'color': {'field': 'set', 'type': 'nominal', 'legend': null},
+        },
+      },
+      {'width': 360});
+}

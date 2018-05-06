@@ -63,9 +63,9 @@ export class PitchTypeModel extends PitchModel {
 
     const model = tf.sequential();
     model.add(tf.layers.dense(
-        {units: 150, activation: 'relu', inputShape: [this.fields.length]}));
-    model.add(tf.layers.dense({units: 100, activation: 'relu'}));
-    model.add(tf.layers.dense({units: 50, activation: 'relu'}));
+        {units: 250, activation: 'relu', inputShape: [this.fields.length]}));
+    model.add(tf.layers.dense({units: 175, activation: 'relu'}));
+    model.add(tf.layers.dense({units: 150, activation: 'relu'}));
     model.add(tf.layers.dense({units: 7, activation: 'softmax'}));
     model.compile({
       optimizer: tf.train.adam(),

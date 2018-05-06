@@ -89,22 +89,28 @@ export class PitchData {
     this.batches = [] as PitchDataBatch[];
     const pitchData = loadPitchData(filename);
     tf.util.shuffle(pitchData);
-    let index = 0;
-    while (index < pitchData.length) {
-      this.batches.push(
-          this.generateBatch(pitchData.slice(index, index + batchSize)));
-
-      index += batchSize;
-      if (pitchData.length - index < batchSize) {
-        batchSize = pitchData.length - index;
-      }
-    }
+    this.batches = this.generateBatch(pitchData);
   }
 
   /**
    * Generates a batch of training data for a list of Pitch objects.
    */
-  generateBatch(pitches: Pitch[]): PitchDataBatch {
+  generateBatch(pitches: Pitch[]): PitchDataBatch[] {
+    const batches = [] as PitchDataBatch[];
+    let index = 0;
+    while (index < pitches.length) {
+      batches.push(
+          this.singlePitchBatch(pitches.slice(index, index + this.batchSize)));
+
+      index += this.batchSize;
+      if (pitches.length - index < this.batchSize) {
+        this.batchSize = pitches.length - index;
+      }
+    }
+    return batches;
+  }
+
+  private singlePitchBatch(pitches: Pitch[]): PitchDataBatch {
     const shape = [pitches.length, this.fields.length];
     const data = new Float32Array(tf.util.sizeFromShape(shape));
     const labels = [] as number[];

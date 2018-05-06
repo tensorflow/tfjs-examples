@@ -65,7 +65,9 @@ export abstract class PitchModel {
   async trainWithPitches(
       pitches: Pitch[], callback: (progress: TrainProgress) => void) {
     const batch = this.data.generateBatch(pitches);
-    this.trainInternal(batch, callback, true);
+    batch.forEach((b) => {
+      this.trainInternal(b, callback, true);
+    });
   }
 
   private async trainInternal(

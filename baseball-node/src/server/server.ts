@@ -67,13 +67,11 @@ function scheduleLiveDataLoop() {
       console.log(`  > Training with ${pitchCache.trainSize()} live pitches`);
       await pitchModel.trainWithPitches(
           pitchCache.trainCache, progress => socket.sendProgress(progress));
-      pitchCache.clearTrainCache();
     }
 
     if (pitchCache.queueSize() > 0) {
       socket.broadcastPredictions();
     } else {
-      await pitchModel.train(1, progress => socket.sendProgress(progress));
       socket.broadcastUpdatedPredictions();
     }
   });

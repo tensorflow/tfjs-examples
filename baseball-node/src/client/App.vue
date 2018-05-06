@@ -15,6 +15,13 @@ limitations under the License.
 
 <template>
   <div class="container content">
+    <div class="row">
+      <div>
+        <i class="material-icons icon" v-bind:class="[connected ? 'online' : 'offline']">rss_feed</i>
+      </div>
+      <button type="button" class="btn btn-primary btn-lg" v-on:click="loadLive">Load Live Data</button>
+    </div>
+
     <div class="row d-flex">
       <div class="col-lg-4">
         <div class="card" v-if="predictions.length === 0">
@@ -25,12 +32,13 @@ limitations under the License.
       </div>
     </div>
 
-    <transition-group name="list-complete">
+    <transition-group name="flip-list">
       <pitch class="pitch"
             v-for="prediction in predictions"
             :key="prediction.uuid"
             v-bind:prediction="prediction"></pitch>
     </transition-group>
+
   </div>
 </template>
 
@@ -48,6 +56,10 @@ body {
   background-color: rgb(248, 249, 250);
 }
 
+.flip-list-move {
+  transition: transform 1s;
+}
+
 .list-complete-item {
   transition: all 1s;
   display: inline-block;
@@ -56,7 +68,7 @@ body {
 .list-complete-enter,
 .list-complete-leave-to {
   opacity: 0;
-  transform: translateY(30px);
+  transform: translateY(20px);
 }
 .list-complete-leave-active {
   position: absolute;
@@ -106,5 +118,12 @@ body {
   height: 60px;
   line-height: 60px;
   background-color: #f5f5f5;
+}
+
+.icon.online {
+  color: #34a853;
+}
+.icon.offline {
+  color: #ccc;
 }
 </style>

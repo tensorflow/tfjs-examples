@@ -23,14 +23,16 @@ import Vue from 'vue';
 
 import Pitch from './Pitch.vue';
 
-const maxPitches = 6 * 3;  // 3 each row.
+const maxPitches = 10;
 
 const SOCKET = 'http://localhost:8001/';
 
 const data = {
   predictionsQueue: new UniqueQueue<PitchPredictionMessage>(maxPitches),
   predictions: [] as PitchPredictionMessage[],
-  predictionMap: new Map<string, number>()
+  predictionMap: new Map<string, number>(),
+  connected: false,
+  socket: socketioClient
 };
 
 // tslint:disable-next-line:no-default-export
@@ -41,34 +43,51 @@ export default Vue.extend({
   components: {Pitch},
   // tslint:disable-next-line:object-literal-shorthand
   mounted: function() {
-    const socket = socketioClient(SOCKET);
+    this.$data.socket = socketioClient(SOCKET);
 
-    socket.on('pitch_predictions', (data: PitchPredictionMessage[]) => {
-      data.forEach((prediction) => {
-        this.predictionsQueue.push(prediction);
-      });
-      this.predictions = this.predictionsQueue.values();
-      this.predictionMap.clear();
-      for (let i = 0; i < this.predictions.length; i++) {
-        this.predictionMap.set(this.predictions[i].uuid, i);
-      }
-    });
+    this.$data.socket.on(
+        'pitch_predictions', (data: PitchPredictionMessage[]) => {
+          console.log(`Found :${data.length} pitches`);
+          data.forEach((prediction) => {
+            this.predictionsQueue.push(prediction);
+          });
+          this.predictions = this.predictionsQueue.values();
+          this.predictionMap.clear();
+          for (let i = 0; i < this.predictions.length; i++) {
+            this.predictionMap.set(this.predictions[i].uuid, i);
+          }
+        });
 
-    socket.on('prediction_updates', (data: PitchPredictionUpdateMessage[]) => {
-      data.forEach((update) => {
-        const index = this.predictionMap.get(update.uuid);
-        if (index !== undefined) {
-          this.predictions[index].pitch_classes = update.pitch_classes;
-          this.predictions[index].strike_zone_classes =
-              update.strike_zone_classes;
-        }
-      });
-    });
+    this.$data.socket.on(
+        'prediction_updates', (data: PitchPredictionUpdateMessage[]) => {
+          data.forEach((update) => {
+            const index = this.predictionMap.get(update.uuid);
+            if (index !== undefined) {
+              this.predictions[index].pitch_classes = update.pitch_classes;
+              this.predictions[index].strike_zone_classes =
+                  update.strike_zone_classes;
+            }
+          });
+        });
 
-    socket.on('disconnect', () => {
+    this.$data.socket.on('disconnect', () => {
+      this.$data.connected = false;
       this.predictionMap.clear();
       this.predictions = [];
       this.predictionsQueue.clear();
     });
+
+    this.$data.socket.on('connect', () => {
+      this.$data.connected = true;
+    });
+  },
+
+  methods: {
+    loadLive: function() {
+      this.$data.predictionMap.clear();
+      this.$data.predictions = [];
+      this.$data.predictionsQueue.clear();
+      this.$data.socket.emit('event', 'toggle_live_data');
+    }
   }
 });

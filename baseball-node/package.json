@@ -14,8 +14,6 @@
   },
   "license": "Apache-2.0",
   "devDependencies": {
-    "@tensorflow/tfjs": "^0.10.3",
-    "@tensorflow/tfjs-node": "link:.yalc/@tensorflow/tfjs-node",
     "@types/socket.io": "^1.4.33",
     "@types/socket.io-client": "^1.4.32",
     "@types/uuid": "^3.4.3",
@@ -25,7 +23,6 @@
     "css-loader": "^0.28.11",
     "file-loader": "^1.1.11",
     "node-simple-timer": "^0.0.1",
-    "socket.io": "^2.1.0",
     "ts-loader": "^4.2.0",
     "ts-node": "^6.0.2",
     "tslint": "^5.9.1",
@@ -39,5 +36,11 @@
     "webpack-dev-server": "^3.1.4",
     "yalc": "^1.0.0-pre.22"
   },
-  "dependencies": {}
+  "dependencies": {
+    "baseball-pitchfx-data": "^0.0.16",
+    "rxjs": "^5.5.10",
+    "@tensorflow/tfjs": "^0.10.3",
+    "@tensorflow/tfjs-node": "link:.yalc/@tensorflow/tfjs-node",
+    "socket.io": "^2.1.0"
+  }
 }

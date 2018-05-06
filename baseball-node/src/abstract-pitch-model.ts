@@ -55,9 +55,13 @@ export abstract class PitchModel {
   /**
    * Trains the model with a specific list of pitches.
    * @param pitches An array of Pitch objects for training.
+   * @param epochs Number of training loops with the pitches.
    */
-  async trainWithPitches(pitches: Pitch[]) {
-    this.trainInternal(this.data.generateBatch(pitches), true);
+  async trainWithPitches(pitches: Pitch[], epochs = 1) {
+    const batch = this.data.generateBatch(pitches);
+    for (let i = 0; i < epochs; i++) {
+      this.trainInternal(batch, true);
+    }
   }
 
   private async trainInternal(batch: PitchDataBatch, log = false) {

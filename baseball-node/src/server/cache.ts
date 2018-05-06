@@ -49,6 +49,11 @@ export class PitchCache {
   }
 
   cachePitches(pitches: Pitch[]): void {
+    pitches.forEach((pitch) => {
+      if (isValidPitchTypeData(pitch)) {
+        this.trainCache.unshift(pitch);
+      }
+    });
     const pitchData = pitches.length > MAX_PITCHES_CACHE ?
         pitches.slice(pitches.length - MAX_PITCHES_CACHE) :
         pitches;
@@ -71,10 +76,6 @@ export class PitchCache {
     }
     if (this.predictionQueue.length > MAX_PITCHES_CACHE) {
       this.predictionQueue.pop();
-    }
-
-    if (isValidPitchTypeData(pitch)) {
-      this.trainCache.unshift(pitch);
     }
   }
 

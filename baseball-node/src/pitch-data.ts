@@ -98,14 +98,15 @@ export class PitchData {
   generateBatch(pitches: Pitch[]): PitchDataBatch[] {
     const batches = [] as PitchDataBatch[];
     let index = 0;
+    let batchSize = this.batchSize;
     while (index < pitches.length) {
+      if (pitches.length - index < this.batchSize) {
+        batchSize = pitches.length - index;
+      }
       batches.push(
-          this.singlePitchBatch(pitches.slice(index, index + this.batchSize)));
+          this.singlePitchBatch(pitches.slice(index, index + batchSize)));
 
       index += this.batchSize;
-      if (pitches.length - index < this.batchSize) {
-        this.batchSize = pitches.length - index;
-      }
     }
     return batches;
   }

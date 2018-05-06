@@ -1,15 +1,18 @@
-# TensorFlow.js Example: Training Baseball data in Node.js 
+# TensorFlow.js Example: Training a baseball model in Node.js 
 
-### This demo demonstrates using the Node.js bindings for sever-side model training and predictions.
+This demo demonstrates how to use the [Node.js bindings](https://github.com/tensorflow/tfjs-node) for TensorFlow.js. 
 
-This package contains 3 components:
-1. Models and training data for baseball
-2. Node.js server for running pitch type model and reporting over socket.io
-3. Client for listening to the server and displaying pitch type predictions
+It has four parts:
+1. Baseball sensor data
+2. Two ML models that do classification given the sensor data:
+   - Model that predicts the type of pitch.
+   - Model that predicts if there was a strike.
+2. Node.js server that trains a model and serves results over a web socket.
+3. Web application that displays predictions and training stats.
 
 
 ## Running the Demo
-First, prepare the environment:
+First, prepare the environment and download the baseball data from MLB:
 ```sh
 yarn && yarn download-data
 ```
@@ -26,12 +29,12 @@ In a new shell, start the server:
 yarn start-server
 ```
 
-To perform model only training to see how Node.js works with the two models, run the following:
+If you are intested in testing out the training, without running a web server:
 ```sh
-yarn train-pitch-type-model
+yarn train-pitch-model
 ```
 ```sh
-yarn train-strike-zone-model
+yarn train-strike-model
 ```
 
 ## Pitch Models

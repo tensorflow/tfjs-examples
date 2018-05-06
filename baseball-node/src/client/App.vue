@@ -16,17 +16,17 @@ limitations under the License.
 <template>
   <div class="container content">
     <div class="row">
-      <div>
-        <i class="material-icons icon" v-bind:class="[connected ? 'online' : 'offline']">rss_feed</i>
-      </div>
-      <button type="button" class="btn btn-primary btn-lg" v-on:click="loadLive">Load Live Data</button>
+      <button type="button" class="btn btn-primary" v-on:click="loadLive">
+        Load Live Data
+      </button>
     </div>
 
     <div class="row d-flex">
       <div class="col-lg-4">
         <div class="card" v-if="predictions.length === 0">
           <div class="card-body text-center" style="color: #80868b">
-            Waiting for live pitch data...
+            <span v-if="connected">Waiting for live pitch data...</span>
+            <span v-if="!connected">Connecting to server...</span>
           </div>
         </div>
       </div>
@@ -117,12 +117,5 @@ body {
   height: 60px;
   line-height: 60px;
   background-color: #f5f5f5;
-}
-
-.icon.online {
-  color: #34a853;
-}
-.icon.offline {
-  color: #ccc;
 }
 </style>

@@ -38,7 +38,6 @@ limitations under the License.
             :key="prediction.uuid"
             v-bind:prediction="prediction"></pitch>
     </transition-group>
-
   </div>
 </template>
 

@@ -6,7 +6,7 @@
     "build": "tsc",
     "build-client": "webpack",
     "link-local": "yalc link",
-    "download-training-data": "./scripts/download-training-data.sh",
+    "download-data": "./scripts/download-data.sh",
     "start-client": "webpack-dev-server --content-base src/client",
     "start-server": "ts-node src/server/server.ts",
     "train-pitch-type-model": "ts-node src/train/train-pitch-type-model.ts",
@@ -14,24 +14,20 @@
   },
   "license": "Apache-2.0",
   "devDependencies": {
-    "@tensorflow/tfjs": "^0.10.3",
-    "@tensorflow/tfjs-node": "link:.yalc/@tensorflow/tfjs-node",
     "@types/socket.io": "^1.4.33",
     "@types/socket.io-client": "^1.4.32",
     "@types/uuid": "^3.4.3",
-    "baseball-pitchfx-types": "^0.0.4",
     "clang-format": "^1.2.3",
     "containers.js": "^0.0.6",
     "css-loader": "^0.28.11",
     "file-loader": "^1.1.11",
+    "mkdirp": "^0.5.1",
     "node-simple-timer": "^0.0.1",
-    "socket.io": "^2.1.0",
     "ts-loader": "^4.2.0",
     "ts-node": "^6.0.2",
     "tslint": "^5.9.1",
     "typescript": "^2.8.3",
     "uuid": "^3.2.1",
-    "vue": "^2.5.16",
     "vue-loader": "^14.2.2",
     "vue-template-compiler": "^2.5.16",
     "webpack": "^4.7.0",
@@ -39,5 +35,12 @@
     "webpack-dev-server": "^3.1.4",
     "yalc": "^1.0.0-pre.22"
   },
-  "dependencies": {}
+  "dependencies": {
+    "@tensorflow/tfjs": "^0.10.3",
+    "@tensorflow/tfjs-node": "link:.yalc/@tensorflow/tfjs-node",
+    "baseball-pitchfx-types": "^0.0.4",
+    "socket.io": "^2.1.0",
+    "vega-embed": "^3.9.0",
+    "vue": "^2.5.16"
+  }
 }

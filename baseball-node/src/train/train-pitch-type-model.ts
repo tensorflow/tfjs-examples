@@ -28,7 +28,7 @@ async function test() {
 
   for (let i = 0; i < 100; i++) {
     timer.start();
-    await model.train(1);
+    await model.train(1, () => {});
     timer.end();
     console.log('  > epoch train time: ', timer.seconds());
     timer.reset();

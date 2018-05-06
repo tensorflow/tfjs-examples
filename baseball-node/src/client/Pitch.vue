@@ -13,31 +13,25 @@ limitations under the License.
 ==============================================================================
 -->
 <template>
-
-<div class="row d-flex">
-  <div class="col-lg-4">
-    <div class="card" v-bind:class="[correct ? 'correct' : 'incorrect']">
-      <div class="pitch-card d-flex flex-row align-items-start">
-
-        <div class="copy">
-          <div class="label d-flex justify-content-between">
-            <span>{{ prediction.pitch_classes[0].type }}</span>
-            <i v-if="correct" class="material-icons correct icon">done</i>
-            <i v-if="!correct" class="material-icons incorrect icon">clear</i>
-          </div>
+  <div class="card" v-bind:class="[correct ? 'correct' : 'incorrect']">
+    <div class="pitch-card">
+      <div class="copy">
+        <div class="label">
+          <span>{{ prediction.pitch_classes[0].type }}</span>
+          <i v-if="correct" class="material-icons correct icon">done</i>
+          <i v-if="!correct" class="material-icons incorrect icon">clear</i>
         </div>
-
       </div>
+
     </div>
   </div>
-</div>
-
 </template>
 
 <script lang="ts" src="./pitch.ts"></script>
 
 <style>
 .card {
+  width: 400px;
   transition: 1.25s;
   background: #ffffff;
   box-shadow: 0 1px 2px 0 rgba(60, 64, 67, 0.3),
@@ -72,6 +66,7 @@ limitations under the License.
 }
 
 .label {
+  text-align: center;
   font-family: "Google Sans", sans-serif;
   font-size: 24px;
   color: #5f6368;

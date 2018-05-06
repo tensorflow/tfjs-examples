@@ -27,12 +27,12 @@ const socket = new Socket(pitchModel);
 
 async function run() {
   socket.listen();
-  await pitchModel.train(1);
+  await pitchModel.train(1, progress => socket.sendProgress(progress));
 
   setInterval(async () => {
-    await pitchModel.train(1);
+    await pitchModel.train(1, progress => socket.sendProgress(progress));
     socket.broadcastUpdatedPredictions();
-  }, 5000);
+  }, 3000);
 }
 
 run();

@@ -15,12 +15,11 @@ limitations under the License.
 
 <template>
   <div class="container content">
-    <div class="row d-flex">
-      <div class="col-lg-4">
-        <div class="card" v-if="predictions.length === 0">
-          <div class="card-body text-center" style="color: #80868b">
-            Waiting for live pitch data...
-          </div>
+    <div id="accuracyCanvas"></div>
+    <div class="col-lg-4">
+      <div class="card" v-if="predictions.length === 0">
+        <div class="card-body text-center" style="color: #80868b">
+          Waiting for live pitch data...
         </div>
       </div>
     </div>
@@ -97,6 +96,10 @@ body {
 
 .content {
   padding-top: 20px;
+}
+
+#accuracyCanvas > div {
+  display: none;
 }
 
 .footer {

@@ -20,8 +20,9 @@ import {PitchPredictionMessage, PitchPredictionUpdateMessage} from 'baseball-pit
 import {UniqueQueue} from 'containers.js';
 import * as socketioClient from 'socket.io-client';
 import Vue from 'vue';
-
+import embed from 'vega-embed';
 import Pitch from './Pitch.vue';
+import {TrainProgress} from '../abstract-pitch-model';
 
 const maxPitches = 6 * 3;  // 3 each row.
 
@@ -33,6 +34,8 @@ const data = {
   predictionMap: new Map<string, number>()
 };
 
+const accuracy: Array<{batch: number, accuracy: number}> = [];
+
 // tslint:disable-next-line:no-default-export
 export default Vue.extend({
   data() {
@@ -41,7 +44,9 @@ export default Vue.extend({
   components: {Pitch},
   // tslint:disable-next-line:object-literal-shorthand
   mounted: function() {
-    const socket = socketioClient(SOCKET);
+    const socket = socketioClient(SOCKET,
+      {reconnectionDelay: 300, reconnectionDelayMax: 300});
+    socket.connect();
 
     socket.on('pitch_predictions', (data: PitchPredictionMessage[]) => {
       data.forEach((prediction) => {
@@ -65,6 +70,8 @@ export default Vue.extend({
       });
     });
 
+    socket.on('progress', (progress: TrainProgress) => plotProgress(progress));
+
     socket.on('disconnect', () => {
       this.predictionMap.clear();
       this.predictions = [];
@@ -72,3 +79,21 @@ export default Vue.extend({
     });
   }
 });
+
+function plotProgress(progress: TrainProgress) {
+  accuracy.push({batch: accuracy.length + 1, accuracy: progress.accuracy});
+  embed(
+      '#accuracyCanvas', {
+        '$schema': 'https://vega.github.io/schema/vega-lite/v2.json',
+        'data': {'values': accuracy},
+        'width': 260,
+        'mark': {'type': 'line', 'legend': null, 'orient': 'vertical'},
+        'encoding': {
+          'x': {'field': 'batch', 'type': 'quantitative'},
+          'y': {'field': 'accuracy', 'type': 'quantitative'},
+          'color': {'field': 'set', 'type': 'nominal', 'legend': null},
+        },
+      },
+      {'width': 360}
+  );
+}

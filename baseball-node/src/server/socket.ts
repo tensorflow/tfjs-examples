@@ -19,14 +19,13 @@
 import * as tf from '@tensorflow/tfjs';
 // tslint:disable-next-line:max-line-length
 import {Pitch, pitchFromType, PitchPredictionMessage, PitchPredictionUpdateMessage} from 'baseball-pitchfx-types';
-// tslint:disable-next-line:no-require-imports
 import {createServer, Server} from 'http';
 import * as socketio from 'socket.io';
 import * as uuid from 'uuid';
-
 import {loadPitchData} from '../pitch-data';
 import {PitchTypeModel} from '../pitch-type-model';
 import {getRandomInt} from '../utils';
+import {TrainProgress} from '../abstract-pitch-model';
 
 const PORT = 8001;
 const PITCH_COUNT = 12;
@@ -77,6 +76,10 @@ export class Socket {
       console.log(`  > sending : ${updates.length} prediction updates`);
       this.io.emit('prediction_updates', updates);
     }
+  }
+
+  sendProgress(progress: TrainProgress) {
+    this.io.emit('progress', progress);
   }
 
   generateResponse(pitch: Pitch): PitchPredictionMessage {

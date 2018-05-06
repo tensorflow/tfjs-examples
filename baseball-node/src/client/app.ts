@@ -70,9 +70,7 @@ export default Vue.extend({
       });
     });
 
-    socket.on('progress', (progress: TrainProgress) => {
-      plotProgress(progress);
-    });
+    socket.on('progress', (progress: TrainProgress) => plotProgress(progress));
 
     socket.on('disconnect', () => {
       this.predictionMap.clear();

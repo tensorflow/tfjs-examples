@@ -15,18 +15,49 @@ limitations under the License.
 
 <template>
   <div class="container content">
-    <div id="table"></div>
+    <div id="table">
+      <h2 style="text-align:center;">Accuracy per pitch type (%)</h2>
+      <div id="legend">
+        <div class="legend-item">
+          <div class="score"></div>
+          <div>Train set</div>
+        </div>
+        <div class="legend-item">
+          <div class="score validation"></div>
+          <div>Test set</div>
+        </div>
+      </div>
+      <div id="table-rows"></div>
+    </div>
   </div>
 </template>
 
 <script lang="ts" src="./app.ts"></script>
 
 <style>
+#table {
+  border-right: 2px solid #bbb;
+  width: 660px;
+}
 #table .row {
   display: flex;
   align-items: center;
-  margin: 5px 0;
+  margin: 25px 0;
 }
+#legend {
+  position: absolute;
+}
+.legend-item {
+  display: flex;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.legend-item .score {
+  width: 30px;
+  margin-right: 10px;
+}
+
 .label {
   text-align: center;
   font-family: "Google Sans", sans-serif;
@@ -37,11 +68,11 @@ limitations under the License.
 }
 #table .label {
   margin-right: 20px;
-  width: 300px;
+  width: 360px;
   text-align: right;
 }
 #table .score {
-  background-color: #999;
+  background-color: #0277bd;
   height: 30px;
   text-align: right;
   line-height: 30px;
@@ -49,14 +80,14 @@ limitations under the License.
   padding-right: 10px;
   box-sizing: border-box;
 }
-
-#table .score-container {
-  border-right: 1px solid black;
+#table .score.validation {
+  background-color: #ef6c00;
 }
 
 html,
 body {
   font-family: Roboto, sans-serif;
+  color: #5f6368;
 }
 
 body {

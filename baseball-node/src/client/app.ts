@@ -17,15 +17,13 @@
 
 import * as socketioClient from 'socket.io-client';
 import Vue from 'vue';
-
 import {AccuracyPerClass} from '../types';
 
 const SOCKET = 'http://localhost:8001/';
 
 // tslint:disable-next-line:no-default-export
 export default Vue.extend({
-  // tslint:disable-next-line:object-literal-shorthand
-  mounted: function() {
+  mounted: () => {
     const socket = socketioClient(
         SOCKET, {reconnectionDelay: 300, reconnectionDelayMax: 300});
     socket.connect();
@@ -42,13 +40,14 @@ export default Vue.extend({
   }
 });
 
+const BAR_WIDTH_PX = 300;
+
 function plotAccuracyPerClass(accPerClass: AccuracyPerClass) {
-  const table = document.getElementById('table');
+  const table = document.getElementById('table-rows');
   table.innerHTML = '';
 
-  const BAR_WIDTH_PX = 300;
-
   for (const label in accPerClass) {
+    const scores = accPerClass[label];
     // Row.
     const rowDiv = document.createElement('div');
     rowDiv.className = 'row';
@@ -64,14 +63,20 @@ function plotAccuracyPerClass(accPerClass: AccuracyPerClass) {
     const scoreContainer = document.createElement('div');
     scoreContainer.className = 'score-container';
     scoreContainer.style.width = BAR_WIDTH_PX + 'px';
-
-    const scoreDiv = document.createElement('div');
-    scoreDiv.className = 'score';
-    const score = accPerClass[label].training;
-    scoreDiv.style.width = (score * BAR_WIDTH_PX) + 'px';
-    scoreDiv.innerHTML = (score * 100).toFixed(1) + '%';
-
-    scoreContainer.appendChild(scoreDiv);
     rowDiv.appendChild(scoreContainer);
+
+    plotScoreBar(scores.training, scoreContainer);
+    if (scores.validation) {
+      plotScoreBar(scores.validation, scoreContainer, 'validation');
+    }
   }
+}
+
+function plotScoreBar(
+    score: number, container: HTMLDivElement, className = '') {
+  const scoreDiv = document.createElement('div');
+  scoreDiv.className = 'score ' + className;
+  scoreDiv.style.width = (score * BAR_WIDTH_PX) + 'px';
+  scoreDiv.innerHTML = (score * 100).toFixed(1);
+  container.appendChild(scoreDiv);
 }

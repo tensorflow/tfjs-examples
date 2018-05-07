@@ -19,7 +19,6 @@ import {bindTensorFlowBackend} from '@tensorflow/tfjs-node';
 
 import {PitchTypeModel} from '../pitch-type-model';
 import {sleep} from '../utils';
-
 import {Socket} from './socket';
 
 const TIMEOUT_BETWEEN_EPOCHS_MS = 100;

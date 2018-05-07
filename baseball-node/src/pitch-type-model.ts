@@ -41,15 +41,17 @@ const START_SPEED_MAX = 104.4;
 
 // Number of pitch types classified:
 const NUM_PITCH_CLASSES = 7;
-// Number of pitches for each pitch type in the training data:
+// Number of pitches for each pitch type in the training/validation data:
 const TRAINING_DATA_PITCH_CLASS_SIZE = 1000;
+const VALIDATION_DATA_PITCH_CLASS_SIZE = 100;
 
 /**
  * Model to classify pitch types based on initial release acceleration,
  * velocity, speed, and pitcher hand (left or right).
  */
 export class PitchTypeModel extends PitchModel {
-  classTensors: tf.Tensor2D[];
+  trainingClassTensors: tf.Tensor2D[];
+  validationClassTensors: tf.Tensor2D[];
 
   constructor() {
     super('pitch-type');
@@ -84,11 +86,14 @@ export class PitchTypeModel extends PitchModel {
     this.model = model;
 
     // All pitch data is stored sequentially (pitch_code 0-6) in the training
-    // files. Load the training data file and glob all pitches of the same code
-    // together in batches. These will be used for calculating the class
-    // accuracy.
-    this.classTensors = concatPitchClassTensors(
+    // files. Load the training and validation data file and glob all pitches of
+    // the same code together in batches. These will be used for calculating the
+    // class accuracy.
+    this.trainingClassTensors = concatPitchClassTensors(
         'dist/pitch_type_training_data.json', this.fields, NUM_PITCH_CLASSES,
+        TRAINING_DATA_PITCH_CLASS_SIZE);
+    this.validationClassTensors = concatPitchClassTensors(
+        'dist/pitch_type_validation_data.json', this.fields, NUM_PITCH_CLASSES,
         TRAINING_DATA_PITCH_CLASS_SIZE);
   }
 
@@ -108,24 +113,38 @@ export class PitchTypeModel extends PitchModel {
     return list;
   }
 
-  /** Computes accuracy per class for the entire training set. */
-  async evaluateTrainingData(): Promise<AccuracyPerClass> {
+  /**
+   * Returns pitch class evaluation percentages for training data with an option
+   * to include validation data.
+   */
+  async evaluate(includeValidation = false): Promise<AccuracyPerClass> {
     const result: AccuracyPerClass = {};
-    for (let i = 0; i < this.classTensors.length; i++) {
-      const predictions = this.model.predict(this.classTensors[i]) as tf.Tensor;
-      const values = predictions.dataSync();
-
-      let total = 0;
-      let index = i;
-      for (let j = 0; j < TRAINING_DATA_PITCH_CLASS_SIZE; j++) {
-        total += values[index];
-        index += NUM_PITCH_CLASSES;
-      }
-
+    for (let i = 0; i < this.trainingClassTensors.length; i++) {
       result[pitchFromType(i)] = {
-        training: total / TRAINING_DATA_PITCH_CLASS_SIZE
+        training: this.calculateClassAccuracy(
+            this.trainingClassTensors[i], i, TRAINING_DATA_PITCH_CLASS_SIZE)
       };
+      if (includeValidation) {
+        result[pitchFromType(i)].validation = this.calculateClassAccuracy(
+            this.validationClassTensors[i], i,
+            VALIDATION_DATA_PITCH_CLASS_SIZE);
+      }
     }
     return result;
+  }
+
+  private calculateClassAccuracy(
+      classTensor: tf.Tensor2D, pitchCode: number, classSize: number): number {
+    const predictions = this.model.predict(classTensor) as tf.Tensor;
+    const values = predictions.dataSync();
+
+    let total = 0;
+    let index = pitchCode;
+    for (let j = 0; j < classSize; j++) {
+      total += values[index];
+      index += NUM_PITCH_CLASSES;
+    }
+
+    return total / classSize;
   }
 }

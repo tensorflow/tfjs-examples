@@ -36,7 +36,11 @@ export default Vue.extend({
       document.getElementById('waiting-msg').style.display = 'block';
       document.getElementById('table').style.display = 'none';
     });
-  }
+
+    document.getElementById('live-button').onclick = () => {
+      socket.emit('live_data', '' + true);
+    };
+  },
 });
 
 const BAR_WIDTH_PX = 300;

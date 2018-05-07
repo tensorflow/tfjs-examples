@@ -40,7 +40,7 @@ const START_SPEED_MIN = 59;
 const START_SPEED_MAX = 104.4;
 
 const NUM_PITCH_CLASSES = 7;
-const CLASS_TEST_SIZE = 100;
+const CLASS_TEST_SIZE = 1000;
 
 /**
  * Model to classify pitch types based on initial release acceleration,
@@ -84,7 +84,7 @@ export class PitchTypeModel extends PitchModel {
     // Glob and cache a test tensors of test pitch data for evaluating pitch
     // class accuracy.
     this.classTensors = [] as tf.Tensor2D[];
-    const testPitches = loadPitchData('dist/pitch_type_test_data.json');
+    const testPitches = loadPitchData('dist/pitch_type_training_data.json');
     let index = 0;
     for (let i = 0; i < NUM_PITCH_CLASSES; i++) {
       const pitches = [] as Pitch[];

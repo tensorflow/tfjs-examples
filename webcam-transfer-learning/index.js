@@ -168,7 +168,11 @@ document.getElementById('predict').addEventListener('click', () => {
 });
 
 async function init() {
-  await webcam.setup();
+  try {
+    await webcam.setup();
+  } catch (e) {
+    document.getElementById('no-webcam').style.display = 'block';
+  }
   mobilenet = await loadMobilenet();
 
   // Warm up the model. This uploads weights to the GPU and compiles the WebGL

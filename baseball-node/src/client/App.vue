@@ -16,12 +16,13 @@ limitations under the License.
 <template>
   <div class="container content">
     <div id="accuracyCanvas"></div>
-    <div class="col-lg-4">
+    <div>
       <div class="card" v-if="predictions.length === 0">
         <div class="card-body text-center" style="color: #80868b">
           Waiting for live pitch data...
         </div>
       </div>
+      <div id="table"></div>
     </div>
 
     <transition-group name="list-complete">
@@ -36,7 +37,39 @@ limitations under the License.
 <script lang="ts" src="./app.ts"></script>
 
 <style>
-.html {
+#table .row {
+  display: flex;
+  align-items: center;
+  margin: 5px 0;
+}
+.label {
+  text-align: center;
+  font-family: "Google Sans", sans-serif;
+  font-size: 24px;
+  color: #5f6368;
+  line-height: 24px;
+  font-weight: 500;
+}
+#table .label {
+  margin-right: 20px;
+  width: 300px;
+  text-align: right;
+}
+#table .score {
+  background-color: #999;
+  height: 30px;
+  text-align: right;
+  line-height: 30px;
+  color: white;
+  padding-right: 10px;
+  box-sizing: border-box;
+}
+
+#table .score-container {
+  border-right: 1px solid black;
+}
+
+html, body {
   font-family: Roboto, sans-serif;
 }
 .flip-list-move {

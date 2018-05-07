@@ -15,23 +15,6 @@
  * =============================================================================
  */
 
-/**
- * Normalize a value between a given range.
- */
-export function normalize(value: number, min: number, max: number): number {
-  if (min === undefined || max === undefined) {
-    return value;
-  }
-  return (value - min) / (max - min);
-}
-
-/**
- * Returns a random int between 0 and the supplied max.
- */
-export function getRandomInt(max: number) {
-  return Math.floor(Math.random() * Math.floor(max));
-}
-
-export function sleep(ms: number) {
-  return new Promise(resolve => setTimeout(resolve, ms));
-}
+export type AccuracyPerClass = {
+  [label: string]: {training: number, validation?: number};
+};

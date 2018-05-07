@@ -18,6 +18,9 @@
 import {bindTensorFlowBackend} from '@tensorflow/tfjs-node';
 import {PitchTypeModel} from '../pitch-type-model';
 import {Socket} from './socket';
+import {sleep} from '../utils';
+
+const TIMEOUT_BETWEEN_EPOCHS_MS = 100;
 
 // Enable TFJS-Node backend
 bindTensorFlowBackend();
@@ -28,11 +31,14 @@ const socket = new Socket(pitchModel);
 async function run() {
   socket.listen();
   await pitchModel.train(1, progress => socket.sendProgress(progress));
+  socket.sendAccuracyPerClass(await pitchModel.evaluate());
 
-  setInterval(async () => {
+  while (true) {
     await pitchModel.train(1, progress => socket.sendProgress(progress));
+    socket.sendAccuracyPerClass(await pitchModel.evaluate());
     socket.broadcastUpdatedPredictions();
-  }, 3000);
+    await sleep(TIMEOUT_BETWEEN_EPOCHS_MS);
+  }
 }
 
 run();

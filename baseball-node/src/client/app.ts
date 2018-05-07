@@ -23,6 +23,7 @@ import Vue from 'vue';
 import embed from 'vega-embed';
 import Pitch from './Pitch.vue';
 import {TrainProgress} from '../abstract-pitch-model';
+import {AccuracyPerClass} from '../types';
 
 const maxPitches = 6 * 3;  // 3 each row.
 
@@ -59,6 +60,10 @@ export default Vue.extend({
       }
     });
 
+    socket.on('accuracyPerClass', (accPerClass: AccuracyPerClass) => {
+      plotAccuracyPerClass(accPerClass);
+    });
+
     socket.on('prediction_updates', (data: PitchPredictionUpdateMessage[]) => {
       data.forEach((update) => {
         const index = this.predictionMap.get(update.uuid);
@@ -80,12 +85,57 @@ export default Vue.extend({
   }
 });
 
+const MAX_NUM_POINTS = 100;
+
+function subsample(accuracy: Array<{batch: number, accuracy: number}>) {
+  const skip = Math.max(1, accuracy.length / MAX_NUM_POINTS);
+  const result: Array<{batch: number, accuracy: number}> = [];
+  for (let i = 0; i < accuracy.length; i += skip) {
+    result.push(accuracy[Math.round(i)]);
+  }
+  return result;
+}
+
+function plotAccuracyPerClass(accPerClass: AccuracyPerClass) {
+  const table = document.getElementById('table');
+  table.innerHTML = '';
+
+  const BAR_WIDTH_PX = 300;
+
+  for (const label in accPerClass) {
+    // Row.
+    const rowDiv = document.createElement('div');
+    rowDiv.className = 'row';
+    table.appendChild(rowDiv);
+    
+    // Label.
+    const labelDiv = document.createElement('div');
+    labelDiv.innerText = label;
+    labelDiv.className = 'label';
+    rowDiv.appendChild(labelDiv);
+
+    // Score.
+    const scoreContainer = document.createElement('div');
+    scoreContainer.className = 'score-container';
+    scoreContainer.style.width = BAR_WIDTH_PX + 'px';
+    
+    const scoreDiv = document.createElement('div');
+    scoreDiv.className = 'score';
+    const score = accPerClass[label].training;
+    scoreDiv.style.width = (score * BAR_WIDTH_PX) + 'px';
+    scoreDiv.innerHTML = (score * 100).toFixed(1) + '%';
+    
+    scoreContainer.appendChild(scoreDiv);
+    rowDiv.appendChild(scoreContainer);
+  }
+}
+
 function plotProgress(progress: TrainProgress) {
   accuracy.push({batch: accuracy.length + 1, accuracy: progress.accuracy});
   embed(
       '#accuracyCanvas', {
         '$schema': 'https://vega.github.io/schema/vega-lite/v2.json',
-        'data': {'values': accuracy},
+        'data': {'values': subsample(accuracy)},
         'width': 260,
         'mark': {'type': 'line', 'legend': null, 'orient': 'vertical'},
         'encoding': {

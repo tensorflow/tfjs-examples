@@ -33,9 +33,8 @@ export default Vue.extend({
     });
 
     socket.on('disconnect', () => {
-      // Clear out training table on disconnect.
-      const table = document.getElementById('table');
-      table.innerHTML = '';
+      document.getElementById('waiting-msg').style.display = 'block';
+      document.getElementById('table').style.display = 'none';
     });
   }
 });
@@ -43,6 +42,9 @@ export default Vue.extend({
 const BAR_WIDTH_PX = 300;
 
 function plotAccuracyPerClass(accPerClass: AccuracyPerClass) {
+  document.getElementById('table').style.display = 'block';
+  document.getElementById('waiting-msg').style.display = 'none';
+
   const table = document.getElementById('table-rows');
   table.innerHTML = '';
 

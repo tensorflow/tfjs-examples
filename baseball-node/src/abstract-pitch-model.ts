@@ -16,7 +16,6 @@
  */
 
 import * as tf from '@tensorflow/tfjs';
-
 import {PitchData, PitchDataBatch, PitchTrainFields} from './pitch-data';
 
 /** Info about progress during training. */

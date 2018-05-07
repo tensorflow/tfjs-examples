@@ -88,6 +88,7 @@ export default Vue.extend({
 });
 
 const MAX_NUM_POINTS = 100;
+const BAR_WIDTH_PX = 300;
 
 function subsample(accuracy: Array<{batch: number, accuracy: number}>) {
   const skip = Math.max(1, accuracy.length / MAX_NUM_POINTS);
@@ -99,12 +100,11 @@ function subsample(accuracy: Array<{batch: number, accuracy: number}>) {
 }
 
 function plotAccuracyPerClass(accPerClass: AccuracyPerClass) {
-  const table = document.getElementById('table');
+  const table = document.getElementById('table-rows');
   table.innerHTML = '';
 
-  const BAR_WIDTH_PX = 300;
-
   for (const label in accPerClass) {
+    const scores = accPerClass[label];
     // Row.
     const rowDiv = document.createElement('div');
     rowDiv.className = 'row';
@@ -120,16 +120,22 @@ function plotAccuracyPerClass(accPerClass: AccuracyPerClass) {
     const scoreContainer = document.createElement('div');
     scoreContainer.className = 'score-container';
     scoreContainer.style.width = BAR_WIDTH_PX + 'px';
-
-    const scoreDiv = document.createElement('div');
-    scoreDiv.className = 'score';
-    const score = accPerClass[label].training;
-    scoreDiv.style.width = (score * BAR_WIDTH_PX) + 'px';
-    scoreDiv.innerHTML = (score * 100).toFixed(1) + '%';
-
-    scoreContainer.appendChild(scoreDiv);
     rowDiv.appendChild(scoreContainer);
+
+    plotScoreBar(scores.training, scoreContainer);
+    if (scores.validation) {
+      plotScoreBar(scores.validation, scoreContainer, 'validation');
+    }
   }
+}
+
+function plotScoreBar(
+    score: number, container: HTMLDivElement, className = '') {
+  const scoreDiv = document.createElement('div');
+  scoreDiv.className = 'score ' + className;
+  scoreDiv.style.width = (score * BAR_WIDTH_PX) + 'px';
+  scoreDiv.innerHTML = (score * 100).toFixed(1);
+  container.appendChild(scoreDiv);
 }
 
 function plotProgress(progress: TrainProgress) {

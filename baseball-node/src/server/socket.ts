@@ -26,6 +26,7 @@ import {loadPitchData} from '../pitch-data';
 import {PitchTypeModel} from '../pitch-type-model';
 import {getRandomInt} from '../utils';
 import {TrainProgress} from '../abstract-pitch-model';
+import {AccuracyPerClass} from '../types';
 
 const PORT = 8001;
 const PITCH_COUNT = 12;
@@ -76,6 +77,10 @@ export class Socket {
       console.log(`  > sending : ${updates.length} prediction updates`);
       this.io.emit('prediction_updates', updates);
     }
+  }
+
+  sendAccuracyPerClass(accPerClass: AccuracyPerClass) {
+    this.io.emit('accuracyPerClass', accPerClass);
   }
 
   sendProgress(progress: TrainProgress) {

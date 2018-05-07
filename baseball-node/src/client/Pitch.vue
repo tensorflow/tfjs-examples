@@ -64,13 +64,4 @@ limitations under the License.
   display: inline-block;
   width: 100%;
 }
-
-.label {
-  text-align: center;
-  font-family: "Google Sans", sans-serif;
-  font-size: 24px;
-  color: #5f6368;
-  line-height: 24px;
-  font-weight: 500;
-}
 </style>

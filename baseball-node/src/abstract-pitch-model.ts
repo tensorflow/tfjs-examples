@@ -17,6 +17,8 @@
 
 import * as tf from '@tensorflow/tfjs';
 import {PitchData, PitchDataBatch, PitchTrainFields} from './pitch-data';
+import {pitchFromType} from 'baseball-pitchfx-types';
+import {AccuracyPerClass} from './types';
 
 /** Info about progress during training. */
 export interface TrainProgress {
@@ -54,6 +56,42 @@ export abstract class PitchModel {
         await this.trainInternal(batches[j], callback, j % 10 === 0);
       }
     }
+  }
+
+  /** Computes accuracy per class for the entire training set. */
+  async evaluate(): Promise<AccuracyPerClass> {
+    const batches = this.data.pitchBatches();
+    const correctPerClass: number[] = [];
+    const countPerClass: number[] = [];
+    const numClasses = batches[0].labels.shape[1];
+    for (let i = 0; i < numClasses; i++) {
+      correctPerClass[i] = 0;
+      countPerClass[i] = 0;
+    }
+
+    for (let i = 0; i < batches.length; i++) {
+      const batch = batches[i];
+      const predictionBatch = this.model.predict(batch.pitches) as tf.Tensor;
+      const labelIndicesBatch = batch.labels.argMax(1);
+      const isCorrectBatch =
+        await labelIndicesBatch.equal(predictionBatch.argMax(1)).data();
+      const labelBatch = await labelIndicesBatch.data();
+      for (let i = 0; i < isCorrectBatch.length; i++) {
+        const labelIndex = labelBatch[i];
+        const isCorrect = isCorrectBatch[i];
+        countPerClass[labelIndex]++;
+        if (isCorrect) {
+          correctPerClass[labelIndex]++;
+        }
+      }
+    }
+    
+    // Return a dict that maps a class name to accuracy.
+    const result: AccuracyPerClass = {};
+    correctPerClass.forEach((correct, i) => {
+      result[pitchFromType(i)] = {training: correct / countPerClass[i]};
+    });
+    return result;
   }
 
   private async trainInternal(batch: PitchDataBatch,

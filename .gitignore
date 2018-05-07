@@ -1,6 +1,7 @@
 node_modules
-dist
+dist*
 .cache
 yarn-error.log
 *.tgz
 *.pyc
+.yalc

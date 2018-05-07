@@ -21,16 +21,6 @@ import {readFileSync} from 'fs';
 import {normalize} from './utils';
 
 /**
- * Map of training fields for a Pitch with a min/max range for data
- * normalization.
- */
-export type PitchTrainFields = {
-  key: PitchKeys,
-  min?: number,
-  max?: number
-};
-
-/**
  * Callback function for returning the label for a given Pitch.
  */
 export type GenerateLabel = (pitch: Pitch) => number;
@@ -41,6 +31,16 @@ export type GenerateLabel = (pitch: Pitch) => number;
  */
 export type PitchDataBatch = {
   labels: tf.Tensor2D; pitches: tf.Tensor2D;
+};
+
+/**
+ * Map of training fields for a Pitch with a min/max range for data
+ * normalization.
+ */
+export type PitchTrainFields = {
+  key: PitchKeys,
+  min?: number,
+  max?: number
 };
 
 /**
@@ -69,6 +69,27 @@ export function createPitchesTensor(
     }
     return tf.tensor2d(data, shape as [number, number]);
   });
+}
+
+/**
+ * Returns an array of pitch class Tensors, each Tensor contains every pitch for
+ * a given pitch class.
+ */
+export function concatPitchClassTensors(
+    filename: string, fields: PitchTrainFields[], numPitchClasses: number,
+    pitchClassSize: number): tf.Tensor2D[] {
+  const classTensors = [] as tf.Tensor2D[];
+  const testPitches = loadPitchData('dist/pitch_type_training_data.json');
+  let index = 0;
+  for (let i = 0; i < numPitchClasses; i++) {
+    const pitches = [] as Pitch[];
+    for (let j = 0; j < pitchClassSize; j++) {
+      pitches.push(testPitches[index]);
+      index++;
+    }
+    classTensors[i] = createPitchesTensor(pitches, fields);
+  }
+  return classTensors;
 }
 
 /**

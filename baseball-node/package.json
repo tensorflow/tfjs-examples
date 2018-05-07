@@ -16,7 +16,6 @@
   "devDependencies": {
     "@types/socket.io": "~1.4.33",
     "@types/socket.io-client": "~1.4.32",
-    "@types/uuid": "~3.4.3",
     "clang-format": "~1.2.3",
     "css-loader": "~0.28.11",
     "file-loader": "~1.1.11",
@@ -37,10 +36,7 @@
     "@tensorflow/tfjs-node": "link:.yalc/@tensorflow/tfjs-node",
     "baseball-pitchfx-types": "~0.0.4",
     "socket.io": "~2.1.0",
-    "vega-embed": "~3.9.0",
     "vue": "~2.5.16",
-    "uuid": "~3.2.1",
-    "node-simple-timer": "~0.0.1",
-    "containers.js": "~0.0.6"
+    "node-simple-timer": "~0.0.1"
   }
 }

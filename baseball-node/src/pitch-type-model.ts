@@ -20,7 +20,7 @@ import {Pitch, PitchClass, pitchFromType} from 'baseball-pitchfx-types';
 
 import {PitchModel} from './abstract-pitch-model';
 // tslint:disable-next-line:max-line-length
-import {createPitchesTensor, createPitchTensor, loadPitchData, PitchData} from './pitch-data';
+import {concatPitchClassTensors, createPitchTensor, PitchData} from './pitch-data';
 import {AccuracyPerClass} from './types';
 
 // min/max constants from training data:
@@ -39,8 +39,10 @@ const AZ_MAX = 2.95522851438373;
 const START_SPEED_MIN = 59;
 const START_SPEED_MAX = 104.4;
 
+// Number of pitch types classified:
 const NUM_PITCH_CLASSES = 7;
-const CLASS_TEST_SIZE = 1000;
+// Number of pitches for each pitch type in the training data:
+const TRAINING_DATA_PITCH_CLASS_SIZE = 1000;
 
 /**
  * Model to classify pitch types based on initial release acceleration,
@@ -81,19 +83,13 @@ export class PitchTypeModel extends PitchModel {
 
     this.model = model;
 
-    // Glob and cache a test tensors of test pitch data for evaluating pitch
-    // class accuracy.
-    this.classTensors = [] as tf.Tensor2D[];
-    const testPitches = loadPitchData('dist/pitch_type_training_data.json');
-    let index = 0;
-    for (let i = 0; i < NUM_PITCH_CLASSES; i++) {
-      const pitches = [] as Pitch[];
-      for (let j = 0; j < CLASS_TEST_SIZE; j++) {
-        pitches.push(testPitches[index]);
-        index++;
-      }
-      this.classTensors[i] = createPitchesTensor(pitches, this.fields);
-    }
+    // All pitch data is stored sequentially (pitch_code 0-6) in the training
+    // files. Load the training data file and glob all pitches of the same code
+    // together in batches. These will be used for calculating the class
+    // accuracy.
+    this.classTensors = concatPitchClassTensors(
+        'dist/pitch_type_training_data.json', this.fields, NUM_PITCH_CLASSES,
+        TRAINING_DATA_PITCH_CLASS_SIZE);
   }
 
   /**
@@ -113,7 +109,7 @@ export class PitchTypeModel extends PitchModel {
   }
 
   /** Computes accuracy per class for the entire training set. */
-  async evaluate(): Promise<AccuracyPerClass> {
+  async evaluateTrainingData(): Promise<AccuracyPerClass> {
     const result: AccuracyPerClass = {};
     for (let i = 0; i < this.classTensors.length; i++) {
       const predictions = this.model.predict(this.classTensors[i]) as tf.Tensor;
@@ -121,12 +117,14 @@ export class PitchTypeModel extends PitchModel {
 
       let total = 0;
       let index = i;
-      for (let j = 0; j < CLASS_TEST_SIZE; j++) {
+      for (let j = 0; j < TRAINING_DATA_PITCH_CLASS_SIZE; j++) {
         total += values[index];
         index += NUM_PITCH_CLASSES;
       }
 
-      result[pitchFromType(i)] = {training: total / CLASS_TEST_SIZE};
+      result[pitchFromType(i)] = {
+        training: total / TRAINING_DATA_PITCH_CLASS_SIZE
+      };
     }
     return result;
   }

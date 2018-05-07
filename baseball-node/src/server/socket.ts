@@ -16,20 +16,18 @@
  */
 
 // tslint:disable-next-line:max-line-length
-import * as tf from '@tensorflow/tfjs';
-// tslint:disable-next-line:max-line-length
 import {Pitch, pitchFromType, PitchPredictionMessage, PitchPredictionUpdateMessage} from 'baseball-pitchfx-types';
 import {createServer, Server} from 'http';
 import * as socketio from 'socket.io';
 import * as uuid from 'uuid';
+
+import {TrainProgress} from '../abstract-pitch-model';
 import {loadPitchData} from '../pitch-data';
 import {PitchTypeModel} from '../pitch-type-model';
-import {getRandomInt} from '../utils';
-import {TrainProgress} from '../abstract-pitch-model';
 import {AccuracyPerClass} from '../types';
 
 const PORT = 8001;
-const PITCH_COUNT = 12;
+const NUM_PITCH_CLASSES = 7;
 
 export class Socket {
   server: Server;
@@ -46,11 +44,11 @@ export class Socket {
 
     this.pitchPredictionMessages = [];
     this.pitches = loadPitchData('dist/pitch_type_test_data.json');
-    tf.util.shuffle(this.pitches);
 
-    for (let i = 0; i < PITCH_COUNT; i++) {
-      this.pitchPredictionMessages.push(this.generateResponse(
-          this.pitches[getRandomInt(this.pitches.length)]));
+    const range = this.pitches.length / NUM_PITCH_CLASSES;
+    for (let i = 0; i < NUM_PITCH_CLASSES; i++) {
+      this.pitchPredictionMessages.push(
+          this.generateResponse(this.pitches[range * i]));
     }
   }
 

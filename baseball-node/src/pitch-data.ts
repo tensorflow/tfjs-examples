@@ -18,7 +18,6 @@
 import * as tf from '@tensorflow/tfjs';
 import {Pitch, PitchKeys} from 'baseball-pitchfx-types';
 import {readFileSync} from 'fs';
-import {normalize} from './utils';
 
 /**
  * Map of training fields for a Pitch with a min/max range for data
@@ -48,9 +47,27 @@ export type PitchDataBatch = {
  */
 export function createPitchTensor(
     pitch: Pitch, fields: PitchTrainFields[]): tf.Tensor2D {
-  const shape = [1, fields.length];
-  const values = pitchTrainDataArray(pitch, fields);
-  return tf.tensor2d(new Float32Array(values), shape as [number, number]);
+  return createPitchesTensor([pitch], fields);
+}
+
+/**
+ * Converts a list of Pitch objects to a batch Tensor based on the given
+ * training fields.
+ */
+export function createPitchesTensor(
+    pitches: Pitch[], fields: PitchTrainFields[]): tf.Tensor2D {
+  const shape = [pitches.length, fields.length];
+  const data = new Float32Array(tf.util.sizeFromShape(shape));
+
+  return tf.tidy(() => {
+    let offset = 0;
+    for (let i = 0; i < pitches.length; i++) {
+      const pitch = pitches[i];
+      data.set(pitchTrainDataArray(pitch, fields), offset);
+      offset += fields.length;
+    }
+    return tf.tensor2d(data, shape as [number, number]);
+  });
 }
 
 /**
@@ -90,22 +107,29 @@ export class PitchData {
     this.batches = [] as PitchDataBatch[];
     const pitchData = loadPitchData(filename);
     tf.util.shuffle(pitchData);
-    let index = 0;
-    while (index < pitchData.length) {
-      this.batches.push(
-          this.generateBatch(pitchData.slice(index, index + batchSize)));
-
-      index += batchSize;
-      if (pitchData.length - index < batchSize) {
-        batchSize = pitchData.length - index;
-      }
-    }
+    this.batches = this.generateBatch(pitchData);
   }
 
   /**
    * Generates a batch of training data for a list of Pitch objects.
    */
-  generateBatch(pitches: Pitch[]): PitchDataBatch {
+  generateBatch(pitches: Pitch[]): PitchDataBatch[] {
+    const batches = [] as PitchDataBatch[];
+    let index = 0;
+    let batchSize = this.batchSize;
+    while (index < pitches.length) {
+      if (pitches.length - index < this.batchSize) {
+        batchSize = pitches.length - index;
+      }
+      batches.push(
+          this.singlePitchBatch(pitches.slice(index, index + batchSize)));
+
+      index += this.batchSize;
+    }
+    return batches;
+  }
+
+  private singlePitchBatch(pitches: Pitch[]): PitchDataBatch {
     const shape = [pitches.length, this.fields.length];
     const data = new Float32Array(tf.util.sizeFromShape(shape));
     const labels = [] as number[];
@@ -146,4 +170,11 @@ function pitchTrainDataArray(
     values.push(normalize(pitch[field.key] as number, field.min, field.max));
   }
   return values;
+}
+
+function normalize(value: number, min: number, max: number): number {
+  if (min === undefined || max === undefined) {
+    return value;
+  }
+  return (value - min) / (max - min);
 }

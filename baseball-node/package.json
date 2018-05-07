@@ -38,7 +38,9 @@
   "dependencies": {
     "@tensorflow/tfjs": "^0.10.3",
     "@tensorflow/tfjs-node": "link:.yalc/@tensorflow/tfjs-node",
+    "baseball-pitchfx-data": "^0.0.16",
     "baseball-pitchfx-types": "^0.0.4",
+    "rxjs": "^5.5.10",
     "socket.io": "^2.1.0",
     "vega-embed": "^3.9.0",
     "vue": "^2.5.16"

@@ -15,16 +15,25 @@ limitations under the License.
 
 <template>
   <div class="container content">
-    <div id="accuracyCanvas"></div>
-    <div class="col-lg-4">
-      <div class="card" v-if="predictions.length === 0">
-        <div class="card-body text-center" style="color: #80868b">
-          Waiting for live pitch data...
+    <div class="row">
+      <button type="button" class="btn btn-primary" v-on:click="loadLive">
+        Load Live Data
+      </button>
+      <div id="accuracyCanvas"></div>
+    </div>
+
+    <div class="row d-flex">
+      <div class="col-lg-4">
+        <div class="card" v-if="predictions.length === 0">
+          <div class="card-body text-center" style="color: #80868b">
+            <span v-if="connected">Waiting for live pitch data...</span>
+            <span v-if="!connected">Waiting for pitch server...</span>
+          </div>
         </div>
       </div>
     </div>
 
-    <transition-group name="list-complete">
+    <transition-group name="flip-list">
       <pitch class="pitch"
             v-for="prediction in predictions"
             :key="prediction.uuid"
@@ -47,6 +56,10 @@ body {
   background-color: rgb(248, 249, 250);
 }
 
+.flip-list-move {
+  transition: transform 1s;
+}
+
 .list-complete-item {
   transition: all 1s;
   display: inline-block;
@@ -55,7 +68,7 @@ body {
 .list-complete-enter,
 .list-complete-leave-to {
   opacity: 0;
-  transform: translateY(30px);
+  transform: translateY(20px);
 }
 .list-complete-leave-active {
   position: absolute;

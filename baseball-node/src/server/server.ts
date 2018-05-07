@@ -16,23 +16,81 @@
  */
 
 import {bindTensorFlowBackend} from '@tensorflow/tfjs-node';
+import {isClassifiedPitchType} from 'baseball-pitchfx-data';
+// tslint:disable-next-line:max-line-length
+import {Pitch} from 'baseball-pitchfx-types';
+
 import {PitchTypeModel} from '../pitch-type-model';
+
+import {PitchCache} from './cache';
+import {PitchPoller} from './poller';
 import {Socket} from './socket';
 
 // Enable TFJS-Node backend
 bindTensorFlowBackend();
 
+function toggleLiveData() {
+  if (useLiveData) {
+    poller.poller.unsubscribe();
+    scheduleTrainingDataLoop();
+  } else {
+    clearInterval(intervalId);
+    scheduleLiveDataLoop();
+  }
+  useLiveData = !useLiveData;
+}
+
+function scheduleTrainingDataLoop() {
+  console.log('  > Using test data');
+  pitchCache.loadTestData();
+
+  intervalId = setInterval(async () => {
+    await pitchModel.train(1, progress => socket.sendProgress(progress));
+
+    socket.broadcastUpdatedPredictions();
+
+    if (useLiveData) {
+      clearInterval(intervalId);
+    }
+  }, 2500);
+}
+
+function scheduleLiveDataLoop() {
+  console.log('  > Using live data');
+  poller.poll();
+  poller.poller.subscribe(async (newPitches: Pitch[]) => {
+    const displayPitches =
+        newPitches.filter(pitch => isClassifiedPitchType(pitch));
+
+    pitchCache.cachePitches(displayPitches);
+
+    if (pitchCache.trainSize() > 0) {
+      console.log(`  > Training with ${pitchCache.trainSize()} live pitches`);
+      await pitchModel.trainWithPitches(
+          pitchCache.trainCache, progress => socket.sendProgress(progress));
+      pitchCache.clearTrainCache();
+    }
+
+    if (pitchCache.queueSize() > 0) {
+      socket.broadcastPredictions();
+    } else {
+      socket.broadcastUpdatedPredictions();
+    }
+  });
+}
+
+let useLiveData = false;
+let intervalId: NodeJS.Timer;
+
 const pitchModel = new PitchTypeModel();
-const socket = new Socket(pitchModel);
+const pitchCache = new PitchCache(pitchModel);
+const poller = new PitchPoller();
+
+const socket = new Socket(pitchCache, toggleLiveData);
 
 async function run() {
   socket.listen();
-  await pitchModel.train(1, progress => socket.sendProgress(progress));
-
-  setInterval(async () => {
-    await pitchModel.train(1, progress => socket.sendProgress(progress));
-    socket.broadcastUpdatedPredictions();
-  }, 3000);
+  scheduleTrainingDataLoop();
 }
 
 run();

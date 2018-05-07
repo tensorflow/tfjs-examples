@@ -15,66 +15,28 @@
  * =============================================================================
  */
 
-// tslint:disable-next-line:max-line-length
-import {Pitch, pitchFromType, PitchPredictionMessage, PitchPredictionUpdateMessage} from 'baseball-pitchfx-types';
 import {createServer, Server} from 'http';
 import * as socketio from 'socket.io';
-import * as uuid from 'uuid';
 
-import {TrainProgress} from '../abstract-pitch-model';
-import {loadPitchData} from '../pitch-data';
-import {PitchTypeModel} from '../pitch-type-model';
-import {AccuracyPerClass} from '../types';
+import {AccuracyPerClass, TrainProgress} from '../types';
 
 const PORT = 8001;
-const NUM_PITCH_CLASSES = 7;
 
 export class Socket {
   server: Server;
   io: socketio.Server;
   port: string|number;
 
-  pitches: Pitch[];
-  pitchPredictionMessages: PitchPredictionMessage[];
-
-  constructor(private pitchModel: PitchTypeModel) {
+  constructor() {
     this.port = process.env.PORT || PORT;
     this.server = createServer();
     this.io = socketio(this.server);
-
-    this.pitchPredictionMessages = [];
-    this.pitches = loadPitchData('dist/pitch_type_test_data.json');
-
-    const range = this.pitches.length / NUM_PITCH_CLASSES;
-    for (let i = 0; i < NUM_PITCH_CLASSES; i++) {
-      this.pitchPredictionMessages.push(
-          this.generateResponse(this.pitches[range * i]));
-    }
   }
 
   listen(): void {
     this.server.listen(this.port, () => {
       console.log(`  > Running socket on port: ${this.port}`);
     });
-
-    this.io.on('connect', (socket) => {
-      console.log(`  > Client connected on port: ${this.port} - sending ${
-          this.pitchPredictionMessages.length} cached messages`);
-      socket.emit('pitch_predictions', this.pitchPredictionMessages);
-    });
-  }
-
-  broadcastUpdatedPredictions() {
-    const updates = [] as PitchPredictionUpdateMessage[];
-    const predictions = this.pitchPredictionMessages;
-    predictions.forEach((prediction) => {
-      updates.push(this.generatePredictionUpdateMessage(
-          prediction.uuid, prediction.pitch));
-    });
-    if (updates.length > 0) {
-      console.log(`  > sending : ${updates.length} prediction updates`);
-      this.io.emit('prediction_updates', updates);
-    }
   }
 
   sendAccuracyPerClass(accPerClass: AccuracyPerClass) {
@@ -83,24 +45,5 @@ export class Socket {
 
   sendProgress(progress: TrainProgress) {
     this.io.emit('progress', progress);
-  }
-
-  generateResponse(pitch: Pitch): PitchPredictionMessage {
-    return {
-      uuid: uuid.v4(),
-      pitch,
-      actual: pitchFromType(pitch.pitch_code),
-      pitch_classes: this.pitchModel.predict(pitch),
-      strike_zone_classes: []
-    };
-  }
-
-  generatePredictionUpdateMessage(uuid: string, pitch: Pitch):
-      PitchPredictionUpdateMessage {
-    return {
-      uuid,
-      pitch_classes: this.pitchModel.predict(pitch),
-      strike_zone_classes: []
-    };
   }
 }

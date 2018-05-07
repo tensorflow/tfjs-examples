@@ -29,7 +29,7 @@ In a new shell, start the server:
 yarn start-server
 ```
 
-If you are intested in testing out the training, without running a web server:
+If you are interested in testing out the training, without running a web server:
 ```sh
 yarn train-pitch-model
 ```

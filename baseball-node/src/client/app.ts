@@ -24,6 +24,7 @@ const SOCKET = 'http://localhost:8001/';
 // tslint:disable-next-line:no-default-export
 export default Vue.extend({
   mounted: () => {
+    const liveButton = document.getElementById('live-button');
     const socket = socketioClient(
         SOCKET, {reconnectionDelay: 300, reconnectionDelayMax: 300});
     socket.connect();
@@ -33,11 +34,13 @@ export default Vue.extend({
     });
 
     socket.on('disconnect', () => {
+      liveButton.style.display = 'block';
       document.getElementById('waiting-msg').style.display = 'block';
       document.getElementById('table').style.display = 'none';
     });
 
-    document.getElementById('live-button').onclick = () => {
+    liveButton.onclick = () => {
+      liveButton.textContent = 'Loading...';
       socket.emit('live_data', '' + true);
     };
   },
@@ -73,6 +76,7 @@ function plotAccuracyPerClass(accPerClass: AccuracyPerClass) {
 
     plotScoreBar(scores.training, scoreContainer);
     if (scores.validation) {
+      document.getElementById('live-button').style.display = 'none';
       plotScoreBar(scores.validation, scoreContainer, 'validation');
     }
   }

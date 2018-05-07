@@ -28,7 +28,7 @@ limitations under the License.
       </div>
     </div>
     <div id="table-rows"></div>
-    <button id="live-button">Train Live</button>
+    <button id="live-button">Test Live</button>
   </div>
 </div></template>
 

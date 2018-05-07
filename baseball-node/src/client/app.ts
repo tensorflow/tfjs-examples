@@ -38,7 +38,6 @@ export default Vue.extend({
     });
 
     document.getElementById('live-button').onclick = () => {
-      console.log('doing it');
       socket.emit('live_data', '' + true);
     };
   },

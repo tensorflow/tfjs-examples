@@ -32,8 +32,8 @@ const socket = new Socket();
 
 async function run() {
   socket.listen();
-  await pitchModel.train(1, progress => socket.sendProgress(progress));
   socket.sendAccuracyPerClass(await pitchModel.evaluateTrainingData());
+  await sleep(TIMEOUT_BETWEEN_EPOCHS_MS);
 
   while (true) {
     await pitchModel.train(1, progress => socket.sendProgress(progress));

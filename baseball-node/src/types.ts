@@ -15,6 +15,13 @@
  * =============================================================================
  */
 
+/** Contains accuracy numbers for each pitch class. */
 export type AccuracyPerClass = {
   [label: string]: {training: number, validation?: number};
 };
+
+/** Info about progress during training. */
+export interface TrainProgress {
+  accuracy: number;
+  loss: number;
+}

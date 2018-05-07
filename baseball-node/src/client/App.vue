@@ -15,35 +15,20 @@ limitations under the License.
 
 <template>
   <div class="container content">
-    <div id="accuracyCanvas"></div>
-    <div>
-      <div class="card" v-if="predictions.length === 0">
-        <div class="card-body text-center" style="color: #80868b">
-          Waiting for live pitch data...
+    <div id="table">
+      <h2 style="text-align:center;">Accuracy per pitch type (%)</h2>
+      <div id="legend">
+        <div class="legend-item">
+          <div class="score"></div>
+          <div>Train set</div>
+        </div>
+        <div class="legend-item">
+          <div class="score validation"></div>
+          <div>Test set</div>
         </div>
       </div>
-      <div id="table">
-        <h2 style="text-align:center;">Accuracy per pitch type (%)</h2>
-        <div id="legend">
-          <div class="legend-item">
-            <div class="score"></div>
-            <div>Train set</div>
-          </div>
-          <div class="legend-item">
-            <div class="score validation"></div>
-            <div>Test set</div>
-          </div>
-        </div>
-        <div id="table-rows"></div>
-      </div>
+      <div id="table-rows"></div>
     </div>
-
-    <transition-group name="list-complete">
-      <pitch class="pitch"
-            v-for="prediction in predictions"
-            :key="prediction.uuid"
-            v-bind:prediction="prediction"></pitch>
-    </transition-group>
   </div>
 </template>
 
@@ -99,79 +84,17 @@ limitations under the License.
   background-color: #ef6c00;
 }
 
-html, body {
+html,
+body {
   font-family: Roboto, sans-serif;
   color: #5f6368;
-}
-.flip-list-move {
-  transition: transform 1s;
 }
 
 body {
   background-color: rgb(248, 249, 250);
 }
 
-.list-complete-item {
-  transition: all 1s;
-  display: inline-block;
-  margin-right: 10px;
-}
-.list-complete-enter,
-.list-complete-leave-to {
-  opacity: 0;
-  transform: translateY(30px);
-}
-.list-complete-leave-active {
-  position: absolute;
-}
-
-.tfjs-navbar {
-  background-color: #ffffff;
-  font-family: "Google Sans", sans-serif;
-  font-size: 32px;
-  color: #80868b;
-  line-height: 24px;
-  font-weight: 500;
-  padding-bottom: 8px;
-  text-align: center;
-}
-
-.tfjs-name {
-  padding-top: 40px;
-  font-size: 14px;
-  line-height: 16px;
-  margin-bottom: 8px;
-}
-
-.tfjs-title {
-  font-size: 32px;
-  line-height: 24px;
-  margin-bottom: 16px;
-  font-weight: 600;
-}
-
-.tfjs-subtitle {
-  font-size: 14px;
-  text-align: center;
-  line-height: 20px;
-  margin-left: auto;
-  margin-right: auto;
-}
-
-.content {
-  padding-top: 20px;
-}
-
 #accuracyCanvas > div {
   display: none;
-}
-
-.footer {
-  position: absolute;
-  bottom: 0;
-  width: 100%;
-  height: 60px;
-  line-height: 60px;
-  background-color: #f5f5f5;
 }
 </style>

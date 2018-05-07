@@ -17,12 +17,7 @@
 
 import * as tf from '@tensorflow/tfjs';
 import {PitchData, PitchDataBatch, PitchTrainFields} from './pitch-data';
-
-/** Info about progress during training. */
-export interface TrainProgress {
-  accuracy: number;
-  loss: number;
-}
+import {TrainProgress} from './types';
 
 /**
  * Abstract base class for defining Pitch ML models.

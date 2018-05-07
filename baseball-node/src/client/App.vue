@@ -24,10 +24,11 @@ limitations under the License.
       </div>
       <div class="legend-item">
         <div class="score validation"></div>
-        <div>Test set</div>
+        <div>Live set</div>
       </div>
     </div>
     <div id="table-rows"></div>
+    <button id="live-button">Train Live</button>
   </div>
 </div></template>
 
@@ -98,5 +99,10 @@ body {
 
 #accuracyCanvas > div {
   display: none;
+}
+
+#live-button {
+  padding: 10px;
+  font-size: 24px;
 }
 </style>

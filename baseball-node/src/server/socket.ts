@@ -26,16 +26,24 @@ export class Socket {
   server: Server;
   io: socketio.Server;
   port: string|number;
+  useTrainingData: boolean;
 
   constructor() {
     this.port = process.env.PORT || PORT;
     this.server = createServer();
     this.io = socketio(this.server);
+    this.useTrainingData = false;
   }
 
   listen(): void {
     this.server.listen(this.port, () => {
       console.log(`  > Running socket on port: ${this.port}`);
+    });
+
+    this.io.on('connection', (socket: socketio.Socket) => {
+      socket.on('live_data', (value: boolean) => {
+        this.useTrainingData = value;
+      });
     });
   }
 

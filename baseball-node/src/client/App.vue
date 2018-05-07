@@ -13,31 +13,33 @@ limitations under the License.
 ==============================================================================
 -->
 
-<template>
-  <div class="container content">
-    <div id="table">
-      <h2 style="text-align:center;">Accuracy per pitch type (%)</h2>
-      <div id="legend">
-        <div class="legend-item">
-          <div class="score"></div>
-          <div>Train set</div>
-        </div>
-        <div class="legend-item">
-          <div class="score validation"></div>
-          <div>Test set</div>
-        </div>
+<template><div>
+  <h3 id="waiting-msg">Waiting for server...</h3>
+  <div id="table">
+    <h2 style="text-align:center;">Pitch accuracy (%)</h2>
+    <div id="legend">
+      <div class="legend-item">
+        <div class="score"></div>
+        <div>Train set</div>
       </div>
-      <div id="table-rows"></div>
+      <div class="legend-item">
+        <div class="score validation"></div>
+        <div>Test set</div>
+      </div>
     </div>
+    <div id="table-rows"></div>
   </div>
-</template>
+</div></template>
 
 <script lang="ts" src="./app.ts"></script>
 
 <style>
 #table {
-  border-right: 2px solid #bbb;
   width: 660px;
+  display: none;
+}
+#table-rows {
+  border-right: 2px solid #bbb;
 }
 #table .row {
   display: flex;

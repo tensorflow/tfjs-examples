@@ -71,7 +71,6 @@ export class Socket {
 
   broadcastUpdatedPredictions(): void {
     const messages = this.pitchCache.generateUpdatedPredictions();
-    console.log(`  > sending : ${messages.length} prediction updates`);
     this.io.emit('prediction_updates', messages);
   }
 }

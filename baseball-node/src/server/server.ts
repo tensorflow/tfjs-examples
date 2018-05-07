@@ -46,12 +46,13 @@ function scheduleTrainingDataLoop() {
 
   intervalId = setInterval(async () => {
     await pitchModel.train(1, progress => socket.sendProgress(progress));
+
     socket.broadcastUpdatedPredictions();
 
     if (useLiveData) {
       clearInterval(intervalId);
     }
-  }, 2000);
+  }, 2500);
 }
 
 function scheduleLiveDataLoop() {
@@ -67,6 +68,7 @@ function scheduleLiveDataLoop() {
       console.log(`  > Training with ${pitchCache.trainSize()} live pitches`);
       await pitchModel.trainWithPitches(
           pitchCache.trainCache, progress => socket.sendProgress(progress));
+      pitchCache.clearTrainCache();
     }
 
     if (pitchCache.queueSize() > 0) {

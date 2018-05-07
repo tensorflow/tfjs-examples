@@ -18,11 +18,11 @@
 // tslint:disable-next-line:max-line-length
 import {isValidPitchTypeData} from 'baseball-pitchfx-data';
 // tslint:disable-next-line:max-line-length
-import {Pitch, pitchFromType, PitchPredictionMessage, PitchPredictionUpdateMessage} from 'baseball-pitchfx-types';
+import {Pitch, pitchFromType} from 'baseball-pitchfx-types';
 import * as uuid from 'uuid';
 
 import {loadPitchData} from '../pitch-data';
-import {PitchTypeModel} from '../pitch-type-model';
+import {PitchPredictionMessage, PitchPredictionUpdateMessage, PitchTypeModel} from '../pitch-type-model';
 
 const PITCH_CLASSES = 7;
 const MAX_PITCHES_CACHE = 10;
@@ -66,7 +66,8 @@ export class PitchCache {
       pitch,
       actual: pitchFromType(pitch.pitch_code),
       pitch_classes: this.model.predict(pitch),
-    } as PitchPredictionMessage;
+      class_percentage: this.model.pitchTypeClassAverage(pitch.pitch_code)
+    };
 
     this.predictionMessages.unshift(message);
     this.predictionQueue.unshift(message);
@@ -106,12 +107,15 @@ export class PitchCache {
 
   generateUpdatedPredictions(): PitchPredictionUpdateMessage[] {
     const updates = [] as PitchPredictionUpdateMessage[];
-    this.predictionMessages.forEach((message) => {
-      updates.unshift({
+    for (let i = 0; i < this.predictionMessages.length; i++) {
+      const message = this.predictionMessages[i];
+      updates.push({
         uuid: message.uuid,
         pitch_classes: this.model.predict(message.pitch),
-      } as PitchPredictionUpdateMessage);
-    });
+        class_percentage:
+            this.model.pitchTypeClassAverage(message.pitch.pitch_code)
+      });
+    }
     return updates;
   }
 }

@@ -47,9 +47,27 @@ export type PitchDataBatch = {
  */
 export function createPitchTensor(
     pitch: Pitch, fields: PitchTrainFields[]): tf.Tensor2D {
-  const shape = [1, fields.length];
-  const values = pitchTrainDataArray(pitch, fields);
-  return tf.tensor2d(new Float32Array(values), shape as [number, number]);
+  return createPitchesTensor([pitch], fields);
+}
+
+/**
+ * Converts a list of Pitch objects to a batch Tensor based on the given
+ * training fields.
+ */
+export function createPitchesTensor(
+    pitches: Pitch[], fields: PitchTrainFields[]): tf.Tensor2D {
+  const shape = [pitches.length, fields.length];
+  const data = new Float32Array(tf.util.sizeFromShape(shape));
+
+  return tf.tidy(() => {
+    let offset = 0;
+    for (let i = 0; i < pitches.length; i++) {
+      const pitch = pitches[i];
+      data.set(pitchTrainDataArray(pitch, fields), offset);
+      offset += fields.length;
+    }
+    return tf.tensor2d(data, shape as [number, number]);
+  });
 }
 
 /**

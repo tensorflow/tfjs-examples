@@ -25,7 +25,6 @@ export interface TrainProgress {
   accuracy: number;
   loss: number;
 }
-
 /**
  * Abstract base class for defining Pitch ML models.
  */

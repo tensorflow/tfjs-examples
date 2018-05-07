@@ -15,14 +15,14 @@
  * =============================================================================
  */
 
-// tslint:disable-next-line:max-line-length
-import {PitchPredictionMessage, PitchPredictionUpdateMessage} from 'baseball-pitchfx-types';
 import {UniqueQueue} from 'containers.js';
 import * as socketioClient from 'socket.io-client';
-import embed from 'vega-embed';
+// import embed from 'vega-embed';
 import Vue from 'vue';
 
 import {TrainProgress} from '../abstract-pitch-model';
+// tslint:disable-next-line:max-line-length
+import {PitchPredictionMessage, PitchPredictionUpdateMessage} from '../pitch-type-model';
 
 import Pitch from './Pitch.vue';
 
@@ -38,7 +38,7 @@ const data = {
   socket: socketioClient
 };
 
-const accuracy: Array<{batch: number, accuracy: number}> = [];
+let accuracy: Array<{batch: number, accuracy: number}> = [];
 
 // tslint:disable-next-line:no-default-export
 export default Vue.extend({
@@ -71,8 +71,8 @@ export default Vue.extend({
             const index = this.predictionMap.get(update.uuid);
             if (index !== undefined) {
               this.predictions[index].pitch_classes = update.pitch_classes;
-              this.predictions[index].strike_zone_classes =
-                  update.strike_zone_classes;
+              this.predictions[index].class_percentage =
+                  update.class_percentage;
             }
           });
         });
@@ -99,23 +99,24 @@ export default Vue.extend({
       this.$data.predictions = [];
       this.$data.predictionsQueue.clear();
       this.$data.socket.emit('event', 'toggle_live_data');
+      accuracy = [];
     }
   }
 });
 
 function plotProgress(progress: TrainProgress) {
   accuracy.push({batch: accuracy.length + 1, accuracy: progress.accuracy});
-  embed(
-      '#accuracyCanvas', {
-        '$schema': 'https://vega.github.io/schema/vega-lite/v2.json',
-        'data': {'values': accuracy},
-        'width': 260,
-        'mark': {'type': 'line', 'legend': null, 'orient': 'vertical'},
-        'encoding': {
-          'x': {'field': 'batch', 'type': 'quantitative'},
-          'y': {'field': 'accuracy', 'type': 'quantitative'},
-          'color': {'field': 'set', 'type': 'nominal', 'legend': null},
-        },
-      },
-      {'width': 360});
+  // embed(
+  //     '#accuracyCanvas', {
+  //       '$schema': 'https://vega.github.io/schema/vega-lite/v2.json',
+  //       'data': {'values': accuracy},
+  //       'width': 260,
+  //       'mark': {'type': 'line', 'legend': null, 'orient': 'vertical'},
+  //       'encoding': {
+  //         'x': {'field': 'batch', 'type': 'quantitative'},
+  //         'y': {'field': 'accuracy', 'type': 'quantitative'},
+  //         'color': {'field': 'set', 'type': 'nominal', 'legend': null},
+  //       },
+  //     },
+  //     {'width': 360});
 }

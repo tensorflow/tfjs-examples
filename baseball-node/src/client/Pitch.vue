@@ -23,6 +23,7 @@ limitations under the License.
         </div>
       </div>
 
+      <div>PERCENTAGE: {{ prediction.class_percentage }}</div>
     </div>
   </div>
 </template>

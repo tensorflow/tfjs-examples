@@ -18,8 +18,7 @@
 import {createServer, Server} from 'http';
 import * as socketio from 'socket.io';
 
-import {TrainProgress} from '../abstract-pitch-model';
-import {AccuracyPerClass} from '../types';
+import {AccuracyPerClass, TrainProgress} from '../types';
 
 const PORT = 8001;
 

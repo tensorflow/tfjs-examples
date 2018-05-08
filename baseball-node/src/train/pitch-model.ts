@@ -15,12 +15,14 @@
  * =============================================================================
  */
 
-import {bindTensorFlowBackend} from '@tensorflow/tfjs-node';
+import '@tensorflow/tfjs-node';
+import * as tf from '@tensorflow/tfjs';
+
+tf.setBackend('tensorflow');
+
 import {Timer} from 'node-simple-timer';
 
 import {PitchTypeModel} from '../pitch-type-model';
-
-bindTensorFlowBackend();
 
 async function test() {
   const model = new PitchTypeModel();

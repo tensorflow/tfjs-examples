@@ -15,16 +15,16 @@
  * =============================================================================
  */
 
-import {bindTensorFlowBackend} from '@tensorflow/tfjs-node';
+import'@tensorflow/tfjs-node';
+import * as tf from '@tensorflow/tfjs';
+
+tf.setBackend('tensorflow');
 
 import {PitchTypeModel} from '../pitch-type-model';
 import {sleep} from '../utils';
 import {Socket} from './socket';
 
 const TIMEOUT_BETWEEN_EPOCHS_MS = 500;
-
-// Enable TFJS-Node backend
-bindTensorFlowBackend();
 
 const pitchModel = new PitchTypeModel();
 const socket = new Socket();

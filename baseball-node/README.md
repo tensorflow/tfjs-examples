@@ -39,5 +39,5 @@ yarn train-strike-model
 
 ## Pitch Models
 
-1. Pitch type model - TODO(kreeger)
-2. Strike zone model - TODO(kreeger)
+1. Pitch type model - Classifies 7 different pitch types looking at baseball sensor data.
+2. Strike zone model - A model that can learn to call balls and strikes just like an umpire.

@@ -33,10 +33,10 @@
   },
   "dependencies": {
     "@tensorflow/tfjs": "~0.10.3",
-    "@tensorflow/tfjs-node": "link:.yalc/@tensorflow/tfjs-node",
+    "@tensorflow/tfjs-node": "~0.1.2",
     "baseball-pitchfx-types": "~0.0.4",
+    "node-simple-timer": "~0.0.1",
     "socket.io": "~2.1.0",
-    "vue": "~2.5.16",
-    "node-simple-timer": "~0.0.1"
+    "vue": "~2.5.16"
   }
 }

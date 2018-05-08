@@ -15,7 +15,10 @@
  * =============================================================================
  */
 
-import {bindTensorFlowBackend} from '@tensorflow/tfjs-node';
+import '@tensorflow/tfjs-node';
+import * as tf from '@tensorflow/tfjs';
+
+tf.setBackend('tensorflow');
 import {Timer} from 'node-simple-timer';
 
 import {StrikeZoneModel} from '../strike-zone-model';

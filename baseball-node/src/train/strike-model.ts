@@ -23,8 +23,6 @@ import {Timer} from 'node-simple-timer';
 
 import {StrikeZoneModel} from '../strike-zone-model';
 
-bindTensorFlowBackend();
-
 async function test() {
   const model = new StrikeZoneModel();
   const timer = new Timer();

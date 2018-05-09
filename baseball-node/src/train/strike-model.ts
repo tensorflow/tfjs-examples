@@ -18,12 +18,10 @@
 import '@tensorflow/tfjs-node';
 import * as tf from '@tensorflow/tfjs';
 
-tf.setBackend('tensorflow');
 import {Timer} from 'node-simple-timer';
-
 import {StrikeZoneModel} from '../strike-zone-model';
 
-bindTensorFlowBackend();
+tf.setBackend('tensorflow');
 
 async function test() {
   const model = new StrikeZoneModel();

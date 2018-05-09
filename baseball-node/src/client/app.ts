@@ -29,6 +29,11 @@ export default Vue.extend({
         SOCKET, {reconnectionDelay: 300, reconnectionDelayMax: 300});
     socket.connect();
 
+    socket.on('connect', () => {
+      liveButton.style.display = 'block';
+      liveButton.textContent = 'Test Live';
+    });
+
     socket.on('accuracyPerClass', (accPerClass: AccuracyPerClass) => {
       plotAccuracyPerClass(accPerClass);
     });

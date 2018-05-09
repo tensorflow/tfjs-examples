@@ -51,7 +51,6 @@ class MnistTransferCNNPredictor {
   }
 
   async loadRetrainData() {
-    console.log('Loading data for transfer learning...');
     ui.status('Loading data for transfer learning...');
     this.gte5TrainData =
         await loader.loadHostedData(this.urls.train, this.numClasses);

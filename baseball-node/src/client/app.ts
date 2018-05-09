@@ -55,7 +55,9 @@ function plotAccuracyPerClass(accPerClass: AccuracyPerClass) {
   const table = document.getElementById('table-rows');
   table.innerHTML = '';
 
-  for (const label in accPerClass) {
+  // Sort class names before displaying.
+  const sortedClasses = Object.keys(accPerClass).sort();
+  sortedClasses.forEach(label => {
     const scores = accPerClass[label];
     // Row.
     const rowDiv = document.createElement('div');
@@ -79,7 +81,7 @@ function plotAccuracyPerClass(accPerClass: AccuracyPerClass) {
       document.getElementById('live-button').style.display = 'none';
       plotScoreBar(scores.validation, scoreContainer, 'validation');
     }
-  }
+  });
 }
 
 function plotScoreBar(

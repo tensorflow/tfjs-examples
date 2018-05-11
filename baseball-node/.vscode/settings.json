@@ -1,0 +1,27 @@
+// Place your settings in this file to overwrite default and user settings.
+{
+  "search.exclude": {
+    "**/node_modules": true,
+    "dist/": true,
+    "**/yarn.lock": true
+  },
+  "files.trimTrailingWhitespace": true,
+  "editor.tabSize": 2,
+  "editor.insertSpaces": true,
+  "[javascript]": {
+    "editor.formatOnSave": true
+  },
+
+  "tslint.enable": true,
+  "tslint.run": "onType",
+  "tslint.configFile": "tslint.json",
+  "[typescript]": {
+    "editor.formatOnSave": true
+  },
+
+  "clang-format.style": "Google",
+  "files.insertFinalNewline": true,
+  "editor.detectIndentation": false,
+  "editor.wrappingIndent": "none",
+  "clang-format.executable": "${workspaceRoot}/node_modules/.bin/clang-format"
+}

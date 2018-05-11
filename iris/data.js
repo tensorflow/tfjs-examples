@@ -109,7 +109,7 @@ function convertToTensors(data, targets, testSplit) {
 
   // Create a 1D `tf.Tensor` to hold the labels, and convert the number label
   // from the set {0, 1, 2} into one-hot encoding (.e.g., 0 --> [1, 0, 0]).
-  const ys = tf.oneHot(tf.tensor1d(targets), IRIS_NUM_CLASSES);
+  const ys = tf.oneHot(tf.tensor1d(targets).toInt(), IRIS_NUM_CLASSES);
 
   // Split the data into training and test sets, using `slice`.
   const xTrain = xs.slice([0, 0], [numTrainExamples, xDims]);

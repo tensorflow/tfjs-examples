@@ -31,3 +31,7 @@ export function normalize(value: number, min: number, max: number): number {
 export function getRandomInt(max: number) {
   return Math.floor(Math.random() * Math.floor(max));
 }
+
+export function sleep(ms: number) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}

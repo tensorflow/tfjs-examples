@@ -15,16 +15,13 @@
  * =============================================================================
  */
 
-import Vue from 'vue';
+/** Contains accuracy numbers for each pitch class. */
+export type AccuracyPerClass = {
+  [label: string]: {training: number, validation?: number};
+};
 
-// tslint:disable-next-line:no-default-export
-export default Vue.component('pitch', {
-  props: ['prediction'],
-
-  computed: {
-    correct: function() {
-      return this.prediction.pitch_classes[0].pitch_code ===
-          this.prediction.pitch.pitch_code;
-    }
-  }
-});
+/** Info about progress during training. */
+export interface TrainProgress {
+  accuracy: number;
+  loss: number;
+}

@@ -17,12 +17,7 @@
 
 import * as tf from '@tensorflow/tfjs';
 import {PitchData, PitchDataBatch, PitchTrainFields} from './pitch-data';
-
-/** Info about progress during training. */
-export interface TrainProgress {
-  accuracy: number;
-  loss: number;
-}
+import {TrainProgress} from './types';
 
 /**
  * Abstract base class for defining Pitch ML models.
@@ -56,8 +51,9 @@ export abstract class PitchModel {
     }
   }
 
-  private async trainInternal(batch: PitchDataBatch,
-      callback: (progress: TrainProgress) => void, log = false) {
+  private async trainInternal(
+      batch: PitchDataBatch, callback: (progress: TrainProgress) => void,
+      log = false) {
     await this.model.fit(batch.pitches, batch.labels, {
       epochs: 1,
       shuffle: false,

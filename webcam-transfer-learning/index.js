@@ -163,7 +163,6 @@ document.getElementById('train').addEventListener('click', async () => {
   train();
 });
 document.getElementById('predict').addEventListener('click', () => {
-  ui.startPacman();
   isPredicting = true;
   predict();
 });

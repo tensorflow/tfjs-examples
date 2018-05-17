@@ -40,12 +40,7 @@ const denseUnitsElement = document.getElementById('dense-units');
 export const getDenseUnits = () => +denseUnitsElement.value;
 const statusElement = document.getElementById('status');
 
-export function startPacman() {
-  google.pacman.startGameplay();
-}
-
 export function predictClass(classId) {
-  google.pacman.keyPressed(CONTROL_CODES[classId]);
   document.body.setAttribute('data-active', CONTROLS[classId]);
 }
 

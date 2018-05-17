@@ -234,7 +234,7 @@ header b {
   padding: 6px 0;
   width: 100%;
 }
-.dropdown .select::after {
+/* .dropdown .select::after {
   content: "arrow_drop_down";
   color: #999;
   font-family: 'Material Icons';
@@ -252,7 +252,7 @@ header b {
   right: 0;
   top: 6px;
   pointer-events: none;
-}
+} */
 
 /** Joystick panel. **/
 .joystick-panel {
@@ -300,6 +300,7 @@ header b {
 [data-active="right"] .panel-cell-right .thumb-box-outer {
   box-shadow: 0 0 4px 4px #ffaa00;
 }
+
 .thumb-box-inner {
   border: 1px solid #585858;
   border-radius: 4px;

@@ -84,8 +84,23 @@ limitations under the License.
       color: white;
     }
 
-    .create-model {
-      display: inline-block;
+    .region {
+      margin-top: 6px;
+      margin-bottom: 6px;
+      padding-top: 3px;
+      padding-bottom: 3px;
+      border-style: dashed;
+      border-width: 1px;
+      border-color: #888;
+    }
+
+    .region-title {
+      font-weight: bold;
+    }
+
+    .load-save-section {
+      padding-top: 3px;
+      padding-bottom: 3px;
     }
 
     .logit-span {
@@ -104,21 +119,33 @@ limitations under the License.
 
     <div>
       <div class="horizontal-section">
-        <div class="create-model">
-          <div class="input-div">
-            <span class="input-label">Train Epochs:</span>
-            <input id="train-epochs" type="number" value="40"></input>
+        <div class="region">
+          <div class="region-title">Train Model</div>
+          <div class="create-model">
+            <div class="input-div">
+              <span class="input-label">Train Epochs:</span>
+              <input id="train-epochs" type="number" value="40"></input>
+            </div>
+            <div class="input-div">
+              <span class="input-label">Learning Rate:</span>
+              <input id="learning-rate" type="number" value="0.01"></input>
+            </div>
+            <button id="train-from-scratch">Train model from scratch</button>
           </div>
-          <div class="input-div">
-            <span class="input-label">Learning Rate:</span>
-            <input id="learning-rate" type="number" value="0.01"></input>
-          </div>
-          <button id="train-from-scratch">Train model from scratch</button>
         </div>
 
-        <div class="create-model">
-          <button id="load-pretrained-remote" style="display:none">Load hosted pretrained model</button>
-          <button id="load-pretrained-local" style="display:none">Load local pretrained model</button>
+        <div class="region">
+          <div class="region-title">Save/Load Model</div>
+          <div class="load-save-section">
+            <button id="load-pretrained-remote">Load hosted pretrained model</button>
+          </div>
+
+          <div class="load-save-section">
+            <button id="load-local" disabled="true">Load locally-saved model</button>
+            <button id="save-local" disabled="true">Save model locally</button>
+            <button id="remove-local" disabled="true">Remove model locally</button>
+            <span id='local-model-status'>Status unavailable.</span>
+          </div>
         </div>
 
         <div>

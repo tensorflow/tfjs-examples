@@ -2,22 +2,22 @@
 # yarn lockfile v1
 
 
-"@tensorflow/tfjs-core@0.8.4":
-  version "0.8.4"
-  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-core/-/tfjs-core-0.8.4.tgz#20c5bf017cb57486ca77cc01a92d6df85c2e38ff"
+"@tensorflow/tfjs-core@0.11.0":
+  version "0.11.0"
+  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-core/-/tfjs-core-0.11.0.tgz#d112ea43a31a639582c78e91a084b5494dec53f0"
   dependencies:
     seedrandom "~2.4.3"
 
-"@tensorflow/tfjs-layers@0.5.3":
-  version "0.5.3"
-  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-layers/-/tfjs-layers-0.5.3.tgz#0b45624ba8bcbd8e904f68344f16cf6358c695af"
+"@tensorflow/tfjs-layers@0.6.1":
+  version "0.6.1"
+  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-layers/-/tfjs-layers-0.6.1.tgz#fd0241fcb1cedf42379935cea42b1e2dea62f3d4"
 
-"@tensorflow/tfjs@0.10.3":
-  version "0.10.3"
-  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs/-/tfjs-0.10.3.tgz#29d44e57d53492532829c768958151fb8893b2ab"
+"@tensorflow/tfjs@0.11.1":
+  version "0.11.1"
+  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs/-/tfjs-0.11.1.tgz#ccf0a12300a2201d281d67828862080cf2d0c3a7"
   dependencies:
-    "@tensorflow/tfjs-core" "0.8.4"
-    "@tensorflow/tfjs-layers" "0.5.3"
+    "@tensorflow/tfjs-core" "0.11.0"
+    "@tensorflow/tfjs-layers" "0.6.1"
 
 "@types/json-stable-stringify@^1.0.32":
   version "1.0.32"

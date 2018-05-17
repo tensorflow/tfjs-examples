@@ -41,13 +41,31 @@ export async function loadHostedPretrainedModel(url) {
   try {
     const model = await tf.loadModel(url);
     ui.status('Done loading pretrained model.');
-    // We can't load a model twice due to
-    // https://github.com/tensorflow/tfjs/issues/34
-    // Therefore we remove the load buttons to avoid user confusion.
-    ui.disableLoadModelButtons();
     return model;
   } catch (err) {
     console.error(err);
     ui.status('Loading pretrained model failed.');
   }
+}
+
+const LOCAL_MODEL_URL = 'indexeddb://tfjs-iris-demo-model/v1';
+
+export async function localModelExists(url) {
+  const modelsInfo = await tf.io.listModels();
+  console.log('modelsInfo:', modelsInfo);  // DEBUG
+  if (LOCAL_MODEL_URL in modelsInfo) {
+    return modelsInfo[LOCAL_MODEL_URL];
+  } else {
+    return null;
+  }
+}
+
+export async function saveModelLocally(model) {
+  const saveResult = await model.save(LOCAL_MODEL_URL);
+  console.log(saveResult);  // DEBUG
+}
+
+export async function loadModelLocally(model) {
+  const saveResult = await tf.io.loadModel(LOCAL_MODEL_URL);
+
 }

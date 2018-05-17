@@ -234,7 +234,7 @@ header b {
   padding: 6px 0;
   width: 100%;
 }
-.dropdown .select::after {
+/* .dropdown .select::after {
   content: "arrow_drop_down";
   color: #999;
   font-family: 'Material Icons';
@@ -252,7 +252,7 @@ header b {
   right: 0;
   top: 6px;
   pointer-events: none;
-}
+} */
 
 /** Joystick panel. **/
 .joystick-panel {

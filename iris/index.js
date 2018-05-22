@@ -21,9 +21,6 @@ import * as data from './data';
 import * as loader from './loader';
 import * as ui from './ui';
 
-console.log(tf.version);  // DEBUG
-console.log(tf.io);  // DEBUG
-
 let model;
 
 /**
@@ -141,22 +138,11 @@ const HOSTED_MODEL_JSON_URL =
 async function iris() {
   const [xTrain, yTrain, xTest, yTest] = data.getIrisData(0.15);
 
-  const localLoadButton = document.getElementById('load-local');
-  const localSaveButton = document.getElementById('save-local');
-  const localModelStatus = document.getElementById('local-model-status');
-
   document.getElementById('train-from-scratch')
       .addEventListener('click', async () => {
         model = await trainModel(xTrain, yTrain, xTest, yTest);
-        await evaluateModelOnTestData(model, xTest, yTest);
-        localSaveButton.disabled = false;
+        evaluateModelOnTestData(model, xTest, yTest);
       });
-
-  localLoadButton.addEventListener(
-        'click', () => loader.saveModelLocally(model));
-
-  localSaveButton.addEventListener(
-      'click', () => loader.saveModelLocally(model));
 
   if (await loader.urlExists(HOSTED_MODEL_JSON_URL)) {
     ui.status('Model available: ' + HOSTED_MODEL_JSON_URL);
@@ -164,20 +150,22 @@ async function iris() {
     button.addEventListener('click', async () => {
       ui.clearEvaluateTable();
       model = await loader.loadHostedPretrainedModel(HOSTED_MODEL_JSON_URL);
-      await predictOnManualInput(model);
-      localSaveButton.disabled = false;
+      predictOnManualInput(model);
     });
+    // button.style.visibility = 'visible';
+    button.style.display = 'inline-block';
   }
 
-  console.log('localModelStatus:', localModelStatus);  // DEBUG
-  const localModelInfo = await loader.localModelExists();
-  if (localModelInfo) {
-    localModelStatus.textContent =
-        'Found locally-stored model saved at ' + localModelInfo.dateSaved;
-    localLoadButton.disabled = false;
-  } else {
-    localModelStatus.textContent = 'No locally-stored model is found.';
-    localLoadButton.disabled = true;
+  if (await loader.urlExists(LOCAL_MODEL_JSON_URL)) {
+    ui.status('Model available: ' + LOCAL_MODEL_JSON_URL);
+    const button = document.getElementById('load-pretrained-local');
+    button.addEventListener('click', async () => {
+      ui.clearEvaluateTable();
+      model = await loader.loadHostedPretrainedModel(LOCAL_MODEL_JSON_URL);
+      predictOnManualInput(model);
+    });
+    // button.style.visibility = 'visible';
+    button.style.display = 'inline-block';
   }
 
   ui.status('Standing by.');

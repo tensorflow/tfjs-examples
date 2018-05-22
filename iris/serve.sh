@@ -28,7 +28,7 @@ NODE_ENV=development
 RESOURCE_PORT=1235
 
 # Ensure that http-server is available
-# yarn
+yarn
 
 echo Starting the pretrained model server...
 node_modules/http-server/bin/http-server dist --cors -p "${RESOURCE_PORT}" > /dev/null & HTTP_SERVER_PID=$!

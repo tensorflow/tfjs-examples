@@ -289,7 +289,8 @@ class AdditionRNNDemo {
               'x': {'field': 'epoch', 'type': 'ordinal'},
               'y': {'field': 'loss', 'type': 'quantitative'},
               'color': {'field': 'set', 'type': 'nominal'},
-            }
+            },
+            'width': 400,
           },
           {});
       accuracyValues.push(
@@ -305,7 +306,8 @@ class AdditionRNNDemo {
               'x': {'field': 'epoch', 'type': 'ordinal'},
               'y': {'field': 'accuracy', 'type': 'quantitative'},
               'color': {'field': 'set', 'type': 'nominal'},
-            }
+            },
+            'width': 400,
           },
           {});
       examplesPerSecValues.push({'epoch': i, 'examples/s': examplesPerSec});
@@ -317,7 +319,8 @@ class AdditionRNNDemo {
             'encoding': {
               'x': {'field': 'epoch', 'type': 'ordinal'},
               'y': {'field': 'examples/s', 'type': 'quantitative'},
-            }
+            },
+            'width': 400,
           },
           {});
 

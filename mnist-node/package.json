@@ -1,0 +1,19 @@
+{
+  "name": "tfjs-examples-mnist-node",
+  "version": "0.1.0",
+  "description": "",
+  "main": "index.js",
+  "license": "Apache-2.0",
+  "private": true,
+  "engines": {
+    "node": ">=8.11.1"
+  },
+  "dependencies": {
+    "@tensorflow/tfjs": "^0.11.1",
+    "@tensorflow/tfjs-node": "^0.1.4"
+  },
+  "scripts": {},
+  "devDependencies": {
+    "clang-format": "~1.2.2"
+  }
+}

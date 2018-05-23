@@ -3,5 +3,6 @@ dist*
 .cache
 yarn-error.log
 *.tgz
+*-ubyte
 *.pyc
 .yalc

@@ -15,6 +15,7 @@
  * =============================================================================
  */
 
+const tf = require('@tensorflow/tfjs');
 const assert = require('assert');
 const fs = require('fs');
 const https = require('https');
@@ -127,7 +128,44 @@ class MnistDataset {
   async loadData() {
     this.dataset = await Promise.all(
         [loadImages(TRAIN_IMAGES_FILE), loadLabels(TRAIN_LABELS_FILE)]);
-    console.log('... loaded');
+  }
+
+  reset() {
+    this.batchIndex = 0;
+  }
+
+  hasMoreData() {
+    return this.batchIndex < NUM_TRAIN_EXAMPLES;
+  }
+
+  nextTrainBatch(batchSize) {
+    const batchIndexMax = this.batchIndex + batchSize > NUM_TRAIN_EXAMPLES ?
+        NUM_TRAIN_EXAMPLES - this.batchIndex :
+        batchSize + this.batchIndex;
+    const size = batchIndexMax - this.batchIndex;
+
+    // Only create one big array to hold batch of images.
+    const imagesShape = [size, 28, 28, 1];
+    const images = new Float32Array(tf.util.sizeFromShape(imagesShape));
+
+    const labelsShape = [size, 1];
+    const labels = new Int32Array(tf.util.sizeFromShape(labelsShape));
+
+    let imageOffset = 0;
+    let labelOffset = 0;
+    while (this.batchIndex < batchIndexMax) {
+      images.set(this.dataset[0][this.batchIndex], imageOffset);
+      labels.set(this.dataset[1][this.batchIndex], labelOffset);
+
+      imageOffset += IMAGE_FLAT_SIZE;
+      labelOffset += 1;
+      this.batchIndex++;
+    }
+
+    return {
+      image: tf.tensor4d(images, imagesShape),
+      label: tf.oneHot(tf.tensor1d(labels, 'int32'), LABEL_FLAT_SIZE).toFloat()
+    };
   }
 }
 

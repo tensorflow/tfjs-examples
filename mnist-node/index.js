@@ -8,15 +8,19 @@ const timer = require('node-simple-timer');
 const MnistDataset = require('./data');
 const model = require('./model');
 
+const NUM_EPOCHS = 5;
 const BATCH_SIZE = 100;
 
+const totalTimer = new timer.Timer();
+
 async function run() {
+  totalTimer.start();
   const data = new MnistDataset();
   await data.loadData();
 
 
   const epochTimer = new timer.Timer();
-  for (let i = 0; i < 10; i++) {
+  for (let i = 0; i < NUM_EPOCHS; i++) {
     epochTimer.start();
 
     let step = 0;
@@ -42,6 +46,10 @@ async function run() {
     console.log(
         `\nend epoch: ${i}: epoch time: ${epochTimer.seconds()} secs\n`);
   }
+
+  totalTimer.end();
+  console.log(
+      `\n - Trained ${NUM_EPOCHS} epochs in ${totalTimer.seconds()} secs`);
 }
 
 run();

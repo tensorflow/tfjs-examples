@@ -117,27 +117,32 @@ async function loadLabels(filename) {
   });
 }
 
-// TODO(kreeger): Doc me.
+/** Helper class to handle loading training and test data. */
 class MnistDataset {
   constructor() {
     this.dataset = null;
     this.batchIndex = 0;
   }
 
-  // TODO(kreeger): Doc me.
+  /** Loads training and test data. */
   async loadData() {
     this.dataset = await Promise.all(
         [loadImages(TRAIN_IMAGES_FILE), loadLabels(TRAIN_LABELS_FILE)]);
   }
 
+  /** Resets training data batches. */
   reset() {
     this.batchIndex = 0;
   }
 
+  /** Returns true if the training data has another batch. */
   hasMoreData() {
     return this.batchIndex < NUM_TRAIN_EXAMPLES;
   }
 
+  /**
+   * Returns an object with training images and labels for a given batch size.
+   */
   nextTrainBatch(batchSize) {
     const batchIndexMax = this.batchIndex + batchSize > NUM_TRAIN_EXAMPLES ?
         NUM_TRAIN_EXAMPLES - this.batchIndex :

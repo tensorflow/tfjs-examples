@@ -136,8 +136,12 @@ class MnistDataset {
   }
 
   /** Resets training data batches. */
-  reset() {
+  resetTraining() {
     this.trainBatchIndex = 0;
+  }
+
+  /** Resets test data batches. */
+  resetTest() {
     this.testBatchIndex = 0;
   }
 

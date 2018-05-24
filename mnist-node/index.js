@@ -78,7 +78,7 @@ async function run() {
     epochTimer.end();
     data.resetTraining();
 
-    console.log(`\n* End Epoch: ${i + 1}: time: ${epochTimer.seconds()} secs`);
+    console.log(`* End Epoch: ${i + 1}: time: ${epochTimer.seconds()} secs`);
 
     test();
   }

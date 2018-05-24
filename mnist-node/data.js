@@ -25,7 +25,8 @@ const zlib = require('zlib');
 const BASE_URL = 'https://storage.googleapis.com/cvdf-datasets/mnist/';
 const TRAIN_IMAGES_FILE = 'train-images-idx3-ubyte';
 const TRAIN_LABELS_FILE = 'train-labels-idx1-ubyte';
-const NUM_TRAIN_EXAMPLES = 60000;
+const TEST_IMAGES_FILE = 't10k-images-idx3-ubyte';
+const TEST_LABELS_FILE = 't10k-labels-idx1-ubyte';
 const IMAGE_HEADER_BYTES = 16;
 const IMAGE_DIMENSION_SIZE = 28;
 const IMAGE_FLAT_SIZE = IMAGE_DIMENSION_SIZE * IMAGE_DIMENSION_SIZE;
@@ -37,7 +38,6 @@ async function downloadFile(filename) {
   return new Promise((resolve) => {
     const url = `${BASE_URL}${filename}.gz`;
     if (fs.existsSync(filename)) {
-      console.log('file exists: ', filename);
       return resolve();
     }
     const file = fs.createWriteStream(filename);
@@ -69,7 +69,6 @@ async function loadImages(filename) {
 
     const headerValues = loadHeaderValues(buffer, headerBytes);
     assert.equal(headerValues[0], 2051);  // magic number for images
-    assert.equal(headerValues[1], NUM_TRAIN_EXAMPLES);
     assert.equal(headerValues[2], IMAGE_DIMENSION_SIZE);
     assert.equal(headerValues[3], IMAGE_DIMENSION_SIZE);
 
@@ -100,7 +99,6 @@ async function loadLabels(filename) {
 
     const headerValues = loadHeaderValues(buffer, headerBytes);
     assert.equal(headerValues[0], 2049);  // magic number for labels
-    assert.equal(headerValues[1], NUM_TRAIN_EXAMPLES);
 
     const labels = [];
     let index = headerBytes;
@@ -121,33 +119,66 @@ async function loadLabels(filename) {
 class MnistDataset {
   constructor() {
     this.dataset = null;
-    this.batchIndex = 0;
+    this.trainSize = 0;
+    this.testSize = 0;
+    this.trainBatchIndex = 0;
+    this.testBatchIndex = 0;
   }
 
   /** Loads training and test data. */
   async loadData() {
-    this.dataset = await Promise.all(
-        [loadImages(TRAIN_IMAGES_FILE), loadLabels(TRAIN_LABELS_FILE)]);
+    this.dataset = await Promise.all([
+      loadImages(TRAIN_IMAGES_FILE), loadLabels(TRAIN_LABELS_FILE),
+      loadImages(TEST_IMAGES_FILE), loadLabels(TEST_LABELS_FILE)
+    ]);
+    this.trainSize = this.dataset[0].length;
+    this.testSize = this.dataset[2].length;
   }
 
   /** Resets training data batches. */
   reset() {
-    this.batchIndex = 0;
+    this.trainBatchIndex = 0;
+    this.testBatchIndex = 0;
   }
 
   /** Returns true if the training data has another batch. */
-  hasMoreData() {
-    return this.batchIndex < NUM_TRAIN_EXAMPLES;
+  hasMoreTrainingData() {
+    return this.trainBatchIndex < this.trainSize;
+  }
+
+  /** Returns true if the test data has another batch. */
+  hasMoreTestData() {
+    return this.testBatchIndex < this.testSize;
   }
 
   /**
    * Returns an object with training images and labels for a given batch size.
    */
   nextTrainBatch(batchSize) {
-    const batchIndexMax = this.batchIndex + batchSize > NUM_TRAIN_EXAMPLES ?
-        NUM_TRAIN_EXAMPLES - this.batchIndex :
-        batchSize + this.batchIndex;
-    const size = batchIndexMax - this.batchIndex;
+    return this._generateBatch(true, batchSize);
+  }
+
+  /**
+   * Returns an object with test images and labels for a given batch size.
+   */
+  nextTestBatch(batchSize) {
+    return this._generateBatch(false, batchSize);
+  }
+
+  _generateBatch(isTrainingData, batchSize) {
+    let batchIndexMax;
+    let size;
+    if (isTrainingData) {
+      batchIndexMax = this.trainBatchIndex + batchSize > this.trainSize ?
+          this.trainSize - this.trainBatchIndex :
+          batchSize + this.trainBatchIndex;
+      size = batchIndexMax - this.trainBatchIndex;
+    } else {
+      batchIndexMax = this.testBatchIndex + batchSize > this.testSize ?
+          this.testSize - this.testBatchIndex :
+          batchSize + this.testBatchIndex;
+      size = batchIndexMax - this.testBatchIndex;
+    }
 
     // Only create one big array to hold batch of images.
     const imagesShape = [size, 28, 28, 1];
@@ -158,13 +189,20 @@ class MnistDataset {
 
     let imageOffset = 0;
     let labelOffset = 0;
-    while (this.batchIndex < batchIndexMax) {
-      images.set(this.dataset[0][this.batchIndex], imageOffset);
-      labels.set(this.dataset[1][this.batchIndex], labelOffset);
+    while ((isTrainingData ? this.trainBatchIndex : this.testBatchIndex) <
+           batchIndexMax) {
+      if (isTrainingData) {
+        images.set(this.dataset[0][this.trainBatchIndex], imageOffset);
+        labels.set(this.dataset[1][this.trainBatchIndex], labelOffset);
+        this.trainBatchIndex++;
+      } else {
+        images.set(this.dataset[2][this.testBatchIndex], imageOffset);
+        labels.set(this.dataset[3][this.testBatchIndex], labelOffset);
+        this.testBatchIndex++;
+      }
 
       imageOffset += IMAGE_FLAT_SIZE;
       labelOffset += 1;
-      this.batchIndex++;
     }
 
     return {

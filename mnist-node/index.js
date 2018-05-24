@@ -1,6 +1,6 @@
 const tf = require('@tensorflow/tfjs');
-// require('@tensorflow/tfjs-node');
-require('@tensorflow/tfjs-node-gpu');
+require('@tensorflow/tfjs-node');
+// require('@tensorflow/tfjs-node-gpu');
 tf.setBackend('tensorflow');
 
 const timer = require('node-simple-timer');
@@ -15,7 +15,7 @@ const totalTimer = new timer.Timer();
 
 async function run() {
   totalTimer.start();
-  const data = new MnistDataset();
+  const data = new MnistDataset(false);
   await data.loadData();
 
 
@@ -25,7 +25,7 @@ async function run() {
 
     let step = 0;
     const stepTimer = new timer.Timer();
-    while (data.hasMoreData()) {
+    while (data.hasMoreTrainingData()) {
       stepTimer.start();
 
       const batch = data.nextTrainBatch(BATCH_SIZE);

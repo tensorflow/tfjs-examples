@@ -12,12 +12,6 @@
   version "0.6.1"
   resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-layers/-/tfjs-layers-0.6.1.tgz#fd0241fcb1cedf42379935cea42b1e2dea62f3d4"
 
-"@tensorflow/tfjs-node-gpu@^0.1.4":
-  version "0.1.4"
-  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-node-gpu/-/tfjs-node-gpu-0.1.4.tgz#89c58096a1830e6a2b854c854871018b1a46d7db"
-  dependencies:
-    bindings "~1.3.0"
-
 "@tensorflow/tfjs-node@^0.1.4":
   version "0.1.4"
   resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-node/-/tfjs-node-0.1.4.tgz#787260ce4119e4b6bb411717c44cc329ad6c549e"

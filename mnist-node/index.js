@@ -1,21 +1,33 @@
+/**
+ * @license
+ * Copyright 2018 Google LLC. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * =============================================================================
+ */
+
 const tf = require('@tensorflow/tfjs');
-// require('@tensorflow/tfjs-node');
-require('@tensorflow/tfjs-node-gpu');
+require('@tensorflow/tfjs-node');
 tf.setBackend('tensorflow');
 
 const timer = require('node-simple-timer');
-
-const MnistDataset = require('./data');
+const data = require('./data');
 const model = require('./model');
 
 const NUM_EPOCHS = 10;
 const BATCH_SIZE = 100;
 const TEST_SIZE = 50;
 
-const data = new MnistDataset();  // TODO - return instance instead.
-const totalTimer = new timer.Timer();
-
-async function trainEpoch() {
+async function train() {
   let step = 0;
   const stepTimer = new timer.Timer();
   while (data.hasMoreTrainingData()) {
@@ -49,31 +61,31 @@ async function test() {
       correct++;
     }
   }
-
   const accuracy = ((correct / TEST_SIZE) * 100).toFixed(2);
-  console.log(`  * Test set accuracy: ${accuracy}%`);
+  console.log(`* Test set accuracy: ${accuracy}%\n`);
 }
 
 async function run() {
+  const totalTimer = new timer.Timer();
   totalTimer.start();
+
   await data.loadData();
 
   const epochTimer = new timer.Timer();
   for (let i = 0; i < NUM_EPOCHS; i++) {
     epochTimer.start();
-    await trainEpoch();
+    await train();
     epochTimer.end();
     data.resetTraining();
 
-    console.log();
-    console.log(`  * End Epoch: ${i + 1}: time: ${epochTimer.seconds()} secs`);
+    console.log(`\n* End Epoch: ${i + 1}: time: ${epochTimer.seconds()} secs`);
+
     test();
-    console.log();
   }
 
   totalTimer.end();
   console.log(
-      `  **** Trained ${NUM_EPOCHS} epochs in ${totalTimer.seconds()} secs`);
+      `**** Trained ${NUM_EPOCHS} epochs in ${totalTimer.seconds()} secs`);
 }
 
 run();

@@ -216,4 +216,4 @@ class MnistDataset {
   }
 }
 
-module.exports = MnistDataset;
+module.exports = new MnistDataset();

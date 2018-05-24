@@ -29,21 +29,19 @@ const TEST_SIZE = 50;
 
 async function train() {
   let step = 0;
-  const stepTimer = new timer.Timer();
   while (data.hasMoreTrainingData()) {
-    stepTimer.start();
-
     const batch = data.nextTrainBatch(BATCH_SIZE);
     const history = await model.fit(
         batch.image, batch.label, {batchSize: BATCH_SIZE, shuffle: false});
 
-    stepTimer.end();
     if (step % 20 === 0) {
-      console.log(`  - step: ${step}: loss: ${history.history.loss[0]}, time: ${
-          stepTimer.milliseconds()}ms`);
+      console.log(`  - step: ${step}: loss: ${
+          history.history.loss[0].toFixed(
+              6)}, accuracy: ${history.history.acc[0].toFixed(4)}`);
     }
     step++;
   }
+  return step;
 }
 
 async function test() {
@@ -74,18 +72,20 @@ async function run() {
   const epochTimer = new timer.Timer();
   for (let i = 0; i < NUM_EPOCHS; i++) {
     epochTimer.start();
-    await train();
+    const trainSteps = await train();
     epochTimer.end();
     data.resetTraining();
 
-    console.log(`* End Epoch: ${i + 1}: time: ${epochTimer.seconds()} secs`);
+    console.log(
+        `* End Epoch: ${i + 1}: time: ${epochTimer.seconds().toFixed(2)}secs (${
+            (trainSteps / epochTimer.seconds()).toFixed(2)} steps/sec)`);
 
     test();
   }
 
   totalTimer.end();
-  console.log(
-      `**** Trained ${NUM_EPOCHS} epochs in ${totalTimer.seconds()} secs`);
+  console.log(`**** Trained ${NUM_EPOCHS} epochs in ${
+      totalTimer.seconds().toFixed(2)} secs`);
 }
 
 run();

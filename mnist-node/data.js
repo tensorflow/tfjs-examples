@@ -31,11 +31,12 @@ const IMAGE_HEADER_MAGIC_NUM = 2051;
 const IMAGE_HEADER_BYTES = 16;
 const IMAGE_DIMENSION_SIZE = 28;
 const IMAGE_FLAT_SIZE = IMAGE_DIMENSION_SIZE * IMAGE_DIMENSION_SIZE;
+const LABEL_HEADER_MAGIC_NUM = 2049;
 const LABEL_HEADER_BYTES = 8;
 const LABEL_RECORD_BYTE = 1;
 const LABEL_FLAT_SIZE = 10;
 
-async function downloadFile(filename) {
+async function fetchOnceAndSaveToDisk(filename) {
   return new Promise(resolve => {
     const url = `${BASE_URL}${filename}.gz`;
     if (fs.existsSync(filename)) {
@@ -61,7 +62,7 @@ function loadHeaderValues(buffer, headerLength) {
 }
 
 async function loadImages(filename) {
-  await downloadFile(filename);
+  await fetchOnceAndSaveToDisk(filename);
   return new Promise(resolve => {
     const buffer = fs.readFileSync(filename);
 
@@ -91,7 +92,7 @@ async function loadImages(filename) {
 }
 
 async function loadLabels(filename) {
-  await downloadFile(filename);
+  await fetchOnceAndSaveToDisk(filename);
   return new Promise(resolve => {
     const buffer = fs.readFileSync(filename);
 
@@ -99,7 +100,7 @@ async function loadLabels(filename) {
     const recordBytes = LABEL_RECORD_BYTE;
 
     const headerValues = loadHeaderValues(buffer, headerBytes);
-    assert.equal(headerValues[0], 2049);  // magic number for labels
+    assert.equal(headerValues[0], LABEL_HEADER_MAGIC_NUM);
 
     const labels = [];
     let index = headerBytes;
@@ -192,7 +193,7 @@ class MnistDataset {
     }
 
     // Only create one big array to hold batch of images.
-    const imagesShape = [size, 28, 28, 1];
+    const imagesShape = [size, IMAGE_DIMENSION_SIZE, IMAGE_DIMENSION_SIZE, 1];
     const images = new Float32Array(tf.util.sizeFromShape(imagesShape));
 
     const labelsShape = [size, 1];

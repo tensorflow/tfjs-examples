@@ -32,7 +32,7 @@ async function train() {
   while (data.hasMoreTrainingData()) {
     const batch = data.nextTrainBatch(BATCH_SIZE);
     const history = await model.fit(
-        batch.image, batch.label, {batchSize: BATCH_SIZE, shuffle: false});
+        batch.image, batch.label, {batchSize: BATCH_SIZE, shuffle: true});
 
     if (step % 20 === 0) {
       console.log(`  - step: ${step}: loss: ${

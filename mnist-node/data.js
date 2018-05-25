@@ -27,6 +27,7 @@ const TRAIN_IMAGES_FILE = 'train-images-idx3-ubyte';
 const TRAIN_LABELS_FILE = 'train-labels-idx1-ubyte';
 const TEST_IMAGES_FILE = 't10k-images-idx3-ubyte';
 const TEST_LABELS_FILE = 't10k-labels-idx1-ubyte';
+const IMAGE_HEADER_MAGIC_NUM = 2051;
 const IMAGE_HEADER_BYTES = 16;
 const IMAGE_DIMENSION_SIZE = 28;
 const IMAGE_FLAT_SIZE = IMAGE_DIMENSION_SIZE * IMAGE_DIMENSION_SIZE;
@@ -35,7 +36,7 @@ const LABEL_RECORD_BYTE = 1;
 const LABEL_FLAT_SIZE = 10;
 
 async function downloadFile(filename) {
-  return new Promise((resolve) => {
+  return new Promise(resolve => {
     const url = `${BASE_URL}${filename}.gz`;
     if (fs.existsSync(filename)) {
       return resolve();
@@ -53,7 +54,7 @@ async function downloadFile(filename) {
 function loadHeaderValues(buffer, headerLength) {
   const headerValues = [];
   for (let i = 0; i < headerLength / 4; i++) {
-    // Header data is stored in-order (aka BE)
+    // Header data is stored in-order (aka big-endian)
     headerValues[i] = buffer.readUInt32BE(i * 4);
   }
   return headerValues;
@@ -61,14 +62,14 @@ function loadHeaderValues(buffer, headerLength) {
 
 async function loadImages(filename) {
   await downloadFile(filename);
-  return new Promise((resolve) => {
+  return new Promise(resolve => {
     const buffer = fs.readFileSync(filename);
 
     const headerBytes = IMAGE_HEADER_BYTES;
     const recordBytes = IMAGE_DIMENSION_SIZE * IMAGE_DIMENSION_SIZE;
 
     const headerValues = loadHeaderValues(buffer, headerBytes);
-    assert.equal(headerValues[0], 2051);  // magic number for images
+    assert.equal(headerValues[0], IMAGE_HEADER_MAGIC_NUM);
     assert.equal(headerValues[2], IMAGE_DIMENSION_SIZE);
     assert.equal(headerValues[3], IMAGE_DIMENSION_SIZE);
 
@@ -91,7 +92,7 @@ async function loadImages(filename) {
 
 async function loadLabels(filename) {
   await downloadFile(filename);
-  return new Promise((resolve) => {
+  return new Promise(resolve => {
     const buffer = fs.readFileSync(filename);
 
     const headerBytes = LABEL_HEADER_BYTES;
@@ -172,16 +173,22 @@ class MnistDataset {
   _generateBatch(isTrainingData, batchSize) {
     let batchIndexMax;
     let size;
+    let imagesIndex;
+    let labelsIndex;
     if (isTrainingData) {
       batchIndexMax = this.trainBatchIndex + batchSize > this.trainSize ?
           this.trainSize - this.trainBatchIndex :
           batchSize + this.trainBatchIndex;
       size = batchIndexMax - this.trainBatchIndex;
+      imagesIndex = 0;
+      labelsIndex = 1;
     } else {
       batchIndexMax = this.testBatchIndex + batchSize > this.testSize ?
           this.testSize - this.testBatchIndex :
           batchSize + this.testBatchIndex;
       size = batchIndexMax - this.testBatchIndex;
+      imagesIndex = 2;
+      labelsIndex = 3;
     }
 
     // Only create one big array to hold batch of images.
@@ -195,16 +202,10 @@ class MnistDataset {
     let labelOffset = 0;
     while ((isTrainingData ? this.trainBatchIndex : this.testBatchIndex) <
            batchIndexMax) {
-      if (isTrainingData) {
-        images.set(this.dataset[0][this.trainBatchIndex], imageOffset);
-        labels.set(this.dataset[1][this.trainBatchIndex], labelOffset);
-        this.trainBatchIndex++;
-      } else {
-        images.set(this.dataset[2][this.testBatchIndex], imageOffset);
-        labels.set(this.dataset[3][this.testBatchIndex], labelOffset);
-        this.testBatchIndex++;
-      }
+      images.set(this.dataset[imagesIndex][this.trainBatchIndex], imageOffset);
+      labels.set(this.dataset[labelsIndex][this.trainBatchIndex], labelOffset);
 
+      isTrainingData ? this.trainBatchIndex++ : this.testBatchIndex++;
       imageOffset += IMAGE_FLAT_SIZE;
       labelOffset += 1;
     }

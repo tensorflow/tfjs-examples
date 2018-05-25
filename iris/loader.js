@@ -48,8 +48,8 @@ export async function loadHostedPretrainedModel(url) {
   }
 }
 
-// The URL-like path that identifies the client-side where downloaded or
-// locally trained models can be stored.
+// The URL-like path that identifies the client-side location where downloaded
+// or locally trained models can be stored.
 const LOCAL_MODEL_URL = 'indexeddb://tfjs-iris-demo-model/v1';
 
 export async function saveModelLocally(model) {

@@ -3,7 +3,7 @@
 This example shows you how to train MNIST (using the layers API) under Node.js.
 
 This model will compute accuracy after one pass through the training dataset
-(60,000 samples) and evaluate 50 images from the test data set for accuracy.
+(60,000 samples) and evaluate 50 images from the test data set for accuracy after each epoch.
 
 Prepare the node environment:
 ```sh

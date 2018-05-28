@@ -16,7 +16,7 @@
  */
 
 const tf = require('@tensorflow/tfjs');
-require('@tensorflow/tfjs-node');
+require('@tensorflow/tfjs-node-gpu');
 tf.setBackend('tensorflow');
 
 const timer = require('node-simple-timer');
@@ -35,9 +35,9 @@ async function train() {
         batch.image, batch.label, {batchSize: BATCH_SIZE, shuffle: true});
 
     if (step % 20 === 0) {
-      console.log(`  - step: ${step}: loss: ${
-          history.history.loss[0].toFixed(
-              6)}, accuracy: ${history.history.acc[0].toFixed(4)}`);
+      const loss = history.history.loss[0].toFixed(6);
+      const acc = history.history.acc[0].toFixed(4);
+      console.log(`  - step: ${step}: loss: ${loss}, accuracy: ${acc}`);
     }
     step++;
   }
@@ -50,8 +50,8 @@ async function test() {
   }
   const evalData = data.nextTestBatch(TEST_SIZE);
   const output = model.predict(evalData.image);
-  const predictions = Array.from(output.argMax(1).dataSync());
-  const labels = Array.from(evalData.label.argMax(1).dataSync());
+  const predictions = output.argMax(1).dataSync();
+  const labels = evalData.label.argMax(1).dataSync();
 
   let correct = 0;
   for (let i = 0; i < TEST_SIZE; i++) {
@@ -76,16 +76,17 @@ async function run() {
     epochTimer.end();
     data.resetTraining();
 
+    const time = epochTimer.seconds().toFixed(2);
+    const stepsSec = (trainSteps / epochTimer.seconds()).toFixed(2);
     console.log(
-        `* End Epoch: ${i + 1}: time: ${epochTimer.seconds().toFixed(2)}secs (${
-            (trainSteps / epochTimer.seconds()).toFixed(2)} steps/sec)`);
+        `* End Epoch: ${i + 1}: time: ${time}secs (${stepsSec} steps/sec)`);
 
     test();
   }
 
   totalTimer.end();
-  console.log(`**** Trained ${NUM_EPOCHS} epochs in ${
-      totalTimer.seconds().toFixed(2)} secs`);
+  const time = totalTimer.seconds().toFixed(2);
+  console.log(`**** Trained ${NUM_EPOCHS} epochs in ${time} secs`);
 }
 
 run();

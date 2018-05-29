@@ -126,7 +126,7 @@ async function loadLabels(filename) {
   const labels = [];
   let index = headerBytes;
   while (index < buffer.byteLength) {
-    const array = new Uint8Array(recordBytes);
+    const array = new Int32Array(recordBytes);
     for (let i = 0; i < recordBytes; i++) {
       array[i] = buffer.readUInt8(index++);
     }

@@ -45,6 +45,7 @@ async function fetchOnceAndSaveToDiskWithBuffer(filename) {
     const url = `${BASE_URL}${filename}.gz`;
     if (fs.existsSync(filename)) {
       resolve(readFile(filename));
+      return;
     }
     const file = fs.createWriteStream(filename);
     console.log(`  * Downloading from: ${url}`);
@@ -56,6 +57,25 @@ async function fetchOnceAndSaveToDiskWithBuffer(filename) {
       });
     });
   });
+}
+
+// Shuffles data and label using Fisher-Yates algorithm.
+function shuffle(data, label) {
+  let counter = data.length;
+  let temp = 0;
+  let index = 0;
+  while (counter > 0) {
+    index = (Math.random() * counter) | 0;
+    counter--;
+    // data:
+    temp = data[counter];
+    data[counter] = data[index];
+    data[index] = temp;
+    // label:
+    temp = label[counter];
+    label[counter] = label[index];
+    label[index] = temp;
+  }
 }
 
 function loadHeaderValues(buffer, headerLength) {
@@ -135,6 +155,10 @@ class MnistDataset {
     ]);
     this.trainSize = this.dataset[0].length;
     this.testSize = this.dataset[2].length;
+
+    // Shuffle training and test data:
+    shuffle(this.dataset[0], this.dataset[1]);
+    shuffle(this.dataset[2], this.dataset[3]);
   }
 
   /** Resets training data batches. */

@@ -19,7 +19,10 @@ const tf = require('@tensorflow/tfjs');
 const assert = require('assert');
 const fs = require('fs');
 const https = require('https');
+const util = require('util');
 const zlib = require('zlib');
+
+const readFile = util.promisify(fs.readFile);
 
 // MNIST data constants:
 const BASE_URL = 'https://storage.googleapis.com/cvdf-datasets/mnist/';
@@ -36,18 +39,21 @@ const LABEL_HEADER_BYTES = 8;
 const LABEL_RECORD_BYTE = 1;
 const LABEL_FLAT_SIZE = 10;
 
-async function fetchOnceAndSaveToDisk(filename) {
+// Downloads a test file only once and returns the buffer for the file.
+async function fetchOnceAndSaveToDiskWithBuffer(filename) {
   return new Promise(resolve => {
     const url = `${BASE_URL}${filename}.gz`;
     if (fs.existsSync(filename)) {
-      return resolve();
+      resolve(readFile(filename));
     }
     const file = fs.createWriteStream(filename);
     console.log(`  * Downloading from: ${url}`);
     https.get(url, (response) => {
       const unzip = zlib.createGunzip();
       response.pipe(unzip).pipe(file);
-      unzip.on('end', resolve);
+      unzip.on('end', () => {
+        resolve(readFile(filename));
+      });
     });
   });
 }
@@ -62,59 +68,53 @@ function loadHeaderValues(buffer, headerLength) {
 }
 
 async function loadImages(filename) {
-  await fetchOnceAndSaveToDisk(filename);
-  return new Promise(resolve => {
-    const buffer = fs.readFileSync(filename);
+  const buffer = await fetchOnceAndSaveToDiskWithBuffer(filename);
 
-    const headerBytes = IMAGE_HEADER_BYTES;
-    const recordBytes = IMAGE_DIMENSION_SIZE * IMAGE_DIMENSION_SIZE;
+  const headerBytes = IMAGE_HEADER_BYTES;
+  const recordBytes = IMAGE_DIMENSION_SIZE * IMAGE_DIMENSION_SIZE;
 
-    const headerValues = loadHeaderValues(buffer, headerBytes);
-    assert.equal(headerValues[0], IMAGE_HEADER_MAGIC_NUM);
-    assert.equal(headerValues[2], IMAGE_DIMENSION_SIZE);
-    assert.equal(headerValues[3], IMAGE_DIMENSION_SIZE);
+  const headerValues = loadHeaderValues(buffer, headerBytes);
+  assert.equal(headerValues[0], IMAGE_HEADER_MAGIC_NUM);
+  assert.equal(headerValues[2], IMAGE_DIMENSION_SIZE);
+  assert.equal(headerValues[3], IMAGE_DIMENSION_SIZE);
 
-    const downsize = 1.0 / 255.0;
+  const downsize = 1.0 / 255.0;
 
-    const images = [];
-    let index = headerBytes;
-    while (index < buffer.byteLength) {
-      const array = new Float32Array(recordBytes);
-      for (let i = 0; i < recordBytes; i++) {
-        array[i] = buffer.readUInt8(index++) * downsize;
-      }
-      images.push(array);
+  const images = [];
+  let index = headerBytes;
+  while (index < buffer.byteLength) {
+    const array = new Float32Array(recordBytes);
+    for (let i = 0; i < recordBytes; i++) {
+      array[i] = buffer.readUInt8(index++) * downsize;
     }
+    images.push(array);
+  }
 
-    assert.equal(images.length, headerValues[1]);
-    resolve(images);
-  });
+  assert.equal(images.length, headerValues[1]);
+  return images;
 }
 
 async function loadLabels(filename) {
-  await fetchOnceAndSaveToDisk(filename);
-  return new Promise(resolve => {
-    const buffer = fs.readFileSync(filename);
+  const buffer = await fetchOnceAndSaveToDiskWithBuffer(filename);
 
-    const headerBytes = LABEL_HEADER_BYTES;
-    const recordBytes = LABEL_RECORD_BYTE;
+  const headerBytes = LABEL_HEADER_BYTES;
+  const recordBytes = LABEL_RECORD_BYTE;
 
-    const headerValues = loadHeaderValues(buffer, headerBytes);
-    assert.equal(headerValues[0], LABEL_HEADER_MAGIC_NUM);
+  const headerValues = loadHeaderValues(buffer, headerBytes);
+  assert.equal(headerValues[0], LABEL_HEADER_MAGIC_NUM);
 
-    const labels = [];
-    let index = headerBytes;
-    while (index < buffer.byteLength) {
-      const array = new Uint8Array(recordBytes);
-      for (let i = 0; i < recordBytes; i++) {
-        array[i] = buffer.readUInt8(index++);
-      }
-      labels.push(array);
+  const labels = [];
+  let index = headerBytes;
+  while (index < buffer.byteLength) {
+    const array = new Uint8Array(recordBytes);
+    for (let i = 0; i < recordBytes; i++) {
+      array[i] = buffer.readUInt8(index++);
     }
+    labels.push(array);
+  }
 
-    assert.equal(labels.length, headerValues[1]);
-    resolve(labels);
-  });
+  assert.equal(labels.length, headerValues[1]);
+  return labels;
 }
 
 /** Helper class to handle loading training and test data. */

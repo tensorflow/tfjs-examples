@@ -11,7 +11,7 @@
   "dependencies": {
     "@tensorflow/tfjs": "^0.11.4",
     "@tensorflow/tfjs-node": "^0.1.5",
-    "node-simple-timer": "^0.0.1"
+    "node-simple-timer": "^0.1.1"
   },
   "scripts": {
     "preinstall": "yarn upgrade --pattern @tensorflow"

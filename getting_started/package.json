@@ -11,8 +11,7 @@
   "dependencies": { },
   "scripts": {
     "watch": "npm run build && node_modules/http-server/bin/http-server dist -p 1234 ",
-    "build": "mkdir -p dist/ && cp index.html dist/ && cp index.js dist/",
-    "preinstall": "yarn upgrade --pattern @tensorflow"
+    "build": "mkdir -p dist/ && cp index.html dist/ && cp index.js dist/"
   },
   "devDependencies": {
     "clang-format": "~1.2.2",

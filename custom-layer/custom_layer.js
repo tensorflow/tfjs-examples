@@ -15,7 +15,6 @@
  * =============================================================================
  */
 import * as tf from '@tensorflow/tfjs';
-import {CONTINUOUS_DOMAIN_SCALES} from '../polynomial-regression-core/node_modules/vega-lite/build/src/scale';
 
 /**
  * This custom layer is similar to the 'relu' non-linear Activation `Layer`, but

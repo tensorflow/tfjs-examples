@@ -18,12 +18,12 @@
 import * as tf from '@tensorflow/tfjs';
 
 // This is a helper class for loading and managing MNIST data specifically.
-// It is a useful example of you could create your own data manager class for
-// arbitrary data though. It's worth a look :)
+// It is a useful example of how you could create your own data manager class 
+// for arbitrary data though. It's worth a look :)
 import {MnistData} from './data';
 
 // This is a helper class for drawing loss graphs and MNIST images to the
-// window. you can largely ignore it.
+// window. You can largely ignore it.
 import * as ui from './ui';
 
 // Create a sequential neural network model. tf.sequential provides an API for
@@ -95,11 +95,11 @@ const LEARNING_RATE = 0.15;
 // it is largely to thank for the current machine learning renaissance.
 // Most other optimizers you will come across (e.g. ADAM, RMSProp, AdaGrad,
 // Momentum) are variants on SGD. SGD is an iterative method for minimizing an
-// objective function. It tries to find the minimum/maximum of our loss
-// function with respect to the model's weight parameters.
+// objective function. It tries to find the minimum of our loss function with 
+// respect to the model's weight parameters.
 const optimizer = tf.train.sgd(LEARNING_RATE);
 
-// we compile our model by specifying an optimizer, a loss function, and a list
+// We compile our model by specifying an optimizer, a loss function, and a list
 // of metrics that we will use for model evaluation. Here we're using a
 // categorical crossentropy loss, the standard choice for a multi-class
 // classification problem like MNIST digits.
@@ -127,17 +127,17 @@ const TRAIN_BATCHES = 150;
 // The number of test examples to predict each time we test. Because we don't
 // update model weights during testing this value doesn't affect model training.
 const TEST_BATCH_SIZE = 1000;
-// the number of training batches we will run between each test batch
+// The number of training batches we will run between each test batch.
 const TEST_ITERATION_FREQUENCY = 5;
 
 async function train() {
   ui.isTraining();
 
-  // we'll keep a buffer of loss and accuracy values over time
+  // We'll keep a buffer of loss and accuracy values over time.
   const lossValues = [];
   const accuracyValues = [];
 
-  // iteratively train our model on mini-batches of data
+  // Iteratively train our model on mini-batches of data.
   for (let i = 0; i < TRAIN_BATCHES; i++) {
 
     const batch = data.nextTrainBatch(BATCH_SIZE);
@@ -148,14 +148,14 @@ async function train() {
     if (i % TEST_ITERATION_FREQUENCY === 0) {
       testBatch = data.nextTestBatch(TEST_BATCH_SIZE);
       validationData = [
-        // reshape the training data from [64, 28x28] to [64, 28, 28, 1] so
-        // that we can feed it to our convolutional neural net
+        // Reshape the training data from [64, 28x28] to [64, 28, 28, 1] so
+        // that we can feed it to our convolutional neural net.
         testBatch.xs.reshape([TEST_BATCH_SIZE, 28, 28, 1]), testBatch.labels
       ];
     }
 
-    // The entire dataset doesn't fit into memory so we call fit repeatedly
-    // with batches.
+    // The entire dataset doesn't fit into memory so we call train repeatedly
+    // with batches using the fit() method.
     const history = await model.fit(
         batch.xs.reshape([BATCH_SIZE, 28, 28, 1]), batch.labels,
         {batchSize: BATCH_SIZE, validationData, epochs: 1});
@@ -172,7 +172,7 @@ async function train() {
       ui.plotAccuracies(accuracyValues);
     }
 
-    // call dispose on the training/test tensors to free their GPU memory
+    // Call dispose on the training/test tensors to free their GPU memory.
     batch.xs.dispose();
     batch.labels.dispose();
     if (testBatch != null) {
@@ -181,7 +181,7 @@ async function train() {
     }
 
     // tf.nextFrame() returns a promise that resolves at the next call to
-    // requestAnimationFrame. By awaiting this promise we keep our model
+    // requestAnimationFrame(). By awaiting this promise we keep our model
     // training from blocking the main UI thread and freezing the browser.
     await tf.nextFrame();
   }
@@ -207,7 +207,8 @@ async function showPredictions() {
     // probability. This is our prediction.
     // (e.g. argmax([0.07, 0.1, 0.03, 0.75, 0.05]) == 3)
     // dataSync() synchronously downloads the tf.tensor values from the GPU so
-    // that we can use them in our normal CPU JavaScript code.
+    // that we can use them in our normal CPU JavaScript code 
+    // (for a non-blocking version of this function, use data()).
     const axis = 1;
     const labels = Array.from(batch.labels.argMax(axis).dataSync());
     const predictions = Array.from(output.argMax(axis).dataSync());
@@ -222,7 +223,7 @@ async function load() {
   await data.load();
 }
 
-// this is our main function. It loads the MNIST data, trains the model, and
+// This is our main function. It loads the MNIST data, trains the model, and
 // then shows what the model predicted on unseen test data.
 async function mnist() {
   await load();

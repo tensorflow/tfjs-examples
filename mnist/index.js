@@ -23,18 +23,21 @@ import * as tf from '@tensorflow/tfjs';
 import {MnistData} from './data';
 
 // This is a helper class for drawing loss graphs and MNIST images to the
-// window. You can largely ignore it.
+// window. For the purposes of understanding the machine learning bits, you can
+// largely ignore it
 import * as ui from './ui';
 
 // Create a sequential neural network model. tf.sequential provides an API for
 // creating "stacked" models where the output from one layer is used as the
-// input to another.
+// input to the next layer.
 const model = tf.sequential();
 
-// The first layer of the Convolutional Neural network is our input layer. It
-// receives the 28x28 pixels black and white images. This input layer uses
-// 8 filters with a kernel size of 5 pixels each. It uses a simple RELU
-// activation function which pretty much just looks like this: __/
+// The first layer of the convolutional neural network plays a dual role: 
+// it is both the input layer of the neural network and a layer that performs 
+// the first convolution operation on the input. It receives the 28x28 pixels 
+// black and white images. This input layer uses 8 filters with a kernel size 
+// of 5 pixels each. It uses a simple RELU activation function which pretty 
+// much just looks like this: __/
 model.add(tf.layers.conv2d({
   inputShape: [28, 28, 1],
   kernelSize: 5,
@@ -44,12 +47,12 @@ model.add(tf.layers.conv2d({
   kernelInitializer: 'varianceScaling'
 }));
 
-// Between the first and second layer we include a MaxPooling layer. This acts
-// as a sort of downsampling using max values in a region instead of averaging.
+// After the first layer we include a MaxPooling layer. This acts as a sort of
+// downsampling using max values in a region instead of averaging.
 // https://www.quora.com/What-is-max-pooling-in-convolutional-neural-networks
 model.add(tf.layers.maxPooling2d({poolSize: [2, 2], strides: [2, 2]}));
 
-// Our second layer is another convolution, this time with 16 filters.
+// Our third layer is another convolution, this time with 16 filters.
 model.add(tf.layers.conv2d({
   kernelSize: 5,
   filters: 16,
@@ -61,9 +64,9 @@ model.add(tf.layers.conv2d({
 // Max pooling again.
 model.add(tf.layers.maxPooling2d({poolSize: [2, 2], strides: [2, 2]}));
 
-// Now we flatten our 2D filters into a 1D vector to prepare it for input into
-// our last layer. This is common practice when feeding higher dimensional
-// data to a final classification output layer.
+// Now we flatten the output from the 2D filters into a 1D vector to prepare 
+// it for input into our last layer. This is common practice when feeding 
+// higher dimensional data to a final classification output layer.
 model.add(tf.layers.flatten());
 
 // Our last layer is a dense layer which has 10 output units, one for each

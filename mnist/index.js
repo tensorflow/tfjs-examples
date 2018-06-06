@@ -85,10 +85,10 @@ model.add(tf.layers.dense(
 
 // The learning rate defines the magnitude by which we update our weights each
 // training step. The higher the value, the faster our loss values converge,
-// but also the more likely we are to overshoot optimal parameter space regions
+// but also the more likely we are to overshoot optimal parameters
 // when making an update. A learning rate that is too low will take too long to
 // find optimal (or good enough) weight parameters while a learning rate that is
-// too high may "overshoot" optimal parameters. Learning rate is one of the most
+// too high may overshoot optimal parameters. Learning rate is one of the most
 // important hyperparameters to set correctly. Finding the right value takes
 // practice and is often best found empirically by trying many values.
 const LEARNING_RATE = 0.15;

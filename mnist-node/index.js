@@ -17,7 +17,6 @@
 
 const tf = require('@tensorflow/tfjs');
 require('@tensorflow/tfjs-node');
-tf.setBackend('tensorflow');
 
 const timer = require('node-simple-timer');
 const data = require('./data');

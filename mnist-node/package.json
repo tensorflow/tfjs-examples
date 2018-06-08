@@ -9,12 +9,12 @@
     "node": ">=8.11.1"
   },
   "dependencies": {
-    "@tensorflow/tfjs": "^0.11.4",
-    "@tensorflow/tfjs-node": "^0.1.5",
+    "@tensorflow/tfjs": "^0.11.5",
+    "@tensorflow/tfjs-node": "^0.1.7",
     "node-simple-timer": "^0.1.1"
   },
   "scripts": {
-    "preinstall": "yarn upgrade --pattern @tensorflow"
+    "preinstall": "yarn upgrade --pattern @tensorflow/tfjs"
   },
   "devDependencies": {
     "clang-format": "~1.2.2"

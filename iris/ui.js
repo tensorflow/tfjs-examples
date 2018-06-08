@@ -50,7 +50,8 @@ export function plotLosses(lossValues, epoch, newTrainLoss, newValidationLoss) {
           'x': {'field': 'epoch', 'type': 'ordinal'},
           'y': {'field': 'loss', 'type': 'quantitative'},
           'color': {'field': 'set', 'type': 'nominal'},
-        }
+        },
+        'width': 500,
       },
       {});
 }
@@ -78,7 +79,8 @@ export function plotAccuracies(
           'x': {'field': 'epoch', 'type': 'ordinal'},
           'y': {'field': 'accuracy', 'type': 'quantitative'},
           'color': {'field': 'set', 'type': 'nominal'},
-        }
+        },
+        'width': 500,
       },
       {});
 }
@@ -229,9 +231,4 @@ export function loadTrainParametersFromUI() {
 export function status(statusText) {
   console.log(statusText);
   document.getElementById('demo-status').textContent = statusText;
-}
-
-export function disableLoadModelButtons() {
-  document.getElementById('load-pretrained-remote').style.display = 'none';
-  document.getElementById('load-pretrained-local').style.display = 'none';
 }

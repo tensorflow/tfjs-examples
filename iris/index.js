@@ -128,7 +128,6 @@ async function evaluateModelOnTestData(model, xTest, yTest) {
   predictOnManualInput(model);
 }
 
-const LOCAL_MODEL_JSON_URL = 'http://localhost:1235/resources/model.json';
 const HOSTED_MODEL_JSON_URL =
     'https://storage.googleapis.com/tfjs-models/tfjs/iris_v1/model.json';
 
@@ -138,10 +137,15 @@ const HOSTED_MODEL_JSON_URL =
 async function iris() {
   const [xTrain, yTrain, xTest, yTest] = data.getIrisData(0.15);
 
+  const localLoadButton = document.getElementById('load-local');
+  const localSaveButton = document.getElementById('save-local');
+  const localRemoveButton = document.getElementById('remove-local');
+
   document.getElementById('train-from-scratch')
       .addEventListener('click', async () => {
         model = await trainModel(xTrain, yTrain, xTest, yTest);
-        evaluateModelOnTestData(model, xTest, yTest);
+        await evaluateModelOnTestData(model, xTest, yTest);
+        localSaveButton.disabled = false;
       });
 
   if (await loader.urlExists(HOSTED_MODEL_JSON_URL)) {
@@ -150,23 +154,27 @@ async function iris() {
     button.addEventListener('click', async () => {
       ui.clearEvaluateTable();
       model = await loader.loadHostedPretrainedModel(HOSTED_MODEL_JSON_URL);
-      predictOnManualInput(model);
+      await predictOnManualInput(model);
+      localSaveButton.disabled = false;
     });
-    // button.style.visibility = 'visible';
-    button.style.display = 'inline-block';
   }
 
-  if (await loader.urlExists(LOCAL_MODEL_JSON_URL)) {
-    ui.status('Model available: ' + LOCAL_MODEL_JSON_URL);
-    const button = document.getElementById('load-pretrained-local');
-    button.addEventListener('click', async () => {
-      ui.clearEvaluateTable();
-      model = await loader.loadHostedPretrainedModel(LOCAL_MODEL_JSON_URL);
-      predictOnManualInput(model);
-    });
-    // button.style.visibility = 'visible';
-    button.style.display = 'inline-block';
-  }
+  localLoadButton.addEventListener('click', async () => {
+    model = await loader.loadModelLocally();
+    await predictOnManualInput(model);
+  });
+
+  localSaveButton.addEventListener('click', async () => {
+    await loader.saveModelLocally(model);
+    await loader.updateLocalModelStatus();
+  });
+
+  localRemoveButton.addEventListener('click', async () => {
+    await loader.removeModelLocally();
+    await loader.updateLocalModelStatus();
+  });
+
+  await loader.updateLocalModelStatus();
 
   ui.status('Standing by.');
   ui.wireUpEvaluateTableCallbacks(() => predictOnManualInput(model));

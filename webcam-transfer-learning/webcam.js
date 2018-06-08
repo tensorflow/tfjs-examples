@@ -96,7 +96,7 @@ export class Webcam {
               }, false);
             },
             error => {
-              document.querySelector('#no-webcam').style.display = 'block';
+              reject();
             });
       } else {
         reject();

@@ -18,7 +18,7 @@
 import * as tf from '@tensorflow/tfjs';
 
 // This is a helper class for loading and managing MNIST data specifically.
-// It is a useful example of how you could create your own data manager class 
+// It is a useful example of how you could create your own data manager class
 // for arbitrary data though. It's worth a look :)
 import {MnistData} from './data';
 
@@ -32,11 +32,11 @@ import * as ui from './ui';
 // input to the next layer.
 const model = tf.sequential();
 
-// The first layer of the convolutional neural network plays a dual role: 
-// it is both the input layer of the neural network and a layer that performs 
-// the first convolution operation on the input. It receives the 28x28 pixels 
-// black and white images. This input layer uses 8 filters with a kernel size 
-// of 5 pixels each. It uses a simple RELU activation function which pretty 
+// The first layer of the convolutional neural network plays a dual role:
+// it is both the input layer of the neural network and a layer that performs
+// the first convolution operation on the input. It receives the 28x28 pixels
+// black and white images. This input layer uses 8 filters with a kernel size
+// of 5 pixels each. It uses a simple RELU activation function which pretty
 // much just looks like this: __/
 model.add(tf.layers.conv2d({
   inputShape: [28, 28, 1],
@@ -64,8 +64,8 @@ model.add(tf.layers.conv2d({
 // Max pooling again.
 model.add(tf.layers.maxPooling2d({poolSize: [2, 2], strides: [2, 2]}));
 
-// Now we flatten the output from the 2D filters into a 1D vector to prepare 
-// it for input into our last layer. This is common practice when feeding 
+// Now we flatten the output from the 2D filters into a 1D vector to prepare
+// it for input into our last layer. This is common practice when feeding
 // higher dimensional data to a final classification output layer.
 model.add(tf.layers.flatten());
 
@@ -98,7 +98,7 @@ const LEARNING_RATE = 0.15;
 // it is largely to thank for the current machine learning renaissance.
 // Most other optimizers you will come across (e.g. ADAM, RMSProp, AdaGrad,
 // Momentum) are variants on SGD. SGD is an iterative method for minimizing an
-// objective function. It tries to find the minimum of our loss function with 
+// objective function. It tries to find the minimum of our loss function with
 // respect to the model's weight parameters.
 const optimizer = tf.train.sgd(LEARNING_RATE);
 
@@ -142,25 +142,27 @@ async function train() {
 
   // Iteratively train our model on mini-batches of data.
   for (let i = 0; i < TRAIN_BATCHES; i++) {
+    const [batch, validationData] = tf.tidy(() => {
+      const batch = data.nextTrainBatch(BATCH_SIZE);
+      batch.xs = batch.xs.reshape([BATCH_SIZE, 28, 28, 1]);
 
-    const batch = data.nextTrainBatch(BATCH_SIZE);
-
-    let testBatch;
-    let validationData;
-    // Every few batches test the accuracy of the model.
-    if (i % TEST_ITERATION_FREQUENCY === 0) {
-      testBatch = data.nextTestBatch(TEST_BATCH_SIZE);
-      validationData = [
-        // Reshape the training data from [64, 28x28] to [64, 28, 28, 1] so
-        // that we can feed it to our convolutional neural net.
-        testBatch.xs.reshape([TEST_BATCH_SIZE, 28, 28, 1]), testBatch.labels
-      ];
-    }
+      let validationData;
+      // Every few batches test the accuracy of the model.
+      if (i % TEST_ITERATION_FREQUENCY === 0) {
+        const testBatch = data.nextTestBatch(TEST_BATCH_SIZE);
+        validationData = [
+          // Reshape the training data from [64, 28x28] to [64, 28, 28, 1] so
+          // that we can feed it to our convolutional neural net.
+          testBatch.xs.reshape([TEST_BATCH_SIZE, 28, 28, 1]), testBatch.labels
+        ];
+      }
+      return [batch, validationData];
+    });
 
     // The entire dataset doesn't fit into memory so we call train repeatedly
     // with batches using the fit() method.
     const history = await model.fit(
-        batch.xs.reshape([BATCH_SIZE, 28, 28, 1]), batch.labels,
+        batch.xs, batch.labels,
         {batchSize: BATCH_SIZE, validationData, epochs: 1});
 
     const loss = history.history.loss[0];
@@ -170,18 +172,13 @@ async function train() {
     lossValues.push({'batch': i, 'loss': loss, 'set': 'train'});
     ui.plotLosses(lossValues);
 
-    if (testBatch != null) {
+    if (validationData != null) {
       accuracyValues.push({'batch': i, 'accuracy': accuracy, 'set': 'train'});
       ui.plotAccuracies(accuracyValues);
     }
 
     // Call dispose on the training/test tensors to free their GPU memory.
-    batch.xs.dispose();
-    batch.labels.dispose();
-    if (testBatch != null) {
-      testBatch.xs.dispose();
-      testBatch.labels.dispose();
-    }
+    tf.dispose([batch, validationData]);
 
     // tf.nextFrame() returns a promise that resolves at the next call to
     // requestAnimationFrame(). By awaiting this promise we keep our model
@@ -210,7 +207,7 @@ async function showPredictions() {
     // probability. This is our prediction.
     // (e.g. argmax([0.07, 0.1, 0.03, 0.75, 0.05]) == 3)
     // dataSync() synchronously downloads the tf.tensor values from the GPU so
-    // that we can use them in our normal CPU JavaScript code 
+    // that we can use them in our normal CPU JavaScript code
     // (for a non-blocking version of this function, use data()).
     const axis = 1;
     const labels = Array.from(batch.labels.argMax(axis).dataSync());

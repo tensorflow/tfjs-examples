@@ -14,7 +14,7 @@
     "node-simple-timer": "^0.1.1"
   },
   "scripts": {
-    "preinstall": "yarn upgrade --pattern @tensorflow/tfjs"
+    "postinstall": "yarn upgrade --pattern @tensorflow"
   },
   "devDependencies": {
     "clang-format": "~1.2.2"

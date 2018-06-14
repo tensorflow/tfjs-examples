@@ -11,7 +11,7 @@
     "start-server": "ts-node src/server/server.ts",
     "train-pitch-model": "ts-node src/train/pitch-model.ts",
     "train-strike-model": "ts-node src/train/strike-model.ts",
-    "preinstall": "yarn upgrade --pattern @tensorflow"
+    "postinstall": "yarn upgrade --pattern @tensorflow"
   },
   "license": "Apache-2.0",
   "devDependencies": {

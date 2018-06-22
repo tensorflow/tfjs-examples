@@ -26,6 +26,7 @@ import * as tf from '@tensorflow/tfjs';
 import embed from 'vega-embed';
 
 const testText = document.getElementById('test-text');
+const trainModelButton = document.getElementById('train-model');
 
 const sampleText = `PREFACE
 
@@ -140,6 +141,23 @@ metaphysicians is THE BELIEF IN ANTITHESES OF VALUES. It never occurred
 even to the wariest of them to doubt here on the very threshold (where
 doubt, however, was most necessary); though they had made a solemn`;
 
+/**
+ * Get the set of unique characters from text.
+ * @param {string} text The text as a string.
+ */
+function getCharSet(text) {
+  const charSet = [];
+  const textLen = textLength;
+  for (let i = 0; i < textLen; ++i) {
+    if (charSet.indexOf(text[i]) === -1) {
+      charSet.push(text[i]);
+    }
+  }
+}
+
+function prepareData(text) {
+
+}
 
 (async function() {
   testText.value = sampleText;

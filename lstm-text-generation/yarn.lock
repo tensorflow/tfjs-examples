@@ -4099,7 +4099,7 @@ vega-loader@^3.0.1:
     topojson-client "^3.0.0"
     vega-util "^1.7.0"
 
-vega-parser@^3.2.0, vega-parser@^3.4.0:
+vega-parser@^3.2.0, vega-parser@^3.5.0:
   version "3.5.0"
   resolved "https://registry.yarnpkg.com/vega-parser/-/vega-parser-3.5.0.tgz#eeb1e323e1535479cd40587352e08dbbccd24eed"
   dependencies:
@@ -4200,13 +4200,13 @@ vega-view-transforms@^2.0.1:
     vega-util "^1.7.0"
 
 vega-view@^3.2.2:
-  version "3.3.1"
-  resolved "https://registry.yarnpkg.com/vega-view/-/vega-view-3.3.1.tgz#6a455d21c7980abb2aeac73279fac781553b3fdf"
+  version "3.3.2"
+  resolved "https://registry.yarnpkg.com/vega-view/-/vega-view-3.3.2.tgz#f0bfd5aa0a6947c912aa94dcc77a46c20e44b675"
   dependencies:
     d3-array "^1.2.1"
     d3-timer "^1.0.7"
     vega-dataflow "^4.0.3"
-    vega-parser "^3.4.0"
+    vega-parser "^3.5.0"
     vega-runtime "^3.0.3"
     vega-scenegraph "^3.2.1"
     vega-util "^1.7.0"

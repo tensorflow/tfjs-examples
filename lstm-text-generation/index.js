@@ -141,27 +141,277 @@ metaphysicians is THE BELIEF IN ANTITHESES OF VALUES. It never occurred
 even to the wariest of them to doubt here on the very threshold (where
 doubt, however, was most necessary); though they had made a solemn`;
 
-/**
- * Get the set of unique characters from text.
- * @param {string} text The text as a string.
- */
-function getCharSet(text) {
-  const charSet = [];
-  const textLen = textLength;
-  for (let i = 0; i < textLen; ++i) {
-    if (charSet.indexOf(text[i]) === -1) {
-      charSet.push(text[i]);
+function getTrainingData(textIndices, vocabSize, maxLen, step, startStep, numSteps) {
+  const textLen = textIndices.length;
+  const xTensorBuffers = [];
+  const yTensorBuffers = [];
+  let exampleCount = 0;
+  for (let i = step * startStep; i < textLen - maxLen - 1; i += step) {
+    if (++exampleCount > numSteps) {
+      break;
     }
+
+    const xTensorBuffer = new tf.TensorBuffer([1, maxLen, vocabSize]);
+    for (let j = 0; j < maxLen; ++j) {
+      xTensorBuffer.set(1, 0, j, textIndices[i + j]);
+    }
+    xTensorBuffers.push(xTensorBuffer);
+
+    const yTensorBuffer = new tf.TensorBuffer([1, vocabSize]);
+    yTensorBuffer.set(1, 0, textIndices[i + maxLen]);
+    yTensorBuffers.push(yTensorBuffer);
   }
+
+  const xs = tf.concat(xTensorBuffers.map(xBuffer => xBuffer.toTensor()), 0);
+  const ys = tf.concat(yTensorBuffers.map(yBuffer => yBuffer.toTensor()), 0);
+  return [xs, ys];
 }
 
-function prepareData(text) {
+function prepareData(text, maxLen, step) {
+  const charSet = getCharSet(text);
+  const textIndices = textToIndices(text, charSet);
+  const vocabSize = charSet.length;
 
+  // TODO(cais); DO NOT hardcode 512.
+  return [
+    getTrainingData(textIndices, vocabSize, maxLen, step, 0, 512), charSet];
 }
 
 (async function() {
   testText.value = sampleText;
 })();
+
+function createModel(maxLen, charSetSize) {
+  const model = tf.sequential();
+  model.add(tf.layers.lstm({units: 128, inputShape: [maxLen, charSetSize]}));
+  model.add(tf.layers.dense({units: charSetSize, activation: 'softmax'}));
+
+  return model;
+}
+
+/**
+ * Randomly shuffle an Array.
+ * @param {Array} array
+ * @returns {Array} Shuffled array.
+ */
+function shuffle(array) {
+  // Origin of the code:
+  // https://stackoverflow.com/questions/2450954/how-to-randomize-shuffle-a-javascript-array
+  let currentIndex = array.length;
+  let temporaryValue;
+  let randomIndex;
+
+  // While there remain elements to shuffle...
+  while (0 !== currentIndex) {
+    // Pick a remaining element...
+    randomIndex = Math.floor(Math.random() * currentIndex);
+    currentIndex -= 1;
+
+    // And swap it with the current element.
+    temporaryValue = array[currentIndex];
+    array[currentIndex] = array[randomIndex];
+    array[randomIndex] = temporaryValue;
+  }
+  return array;
+}
+
+/**
+ * Draw one sample from a multinomial distribution.
+ * @param {number[]} probs Probabilities. Assumed to sum to 1.
+ * @returns {number} A zero-based sample index.
+ */
+function sampleOneFromMultinomial(probs) {
+  const score = Math.random();
+  let cumProb = 0;
+  const n = probs.length;
+  for (let i = 0; i < n; ++i) {
+    if (score >= cumProb && score < cumProb + probs[i]) {
+      return i;
+    }
+    cumProb += probs[i];
+  }
+  return n - 1;
+}
+
+// TODO(cais): Use textData with nextEpochData method, randomized.
+class TextDataSet {
+  constructor(textString, sampleLen, sampleStep) {
+    this._textString = textString;
+    this._textLen = textString.length;
+    this._sampleLen = sampleLen;
+    this._sampleStep = sampleStep;
+
+    this._getCharSet();
+    this._textToIndices();
+    this._generateExampleBeginIndices();
+  }
+
+  textLen() {
+    return this._textLen;
+  }
+
+  charSetSize() {
+    return this._charSetSize;
+  }
+
+  nextDataEpoch(numExamples) {
+    const xsBuffer = new tf.TensorBuffer([
+        numExamples, this._sampleLen, this._charSetSize]);
+    const ysBuffer  = new tf.TensorBuffer([numExamples, this._charSetSize]);
+    for (let i = 0; i < numExamples; ++i) {
+      const beginIndex = this._exampleBeginIndices[
+          this._examplePosition % this._exampleBeginIndices.length];
+      if (i === 0) {
+        console.log(beginIndex);
+      }
+      for (let j = 0; j < this._sampleLen; ++j) {
+        xsBuffer.set(1, i, j, this._indices[beginIndex + j]);
+      }
+      ysBuffer.set(1, i, this._indices[beginIndex + this._sampleLen]);
+      this._examplePosition++;
+    }
+    return [xsBuffer.toTensor(), ysBuffer.toTensor()];
+  }
+
+  generateText(model, length, temperature) {
+    return tf.tidy(() => {
+      const startIndex =
+          Math.round(Math.random() * (this._textLen - this._sampleLen - 1));
+      let generated = '';
+      const sentence =
+          this._textString.slice(startIndex, startIndex + this._sampleLen);
+      console.log('Generating with seed: ' + sentence);  // DEBUG
+      let sentenceIndices = Array.from(
+          this._indices.slice(startIndex, startIndex + this._sampleLen));
+      console.log(sentenceIndices);  // DEBUG
+
+      // for (let n = 0; n < 8; ++n) {  // DEBUG
+      while (generated.length < length) {
+        const inputBuffer =
+            new tf.TensorBuffer([1, this._sampleLen, this._charSetSize]);
+        for (let i = 0; i < this._sampleLen; ++i) {
+          inputBuffer.set(1, 0, i, sentenceIndices[i]);
+        }
+        const input = inputBuffer.toTensor();
+        const output = model.predict(input).dataSync();
+        input.dispose();
+        const winnerIndex = this._sample(output, temperature);  // DEBUG
+        const winnerChar = this._charSet[winnerIndex];
+        console.log(`${winnerIndex}: ${winnerChar}`);  // DEBUG
+
+        generated += winnerChar;
+        sentenceIndices = sentenceIndices.slice(1);
+        sentenceIndices.push(winnerIndex);
+      }
+      return generated;
+    });
+  }
+
+  _sample(preds, temperature) {
+    const logPreds = preds.map(pred => Math.log(pred) / temperature);
+    const expPreds = logPreds.map(logPred => Math.exp(logPred));
+    let sumExpPreds = 0;
+    for (const expPred of expPreds) {
+      sumExpPreds += expPred;
+    }
+    preds = expPreds.map(expPred => expPred / sumExpPreds);
+    // Treat preds a the probabilites of a multinomial distribution and
+    // randomly draw a sample from the distribution.
+    return sampleOneFromMultinomial(preds);
+  }
+
+  /**
+   * Get the set of unique characters from text.
+   */
+  _getCharSet() {
+    this._charSet = [];
+    for (let i = 0; i < this._textLen; ++i) {
+      if (this._charSet.indexOf(this._textString[i]) === -1) {
+        this._charSet.push(this._textString[i]);
+      }
+    }
+    this._charSetSize = this._charSet.length;
+  }
+
+  /**
+   * Convert text string to integers.
+   */
+  _textToIndices() {
+    this._indices = new Uint16Array(this._textLen);
+    for (let i = 0; i < this._textLen; ++i) {
+      this._indices[i] = this._charSet.indexOf(this._textString[i]);
+    }
+  }
+
+  /**
+   * Generate the example-begin indices; shuffle them randomly.
+   */
+  _generateExampleBeginIndices() {
+    // Prepare beginning indices of examples.
+    const exampleBeginIndices = [];
+    for (let i = 0;
+        i < this._textLen - this._sampleLen - 1;
+        i += this._sampleStep) {
+      exampleBeginIndices.push(i);
+    }
+
+    // Randomly shuffle the beginning indices.
+    this._exampleBeginIndices = shuffle(exampleBeginIndices);
+    this._examplePosition = 0;
+  }
+};
+
+
+trainModelButton.addEventListener('click', async () => {
+  const sampleLen = 40;
+  const sampleStep = 3;
+
+  const textData = testText.value;
+
+  const textDataSet = new TextDataSet(textData, sampleLen, sampleStep);
+  console.log(`textLen = ${textDataSet.textLen()}`);  // DEBUG
+  console.log(`charSetSize = ${textDataSet.charSetSize()}`);  // DEBUG
+
+  // for (let i = 0; i < 10; ++i) {
+  //   const [xs, ys] =  textDataSet.nextDataEpoch(1024);
+  //   console.log(xs.shape);  // DEBUG
+  //   console.log(ys.shape);  // DEBUG
+  //   xs.dispose();
+  //   ys.dispose();
+  // }
+
+  const model = createModel(sampleLen, textDataSet.charSetSize());
+  const learningRate = 0.01;
+  const optimzer = tf.train.rmsprop(learningRate);
+  model.compile({optimizer: optimzer, loss: 'categoricalCrossentropy'});
+  model.summary();
+
+  const trainIterations = 4;
+  const epochsPerIteration = 10;
+  const epochSize = 2048;
+  const batchSize = 128;
+  for (let i = 0; i < trainIterations; ++i) {
+    const [xs, ys] =  textDataSet.nextDataEpoch(epochSize);
+    await model.fit(xs, ys, {
+      epochs: epochsPerIteration,
+      batchSize: batchSize,
+      callbacks: {
+        onEpochEnd: async (epochs, log) => {
+          console.log(
+              `iteration ${i + 1}/${trainIterations}; ` +
+              `epoch ${epochs + 1}/${epochsPerIteration}, ` +
+              `log = ${JSON.stringify(log)}`);
+          await tf.nextFrame();
+        },
+      }
+    });
+    xs.dispose();
+    ys.dispose();
+  }
+
+  const sentence = textDataSet.generateText(model, 100, 0.5);
+  console.log(`Generate sentence: ${sentence}`);  // DEBUG
+});
 
 // class CharacterTable {
 //   /**

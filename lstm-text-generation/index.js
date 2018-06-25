@@ -208,7 +208,8 @@ createOrLoadModelButton.addEventListener('click', async () => {
     // Create model from scratch.
     logStatus('Creating model... Please wait.');
     const lstmLayerSizes =
-        lstmLayersSizesInput.value.trim().split(',').map(s => Number.parseInt(s));
+        lstmLayersSizesInput.value.trim().split(',')
+        .map(s => Number.parseInt(s));
     if (lstmLayerSizes.length === 0) {
       throw new Error('ERROR: Invalid LSTM layer sizes.');
     }
@@ -217,7 +218,6 @@ createOrLoadModelButton.addEventListener('click', async () => {
         'Done creating model. ' +
         'Now you can train the model or use it to generate text.');
   }
-
 
   trainModelButton.disabled = false;
   generateTextButton.disabled = false;

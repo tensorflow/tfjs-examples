@@ -6,9 +6,9 @@ This example illustrates how to use TensorFlow.js to train a LSTM model to
 generate random text based on the patterns in a training text corpus such as
 Nietzsche's writing and the source code of TensorFlow.js itself.
 
-The LSTM model operates on the character level. It takes a tensor of
+The LSTM model operates at the character level. It takes a tensor of
 shape `[numExamples, sampleLen, charSetSize]` as the input. The input is a
-one-hot encoding of a sequence of `sampleLen` characters. The characters
+one-hot encoding of sequences of `sampleLen` characters. The characters
 belong to a set of `charSetSize` unique characters. With the input, the model
 outputs a tensor of shape `[numExamples, charSetSize]`, which represents the
 model's predicted probabilites of the character that follows the input sequence.

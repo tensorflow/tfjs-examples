@@ -25,168 +25,75 @@
 import * as tf from '@tensorflow/tfjs';
 import embed from 'vega-embed';
 
+const TEXT_DATA_URLS = {
+  'nietzsche': 'https://storage.googleapis.com/tfjs-examples/lstm-text-generation/data/nietzsche.txt',
+  'tfjs-code': 'https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@0.11.7/dist/tf.js'
+}
+
 const testText = document.getElementById('test-text');
+const createOrLoadModelButton = document.getElementById('create-or-load-model');
+const deleteModelButton = document.getElementById('delete-model');
 const trainModelButton = document.getElementById('train-model');
+const generateTextButton = document.getElementById('generate-text');
 
-const sampleText = `PREFACE
+const appStatus = document.getElementById('app-status');
+const loadTextDataButton = document.getElementById('load-text-data');
+const textDataSelect = document.getElementById('text-data-select');
 
+const examplesPerEpochInput = document.getElementById('examples-per-epoch');
+const batchSizeInput = document.getElementById('batch-size');
+const epochsInput = document.getElementById('epochs');
+const learningRateInput = document.getElementById('learning-rate');
 
-SUPPOSING that Truth is a woman--what then? Is there not ground
-for suspecting that all philosophers, in so far as they have been
-dogmatists, have failed to understand women--that the terrible
-seriousness and clumsy importunity with which they have usually paid
-their addresses to Truth, have been unskilled and unseemly methods for
-winning a woman? Certainly she has never allowed herself to be won; and
-at present every kind of dogma stands with sad and discouraged mien--IF,
-indeed, it stands at all! For there are scoffers who maintain that it
-has fallen, that all dogma lies on the ground--nay more, that it is at
-its last gasp. But to speak seriously, there are good grounds for hoping
-that all dogmatizing in philosophy, whatever solemn, whatever conclusive
-and decided airs it has assumed, may have been only a noble puerilism
-and tyronism; and probably the time is at hand when it will be once
-and again understood WHAT has actually sufficed for the basis of such
-imposing and absolute philosophical edifices as the dogmatists have
-hitherto reared: perhaps some popular superstition of immemorial time
-(such as the soul-superstition, which, in the form of subject- and
-ego-superstition, has not yet ceased doing mischief): perhaps some
-play upon words, a deception on the part of grammar, or an
-audacious generalization of very restricted, very personal, very
-human--all-too-human facts. The philosophy of the dogmatists, it is to
-be hoped, was only a promise for thousands of years afterwards, as was
-astrology in still earlier times, in the service of which probably more
-labour, gold, acuteness, and patience have been spent than on any
-actual science hitherto: we owe to it, and to its "super-terrestrial"
-pretensions in Asia and Egypt, the grand style of architecture. It seems
-that in order to inscribe themselves upon the heart of humanity with
-everlasting claims, all great things have first to wander about the
-earth as enormous and awe-inspiring caricatures: dogmatic philosophy has
-been a caricature of this kind--for instance, the Vedanta doctrine in
-Asia, and Platonism in Europe. Let us not be ungrateful to it, although
-it must certainly be confessed that the worst, the most tiresome,
-and the most dangerous of errors hitherto has been a dogmatist
-error--namely, Plato's invention of Pure Spirit and the Good in Itself.
-But now when it has been surmounted, when Europe, rid of this nightmare,
-can again draw breath freely and at least enjoy a healthier--sleep,
-we, WHOSE DUTY IS WAKEFULNESS ITSELF, are the heirs of all the strength
-which the struggle against this error has fostered. It amounted to
-the very inversion of truth, and the denial of the PERSPECTIVE--the
-fundamental condition--of life, to speak of Spirit and the Good as Plato
-spoke of them; indeed one might ask, as a physician: "How did such a
-malady attack that finest product of antiquity, Plato? Had the wicked
-Socrates really corrupted him? Was Socrates after all a corrupter of
-youths, and deserved his hemlock?" But the struggle against Plato,
-or--to speak plainer, and for the "people"--the struggle against
-the ecclesiastical oppression of millenniums of Christianity (FOR
-CHRISTIANITY IS PLATONISM FOR THE "PEOPLE"), produced in Europe
-a magnificent tension of soul, such as had not existed anywhere
-previously; with such a tensely strained bow one can now aim at the
-furthest goals. As a matter of fact, the European feels this tension as
-a state of distress, and twice attempts have been made in grand style to
-unbend the bow: once by means of Jesuitism, and the second time by means
-of democratic enlightenment--which, with the aid of liberty of the press
-and newspaper-reading, might, in fact, bring it about that the spirit
-would not so easily find itself in "distress"! (The Germans invented
-gunpowder--all credit to them! but they again made things square--they
-invented printing.) But we, who are neither Jesuits, nor democrats,
-nor even sufficiently Germans, we GOOD EUROPEANS, and free, VERY free
-spirits--we have it still, all the distress of spirit and all the
-tension of its bow! And perhaps also the arrow, the duty, and, who
-knows? THE GOAL TO AIM AT....
+const generateLengthInput = document.getElementById('generate-length');
+const temperatureInput = document.getElementById('temperature');
+const generatedTextInput = document.getElementById('generated-text');
 
-Sils Maria Upper Engadine, JUNE, 1885.
+const modelAvailableInfo = document.getElementById('model-available');
 
+const sampleLen = 40;
+const sampleStep = 3;
 
+let textGenerator;
 
-
-CHAPTER I. PREJUDICES OF PHILOSOPHERS
-
-
-1. The Will to Truth, which is to tempt us to many a hazardous
-enterprise, the famous Truthfulness of which all philosophers have
-hitherto spoken with respect, what questions has this Will to Truth not
-laid before us! What strange, perplexing, questionable questions! It is
-already a long story; yet it seems as if it were hardly commenced. Is
-it any wonder if we at last grow distrustful, lose patience, and turn
-impatiently away? That this Sphinx teaches us at last to ask questions
-ourselves? WHO is it really that puts questions to us here? WHAT really
-is this "Will to Truth" in us? In fact we made a long halt at the
-question as to the origin of this Will--until at last we came to an
-absolute standstill before a yet more fundamental question. We inquired
-about the VALUE of this Will. Granted that we want the truth: WHY NOT
-RATHER untruth? And uncertainty? Even ignorance? The problem of the
-value of truth presented itself before us--or was it we who presented
-ourselves before the problem? Which of us is the Oedipus here? Which
-the Sphinx? It would seem to be a rendezvous of questions and notes of
-interrogation. And could it be believed that it at last seems to us as
-if the problem had never been propounded before, as if we were the first
-to discern it, get a sight of it, and RISK RAISING it? For there is risk
-in raising it, perhaps there is no greater risk.
-
-2. "HOW COULD anything originate out of its opposite? For example, truth
-out of error? or the Will to Truth out of the will to deception? or the
-generous deed out of selfishness? or the pure sun-bright vision of the
-wise man out of covetousness? Such genesis is impossible; whoever dreams
-of it is a fool, nay, worse than a fool; things of the highest
-value must have a different origin, an origin of THEIR own--in this
-transitory, seductive, illusory, paltry world, in this turmoil of
-delusion and cupidity, they cannot have their source. But rather in
-the lap of Being, in the intransitory, in the concealed God, in the
-'Thing-in-itself--THERE must be their source, and nowhere else!"--This
-mode of reasoning discloses the typical prejudice by which
-metaphysicians of all times can be recognized, this mode of valuation
-is at the back of all their logical procedure; through this "belief" of
-theirs, they exert themselves for their "knowledge," for something that
-is in the end solemnly christened "the Truth." The fundamental belief of
-metaphysicians is THE BELIEF IN ANTITHESES OF VALUES. It never occurred
-even to the wariest of them to doubt here on the very threshold (where
-doubt, however, was most necessary); though they had made a solemn`;
-
-function getTrainingData(textIndices, vocabSize, maxLen, step, startStep, numSteps) {
-  const textLen = textIndices.length;
-  const xTensorBuffers = [];
-  const yTensorBuffers = [];
-  let exampleCount = 0;
-  for (let i = step * startStep; i < textLen - maxLen - 1; i += step) {
-    if (++exampleCount > numSteps) {
-      break;
-    }
-
-    const xTensorBuffer = new tf.TensorBuffer([1, maxLen, vocabSize]);
-    for (let j = 0; j < maxLen; ++j) {
-      xTensorBuffer.set(1, 0, j, textIndices[i + j]);
-    }
-    xTensorBuffers.push(xTensorBuffer);
-
-    const yTensorBuffer = new tf.TensorBuffer([1, vocabSize]);
-    yTensorBuffer.set(1, 0, textIndices[i + maxLen]);
-    yTensorBuffers.push(yTensorBuffer);
+loadTextDataButton.addEventListener('click', async () => {
+  textDataSelect.disabled = true;
+  loadTextDataButton.disabled = true;
+  const modelIdentifier = textDataSelect.value;
+  const url = TEXT_DATA_URLS[modelIdentifier];
+  try {
+    appStatus.textContent = `Loading text data from URL: ${url} ...`;
+    const response = await fetch(url);
+    const textString = await response.text();
+    testText.value = textString;
+    appStatus.textContent =
+        `Done loading text data (length=${(textString.length / 1024).toFixed(1)}k). ` +
+        `Next, please load or create model.`;
+  } catch (err) {
+    appStatus.textContent = 'Failed to load text data: ' + err.message;
   }
 
-  const xs = tf.concat(xTensorBuffers.map(xBuffer => xBuffer.toTensor()), 0);
-  const ys = tf.concat(yTensorBuffers.map(yBuffer => yBuffer.toTensor()), 0);
-  return [xs, ys];
-}
+  if (testText.value.length === 0) {
+    throw new Error("ERROR: Empty text data.");
+  }
+  textGenerator = new NeuralNetworkTextGenerator(
+      modelIdentifier, testText.value, sampleLen, sampleStep);
+  await refreshLocalModelStatus();
+});
 
-function prepareData(text, maxLen, step) {
-  const charSet = getCharSet(text);
-  const textIndices = textToIndices(text, charSet);
-  const vocabSize = charSet.length;
-
-  // TODO(cais); DO NOT hardcode 512.
-  return [
-    getTrainingData(textIndices, vocabSize, maxLen, step, 0, 512), charSet];
-}
-
-(async function() {
-  testText.value = sampleText;
-})();
-
-function createModel(maxLen, charSetSize) {
-  const model = tf.sequential();
-  model.add(tf.layers.lstm({units: 128, inputShape: [maxLen, charSetSize]}));
-  model.add(tf.layers.dense({units: charSetSize, activation: 'softmax'}));
-
-  return model;
+async function refreshLocalModelStatus() {
+  const modelInfo = await textGenerator.checkStoredModelStatus();
+  if (modelInfo == null) {
+    modelAvailableInfo.value =
+        `No locally saved model for "${textGenerator.modelIdentifier()}"`;
+    createOrLoadModelButton.textContent = 'Create model';
+    deleteModelButton.disabled = true;
+  } else {
+    modelAvailableInfo.value = `Saved @ ${modelInfo.dateSaved}`;
+    createOrLoadModelButton.textContent = 'Load model';
+    deleteModelButton.disabled = false;
+  }
+  createOrLoadModelButton.disabled = false;
 }
 
 /**
@@ -233,9 +140,17 @@ function sampleOneFromMultinomial(probs) {
   return n - 1;
 }
 
-// TODO(cais): Use textData with nextEpochData method, randomized.
-class TextDataSet {
-  constructor(textString, sampleLen, sampleStep) {
+class NeuralNetworkTextGenerator {
+  constructor(modelIdentifier, textString, sampleLen, sampleStep) {
+    if (!modelIdentifier) {
+      throw new Error('Model identifier is not provided.');
+    }
+
+    this._modelIdentifier = modelIdentifier;
+    this._MODEL_SAVE_PATH_PREFIX = 'indexeddb://lstm-text-generation';
+    this._modelSavePath =
+        `${this._MODEL_SAVE_PATH_PREFIX}/${this._modelIdentifier}`;
+
     this._textString = textString;
     this._textLen = textString.length;
     this._sampleLen = sampleLen;
@@ -244,6 +159,10 @@ class TextDataSet {
     this._getCharSet();
     this._textToIndices();
     this._generateExampleBeginIndices();
+  }
+
+  modelIdentifier() {
+    return this._modelIdentifier;
   }
 
   textLen() {
@@ -261,9 +180,6 @@ class TextDataSet {
     for (let i = 0; i < numExamples; ++i) {
       const beginIndex = this._exampleBeginIndices[
           this._examplePosition % this._exampleBeginIndices.length];
-      if (i === 0) {
-        console.log(beginIndex);
-      }
       for (let j = 0; j < this._sampleLen; ++j) {
         xsBuffer.set(1, i, j, this._indices[beginIndex + j]);
       }
@@ -273,19 +189,21 @@ class TextDataSet {
     return [xsBuffer.toTensor(), ysBuffer.toTensor()];
   }
 
-  generateText(model, length, temperature) {
+  generateText(length, temperature) {
+    if (this.model == null) {
+      throw new Error('Create model first.');
+    }
+
     return tf.tidy(() => {
       const startIndex =
           Math.round(Math.random() * (this._textLen - this._sampleLen - 1));
       let generated = '';
       const sentence =
           this._textString.slice(startIndex, startIndex + this._sampleLen);
-      console.log('Generating with seed: ' + sentence);  // DEBUG
+      console.log(`Generating with seed: "${sentence}"`);
       let sentenceIndices = Array.from(
           this._indices.slice(startIndex, startIndex + this._sampleLen));
-      console.log(sentenceIndices);  // DEBUG
 
-      // for (let n = 0; n < 8; ++n) {  // DEBUG
       while (generated.length < length) {
         const inputBuffer =
             new tf.TensorBuffer([1, this._sampleLen, this._charSetSize]);
@@ -293,11 +211,10 @@ class TextDataSet {
           inputBuffer.set(1, 0, i, sentenceIndices[i]);
         }
         const input = inputBuffer.toTensor();
-        const output = model.predict(input).dataSync();
+        const output = this.model.predict(input).dataSync();
         input.dispose();
-        const winnerIndex = this._sample(output, temperature);  // DEBUG
+        const winnerIndex = this._sample(output, temperature);
         const winnerChar = this._charSet[winnerIndex];
-        console.log(`${winnerIndex}: ${winnerChar}`);  // DEBUG
 
         generated += winnerChar;
         sentenceIndices = sentenceIndices.slice(1);
@@ -305,6 +222,125 @@ class TextDataSet {
       }
       return generated;
     });
+  }
+
+  async createModel(loadModelIfAvailable) {
+    let createFromScratch = false;
+    if (loadModelIfAvailable === true) {
+      const modelsInfo = await tf.io.listModels();
+      if (this._modelSavePath in modelsInfo) {
+        console.log(`Loading existing model...`);
+        this.model = await tf.loadModel(this._modelSavePath);
+        console.log(`Loaded model from ${this._modelSavePath}`);
+      } else {
+        console.log(
+            `Cannot find model at ${this._modelSavePath}. ` +
+            `Creating model from scratch.`);
+        createFromScratch = true;
+      }
+    }
+
+    if (createFromScratch) {
+      this.model = tf.sequential();
+      this.model.add(tf.layers.lstm({
+        units: 128,
+        returnSequences: false,
+        inputShape: [this._maxLen, this._charSetSize]
+      }));
+      // model.add(tf.layers.lstm({units: 128}));
+      this.model.add(tf.layers.dense({
+        units: this._charSetSize,
+        activation: 'softmax'
+      }));
+    }
+  }
+
+  compileModel(learningRate) {
+    const optimizer = tf.train.rmsprop(learningRate);
+    this.model.compile({optimizer: optimizer, loss: 'categoricalCrossentropy'});
+    console.log(`Compiled model with learning rate ${learningRate}`);
+    this.model.summary();
+  }
+
+  async removeModel() {
+    if (await this.checkStoredModelStatus() == null) {
+      throw new Error(
+          'Cannot remove locally saved model because it does not exist.');
+    }
+    return await tf.io.removeModel(this._modelSavePath);
+  }
+
+  async saveModel() {
+    if (this.model == null) {
+      throw new Error('Cannot save model before creating model.');
+    } else {
+      return await this.model.save(this._modelSavePath);
+    }
+  }
+
+  async checkStoredModelStatus() {
+    const modelsInfo = await tf.io.listModels();
+    return modelsInfo[this._modelSavePath];
+  }
+
+  async fitModel(numEpochs,
+                 examplesPerEpoch,
+                 batchSize,
+                 trainBeginCallback,
+                 trainEpochCallback,
+                 trainBatchCallback) {
+    const lossValues = [];
+    let batchCount = 0;
+    const batchesPerEpoch = examplesPerEpoch / batchSize;
+    const totalBatches = numEpochs * batchesPerEpoch;
+    trainBeginCallback();
+    await tf.nextFrame();
+    let t = new Date().getTime();
+    for (let i = 0; i < numEpochs; ++i) {
+      const [xs, ys] =  this.nextDataEpoch(examplesPerEpoch);
+      await this.model.fit(xs, ys, {
+        epochs: 1,
+        batchSize: batchSize,
+        callbacks: {
+          onTrainEnd: async () => {
+            if (trainEpochCallback != null) {
+              await trainEpochCallback();
+            }
+          },
+          onBatchEnd: async (batch, logs) => {
+            console.log(`batch ${batch + 1}, logs = ${JSON.stringify(logs)}`);
+            lossValues.push({'batch': ++batchCount, 'loss': logs.loss});
+            embed(
+              '#loss-canvas', {
+                '$schema': 'https://vega.github.io/schema/vega-lite/v2.json',
+                'data': {'values': lossValues},
+                'mark': 'line',
+                'encoding': {
+                  'x': {'field': 'batch', 'type': 'ordinal'},
+                  'y': {'field': 'loss', 'type': 'quantitative'},
+                },
+                'width': 360,
+              },
+              {});
+            if (trainBatchCallback != null) {
+              const t1 = new Date().getTime();
+              const examplesPerSec = batchSize / ((t1 - t) / 1e3);
+              t = t1;
+              trainBatchCallback(batchCount / totalBatches, examplesPerSec);
+            }
+            await tf.nextFrame();
+          },
+          onEpochEnd: async (epochs, log) => {
+            console.log(
+                `epoch ${i + 1}/${numEpochs}; ` +
+                `log = ${JSON.stringify(log)}`);
+            await tf.nextFrame();
+          },
+        }
+      });
+      xs.dispose();
+      ys.dispose();
+    }
   }
 
   _sample(preds, temperature) {
@@ -361,431 +397,98 @@ class TextDataSet {
   }
 };
 
-
-trainModelButton.addEventListener('click', async () => {
-  const sampleLen = 40;
-  const sampleStep = 3;
-
-  const textData = testText.value;
-
-  const textDataSet = new TextDataSet(textData, sampleLen, sampleStep);
-  console.log(`textLen = ${textDataSet.textLen()}`);  // DEBUG
-  console.log(`charSetSize = ${textDataSet.charSetSize()}`);  // DEBUG
-
-  // for (let i = 0; i < 10; ++i) {
-  //   const [xs, ys] =  textDataSet.nextDataEpoch(1024);
-  //   console.log(xs.shape);  // DEBUG
-  //   console.log(ys.shape);  // DEBUG
-  //   xs.dispose();
-  //   ys.dispose();
-  // }
-
-  const model = createModel(sampleLen, textDataSet.charSetSize());
-  const learningRate = 0.01;
-  const optimzer = tf.train.rmsprop(learningRate);
-  model.compile({optimizer: optimzer, loss: 'categoricalCrossentropy'});
-  model.summary();
-
-  const trainIterations = 4;
-  const epochsPerIteration = 10;
-  const epochSize = 2048;
-  const batchSize = 128;
-  for (let i = 0; i < trainIterations; ++i) {
-    const [xs, ys] =  textDataSet.nextDataEpoch(epochSize);
-    await model.fit(xs, ys, {
-      epochs: epochsPerIteration,
-      batchSize: batchSize,
-      callbacks: {
-        onEpochEnd: async (epochs, log) => {
-          console.log(
-              `iteration ${i + 1}/${trainIterations}; ` +
-              `epoch ${epochs + 1}/${epochsPerIteration}, ` +
-              `log = ${JSON.stringify(log)}`);
-          await tf.nextFrame();
-        },
-      }
-    });
-    xs.dispose();
-    ys.dispose();
+createOrLoadModelButton.addEventListener('click', async () => {
+  createOrLoadModelButton.disabled = true;
+  if (textGenerator == null) {
+    createOrLoadModelButton.disabled = false;
+    throw new Error('Load text data set first.');
   }
 
-  const sentence = textDataSet.generateText(model, 100, 0.5);
-  console.log(`Generate sentence: ${sentence}`);  // DEBUG
+  appStatus.textContent = 'Creating or loading model... Please wait.';
+  await textGenerator.createModel(true);
+  appStatus.textContent = 'Done creating or loading model.';
+  trainModelButton.disabled = false;
+  generateTextButton.disabled = false;
 });
 
-// class CharacterTable {
-//   /**
-//    * Constructor of CharacterTable.
-//    * @param chars A string that contains the characters that can appear
-//    *   in the input.
-//    */
-//   constructor(chars) {
-//     this.chars = chars;
-//     this.charIndices = {};
-//     this.indicesChar = {};
-//     this.size = this.chars.length;
-//     for (let i = 0; i < this.size; ++i) {
-//       const char = this.chars[i];
-//       if (this.charIndices[char] != null) {
-//         throw new Error(`Duplicate character '${char}'`);
-//       }
-//       this.charIndices[this.chars[i]] = i;
-//       this.indicesChar[i] = this.chars[i];
-//     }
-//   }
+deleteModelButton.addEventListener('click', async () => {
+  if (textGenerator == null) {
+    throw new Error('Load text data set first.');
+  }
+  console.log(await textGenerator.removeModel());
+  await refreshLocalModelStatus();
+});
 
-//   /**
-//    * Convert a string into a one-hot encoded tensor.
-//    *
-//    * @param str The input string.
-//    * @param numRows Number of rows of the output tensor.
-//    * @returns The one-hot encoded 2D tensor.
-//    * @throws If `str` contains any characters outside the `CharacterTable`'s
-//    *   vocabulary.
-//    */
-//   encode(str, numRows) {
-//     const buf = tf.buffer([numRows, this.size]);
-//     for (let i = 0; i < str.length; ++i) {
-//       const char = str[i];
-//       if (this.charIndices[char] == null) {
-//         throw new Error(`Unknown character: '${char}'`);
-//       }
-//       buf.set(1, i, this.charIndices[char]);
-//     }
-//     return buf.toTensor().as2D(numRows, this.size);
-//   }
+trainModelButton.addEventListener('click', async () => {
+  if (textGenerator == null) {
+    throw new Error('Load text data set first.');
+  }
 
-//   encodeBatch(strings, numRows) {
-//     const numExamples = strings.length;
-//     const buf = tf.buffer([numExamples, numRows, this.size]);
-//     for (let n = 0; n < numExamples; ++n) {
-//       const str = strings[n];
-//       for (let i = 0; i < str.length; ++i) {
-//         const char = str[i];
-//         if (this.charIndices[char] == null) {
-//           throw new Error(`Unknown character: '${char}'`);
-//         }
-//         buf.set(1, n, i, this.charIndices[char]);
-//       }
-//     }
-//     return buf.toTensor().as3D(numExamples, numRows, this.size);
-//   }
+  const numEpochs = Number.parseInt(epochsInput.value);
+  const examplesPerEpoch = Number.parseInt(examplesPerEpochInput.value);
+  const batchSize = Number.parseInt(batchSizeInput.value);
+  const learningRate = Number.parseFloat(learningRateInput.value);
+  if (!(learningRate > 0)) {
+    createOrLoadModelButton.disabled = false;
+    throw new Error(`Invalid learning rate: ${learningRate}`);
+  }
+  trainModelButton.disabled = true;
+  generateTextButton.disabled = true;
 
-//   /**
-//    * Convert a 2D tensor into a string with the CharacterTable's vocabulary.
-//    *
-//    * @param x Input 2D tensor.
-//    * @param calcArgmax Whether to perform `argMax` operation on `x` before
-//    *   indexing into the `CharacterTable`'s vocabulary.
-//    * @returns The decoded string.
-//    */
-//   decode(x, calcArgmax = true) {
-//     return tf.tidy(() => {
-//       if (calcArgmax) {
-//         x = x.argMax(1);
-//       }
-//       const xData = x.dataSync();  // TODO(cais): Performance implication?
-//       let output = '';
-//       for (const index of Array.from(xData)) {
-//         output += this.indicesChar[index];
-//       }
-//       return output;
-//     });
-//   }
-// }
+  textGenerator.compileModel(learningRate);
+  await textGenerator.fitModel(
+      numEpochs, examplesPerEpoch, batchSize,
+      () => {
+        appStatus.textContent = 'Model training is starting...';
+      },
+      null,
+      // async () => {
+      //   await generateText();
+      // },
+      (progress, examplesPerSec) => {
+        appStatus.textContent =
+           `Model training: ${(progress * 1e2).toFixed(1)}% complete... ` +
+           `(${examplesPerSec.toFixed(0)} examples/s)`
+      });
+  console.log(await textGenerator.saveModel());
+  await refreshLocalModelStatus();
 
-// /**
-//  * Generate examples.
-//  *
-//  * Each example consists of a question, e.g., '123+456' and and an
-//  * answer, e.g., '579'.
-//  *
-//  * @param digits Maximum number of digits of each operand of the
-//  * @param numExamples Number of examples to generate.
-//  * @param invert Whether to invert the strings in the question.
-//  * @returns The generated examples.
-//  */
-// function generateData(digits, numExamples, invert) {
-//   const digitArray = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
-//   const arraySize = digitArray.length;
+  await generateText();
+  trainModelButton.disabled = false;
+  generateTextButton.disabled = false;
+});
 
-//   const output = [];
-//   const maxLen = digits + 1 + digits;
+generateTextButton.addEventListener('click', async () => {
+  if (textGenerator == null) {
+    throw new Error('Load text data set first.');
+  }
+  trainModelButton.disabled = true;
+  generateTextButton.disabled = true;
+  await generateText();
+  trainModelButton.disabled = false;
+  generateTextButton.disabled = false;
+});
 
-//   const f = () => {
-//     let str = '';
-//     while (str.length < digits) {
-//       const index = Math.floor(Math.random() * arraySize);
-//       str += digitArray[index];
-//     }
-//     return Number.parseInt(str);
-//   };
+async function generateText() {
+  try {
+    if (textGenerator == null) {
+      throw new Error('Load text data set first.');
+    }
+    const generateLength = Number.parseInt(generateLengthInput.value);
+    const temperature = Number.parseFloat(temperatureInput.value);
+    if (!(temperature > 0 && temperature <= 1)) {
+      throw new Error(`Invalid temperature: ${temperature}`);
+    }
+    generatedTextInput.value = '';
+    appStatus.textContent = 'Generating text...';
 
-//   const seen = new Set();
-//   while (output.length < numExamples) {
-//     const a = f();
-//     const b = f();
-//     const sorted = b > a ? [a, b] : [b, a];
-//     const key = sorted[0] + '`' + sorted[1];
-//     if (seen.has(key)) {
-//       continue;
-//     }
-//     seen.add(key);
-
-//     // Pad the data with spaces such that it is always maxLen.
-//     const q = `${a}+${b}`;
-//     const query = q + ' '.repeat(maxLen - q.length);
-//     let ans = (a + b).toString();
-//     // Answer can be of maximum size `digits + 1`.
-//     ans += ' '.repeat(digits + 1 - ans.length);
-
-//     if (invert) {
-//       throw new Error('invert is not implemented yet');
-//     }
-//     output.push([query, ans]);
-//   }
-//   return output;
-// }
-
-// function convertDataToTensors(data, charTable, digits) {
-//   const maxLen = digits + 1 + digits;
-//   const questions = data.map(datum => datum[0]);
-//   const answers = data.map(datum => datum[1]);
-//   return [
-//     charTable.encodeBatch(questions, maxLen),
-//     charTable.encodeBatch(answers, digits + 1),
-//   ];
-// }
-
-// function createAndCompileModel(
-//     layers, hiddenSize, rnnType, digits, vocabularySize) {
-//   const maxLen = digits + 1 + digits;
-
-//   const model = tf.sequential();
-//   switch (rnnType) {
-//     case 'SimpleRNN':
-//       model.add(tf.layers.simpleRNN({
-//         units: hiddenSize,
-//         recurrentInitializer: 'glorotNormal',
-//         inputShape: [maxLen, vocabularySize]
-//       }));
-//       break;
-//     case 'GRU':
-//       model.add(tf.layers.gru({
-//         units: hiddenSize,
-//         recurrentInitializer: 'glorotNormal',
-//         inputShape: [maxLen, vocabularySize]
-//       }));
-//       break;
-//     case 'LSTM':
-//       model.add(tf.layers.lstm({
-//         units: hiddenSize,
-//         recurrentInitializer: 'glorotNormal',
-//         inputShape: [maxLen, vocabularySize]
-//       }));
-//       break;
-//     default:
-//       throw new Error(`Unsupported RNN type: '${rnnType}'`);
-//   }
-//   model.add(tf.layers.repeatVector({n: digits + 1}));
-//   switch (rnnType) {
-//     case 'SimpleRNN':
-//       model.add(tf.layers.simpleRNN({
-//         units: hiddenSize,
-//         recurrentInitializer: 'glorotNormal',
-//         returnSequences: true
-//       }));
-//       break;
-//     case 'GRU':
-//       model.add(tf.layers.gru({
-//         units: hiddenSize,
-//         recurrentInitializer: 'glorotNormal',
-//         returnSequences: true
-//       }));
-//       break;
-//     case 'LSTM':
-//       model.add(tf.layers.lstm({
-//         units: hiddenSize,
-//         recurrentInitializer: 'glorotNormal',
-//         returnSequences: true
-//       }));
-//       break;
-//     default:
-//       throw new Error(`Unsupported RNN type: '${rnnType}'`);
-//   }
-//   model.add(tf.layers.timeDistributed(
-//       {layer: tf.layers.dense({units: vocabularySize})}));
-//   model.add(tf.layers.activation({activation: 'softmax'}));
-//   model.compile({
-//     loss: 'categoricalCrossentropy',
-//     optimizer: 'adam',
-//     metrics: ['accuracy']
-//   });
-//   return model;
-// }
-
-// class AdditionRNNDemo {
-//   constructor(digits, trainingSize, rnnType, layers, hiddenSize) {
-//     // Prepare training data.
-//     const chars = '0123456789+ ';
-//     this.charTable = new CharacterTable(chars);
-//     console.log('Generating training data');
-//     const data = generateData(digits, trainingSize, false);
-//     const split = Math.floor(trainingSize * 0.9);
-//     this.trainData = data.slice(0, split);
-//     this.testData = data.slice(split);
-//     [this.trainXs, this.trainYs] =
-//         convertDataToTensors(this.trainData, this.charTable, digits);
-//     [this.testXs, this.testYs] =
-//         convertDataToTensors(this.testData, this.charTable, digits);
-//     this.model = createAndCompileModel(
-//         layers, hiddenSize, rnnType, digits, chars.length);
-//   }
-
-//   async train(iterations, batchSize, numTestExamples) {
-//     const lossValues = [];
-//     const accuracyValues = [];
-//     const examplesPerSecValues = [];
-//     for (let i = 0; i < iterations; ++i) {
-//       const beginMs = performance.now();
-//       const history = await this.model.fit(this.trainXs, this.trainYs, {
-//         epochs: 1,
-//         batchSize,
-//         validationData: [this.testXs, this.testYs],
-//       });
-//       const elapsedMs = performance.now() - beginMs;
-//       const examplesPerSec = this.testXs.shape[0] / (elapsedMs / 1000);
-//       const trainLoss = history.history['loss'][0];
-//       const trainAccuracy = history.history['acc'][0];
-//       const valLoss = history.history['val_loss'][0];
-//       const valAccuracy = history.history['val_acc'][0];
-//       document.getElementById('trainStatus').textContent =
-//           `Iteration ${i}: train loss = ${trainLoss.toFixed(6)}; ` +
-//           `train accuracy = ${trainAccuracy.toFixed(6)}; ` +
-//           `validation loss = ${valLoss.toFixed(6)}; ` +
-//           `validation accuracy = ${valAccuracy.toFixed(6)} ` +
-//           `(${examplesPerSec.toFixed(1)} examples/s)`;
-
-//       lossValues.push({'epoch': i, 'loss': trainLoss, 'set': 'train'});
-//       lossValues.push({'epoch': i, 'loss': valLoss, 'set': 'validation'});
-//       embed(
-//           '#lossCanvas', {
-//             '$schema': 'https://vega.github.io/schema/vega-lite/v2.json',
-//             'data': {'values': lossValues},
-//             'mark': 'line',
-//             'encoding': {
-//               'x': {'field': 'epoch', 'type': 'ordinal'},
-//               'y': {'field': 'loss', 'type': 'quantitative'},
-//               'color': {'field': 'set', 'type': 'nominal'},
-//             },
-//             'width': 400,
-//           },
-//           {});
-//       accuracyValues.push(
-//           {'epoch': i, 'accuracy': trainAccuracy, 'set': 'train'});
-//       accuracyValues.push(
-//           {'epoch': i, 'accuracy': valAccuracy, 'set': 'validation'});
-//       embed(
-//           '#accuracyCanvas', {
-//             '$schema': 'https://vega.github.io/schema/vega-lite/v2.json',
-//             'data': {'values': accuracyValues},
-//             'mark': 'line',
-//             'encoding': {
-//               'x': {'field': 'epoch', 'type': 'ordinal'},
-//               'y': {'field': 'accuracy', 'type': 'quantitative'},
-//               'color': {'field': 'set', 'type': 'nominal'},
-//             },
-//             'width': 400,
-//           },
-//           {});
-//       examplesPerSecValues.push({'epoch': i, 'examples/s': examplesPerSec});
-//       embed(
-//           '#examplesPerSecCanvas', {
-//             '$schema': 'https://vega.github.io/schema/vega-lite/v2.json',
-//             'data': {'values': examplesPerSecValues},
-//             'mark': 'line',
-//             'encoding': {
-//               'x': {'field': 'epoch', 'type': 'ordinal'},
-//               'y': {'field': 'examples/s', 'type': 'quantitative'},
-//             },
-//             'width': 400,
-//           },
-//           {});
-
-//       if (this.testXsForDisplay == null ||
-//           this.testXsForDisplay.shape[0] !== numTestExamples) {
-//         if (this.textXsForDisplay) {
-//           this.textXsForDisplay.dispose();
-//         }
-//         this.testXsForDisplay = this.testXs.slice(
-//             [0, 0, 0],
-//             [numTestExamples, this.testXs.shape[1], this.testXs.shape[2]]);
-//       }
-
-//       const examples = [];
-//       const isCorrect = [];
-//       tf.tidy(() => {
-//         const predictOut = this.model.predict(this.testXsForDisplay);
-//         for (let k = 0; k < numTestExamples; ++k) {
-//           const scores =
-//               predictOut
-//                   .slice(
-//                       [k, 0, 0], [1, predictOut.shape[1], predictOut.shape[2]])
-//                   .as2D(predictOut.shape[1], predictOut.shape[2]);
-//           const decoded = this.charTable.decode(scores);
-//           examples.push(this.testData[k][0] + ' = ' + decoded);
-//           isCorrect.push(this.testData[k][1].trim() === decoded.trim());
-//         }
-//       });
-
-//       const examplesDiv = document.getElementById('testExamples');
-//       while (examplesDiv.firstChild) {
-//         examplesDiv.removeChild(examplesDiv.firstChild);
-//       }
-//       for (let i = 0; i < examples.length; ++i) {
-//         const exampleDiv = document.createElement('div');
-//         exampleDiv.textContent = examples[i];
-//         exampleDiv.className = isCorrect[i] ? 'answer-correct' : 'answer-wrong';
-//         examplesDiv.appendChild(exampleDiv);
-//       }
-
-//       await tf.nextFrame();
-//     }
-//   }
-// }
-
-// async function runAdditionRNNDemo() {
-//   document.getElementById('trainModel').addEventListener('click', async () => {
-//     const digits = +(document.getElementById('digits')).value;
-//     const trainingSize = +(document.getElementById('trainingSize')).value;
-//     const rnnTypeSelect = document.getElementById('rnnType');
-//     const rnnType =
-//         rnnTypeSelect.options[rnnTypeSelect.selectedIndex].getAttribute(
-//             'value');
-//     const layers = +(document.getElementById('rnnLayers')).value;
-//     const hiddenSize = +(document.getElementById('rnnLayerSize')).value;
-//     const batchSize = +(document.getElementById('batchSize')).value;
-//     const trainIterations = +(document.getElementById('trainIterations')).value;
-//     const numTestExamples = +(document.getElementById('numTestExamples')).value;
-
-//     // Do some checks on the user-specified parameters.
-//     const status = document.getElementById('trainStatus');
-//     if (digits < 1 || digits > 5) {
-//       status.textContent = 'digits must be >= 1 and <= 5';
-//       return;
-//     }
-//     const trainingSizeLimit = Math.pow(Math.pow(10, digits), 2);
-//     if (trainingSize > trainingSizeLimit) {
-//       status.textContent =
-//           `With digits = ${digits}, you cannot have more than ` +
-//           `${trainingSizeLimit} examples`;
-//       return;
-//     }
-
-//     const demo =
-//         new AdditionRNNDemo(digits, trainingSize, rnnType, layers, hiddenSize);
-//     await demo.train(trainIterations, batchSize, numTestExamples);
-//   });
-// }
-
-// runAdditionRNNDemo();
+    setTimeout(() => {
+      const sentence = textGenerator.generateText(generateLength, temperature);
+      generatedTextInput.value = sentence;
+      appStatus.textContent = 'Done generating text.';
+      return sentence;
+    }, 0);
+  } catch (err) {
+    appStatus.textContent = `Failed to generate text: ${err.message}`;
+  }
+}

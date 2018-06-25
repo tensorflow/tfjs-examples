@@ -17,7 +17,6 @@ limitations under the License.
 
 <!doctype html>
 <head>
-  <link rel="stylesheet" href="https://code.getmdl.io/1.3.0/material.cyan-teal.min.css" />
 </head>
 
 <style>
@@ -31,7 +30,7 @@ limitations under the License.
   }
   .setting-label {
     display: inline-block;
-    width: 12em;
+    width: 14em;
   }
   .answer-correct {
     color: green;
@@ -42,63 +41,93 @@ limitations under the License.
   .canvases {
     display: inline-block;
   }
+  .monospace {
+    font-family: monospace;
+  }
+  .input-title {
+    display: inline-block;
+    width: 14em;
+  }
+  .vertical-sections {
+    display: inline-block;
+    width: 400px;
+  }
+  #app-status {
+    font-size: 140%;
+    padding-bottom: 1em;
+  }
 </style>
 
 <body>
   <h1>TensorFlow.js Example: Train LSTM to Generate Text</h1>
   <div>
-    <textarea id="test-text" value="" rows="50" cols="80"></textarea>
-
-    <button id="load-data">Load data</button>
-    <button id="train-model">Train Model</button>
-
-
-    <!-- <div>
-      <div class="setting">
-        <span class="setting-label">Digits:</span>
-        <input id="digits" value="2"></input>
-      </div>
-      <div class="setting">
-        <span class="setting-label">Training Size:</span>
-        <input id="trainingSize" value="5000"></input>
-      </div>
-      <div class="setting">
-        <span class="setting-label">RNN Type:</span>
-        <select id="rnnType">
-          <option value="SimpleRNN">SimpleRNN</option>
-          <option value="GRU">GRU</option>
-          <option value="LSTM">LSTM</option>
-        </select>
-      </div>
-      <div class="setting">
-        <span class="setting-label">RNN Layers:</span>
-        <input id="rnnLayers" value="1"></input>
-      </div>
-      <div class="setting">
-        <span class="setting-label">RNN Hidden Layer Size:</span>
-        <input id="rnnLayerSize" value="128"></input>
-      </div>
-      <div class="setting">
-        <span class="setting-label">Batch Size:</span>
-        <input id="batchSize" value="128"></input>
-      </div>
-      <div class="setting">
-        <span class="setting-label">Train Iterations:</span>
-        <input id="trainIterations" value="100"></input>
-      </div>
-      <div class="setting">
-        <span class="setting-label"># of test examples:</span>
-        <input id="numTestExamples" value="20"></input>
-      </div>
-    </div>
-    <button id="trainModel">Train Model</button>
-    <div id="trainStatus"></div>
     <div>
-      <div class="canvases" id="lossCanvas"></div>
-      <div class="canvases" id="accuracyCanvas"></div>
-      <div class="canvases" id="examplesPerSecCanvas"></div>
+      <span id="app-status">Please select a text data source and click "load text data" first.</span>
     </div>
-    <div id="testExamples"></div> -->
+
+    <div>
+      <span>Text data source:</span>
+      <select id="text-data-select">
+        <option value="tfjs-code">TensorFlow.js Code (Compiled)</option>
+        <option value="nietzsche">Nietzsche</option>
+      </select>
+      <button id="load-text-data">Load text data</button>
+    </div>
+
+    <div>
+      <textarea class="monospace" id="test-text" readonly="true" value="" rows="10" cols="120"></textarea>
+    </div>
+
+    <div>
+      <div class="vertical-sections">
+        <div class="monospace">
+          <span class="input-title">Model saved:</span>
+          <input class="monospace" id="model-available" readonly="true" size="60" value="N/A"></input>
+        </div>
+        <div class="monospace">
+          <span class="input-title">Examples per epoch:</span>
+          <input class="monospace" id="examples-per-epoch" value="2048"></input>
+        </div>
+        <div class="monospace">
+          <span class="input-title">Batch size:</span>
+          <input class="monospace" id="batch-size" value="128"></input>
+        </div>
+        <div class="monospace">
+          <span class="input-title">Epochs:</span>
+          <input class="monospace" id="epochs" value="5"></input>
+        </div>
+        <div class="monospace">
+            <span class="input-title">Learning rate:</span>
+            <input class="monospace" id="learning-rate" value="1e-2"></input>
+          </div>
+        <div>
+          <button id="create-or-load-model" disabled="true">Create or load model</button>
+          <button id="delete-model" disabled="true">Delete existing model</button>
+          <button id="train-model" disabled="true">Train model</button>
+        </div>
+      </div>
+
+      <div class="vertical-sections">
+        <div class="canvases" id="loss-canvas"></div>
+      </div>
+    </div>
+
+    <div>
+      <div class="monospace">
+        <span class="input-title">Generation length:</span>
+        <input class="monospace" id="generate-length" value="200"></input>
+      </div>
+      <div class="monospace">
+        <span class="input-title">Generation temperature:</span>
+        <input class="monospace" id="temperature" value="0.75"></input>
+      </div>
+      <div>
+        <button id="generate-text" disabled="true">Generate text</button>
+      </div>
+      <div>
+        <textarea class="monospace" id="generated-text" readonly="true" value="" rows="10" cols="120"></textarea>
+      </div>
+    </div>
   </div>
 
 </body>

@@ -67,6 +67,13 @@ function sampleOneFromMultinomial(probs) {
 
 /**
  * Class that manages the neural network-based text generation.
+ *
+ * This class manages the following:
+ *
+ * - Converting training data (as a string) into one hot-encoded vectors.
+ * - The creation, training, saving and loading of a LSTM model, written with
+ *   the tf.layers API.
+ * - Generating random text based on the LSTM model.
  */
 export class NeuralNetworkTextGenerator {
   /**
@@ -123,6 +130,18 @@ export class NeuralNetworkTextGenerator {
    */
   charSetSize() {
     return this._charSetSize;
+  }
+
+  lstmLayerSizes() {
+    if (this.model == null) {
+      throw new Error('Create model first.');
+    }
+    const numLSTMLayers = this.model.layers.length - 1;
+    const layerSizes = [];
+    for (let i = 0; i < numLSTMLayers; ++i) {
+      layerSizes.push(this.model.layers[i].units);
+    }
+    return layerSizes.length === 1 ? layerSizes[0] : layerSizes;
   }
 
   /**
@@ -200,32 +219,53 @@ export class NeuralNetworkTextGenerator {
   /**
    * Create LSTM model.
    *
+   * @param {number | number[]} lstmLayerSizes Sizes of the LSTM layers, as a
+   *   number or an non-empty array of numbers.
    * @param {bool} loadModelIfAvailable Whether to load model from IndexedDB if
    *   locally-saved model artifacts exist there.
    */
-  async createModel(loadModelIfAvailable) {
-    let createFromScratch = false;
+  async createModel(lstmLayerSizes, loadModelIfAvailable) {
+    let createFromScratch;
     if (loadModelIfAvailable === true) {
       const modelsInfo = await tf.io.listModels();
       if (this._modelSavePath in modelsInfo) {
         console.log(`Loading existing model...`);
         this.model = await tf.loadModel(this._modelSavePath);
         console.log(`Loaded model from ${this._modelSavePath}`);
+        createFromScratch = false;
       } else {
         console.log(
             `Cannot find model at ${this._modelSavePath}. ` +
             `Creating model from scratch.`);
         createFromScratch = true;
       }
+    } else {
+      createFromScratch = true;
     }
 
     if (createFromScratch) {
+      if (!Array.isArray(lstmLayerSizes)) {
+        lstmLayerSizes = [lstmLayerSizes];
+      }
+      if (lstmLayerSizes.length === 0) {
+        throw new Error(
+            'lstmLayerSizes must be a number or a non-empty array of numbers.');
+      }
+
       this.model = tf.sequential();
-      this.model.add(tf.layers.lstm({
-        units: 128,
-        returnSequences: false,
-        inputShape: [this._maxLen, this._charSetSize]
-      }));
+      for (let i = 0; i < lstmLayerSizes.length; ++i) {
+        const lstmLayerSize = lstmLayerSizes[i];
+        if (!(lstmLayerSize > 0)) {
+          throw new Error(
+              `lstmLayerSizes must be a positive integer, ` +
+              `but got ${lstmLayerSize}`);
+        }
+        this.model.add(tf.layers.lstm({
+          units: lstmLayerSize,
+          returnSequences: i < lstmLayerSizes.length - 1,
+          inputShape: i === 0 ? [this._maxLen, this._charSetSize] : undefined
+        }));
+      }
       this.model.add(tf.layers.dense({
         units: this._charSetSize,
         activation: 'softmax'

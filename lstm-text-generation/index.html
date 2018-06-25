@@ -27,19 +27,6 @@ limitations under the License.
     margin-left: 50px;
     width: 80%;
   }
-  .setting {
-    padding-bottom: 6px;
-  }
-  .setting-label {
-    display: inline-block;
-    width: 14em;
-  }
-  .answer-correct {
-    color: green;
-  }
-  .answer-wrong {
-    color: red;
-  }
   .canvases {
     display: inline-block;
   }
@@ -48,7 +35,7 @@ limitations under the License.
   }
   .input-title {
     display: inline-block;
-    width: 14em;
+    width: 20em;
   }
   .vertical-sections {
     border: 1px solid #AAA;
@@ -57,6 +44,8 @@ limitations under the License.
   }
   .horizontal-sections {
     display: inline-block;
+    padding-right: 20px;
+    vertical-align: top;
   }
   #app-status {
     color: blue;
@@ -70,6 +59,9 @@ limitations under the License.
     font-size: 14pt;
     margin: 3px;
   }
+  input:disabled {
+    background: #eeeeee;
+  }
 </style>
 
 <body>
@@ -80,9 +72,8 @@ limitations under the License.
     </div>
 
     <div class="vertical-sections">
-      <span>Text data source:</span>
       <select id="text-data-select">
-        <option value="tfjs-code">TensorFlow.js Code (Compiled)</option>
+        <option value="tfjs-code">TensorFlow.js Code (Compiled, 0.11.7)</option>
         <option value="nietzsche">Nietzsche</option>
       </select>
       <button id="load-text-data">Load text data</button>
@@ -93,9 +84,20 @@ limitations under the License.
 
     <div class="vertical-sections">
       <div class="monospace">
-        <span class="input-title">Model in IndexedDB:</span>
+        <span class="input-title">Model saved in IndexedDB:</span>
         <input class="monospace" id="model-available" readonly="true" size="60" value="(Load text data first.)"></input>
       </div>
+      <div class="horizontal-sections">
+        <div class="monospace">
+          <span class="input-title">LSTM layer size(s)<br/>(e.g., 128 or 100,50):</span>
+          <input class="monospace" id="lstm-layer-sizes" value="128"></input>
+        </div>
+        <div>
+          <button id="create-or-load-model" disabled="true">Create or load model</button>
+          <button id="delete-model" disabled="true">Delete existing model</button>
+        </div>
+      </div>
+
       <div class="horizontal-sections">
         <div class="monospace">
           <span class="input-title">Examples per epoch:</span>
@@ -110,18 +112,15 @@ limitations under the License.
           <input class="monospace" id="epochs" value="5"></input>
         </div>
         <div class="monospace">
-            <span class="input-title">Learning rate:</span>
-            <input class="monospace" id="learning-rate" value="1e-2"></input>
-          </div>
+          <span class="input-title">Learning rate:</span>
+          <input class="monospace" id="learning-rate" value="1e-2"></input>
+        </div>
         <div>
-          <button id="create-or-load-model" disabled="true">Create or load model</button>
-          <button id="delete-model" disabled="true">Delete existing model</button>
           <button id="train-model" disabled="true">Train model</button>
         </div>
-      </div>
-
-      <div class="horizontal-sections">
-        <div class="canvases" id="loss-canvas"></div>
+        <div class="horizontal-sections">
+          <div class="canvases" id="loss-canvas"></div>
+        </div>
       </div>
     </div>
 

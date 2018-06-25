@@ -45,6 +45,8 @@ const appStatus = document.getElementById('app-status');
 const loadTextDataButton = document.getElementById('load-text-data');
 const textDataSelect = document.getElementById('text-data-select');
 
+const lstmLayersSizesInput = document.getElementById('lstm-layer-sizes');
+
 const examplesPerEpochInput = document.getElementById('examples-per-epoch');
 const batchSizeInput = document.getElementById('batch-size');
 const epochsInput = document.getElementById('epochs');
@@ -69,19 +71,37 @@ async function refreshLocalModelStatus() {
   const modelInfo = await textGenerator.checkStoredModelStatus();
   if (modelInfo == null) {
     modelAvailableInfo.value =
-        `No locally saved model for "${textGenerator.modelIdentifier()}"`;
+        `No locally saved model for "${textGenerator.modelIdentifier()}".`;
     createOrLoadModelButton.textContent = 'Create model';
     deleteModelButton.disabled = true;
+    enableModelParameterControls();
   } else {
     modelAvailableInfo.value = `Saved @ ${modelInfo.dateSaved.toISOString()}`;
     createOrLoadModelButton.textContent = 'Load model';
     deleteModelButton.disabled = false;
+    disableModelParameterControls();
   }
   createOrLoadModelButton.disabled = false;
 }
 
+function disableModelButtons() {
+  createOrLoadModelButton.disabled = true;
+  deleteModelButton.disabled = true;
+  trainModelButton.disabled = true;
+  generateTextButton.disabled = true;
+}
+
+function enableModelButtons() {
+  createOrLoadModelButton.disabled = false;
+  deleteModelButton.disabled = false;
+  trainModelButton.disabled = false;
+  generateTextButton.disabled = false;
+}
+
 async function generateText() {
   try {
+    disableModleButtons();
+
     if (textGenerator == null) {
       throw new Error('Load text data set first.');
     }
@@ -99,6 +119,7 @@ async function generateText() {
         temperature,
         async char => {
           generatedTextInput.value += char;
+          generatedTextInput.scrollTop = generatedTextInput.scrollHeight;
           charCount++;
           logStatus(
               `Generating text: ${charCount}/${generateLength} complete...`);
@@ -106,6 +127,9 @@ async function generateText() {
         });
     generatedTextInput.value = sentence;
     logStatus('Done generating text.');
+
+    enableModelButtons();
+
     return sentence;
   } catch (err) {
     logStatus(`ERROR: Failed to generate text: ${err.message}`);
@@ -115,6 +139,24 @@ async function generateText() {
 function logStatus(message) {
   appStatus.textContent = message;
 }
+
+function disableModelParameterControls() {
+  lstmLayersSizesInput.disabled = true;
+}
+
+function enableModelParameterControls() {
+  lstmLayersSizesInput.disabled = false;
+}
+
+function updateModelParameterControls(lstmLayerSizes) {
+  lstmLayersSizesInput.value = lstmLayerSizes;
+}
+
+/**
+ * Initialize UI state.
+ */
+
+disableModelParameterControls();
 
 /**
  * Wire up UI callbacks.
@@ -154,11 +196,29 @@ createOrLoadModelButton.addEventListener('click', async () => {
     throw new Error('Load text data set first.');
   }
 
-  logStatus('Creating or loading model... Please wait.');
-  await textGenerator.createModel(true);
-  logStatus(
-      'Done creating or loading model. ' +
-      'Now you can train the model or use it to generate text.');
+  if (await textGenerator.checkStoredModelStatus()) {
+    // Load locally-saved model.
+    logStatus('Loading model from IndexedDB... Please wait.');
+    await textGenerator.createModel(null, true);
+    updateModelParameterControls(textGenerator.lstmLayerSizes());
+    logStatus(
+        'Done loading model from IndexedDB. ' +
+        'Now you can train the model further or use it to generate text.');
+  } else {
+    // Create model from scratch.
+    logStatus('Creating model... Please wait.');
+    const lstmLayerSizes =
+        lstmLayersSizesInput.value.trim().split(',').map(s => Number.parseInt(s));
+    if (lstmLayerSizes.length === 0) {
+      throw new Error('ERROR: Invalid LSTM layer sizes.');
+    }
+    await textGenerator.createModel(lstmLayerSizes, false);
+    logStatus(
+        'Done creating model. ' +
+        'Now you can train the model or use it to generate text.');
+  }
+
+
   trainModelButton.disabled = false;
   generateTextButton.disabled = false;
 });
@@ -187,43 +247,29 @@ trainModelButton.addEventListener('click', async () => {
     createOrLoadModelButton.disabled = false;
     throw new Error(`Invalid learning rate: ${learningRate}`);
   }
-  createOrLoadModelButton.disabled = true;
-  deleteModelButton.disabled = true;
-  trainModelButton.disabled = true;
-  generateTextButton.disabled = true;
 
   textGenerator.compileModel(learningRate);
+  disableModelButtons();
   await textGenerator.fitModel(
       numEpochs, examplesPerEpoch, batchSize,
       () => {
         logStatus('Starting model training...');
       },
       null,
-      // async () => {
-      //   await generateText();
-      // },
       (progress, examplesPerSec) =>
         logStatus(
            `Model training: ${(progress * 1e2).toFixed(1)}% complete... ` +
            `(${examplesPerSec.toFixed(0)} examples/s)`));
   console.log(await textGenerator.saveModel());
   await refreshLocalModelStatus();
+  enableModelButtons();
 
   await generateText();
-  createOrLoadModelButton.disabled = false;
-  deleteModelButton.disabled = false;
-  trainModelButton.disabled = false;
-  generateTextButton.disabled = false;
 });
 
 generateTextButton.addEventListener('click', async () => {
   if (textGenerator == null) {
     throw new Error('Load text data set first.');
   }
-  trainModelButton.disabled = true;
-  generateTextButton.disabled = true;
   await generateText();
-  trainModelButton.disabled = false;
-  generateTextButton.disabled = false;
 });
-

@@ -44,7 +44,7 @@ const d = tf.variable(tf.scalar(Math.random()));
 
 
 // Step 2. Create an optimizer, we will use this later. You can play
-// with some of these values to see how the model perfoms.
+// with some of these values to see how the model performs.
 const numIterations = 75;
 const learningRate = 0.5;
 const optimizer = tf.train.sgd(learningRate);

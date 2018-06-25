@@ -17,6 +17,7 @@ limitations under the License.
 
 <!doctype html>
 <head>
+    <link rel="stylesheet" href="https://code.getmdl.io/1.3.0/material.cyan-teal.min.css" />
 </head>
 
 <style>
@@ -24,6 +25,7 @@ limitations under the License.
     font-family: "Roboto", "Helvetica", "Arial", sans-serif;
     margin-top: 50px;
     margin-left: 50px;
+    width: 80%;
   }
   .setting {
     padding-bottom: 6px;
@@ -49,41 +51,52 @@ limitations under the License.
     width: 14em;
   }
   .vertical-sections {
+    border: 1px solid #AAA;
+    padding: 6px;
+    margin: 6px;
+  }
+  .horizontal-sections {
     display: inline-block;
-    width: 400px;
   }
   #app-status {
-    font-size: 140%;
+    color: blue;
+    font-size: 150%;
     padding-bottom: 1em;
+  }
+  select {
+    font-size: 14pt;
+  }
+  button {
+    font-size: 14pt;
+    margin: 3px;
   }
 </style>
 
 <body>
-  <h1>TensorFlow.js Example: Train LSTM to Generate Text</h1>
+  <h1>TensorFlow.js Example:<br/>Train LSTM to Generate Text</h1>
   <div>
-    <div>
-      <span id="app-status">Please select a text data source and click "load text data" first.</span>
+    <div id="app-status" class="vertical-sections">
+      <span>Please select a text data source and click "load text data" first.</span>
     </div>
 
-    <div>
+    <div class="vertical-sections">
       <span>Text data source:</span>
       <select id="text-data-select">
         <option value="tfjs-code">TensorFlow.js Code (Compiled)</option>
         <option value="nietzsche">Nietzsche</option>
       </select>
       <button id="load-text-data">Load text data</button>
+      <div>
+        <textarea class="monospace" id="test-text" readonly="true" value="" rows="10" cols="120"></textarea>
+      </div>
     </div>
 
-    <div>
-      <textarea class="monospace" id="test-text" readonly="true" value="" rows="10" cols="120"></textarea>
-    </div>
-
-    <div>
-      <div class="vertical-sections">
-        <div class="monospace">
-          <span class="input-title">Model saved:</span>
-          <input class="monospace" id="model-available" readonly="true" size="60" value="N/A"></input>
-        </div>
+    <div class="vertical-sections">
+      <div class="monospace">
+        <span class="input-title">Model in IndexedDB:</span>
+        <input class="monospace" id="model-available" readonly="true" size="60" value="(Load text data first.)"></input>
+      </div>
+      <div class="horizontal-sections">
         <div class="monospace">
           <span class="input-title">Examples per epoch:</span>
           <input class="monospace" id="examples-per-epoch" value="2048"></input>
@@ -107,12 +120,12 @@ limitations under the License.
         </div>
       </div>
 
-      <div class="vertical-sections">
+      <div class="horizontal-sections">
         <div class="canvases" id="loss-canvas"></div>
       </div>
     </div>
 
-    <div>
+    <div class="vertical-sections">
       <div class="monospace">
         <span class="input-title">Generation length:</span>
         <input class="monospace" id="generate-length" value="200"></input>

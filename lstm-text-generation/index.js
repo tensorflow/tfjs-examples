@@ -16,10 +16,13 @@
  */
 
 /**
- * TensorFlow.js Example: LSTM Text Generation
+ * TensorFlow.js Example: LSTM Text Generation.
  *
- * Based on Python Keras example:
- *   https://github.com/keras-team/keras/blob/master/examples/lstm_text_generation.py
+ * Inspirations come from:
+ *
+ * - https://github.com/keras-team/keras/blob/master/examples/lstm_text_generation.py
+ * - Andrej Karpathy. "The Unreasonable Effectiveness of Recurrent Neural Networks"
+ *   http://karpathy.github.io/2015/05/21/rnn-effectiveness/
  */
 
 import * as tf from '@tensorflow/tfjs';
@@ -189,39 +192,53 @@ class NeuralNetworkTextGenerator {
     return [xsBuffer.toTensor(), ysBuffer.toTensor()];
   }
 
-  generateText(length, temperature) {
+  /**
+   * Generate text using the LSTM model that this object possesses.
+   *
+   * @param {number} length Length of the text to generate, in number of
+   *   characters.
+   * @param {number} temperature Temperature parameter. Must be a number > 0.
+   * @param {(char: string) => void} characterCallback Action to take when a
+   *   character is generated.
+   * @returns {string} The generated text.
+   */
+  async generateText(length, temperature, characterCallback) {
     if (this.model == null) {
       throw new Error('Create model first.');
     }
 
-    return tf.tidy(() => {
-      const startIndex =
-          Math.round(Math.random() * (this._textLen - this._sampleLen - 1));
-      let generated = '';
-      const sentence =
-          this._textString.slice(startIndex, startIndex + this._sampleLen);
-      console.log(`Generating with seed: "${sentence}"`);
-      let sentenceIndices = Array.from(
-          this._indices.slice(startIndex, startIndex + this._sampleLen));
+    const startIndex =
+        Math.round(Math.random() * (this._textLen - this._sampleLen - 1));
+    let generated = '';
+    const sentence =
+        this._textString.slice(startIndex, startIndex + this._sampleLen);
+    console.log(`Generating with seed: "${sentence}"`);
+    let sentenceIndices = Array.from(
+        this._indices.slice(startIndex, startIndex + this._sampleLen));
 
-      while (generated.length < length) {
-        const inputBuffer =
-            new tf.TensorBuffer([1, this._sampleLen, this._charSetSize]);
-        for (let i = 0; i < this._sampleLen; ++i) {
-          inputBuffer.set(1, 0, i, sentenceIndices[i]);
-        }
-        const input = inputBuffer.toTensor();
-        const output = this.model.predict(input).dataSync();
-        input.dispose();
-        const winnerIndex = this._sample(output, temperature);
-        const winnerChar = this._charSet[winnerIndex];
-
-        generated += winnerChar;
-        sentenceIndices = sentenceIndices.slice(1);
-        sentenceIndices.push(winnerIndex);
+    while (generated.length < length) {
+      const inputBuffer =
+          new tf.TensorBuffer([1, this._sampleLen, this._charSetSize]);
+      for (let i = 0; i < this._sampleLen; ++i) {
+        inputBuffer.set(1, 0, i, sentenceIndices[i]);
       }
-      return generated;
-    });
+      const input = inputBuffer.toTensor();
+      const output = this.model.predict(input);
+      const winnerIndex = this._sample(output.dataSync(), temperature);
+      const winnerChar = this._charSet[winnerIndex];
+
+      if (characterCallback != null) {
+        await characterCallback(winnerChar);
+      }
+
+      generated += winnerChar;
+      sentenceIndices = sentenceIndices.slice(1);
+      sentenceIndices.push(winnerIndex);
+
+      input.dispose();
+      output.dispose();
+    }
+    return generated;
   }
 
   async createModel(loadModelIfAvailable) {
@@ -247,7 +264,6 @@ class NeuralNetworkTextGenerator {
         returnSequences: false,
         inputShape: [this._maxLen, this._charSetSize]
       }));
-      // model.add(tf.layers.lstm({units: 128}));
       this.model.add(tf.layers.dense({
         units: this._charSetSize,
         activation: 'softmax'
@@ -319,7 +335,7 @@ class NeuralNetworkTextGenerator {
                   'x': {'field': 'batch', 'type': 'ordinal'},
                   'y': {'field': 'loss', 'type': 'quantitative'},
                 },
-                'width': 360,
+                'width': 300,
               },
               {});
             if (trainBatchCallback != null) {
@@ -406,7 +422,9 @@ createOrLoadModelButton.addEventListener('click', async () => {
 
   appStatus.textContent = 'Creating or loading model... Please wait.';
   await textGenerator.createModel(true);
-  appStatus.textContent = 'Done creating or loading model.';
+  appStatus.textContent =
+      'Done creating or loading model. ' +
+      'Now you can train the model or use it to generate text.';
   trainModelButton.disabled = false;
   generateTextButton.disabled = false;
 });
@@ -415,8 +433,11 @@ deleteModelButton.addEventListener('click', async () => {
   if (textGenerator == null) {
     throw new Error('Load text data set first.');
   }
-  console.log(await textGenerator.removeModel());
-  await refreshLocalModelStatus();
+  if (confirm(`Are you sure you want to delete the model ` +
+      `'${textGenerator.modelIdentifier()}'?`)) {
+    console.log(await textGenerator.removeModel());
+    await refreshLocalModelStatus();
+  }
 });
 
 trainModelButton.addEventListener('click', async () => {
@@ -482,12 +503,16 @@ async function generateText() {
     generatedTextInput.value = '';
     appStatus.textContent = 'Generating text...';
 
-    setTimeout(() => {
-      const sentence = textGenerator.generateText(generateLength, temperature);
-      generatedTextInput.value = sentence;
-      appStatus.textContent = 'Done generating text.';
-      return sentence;
-    }, 0);
+    const sentence = await textGenerator.generateText(
+        generateLength,
+        temperature,
+        async char => {
+          generatedTextInput.value += char;
+          await tf.nextFrame();
+        });
+    generatedTextInput.value = sentence;
+    appStatus.textContent = 'Done generating text.';
+    return sentence;
   } catch (err) {
     appStatus.textContent = `Failed to generate text: ${err.message}`;
   }

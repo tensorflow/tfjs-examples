@@ -100,7 +100,7 @@ function enableModelButtons() {
 
 async function generateText() {
   try {
-    disableModleButtons();
+    disableModelButtons();
 
     if (textGenerator == null) {
       throw new Error('Load text data set first.');

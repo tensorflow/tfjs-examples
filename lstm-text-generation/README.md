@@ -19,7 +19,8 @@ the input for the next time step. This process is repeated in order to generate
 a character sequence of a given length. The randomness (diversity) is controlled
 by a temperature parameter.
 
-The UI allows creation of models consisting of a single LSTM layer or multiple
+The UI allows creation of models consisting of a single
+[LSTM layer](https://js.tensorflow.org/api/latest/#layers.lstm) or multiple,
 stacked LSTM layers.
 
 This example also illustrates how to save a trained model in the browser's

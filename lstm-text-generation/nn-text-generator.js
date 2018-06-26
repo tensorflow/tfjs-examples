@@ -18,24 +18,8 @@
 import * as tf from '@tensorflow/tfjs';
 import embed from 'vega-embed';
 
-/**
- * Draw one sample from a multinomial distribution.
- *
- * @param {number[]} probs Probabilities. Assumed to sum to 1.
- * @returns {number} A zero-based sample index.
- */
-function sampleOneFromMultinomial(probs) {
-  const score = Math.random();
-  let cumProb = 0;
-  const n = probs.length;
-  for (let i = 0; i < n; ++i) {
-    if (score >= cumProb && score < cumProb + probs[i]) {
-      return i;
-    }
-    cumProb += probs[i];
-  }
-  return n - 1;
-}
+import {TextData} from './data';
+import {sampleOneFromMultinomial} from './utils';
 
 /**
  * Class that manages the neural network-based text generation.
@@ -51,146 +35,18 @@ export class NeuralNetworkTextGenerator {
   /**
    * Constructor of NeuralNetworkTextGenerator.
    *
-   * @param {string} modelIdentifier An identifier for this instance of
-   *   NeuralNetworkTextGenerator. Used during saving and loading of model.
-   * @param {string} textString The training test data.
-   * @param {number} sampleLen Length of each training example, i.e., the input
-   *   sequence length expected by the LSTM model.
-   * @param {number} sampleStep How many characters to skip when going from one
-   *   example of the training data (in `textString`) to the next.
+   * @param {TextData} textData An instance of `TextData`.
    */
-  constructor(modelIdentifier, textString, sampleLen, sampleStep) {
-    if (!modelIdentifier) {
-      throw new Error('Model identifier is not provided.');
-    }
+  constructor(textData) {
+    this._textData = textData;
+    this._charSetSize = textData.charSetSize();
+    this._sampleLen = textData.sampleLen();
+    this._textLen = textData.textLen();
 
-    this._modelIdentifier = modelIdentifier;
+    this._modelIdentifier = textData.dataIdentifier();
     this._MODEL_SAVE_PATH_PREFIX = 'indexeddb://lstm-text-generation';
     this._modelSavePath =
         `${this._MODEL_SAVE_PATH_PREFIX}/${this._modelIdentifier}`;
-
-    this._textString = textString;
-    this._textLen = textString.length;
-    this._sampleLen = sampleLen;
-    this._sampleStep = sampleStep;
-
-    this._getCharSet();
-    this._textToIndices();
-    this._generateExampleBeginIndices();
-  }
-
-  /**
-   * Get model identifier.
-   * @returns {string} The model identifier.
-   */
-  modelIdentifier() {
-    return this._modelIdentifier;
-  }
-
-  /**
-   * Get length of the training text data.
-   * @returns {number} Length of training text data.
-   */
-  textLen() {
-    return this._textLen;
-  }
-
-  /**
-   * Get the size of the character set.
-   * @returns {number} Size of the character set, i.e., how many unique
-   *   characters there are in the training text data.
-   */
-  charSetSize() {
-    return this._charSetSize;
-  }
-
-  lstmLayerSizes() {
-    if (this.model == null) {
-      throw new Error('Create model first.');
-    }
-    const numLSTMLayers = this.model.layers.length - 1;
-    const layerSizes = [];
-    for (let i = 0; i < numLSTMLayers; ++i) {
-      layerSizes.push(this.model.layers[i].units);
-    }
-    return layerSizes.length === 1 ? layerSizes[0] : layerSizes;
-  }
-
-  /**
-   *
-   * @param {number} numExamples Number examples to generate.
-   * @returns {[tf.Tensor, tf.Tensor]} `xs` and `ys` Tensors.
-   *   `xs` has the shape of `[numExamples, this.sampleLen, this.charSetSize]`.
-   *   `ys` has the shape of `[numExamples, this.charSetSize]`.
-   */
-  nextDataEpoch(numExamples) {
-    const xsBuffer = new tf.TensorBuffer([
-        numExamples, this._sampleLen, this._charSetSize]);
-    const ysBuffer  = new tf.TensorBuffer([numExamples, this._charSetSize]);
-    for (let i = 0; i < numExamples; ++i) {
-      const beginIndex = this._exampleBeginIndices[
-          this._examplePosition % this._exampleBeginIndices.length];
-      for (let j = 0; j < this._sampleLen; ++j) {
-        xsBuffer.set(1, i, j, this._indices[beginIndex + j]);
-      }
-      ysBuffer.set(1, i, this._indices[beginIndex + this._sampleLen]);
-      this._examplePosition++;
-    }
-    return [xsBuffer.toTensor(), ysBuffer.toTensor()];
-  }
-
-  /**
-   * Generate text using the LSTM model that this object possesses.
-   *
-   * @param {number} length Length of the text to generate, in number of
-   *   characters.
-   * @param {number} temperature Temperature parameter. Must be a number > 0.
-   * @param {(char: string) => void} characterCallback Action to take when a
-   *   character is generated.
-   * @returns {string} The generated text.
-   */
-  async generateText(length, temperature, characterCallback) {
-    if (this.model == null) {
-      throw new Error('Create model first.');
-    }
-    if (!(temperature > 0)) {
-      throw new Error(`Invalid value in temperature: ${temperature}`);
-    }
-    const temperatureScalar = tf.scalar(temperature);
-
-    const startIndex =
-        Math.round(Math.random() * (this._textLen - this._sampleLen - 1));
-    let generated = '';
-    const sentence =
-        this._textString.slice(startIndex, startIndex + this._sampleLen);
-    console.log(`Generating with seed: "${sentence}"`);
-    let sentenceIndices = Array.from(
-        this._indices.slice(startIndex, startIndex + this._sampleLen));
-
-    while (generated.length < length) {
-      const inputBuffer =
-          new tf.TensorBuffer([1, this._sampleLen, this._charSetSize]);
-      for (let i = 0; i < this._sampleLen; ++i) {
-        inputBuffer.set(1, 0, i, sentenceIndices[i]);
-      }
-      const input = inputBuffer.toTensor();
-      const output = this.model.predict(input);
-      const winnerIndex = this._sample(tf.squeeze(output), temperatureScalar);
-      const winnerChar = this._charSet[winnerIndex];
-
-      if (characterCallback != null) {
-        await characterCallback(winnerChar);
-      }
-
-      generated += winnerChar;
-      sentenceIndices = sentenceIndices.slice(1);
-      sentenceIndices.push(winnerIndex);
-
-      input.dispose();
-      output.dispose();
-    }
-    temperatureScalar.dispose();
-    return generated;
   }
 
   /**
@@ -240,7 +96,7 @@ export class NeuralNetworkTextGenerator {
         this.model.add(tf.layers.lstm({
           units: lstmLayerSize,
           returnSequences: i < lstmLayerSizes.length - 1,
-          inputShape: i === 0 ? [this._maxLen, this._charSetSize] : undefined
+          inputShape: i === 0 ? [this._sampleLen, this._charSetSize] : undefined
         }));
       }
       this.model.add(tf.layers.dense({
@@ -249,6 +105,8 @@ export class NeuralNetworkTextGenerator {
       }));
     }
   }
+
+  // TODO(cais): Refactor into createOrLoadModel and createModel.
 
   /**
    * Compile model for training.
@@ -260,39 +118,6 @@ export class NeuralNetworkTextGenerator {
     this.model.compile({optimizer: optimizer, loss: 'categoricalCrossentropy'});
     console.log(`Compiled model with learning rate ${learningRate}`);
     this.model.summary();
-  }
-
-  /**
-   * Remove the locally saved model from IndexedDB.
-   */
-  async removeModel() {
-    if (await this.checkStoredModelStatus() == null) {
-      throw new Error(
-          'Cannot remove locally saved model because it does not exist.');
-    }
-    return await tf.io.removeModel(this._modelSavePath);
-  }
-
-  /**
-   * Save the model in IndexedDB.
-   */
-  async saveModel() {
-    if (this.model == null) {
-      throw new Error('Cannot save model before creating model.');
-    } else {
-      return await this.model.save(this._modelSavePath);
-    }
-  }
-
-  /**
-   * Check the status of locally saved model.
-   *
-   * @returns If the locally saved model exists, the model info as a JSON
-   *   object. Else, `undefined`.
-   */
-  async checkStoredModelStatus() {
-    const modelsInfo = await tf.io.listModels();
-    return modelsInfo[this._modelSavePath];
   }
 
   /**
@@ -325,7 +150,7 @@ export class NeuralNetworkTextGenerator {
 
     let t = new Date().getTime();
     for (let i = 0; i < numEpochs; ++i) {
-      const [xs, ys] =  this.nextDataEpoch(examplesPerEpoch);
+      const [xs, ys] =  this._textData.nextDataEpoch(examplesPerEpoch);
       await this.model.fit(xs, ys, {
         epochs: 1,
         batchSize: batchSize,
@@ -371,15 +196,115 @@ export class NeuralNetworkTextGenerator {
   }
 
   /**
+   * Generate text using the LSTM model that this object possesses.
+   *
+   * @param {number} length Length of the text to generate, in number of
+   *   characters.
+   * @param {number} temperature Temperature parameter. Must be a number > 0.
+   * @param {(char: string) => void} characterCallback Action to take when a
+   *   character is generated.
+   * @returns {string} The generated text.
+   */
+  async generateText(length, temperature, characterCallback) {
+    if (this.model == null) {
+      throw new Error('Create model first.');
+    }
+    if (!(temperature > 0)) {
+      throw new Error(`Invalid value in temperature: ${temperature}`);
+    }
+    const temperatureScalar = tf.scalar(temperature);
+
+    let generated = '';
+    let [sentence, sentenceIndices] = this._textData.getRandomSlice();
+
+    while (generated.length < length) {
+      const inputBuffer = new tf.TensorBuffer([1, this._sampleLen, this._charSetSize]);
+      for (let i = 0; i < this._sampleLen; ++i) {
+        inputBuffer.set(1, 0, i, sentenceIndices[i]);
+      }
+      const input = inputBuffer.toTensor();
+      const output = this.model.predict(input);
+      const winnerIndex = this._sample(tf.squeeze(output), temperatureScalar);
+      const winnerChar = this._textData.getFromCharSet(winnerIndex);
+
+      if (characterCallback != null) {
+        await characterCallback(winnerChar);
+      }
+
+      generated += winnerChar;
+      sentenceIndices = sentenceIndices.slice(1);
+      sentenceIndices.push(winnerIndex);
+
+      input.dispose();
+      output.dispose();
+    }
+    temperatureScalar.dispose();
+    return generated;
+  }
+
+  /**
+   * Get model identifier.
+   * @returns {string} The model identifier.
+   */
+  modelIdentifier() {
+    return this._modelIdentifier;
+  }
+
+  lstmLayerSizes() {
+    if (this.model == null) {
+      throw new Error('Create model first.');
+    }
+    const numLSTMLayers = this.model.layers.length - 1;
+    const layerSizes = [];
+    for (let i = 0; i < numLSTMLayers; ++i) {
+      layerSizes.push(this.model.layers[i].units);
+    }
+    return layerSizes.length === 1 ? layerSizes[0] : layerSizes;
+  }
+
+  /**
+   * Remove the locally saved model from IndexedDB.
+   */
+  async removeModel() {
+    if (await this.checkStoredModelStatus() == null) {
+      throw new Error(
+          'Cannot remove locally saved model because it does not exist.');
+    }
+    return await tf.io.removeModel(this._modelSavePath);
+  }
+
+  /**
+   * Save the model in IndexedDB.
+   */
+  async saveModel() {
+    if (this.model == null) {
+      throw new Error('Cannot save model before creating model.');
+    } else {
+      return await this.model.save(this._modelSavePath);
+    }
+  }
+
+  /**
+   * Check the status of locally saved model.
+   *
+   * @returns If the locally saved model exists, the model info as a JSON
+   *   object. Else, `undefined`.
+   */
+  async checkStoredModelStatus() {
+    const modelsInfo = await tf.io.listModels();
+    return modelsInfo[this._modelSavePath];
+  }
+
+  /**
    * Sample from probabilities.
    *
    * @param {tf.Tensor} preds Predicted probabilities, as a 1D `tf.Tensor` of
-   *   shape `[this.charSetSize]`.
+   *   shape `[this._charSetSize]`.
    * @param {tf.Tensor} temperature Temperature (i.e., a measure of randomness
    *   or diversity) to use during sampling. Number be a number > 0, as a Scalar
    *   `tf.Tensor`.
    * @returns {number} The 0-based index for the randomly-drawn sample, in the
-   *   range of [0, this.charSetSize - 1].
+   *   range of [0, this._charSetSize - 1].
    */
   _sample(preds, temperature) {
     return tf.tidy(() => {
@@ -393,45 +318,5 @@ export class NeuralNetworkTextGenerator {
       //   When the difference is resolved, use tf.multinomial here.
       return sampleOneFromMultinomial(preds.dataSync());
     });
-  }
-
-  /**
-   * Get the set of unique characters from text.
-   */
-  _getCharSet() {
-    this._charSet = [];
-    for (let i = 0; i < this._textLen; ++i) {
-      if (this._charSet.indexOf(this._textString[i]) === -1) {
-        this._charSet.push(this._textString[i]);
-      }
-    }
-    this._charSetSize = this._charSet.length;
-  }
-
-  /**
-   * Convert text string to integers.
-   */
-  _textToIndices() {
-    this._indices = new Uint16Array(this._textLen);
-    for (let i = 0; i < this._textLen; ++i) {
-      this._indices[i] = this._charSet.indexOf(this._textString[i]);
-    }
-  }
-
-  /**
-   * Generate the example-begin indices; shuffle them randomly.
-   */
-  _generateExampleBeginIndices() {
-    // Prepare beginning indices of examples.
-    this._exampleBeginIndices = [];
-    for (let i = 0;
-        i < this._textLen - this._sampleLen - 1;
-        i += this._sampleStep) {
-      this._exampleBeginIndices.push(i);
-    }
-
-    // Randomly shuffle the beginning indices.
-    tf.util.shuffle(this._exampleBeginIndices);
-    this._examplePosition = 0;
   }
 };

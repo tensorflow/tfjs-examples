@@ -16,17 +16,20 @@
  */
 
 /**
- * TensorFlow.js Example: LSTM Text Generation.
+ * Draw one sample from a multinomial distribution.
  *
- * Inspiration comes from:
- *
- * - https://github.com/keras-team/keras/blob/master/examples/lstm_text_generation.py
- * - Andrej Karpathy. "The Unreasonable Effectiveness of Recurrent Neural Networks"
- *   http://karpathy.github.io/2015/05/21/rnn-effectiveness/
+ * @param {number[]} probs Probabilities. Assumed to sum to 1.
+ * @returns {number} A zero-based sample index.
  */
-
-import * as tf from '@tensorflow/tfjs';
-
-import {setUpUI} from './ui';
-
-setUpUI();
+export function sampleOneFromMultinomial(probs) {
+  const score = Math.random();
+  let cumProb = 0;
+  const n = probs.length;
+  for (let i = 0; i < n; ++i) {
+    if (score >= cumProb && score < cumProb + probs[i]) {
+      return i;
+    }
+    cumProb += probs[i];
+  }
+  return n - 1;
+}

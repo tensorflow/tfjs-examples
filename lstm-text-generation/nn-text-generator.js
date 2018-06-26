@@ -19,34 +19,6 @@ import * as tf from '@tensorflow/tfjs';
 import embed from 'vega-embed';
 
 /**
- * Randomly shuffle an Array.
- *
- * Based on:
- *   https://stackoverflow.com/questions/2450954/how-to-randomize-shuffle-a-javascript-array
- *
- * @param {Array} array Input array.
- * @returns {Array} Shuffled array.
- */
-function shuffle(array) {
-  let currentIndex = array.length;
-  let temporaryValue;
-  let randomIndex;
-
-  // While there remain elements to shuffle...
-  while (0 !== currentIndex) {
-    // Pick a remaining element...
-    randomIndex = Math.floor(Math.random() * currentIndex);
-    currentIndex -= 1;
-
-    // And swap it with the current element.
-    temporaryValue = array[currentIndex];
-    array[currentIndex] = array[randomIndex];
-    array[randomIndex] = temporaryValue;
-  }
-  return array;
-}
-
-/**
  * Draw one sample from a multinomial distribution.
  *
  * @param {number[]} probs Probabilities. Assumed to sum to 1.
@@ -181,6 +153,10 @@ export class NeuralNetworkTextGenerator {
     if (this.model == null) {
       throw new Error('Create model first.');
     }
+    if (!(temperature > 0)) {
+      throw new Error(`Invalid value in temperature: ${temperature}`);
+    }
+    const temperatureScalar = tf.scalar(temperature);
 
     const startIndex =
         Math.round(Math.random() * (this._textLen - this._sampleLen - 1));
@@ -199,7 +175,7 @@ export class NeuralNetworkTextGenerator {
       }
       const input = inputBuffer.toTensor();
       const output = this.model.predict(input);
-      const winnerIndex = this._sample(output.dataSync(), temperature);
+      const winnerIndex = this._sample(tf.squeeze(output), temperatureScalar);
       const winnerChar = this._charSet[winnerIndex];
 
       if (characterCallback != null) {
@@ -213,6 +189,7 @@ export class NeuralNetworkTextGenerator {
       input.dispose();
       output.dispose();
     }
+    temperatureScalar.dispose();
     return generated;
   }
 
@@ -396,25 +373,26 @@ export class NeuralNetworkTextGenerator {
   /**
    * Sample from probabilities.
    *
-   * @param {Float32Array} preds Predicted probabilities, of length
-   *   `this.charSetSize`.
-   * @param {number} temperature Temperature (i.e., a measure of randomness or
-   *   diversity) to use during sampling. Number be a number > 0.
+   * @param {tf.Tensor} preds Predicted probabilities, as a 1D `tf.Tensor` of
+   *   shape `[this.charSetSize]`.
+   * @param {tf.Tensor} temperature Temperature (i.e., a measure of randomness
+   *   or diversity) to use during sampling. Number be a number > 0, as a Scalar
+   *   `tf.Tensor`.
+   * @returns {number} The 0-based index for the randomly-drawn sample, in the
+   *   range of [0, this.charSetSize - 1].
    */
   _sample(preds, temperature) {
-    if (!(temperature > 0)) {
-      throw new Error(`Invalid value in temperature: ${temperature}`);
-    }
-    const logPreds = preds.map(pred => Math.log(pred) / temperature);
-    const expPreds = logPreds.map(logPred => Math.exp(logPred));
-    let sumExpPreds = 0;
-    for (const expPred of expPreds) {
-      sumExpPreds += expPred;
-    }
-    preds = expPreds.map(expPred => expPred / sumExpPreds);
-    // Treat preds a the probabilites of a multinomial distribution and
-    // randomly draw a sample from the distribution.
-    return sampleOneFromMultinomial(preds);
+    return tf.tidy(() => {
+      const logPreds = tf.div(tf.log(preds), temperature);
+      const expPreds = tf.exp(logPreds);
+      const sumExpPreds = tf.sum(expPreds);
+      preds = tf.div(expPreds, sumExpPreds);
+      // Treat preds a the probabilites of a multinomial distribution and
+      // randomly draw a sample from the distribution.
+      // TODO(cais): Investigate why tf.multinomial gives different results.
+      //   When the difference is resolved, use tf.multinomial here.
+      return sampleOneFromMultinomial(preds.dataSync());
+    });
   }
 
   /**
@@ -445,15 +423,15 @@ export class NeuralNetworkTextGenerator {
    */
   _generateExampleBeginIndices() {
     // Prepare beginning indices of examples.
-    const exampleBeginIndices = [];
+    this._exampleBeginIndices = [];
     for (let i = 0;
         i < this._textLen - this._sampleLen - 1;
         i += this._sampleStep) {
-      exampleBeginIndices.push(i);
+      this._exampleBeginIndices.push(i);
     }
 
     // Randomly shuffle the beginning indices.
-    this._exampleBeginIndices = shuffle(exampleBeginIndices);
+    tf.util.shuffle(this._exampleBeginIndices);
     this._examplePosition = 0;
   }
 };

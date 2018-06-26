@@ -100,6 +100,29 @@ export function onTrainBatchEnd(loss, progress, examplesPerSec) {
       `(${examplesPerSec.toFixed(0)} examples/s)`);
 }
 
+/**
+ * A function to call when text generation begins.
+ */
+export function onTextGenerationBegin() {
+  generatedTextInput.value = '';
+  logStatus('Generating text...');
+}
+
+/**
+ * A function to call each time a character is obtained during text generation.
+ *
+ * @param {string} char The just-generated character.
+ */
+export async function onTextGenerationChar(char) {
+  generatedTextInput.value += char;
+  generatedTextInput.scrollTop = generatedTextInput.scrollHeight;
+  const charCount = generatedTextInput.value.length;
+  const generateLength = Number.parseInt(generateLengthInput.value);
+  logStatus(
+      `Generating text: ${charCount}/${generateLength} complete...`);
+  await tf.nextFrame();
+}
+
 export function setUpUI() {
   /**
    * Refresh the status of locally saved model (in IndexedDB).
@@ -152,21 +175,9 @@ export function setUpUI() {
         logStatus(`ERROR: Invalid temperature: ${temperature}`);
         return;
       }
-      generatedTextInput.value = '';
-      logStatus('Generating text...');
 
-      let charCount = 0;
       const sentence = await textGenerator.generateText(
-          generateLength,
-          temperature,
-          async char => {
-            generatedTextInput.value += char;
-            generatedTextInput.scrollTop = generatedTextInput.scrollHeight;
-            charCount++;
-            logStatus(
-                `Generating text: ${charCount}/${generateLength} complete...`);
-            await tf.nextFrame();
-            });
+          generateLength, temperature);
       generatedTextInput.value = sentence;
       logStatus('Done generating text.');
 

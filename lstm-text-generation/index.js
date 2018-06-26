@@ -28,7 +28,7 @@
 import * as tf from '@tensorflow/tfjs';
 
 import {TextData} from './data';
-import {onTrainBatchEnd, onTrainBegin, setUpUI} from './ui';
+import {onTextGenerationBegin, onTextGenerationChar, onTrainBatchEnd, onTrainBegin, setUpUI} from './ui';
 import {sample} from './utils';
 
 /**
@@ -137,11 +137,10 @@ export class LSTMTextGenerator {
    * @param {number} length Length of the text to generate, in number of
    *   characters.
    * @param {number} temperature Temperature parameter. Must be a number > 0.
-   * @param {(char: string) => void} characterCallback Action to take when a
-   *   character is generated.
    * @returns {string} The generated text.
    */
-  async generateText(length, temperature, characterCallback) {
+  async generateText(length, temperature) {
+    onTextGenerationBegin();
     const temperatureScalar = tf.scalar(temperature);
 
     // Get a seed string from the training data.
@@ -165,10 +164,7 @@ export class LSTMTextGenerator {
       // Sample randomly based on the probability values.
       const winnerIndex = sample(tf.squeeze(output), temperatureScalar);
       const winnerChar = this._textData.getFromCharSet(winnerIndex);
-
-      if (characterCallback != null) {
-        await characterCallback(winnerChar);
-      }
+      await onTextGenerationChar(winnerChar);
 
       generated += winnerChar;
       sentenceIndices = sentenceIndices.slice(1);

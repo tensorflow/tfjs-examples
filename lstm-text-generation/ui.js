@@ -35,6 +35,7 @@ const trainModelButton = document.getElementById('train-model');
 const generateTextButton = document.getElementById('generate-text');
 
 const appStatus = document.getElementById('app-status');
+const textGenerationStatus = document.getElementById('text-generation-status');
 const loadTextDataButton = document.getElementById('load-text-data');
 const textDataSelect = document.getElementById('text-data-select');
 
@@ -47,12 +48,16 @@ const learningRateInput = document.getElementById('learning-rate');
 
 const generateLengthInput = document.getElementById('generate-length');
 const temperatureInput = document.getElementById('temperature');
+const seedTextInput = document.getElementById('seed-text');
 const generatedTextInput = document.getElementById('generated-text');
 
 const modelAvailableInfo = document.getElementById('model-available');
 
 const sampleLen = 40;
 const sampleStep = 3;
+
+// Module-global instance of TextData.
+let textData;
 
 // Module-global instance of SaveableLSTMTextGenerator.
 let textGenerator;
@@ -102,6 +107,9 @@ export function onTrainBatchEnd(loss, progress, examplesPerSec) {
 
 /**
  * A function to call when text generation begins.
+ *
+ * @param {string} seedSentence: The seed sentence being used for text
+ *   generation.
  */
 export function onTextGenerationBegin() {
   generatedTextInput.value = '';
@@ -118,8 +126,9 @@ export async function onTextGenerationChar(char) {
   generatedTextInput.scrollTop = generatedTextInput.scrollHeight;
   const charCount = generatedTextInput.value.length;
   const generateLength = Number.parseInt(generateLengthInput.value);
-  logStatus(
-      `Generating text: ${charCount}/${generateLength} complete...`);
+  const status = `Generating text: ${charCount}/${generateLength} complete...`;
+  logStatus(status);
+  textGenerationStatus.textContent = status;
   await tf.nextFrame();
 }
 
@@ -171,15 +180,48 @@ export function setUpUI() {
       }
       const generateLength = Number.parseInt(generateLengthInput.value);
       const temperature = Number.parseFloat(temperatureInput.value);
+      if (!(generateLength > 0)) {
+        logStatus(
+          `ERROR: Invalid generation length: ${generateLength}. ` +
+          `Generation length must be a positive number.`);
+        enableModelButtons();
+        return;
+      }
       if (!(temperature > 0 && temperature <= 1)) {
-        logStatus(`ERROR: Invalid temperature: ${temperature}`);
+        logStatus(
+            `ERROR: Invalid temperature: ${temperature}. ` +
+            `Temperature must be a positive number.`);
+        enableModelButtons();
         return;
       }
 
+      let seedSentence;
+      let seedSentenceIndices;
+      if (seedTextInput.value.length === 0) {
+        // Seed sentence is not specified yet. Get it from the data.
+        [seedSentence, seedSentenceIndices] = textData.getRandomSlice();
+        seedTextInput.value = seedSentence;
+      } else {
+        seedSentence = seedTextInput.value;
+        if (seedSentence.length < textData.sampleLen()) {
+          logStatus(
+              `ERROR: Seed text must have a length of at least ` +
+              `${textData.sampleLen()}, but has a length of ` +
+              `${seedSentence.length}.`);
+          enableModelButtons();
+          return;
+        }
+        seedSentence = seedSentence.slice(
+            seedSentence.length - textData.sampleLen(), seedSentence.length);
+        seedSentenceIndices = textData.textToIndices(seedSentence);
+      }
+
       const sentence = await textGenerator.generateText(
-          generateLength, temperature);
+          seedSentenceIndices, generateLength, temperature);
       generatedTextInput.value = sentence;
-      logStatus('Done generating text.');
+      const status = 'Done generating text.';
+      logStatus(status);
+      textGenerationStatus.value = status;
 
       enableModelButtons();
 
@@ -232,7 +274,7 @@ export function setUpUI() {
     if (testText.value.length === 0) {
       throw new Error("ERROR: Empty text data.");
     }
-    const textData = new TextData(
+    textData = new TextData(
         dataIdentifier, testText.value, sampleLen, sampleStep);
     textGenerator = new SaveableLSTMTextGenerator(textData);
     await refreshLocalModelStatus();

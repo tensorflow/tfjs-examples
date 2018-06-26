@@ -50,7 +50,7 @@ export class TextData {
     this._sampleStep = sampleStep;
 
     this._getCharSet();
-    this._textToIndices();
+    this._convertAllTextToIndices();
     this._generateExampleBeginIndices();
   }
 
@@ -124,6 +124,20 @@ export class TextData {
   }
 
   /**
+   * Convert text string to integer indices.
+   *
+   * @param {string} text Input text.
+   * @returns {number[]} Indices of the characters of `text`.
+   */
+  textToIndices(text) {
+    const indices = [];
+    for (let i = 0; i < text.length; ++i) {
+      indices.push(this._charSet.indexOf(text[i]));
+    }
+    return indices;
+  }
+
+  /**
    * Get a random slice of text data.
    *
    * @returns {[string, number[]} The string and index representation of the
@@ -132,9 +146,8 @@ export class TextData {
   getRandomSlice() {
     const startIndex =
         Math.round(Math.random() * (this._textLen - this._sampleLen - 1));
-    return [
-        this._slice(startIndex, startIndex + this._sampleLen),
-        this._slice(startIndex, startIndex + this._sampleLen, true)];
+    const textSlice = this._slice(startIndex, startIndex + this._sampleLen);
+    return [textSlice, this.textToIndices(textSlice)];
   }
 
   /**
@@ -145,10 +158,8 @@ export class TextData {
    * @param {bool} useIndices Whether to return the indices instead of string.
    * @returns {string | Uint16Array} The result of the slicing.
    */
-  _slice(startIndex, endIndex, useIndices = false) {
-    return useIndices ?
-        Array.from(this._indices.slice(startIndex, endIndex)) :
-        this._textString.slice(startIndex, endIndex);
+  _slice(startIndex, endIndex) {
+    return this._textString.slice(startIndex, endIndex);
   }
 
   /**
@@ -165,13 +176,10 @@ export class TextData {
   }
 
   /**
-   * Convert text string to integers.
+   * Convert all training text to integer indices.
    */
-  _textToIndices() {
-    this._indices = new Uint16Array(this._textLen);
-    for (let i = 0; i < this._textLen; ++i) {
-      this._indices[i] = this._charSet.indexOf(this._textString[i]);
-    }
+  _convertAllTextToIndices() {
+    this._indices = new Uint16Array(this.textToIndices(this._textString));
   }
 
   /**

@@ -135,8 +135,14 @@ limitations under the License.
       </div>
       <div>
         <button id="generate-text" disabled="true">Generate text</button>
+        <span id="text-generation-status"></span>
       </div>
       <div>
+          <span class="input-title">Seed text:</span>
+          <textarea class="monospace" id="seed-text" value="" rows="4" cols="120"></textarea>
+        </div>
+      <div>
+        <span class="input-title">Generated text:</span>
         <textarea class="monospace" id="generated-text" readonly="true" value="" rows="10" cols="120"></textarea>
       </div>
     </div>

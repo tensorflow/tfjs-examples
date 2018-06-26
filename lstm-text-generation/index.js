@@ -134,18 +134,16 @@ export class LSTMTextGenerator {
   /**
    * Generate text using the LSTM model.
    *
+   * @param {number[]} sentenceIndices Seed sentence, represented as the
+   *   indices of the constituent characters.
    * @param {number} length Length of the text to generate, in number of
    *   characters.
    * @param {number} temperature Temperature parameter. Must be a number > 0.
    * @returns {string} The generated text.
    */
-  async generateText(length, temperature) {
+  async generateText(sentenceIndices, length, temperature) {
     onTextGenerationBegin();
     const temperatureScalar = tf.scalar(temperature);
-
-    // Get a seed string from the training data.
-    let [sentence, sentenceIndices] = this._textData.getRandomSlice();
-    console.log(`Generating text using the seed string ${sentence}`);
 
     let generated = '';
     while (generated.length < length) {

@@ -104,8 +104,6 @@ export class TextData {
     return [xsBuffer.toTensor(), ysBuffer.toTensor()];
   }
 
-
-
   /**
    * Get the unique character at given index from the character set.
    *
@@ -117,12 +115,11 @@ export class TextData {
   }
 
   /**
-   * Get a random starting index based on the lengths of text data and sample.
+   * Get a random slice of text data.
+   *
+   * @returns {[string, number[]} The string and index representation of the
+   *   same slice.
    */
-  getRandomStartIndex() {
-    return
-  }
-
   getRandomSlice() {
     const startIndex =
         Math.round(Math.random() * (this._textLen - this._sampleLen - 1));

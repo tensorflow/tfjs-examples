@@ -50,63 +50,64 @@ export class NeuralNetworkTextGenerator {
   }
 
   /**
-   * Create LSTM model.
+   * Create LSTM model if it is not saved locally; load it if it is.
    *
    * @param {number | number[]} lstmLayerSizes Sizes of the LSTM layers, as a
    *   number or an non-empty array of numbers.
-   * @param {bool} loadModelIfAvailable Whether to load model from IndexedDB if
-   *   locally-saved model artifacts exist there.
    */
-  async createModel(lstmLayerSizes, loadModelIfAvailable) {
-    let createFromScratch;
-    if (loadModelIfAvailable === true) {
-      const modelsInfo = await tf.io.listModels();
-      if (this._modelSavePath in modelsInfo) {
-        console.log(`Loading existing model...`);
-        this.model = await tf.loadModel(this._modelSavePath);
-        console.log(`Loaded model from ${this._modelSavePath}`);
-        createFromScratch = false;
-      } else {
-        console.log(
-            `Cannot find model at ${this._modelSavePath}. ` +
-            `Creating model from scratch.`);
-        createFromScratch = true;
-      }
+  async createOrLoadModel(lstmLayerSizes) {
+    let createFromScratch = true;
+    const modelsInfo = await tf.io.listModels();
+    if (this._modelSavePath in modelsInfo) {
+      console.log(`Loading existing model...`);
+      this.model = await tf.loadModel(this._modelSavePath);
+      console.log(`Loaded model from ${this._modelSavePath}`);
+      createFromScratch = false;
     } else {
-      createFromScratch = true;
+      console.log(
+          `Cannot find model at ${this._modelSavePath}. ` +
+          `Creating model from scratch.`);
     }
 
     if (createFromScratch) {
-      if (!Array.isArray(lstmLayerSizes)) {
-        lstmLayerSizes = [lstmLayerSizes];
-      }
-      if (lstmLayerSizes.length === 0) {
-        throw new Error(
-            'lstmLayerSizes must be a number or a non-empty array of numbers.');
-      }
-
-      this.model = tf.sequential();
-      for (let i = 0; i < lstmLayerSizes.length; ++i) {
-        const lstmLayerSize = lstmLayerSizes[i];
-        if (!(lstmLayerSize > 0)) {
-          throw new Error(
-              `lstmLayerSizes must be a positive integer, ` +
-              `but got ${lstmLayerSize}`);
-        }
-        this.model.add(tf.layers.lstm({
-          units: lstmLayerSize,
-          returnSequences: i < lstmLayerSizes.length - 1,
-          inputShape: i === 0 ? [this._sampleLen, this._charSetSize] : undefined
-        }));
-      }
-      this.model.add(tf.layers.dense({
-        units: this._charSetSize,
-        activation: 'softmax'
-      }));
+      this._createModel(lstmLayerSizes);
     }
   }
 
-  // TODO(cais): Refactor into createOrLoadModel and createModel.
+  /**
+   * Create LSTM model from scratch.
+   *
+   * @param {number | number[]} lstmLayerSizes Sizes of the LSTM layers, as a
+   *   number or an non-empty array of numbers.
+   */
+  _createModel(lstmLayerSizes) {
+    if (!Array.isArray(lstmLayerSizes)) {
+      lstmLayerSizes = [lstmLayerSizes];
+    }
+    if (lstmLayerSizes.length === 0) {
+      throw new Error(
+          'lstmLayerSizes must be a number or a non-empty array of numbers.');
+    }
+
+    this.model = tf.sequential();
+    for (let i = 0; i < lstmLayerSizes.length; ++i) {
+      const lstmLayerSize = lstmLayerSizes[i];
+      if (!(lstmLayerSize > 0)) {
+        throw new Error(
+            `lstmLayerSizes must be a positive integer, ` +
+            `but got ${lstmLayerSize}`);
+      }
+      this.model.add(tf.layers.lstm({
+        units: lstmLayerSize,
+        returnSequences: i < lstmLayerSizes.length - 1,
+        inputShape: i === 0 ? [this._sampleLen, this._charSetSize] : undefined
+      }));
+    }
+    this.model.add(tf.layers.dense({
+      units: this._charSetSize,
+      activation: 'softmax'
+    }));
+  }
 
   /**
    * Compile model for training.

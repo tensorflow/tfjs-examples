@@ -182,7 +182,6 @@ export function setUpUI() {
     await refreshLocalModelStatus();
   });
 
-
   createOrLoadModelButton.addEventListener('click', async () => {
     createOrLoadModelButton.disabled = true;
     if (textGenerator == null) {
@@ -193,7 +192,7 @@ export function setUpUI() {
     if (await textGenerator.checkStoredModelStatus()) {
       // Load locally-saved model.
       logStatus('Loading model from IndexedDB... Please wait.');
-      await textGenerator.createModel(null, true);
+      await textGenerator.createOrLoadModel(null);
       updateModelParameterControls(textGenerator.lstmLayerSizes());
       logStatus(
           'Done loading model from IndexedDB. ' +
@@ -207,7 +206,7 @@ export function setUpUI() {
       if (lstmLayerSizes.length === 0) {
         throw new Error('ERROR: Invalid LSTM layer sizes.');
       }
-      await textGenerator.createModel(lstmLayerSizes, false);
+      await textGenerator.createOrLoadModel(lstmLayerSizes);
       logStatus(
           'Done creating model. ' +
           'Now you can train the model or use it to generate text.');

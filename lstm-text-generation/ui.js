@@ -17,46 +17,90 @@
  */
 
 import * as tf from '@tensorflow/tfjs';
+import embed from 'vega-embed';
 
 import {TextData} from './data';
-import {NeuralNetworkTextGenerator} from './nn-text-generator';
+import {SaveableLSTMTextGenerator} from './index';
+
+const TEXT_DATA_URLS = {
+  'nietzsche': 'https://storage.googleapis.com/tfjs-examples/lstm-text-generation/data/nietzsche.txt',
+  'tfjs-code': 'https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@0.11.7/dist/tf.js'
+}
+
+// UI controls.
+const testText = document.getElementById('test-text');
+const createOrLoadModelButton = document.getElementById('create-or-load-model');
+const deleteModelButton = document.getElementById('delete-model');
+const trainModelButton = document.getElementById('train-model');
+const generateTextButton = document.getElementById('generate-text');
+
+const appStatus = document.getElementById('app-status');
+const loadTextDataButton = document.getElementById('load-text-data');
+const textDataSelect = document.getElementById('text-data-select');
+
+const lstmLayersSizesInput = document.getElementById('lstm-layer-sizes');
+
+const examplesPerEpochInput = document.getElementById('examples-per-epoch');
+const batchSizeInput = document.getElementById('batch-size');
+const epochsInput = document.getElementById('epochs');
+const learningRateInput = document.getElementById('learning-rate');
+
+const generateLengthInput = document.getElementById('generate-length');
+const temperatureInput = document.getElementById('temperature');
+const generatedTextInput = document.getElementById('generated-text');
+
+const modelAvailableInfo = document.getElementById('model-available');
+
+const sampleLen = 40;
+const sampleStep = 3;
+
+// Module-global instance of SaveableLSTMTextGenerator.
+let textGenerator;
+
+function logStatus(message) {
+  appStatus.textContent = message;
+}
+
+let lossValues;
+
+/**
+ * A function to call when a training process starts.
+ */
+export function onTrainBegin() {
+  lossValues = [];
+  logStatus('Starting model training...');
+}
+
+/**
+ * A function to call when a batch is competed during training.
+ *
+ * @param {number} loss Loss value of the current batch.
+ * @param {number} progress Total training progress, as a number between 0
+ *   and 1.
+ * @param {number} examplesPerSec The training speed in the batch, in examples
+ *   per second.
+ */
+export function onTrainBatchEnd(loss, progress, examplesPerSec) {
+  const batchCount = lossValues.length + 1;
+  lossValues.push({'batch': batchCount, 'loss': loss});
+  embed(
+    '#loss-canvas', {
+      '$schema': 'https://vega.github.io/schema/vega-lite/v2.json',
+      'data': {'values': lossValues},
+      'mark': 'line',
+      'encoding': {
+        'x': {'field': 'batch', 'type': 'ordinal'},
+        'y': {'field': 'loss', 'type': 'quantitative'},
+      },
+      'width': 300,
+    },
+    {});
+  logStatus(
+      `Model training: ${(progress * 1e2).toFixed(1)}% complete... ` +
+      `(${examplesPerSec.toFixed(0)} examples/s)`);
+}
 
 export function setUpUI() {
-  const TEXT_DATA_URLS = {
-    'nietzsche': 'https://storage.googleapis.com/tfjs-examples/lstm-text-generation/data/nietzsche.txt',
-    'tfjs-code': 'https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@0.11.7/dist/tf.js'
-  }
-
-  // UI controls.
-  const testText = document.getElementById('test-text');
-  const createOrLoadModelButton = document.getElementById('create-or-load-model');
-  const deleteModelButton = document.getElementById('delete-model');
-  const trainModelButton = document.getElementById('train-model');
-  const generateTextButton = document.getElementById('generate-text');
-
-  const appStatus = document.getElementById('app-status');
-  const loadTextDataButton = document.getElementById('load-text-data');
-  const textDataSelect = document.getElementById('text-data-select');
-
-  const lstmLayersSizesInput = document.getElementById('lstm-layer-sizes');
-
-  const examplesPerEpochInput = document.getElementById('examples-per-epoch');
-  const batchSizeInput = document.getElementById('batch-size');
-  const epochsInput = document.getElementById('epochs');
-  const learningRateInput = document.getElementById('learning-rate');
-
-  const generateLengthInput = document.getElementById('generate-length');
-  const temperatureInput = document.getElementById('temperature');
-  const generatedTextInput = document.getElementById('generated-text');
-
-  const modelAvailableInfo = document.getElementById('model-available');
-
-  const sampleLen = 40;
-  const sampleStep = 3;
-
-  // Module-global instance of NeuralNetworkTextGenerator.
-  let textGenerator;
-
   /**
    * Refresh the status of locally saved model (in IndexedDB).
    */
@@ -91,6 +135,10 @@ export function setUpUI() {
     generateTextButton.disabled = false;
   }
 
+  /**
+   * Use `textGenerator` to generate random text, show the characters on the
+   * screen as they are generated one by one.
+   */
   async function generateText() {
     try {
       disableModelButtons();
@@ -101,7 +149,8 @@ export function setUpUI() {
       const generateLength = Number.parseInt(generateLengthInput.value);
       const temperature = Number.parseFloat(temperatureInput.value);
       if (!(temperature > 0 && temperature <= 1)) {
-        throw new Error(`Invalid temperature: ${temperature}`);
+        logStatus(`ERROR: Invalid temperature: ${temperature}`);
+        return;
       }
       generatedTextInput.value = '';
       logStatus('Generating text...');
@@ -117,7 +166,7 @@ export function setUpUI() {
             logStatus(
                 `Generating text: ${charCount}/${generateLength} complete...`);
             await tf.nextFrame();
-          });
+            });
       generatedTextInput.value = sentence;
       logStatus('Done generating text.');
 
@@ -127,10 +176,6 @@ export function setUpUI() {
     } catch (err) {
       logStatus(`ERROR: Failed to generate text: ${err.message}, ${err.stack}`);
     }
-  }
-
-  function logStatus(message) {
-    appStatus.textContent = message;
   }
 
   function disableModelParameterControls() {
@@ -178,7 +223,7 @@ export function setUpUI() {
     }
     const textData = new TextData(
         dataIdentifier, testText.value, sampleLen, sampleStep);
-    textGenerator = new NeuralNetworkTextGenerator(textData);
+    textGenerator = new SaveableLSTMTextGenerator(textData);
     await refreshLocalModelStatus();
   });
 
@@ -192,7 +237,7 @@ export function setUpUI() {
     if (await textGenerator.checkStoredModelStatus()) {
       // Load locally-saved model.
       logStatus('Loading model from IndexedDB... Please wait.');
-      await textGenerator.createOrLoadModel(null);
+      await textGenerator.loadModel();
       updateModelParameterControls(textGenerator.lstmLayerSizes());
       logStatus(
           'Done loading model from IndexedDB. ' +
@@ -203,10 +248,24 @@ export function setUpUI() {
       const lstmLayerSizes =
           lstmLayersSizesInput.value.trim().split(',')
           .map(s => Number.parseInt(s));
+
+      // Sanity check on the LSTM layer sizes.
       if (lstmLayerSizes.length === 0) {
-        throw new Error('ERROR: Invalid LSTM layer sizes.');
+        logStatus('ERROR: Invalid LSTM layer sizes.');
+        return;
       }
-      await textGenerator.createOrLoadModel(lstmLayerSizes);
+      for (let i = 0; i < lstmLayerSizes.length; ++i) {
+        const lstmLayerSize = lstmLayerSizes[i];
+        if (!(lstmLayerSize > 0)) {
+          logStatus(
+              `ERROR: lstmLayerSizes must be a positive integer, ` +
+              `but got ${lstmLayerSize} for layer ${i + 1} ` +
+              `of ${lstmLayerSizes.length}.`);
+          return;
+        }
+      }
+
+      await textGenerator.createModel(lstmLayerSizes);
       logStatus(
           'Done creating model. ' +
           'Now you can train the model or use it to generate text.');
@@ -243,16 +302,7 @@ export function setUpUI() {
 
     textGenerator.compileModel(learningRate);
     disableModelButtons();
-    await textGenerator.fitModel(
-        numEpochs, examplesPerEpoch, batchSize,
-        () => {
-          logStatus('Starting model training...');
-        },
-        null,
-        (progress, examplesPerSec) =>
-          logStatus(
-             `Model training: ${(progress * 1e2).toFixed(1)}% complete... ` +
-             `(${examplesPerSec.toFixed(0)} examples/s)`));
+    await textGenerator.fitModel(numEpochs, examplesPerEpoch, batchSize);
     console.log(await textGenerator.saveModel());
     await refreshLocalModelStatus();
     enableModelButtons();

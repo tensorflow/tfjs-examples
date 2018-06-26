@@ -17,9 +17,18 @@
 
 import * as tf from '@tensorflow/tfjs';
 
+/**
+ * A class for text data.
+ *
+ * This class manages the following:
+ *
+ * - Converting training data (as a string) into one hot-encoded vectors.
+ * - Drawing random slices from the training data. This is useful for training
+ *   models and obtaining the seed text for model-based text generation.
+ */
 export class TextData {
   /**
-   * Constructor of TextDataSet.
+   * Constructor of TextData.
    *
    * @param {string} dataIdentifier An identifier for this instance of TextData.
    * @param {string} textString The training test data.

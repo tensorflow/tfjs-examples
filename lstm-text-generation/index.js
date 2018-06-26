@@ -27,6 +27,261 @@
 
 import * as tf from '@tensorflow/tfjs';
 
-import {setUpUI} from './ui';
+import {TextData} from './data';
+import {onTrainBatchEnd, onTrainBegin, setUpUI} from './ui';
+import {sample} from './utils';
+
+/**
+ * Class that manages LSTM-based text generation.
+ *
+ * This class manages the following:
+ *
+ * - Creating and training a LSTM model, written with the tf.layers API, to
+ *   predict the next character given a sequence of input characters.
+ * - Generating random text using the LSTM model.
+ */
+export class LSTMTextGenerator {
+  /**
+   * Constructor of NeuralNetworkTextGenerator.
+   *
+   * @param {TextData} textData An instance of `TextData`.
+   */
+  constructor(textData) {
+    this._textData = textData;
+    this._charSetSize = textData.charSetSize();
+    this._sampleLen = textData.sampleLen();
+    this._textLen = textData.textLen();
+  }
+
+  /**
+   * Create LSTM model from scratch.
+   *
+   * @param {number | number[]} lstmLayerSizes Sizes of the LSTM layers, as a
+   *   number or an non-empty array of numbers.
+   */
+  createModel(lstmLayerSizes) {
+    if (!Array.isArray(lstmLayerSizes)) {
+      lstmLayerSizes = [lstmLayerSizes];
+    }
+
+    this.model = tf.sequential();
+    for (let i = 0; i < lstmLayerSizes.length; ++i) {
+      const lstmLayerSize = lstmLayerSizes[i];
+      this.model.add(tf.layers.lstm({
+        units: lstmLayerSize,
+        returnSequences: i < lstmLayerSizes.length - 1,
+        inputShape: i === 0 ? [this._sampleLen, this._charSetSize] : undefined
+      }));
+    }
+    this.model.add(tf.layers.dense({
+      units: this._charSetSize,
+      activation: 'softmax'
+    }));
+  }
+
+  /**
+   * Compile model for training.
+   *
+   * @param {number} learningRate The learning rate to use during training.
+   */
+  compileModel(learningRate) {
+    const optimizer = tf.train.rmsprop(learningRate);
+    this.model.compile({optimizer: optimizer, loss: 'categoricalCrossentropy'});
+    console.log(`Compiled model with learning rate ${learningRate}`);
+    this.model.summary();
+  }
+
+  /**
+   * Train the LSTM model.
+   *
+   * @param {number} numEpochs Number of epochs to train the model for.
+   * @param {number} examplesPerEpoch Number of epochs to use in each training
+   *   epochs.
+   * @param {number} batchSize Batch size to use during training.
+   */
+  async fitModel(numEpochs, examplesPerEpoch, batchSize) {
+    let batchCount = 0;
+    const batchesPerEpoch = examplesPerEpoch / batchSize;
+    const totalBatches = numEpochs * batchesPerEpoch;
+
+    onTrainBegin();
+    await tf.nextFrame();
+
+    let t = new Date().getTime();
+    for (let i = 0; i < numEpochs; ++i) {
+      const [xs, ys] =  this._textData.nextDataEpoch(examplesPerEpoch);
+      await this.model.fit(xs, ys, {
+        epochs: 1,
+        batchSize: batchSize,
+        callbacks: {
+          onBatchEnd: async (batch, logs) => {
+            // Calculate the training speed in the current batch, in # of
+            // examples per second.
+            const t1 = new Date().getTime();
+            const examplesPerSec = batchSize / ((t1 - t) / 1e3);
+            t = t1;
+            onTrainBatchEnd(
+                logs.loss, ++batchCount / totalBatches, examplesPerSec);
+            await tf.nextFrame();
+          }
+        }
+      });
+      xs.dispose();
+      ys.dispose();
+    }
+  }
+
+  /**
+   * Generate text using the LSTM model.
+   *
+   * @param {number} length Length of the text to generate, in number of
+   *   characters.
+   * @param {number} temperature Temperature parameter. Must be a number > 0.
+   * @param {(char: string) => void} characterCallback Action to take when a
+   *   character is generated.
+   * @returns {string} The generated text.
+   */
+  async generateText(length, temperature, characterCallback) {
+    const temperatureScalar = tf.scalar(temperature);
+
+    // Get a seed string from the training data.
+    let [sentence, sentenceIndices] = this._textData.getRandomSlice();
+    console.log(`Generating text using the seed string ${sentence}`);
+
+    let generated = '';
+    while (generated.length < length) {
+      // Encode the current input sequence as a one-hot Tensor.
+      const inputBuffer =
+          new tf.TensorBuffer([1, this._sampleLen, this._charSetSize]);
+      for (let i = 0; i < this._sampleLen; ++i) {
+        inputBuffer.set(1, 0, i, sentenceIndices[i]);
+      }
+      const input = inputBuffer.toTensor();
+
+      // Call model.predict() to get the probability values of the next
+      // character.
+      const output = this.model.predict(input);
+
+      // Sample randomly based on the probability values.
+      const winnerIndex = sample(tf.squeeze(output), temperatureScalar);
+      const winnerChar = this._textData.getFromCharSet(winnerIndex);
+
+      if (characterCallback != null) {
+        await characterCallback(winnerChar);
+      }
+
+      generated += winnerChar;
+      sentenceIndices = sentenceIndices.slice(1);
+      sentenceIndices.push(winnerIndex);
+
+      input.dispose();
+      output.dispose();
+    }
+    temperatureScalar.dispose();
+    return generated;
+  }
+};
+
+/**
+ * A subclass of LSTMTextGenerator that supports model saving and loading.
+ *
+ * The model is saved to and loaded from browser's IndexedDB.
+ */
+export class SaveableLSTMTextGenerator extends LSTMTextGenerator {
+  /**
+   * Constructor of NeuralNetworkTextGenerator.
+   *
+   * @param {TextData} textData An instance of `TextData`.
+   */
+  constructor(textData) {
+    super(textData);
+    this._modelIdentifier = textData.dataIdentifier();
+    this._MODEL_SAVE_PATH_PREFIX = 'indexeddb://lstm-text-generation';
+    this._modelSavePath =
+        `${this._MODEL_SAVE_PATH_PREFIX}/${this._modelIdentifier}`;
+  }
+
+  /**
+   * Get model identifier.
+   *
+   * @returns {string} The model identifier.
+   */
+  modelIdentifier() {
+    return this._modelIdentifier;
+  }
+
+  /**
+   * Create LSTM model if it is not saved locally; load it if it is.
+   *
+   * @param {number | number[]} lstmLayerSizes Sizes of the LSTM layers, as a
+   *   number or an non-empty array of numbers.
+   */
+  async loadModel(lstmLayerSizes) {
+    const modelsInfo = await tf.io.listModels();
+    if (this._modelSavePath in modelsInfo) {
+      console.log(`Loading existing model...`);
+      this.model = await tf.loadModel(this._modelSavePath);
+      console.log(`Loaded model from ${this._modelSavePath}`);
+    } else {
+      throw new Error(
+          `Cannot find model at ${this._modelSavePath}. ` +
+          `Creating model from scratch.`);
+    }
+  }
+
+  /**
+   * Save the model in IndexedDB.
+   *
+   * @returns ModelInfo from the saving, if the saving succeeds.
+   */
+  async saveModel() {
+    if (this.model == null) {
+      throw new Error('Cannot save model before creating model.');
+    } else {
+      return await this.model.save(this._modelSavePath);
+    }
+  }
+
+    /**
+   * Remove the locally saved model from IndexedDB.
+   */
+  async removeModel() {
+    if (await this.checkStoredModelStatus() == null) {
+      throw new Error(
+          'Cannot remove locally saved model because it does not exist.');
+    }
+    return await tf.io.removeModel(this._modelSavePath);
+  }
+
+  /**
+   * Check the status of locally saved model.
+   *
+   * @returns If the locally saved model exists, the model info as a JSON
+   *   object. Else, `undefined`.
+   */
+  async checkStoredModelStatus() {
+    const modelsInfo = await tf.io.listModels();
+    return modelsInfo[this._modelSavePath];
+  }
+
+  /**
+   * Get a representation of the sizes of the LSTM layers in the model.
+   *
+   * @returns {number | number[]} The sizes (i.e., number of units) of the
+   *   LSTM layers that the model contains. If there is only one LSTM layer, a
+   *   single number is returned; else, an Array of numbers is returned.
+   */
+  lstmLayerSizes() {
+    if (this.model == null) {
+      throw new Error('Create model first.');
+    }
+    const numLSTMLayers = this.model.layers.length - 1;
+    const layerSizes = [];
+    for (let i = 0; i < numLSTMLayers; ++i) {
+      layerSizes.push(this.model.layers[i].units);
+    }
+    return layerSizes.length === 1 ? layerSizes[0] : layerSizes;
+  }
+}
 
 setUpUI();

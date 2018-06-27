@@ -29,7 +29,7 @@ export class ControllerDataset {
    * Adds an example to the controller dataset.
    * @param {Tensor} example A tensor representing the example. It can be an image,
    *     an activation, or any other type of Tensor.
-   * @param {number} label The label of the example. Should be an umber.
+   * @param {number} label The label of the example. Should be a number.
    */
   addExample(example, label) {
     // One-hot encode the label.

@@ -3,8 +3,8 @@
 ## Overview
 
 This example illustrates how to use TensorFlow.js to train a LSTM model to
-generate random text based on the patterns in a training text corpus such as
-Nietzsche's writing and the source code of TensorFlow.js itself.
+generate random text based on the patterns in a text corpus such as
+Nietzsche's writing or the source code of TensorFlow.js itself.
 
 The LSTM model operates at the character level. It takes a tensor of
 shape `[numExamples, sampleLen, charSetSize]` as the input. The input is a

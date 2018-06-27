@@ -22,7 +22,7 @@ import * as tf from '@tensorflow/tfjs';
  *
  * This class manages the following:
  *
- * - Converting training data (as a string) into one hot-encoded vectors.
+ * - Converting training data (as a string) into one-hot encoded vectors.
  * - Drawing random slices from the training data. This is useful for training
  *   models and obtaining the seed text for model-based text generation.
  */
@@ -31,7 +31,7 @@ export class TextData {
    * Constructor of TextData.
    *
    * @param {string} dataIdentifier An identifier for this instance of TextData.
-   * @param {string} textString The training test data.
+   * @param {string} textString The training text data.
    * @param {number} sampleLen Length of each training example, i.e., the input
    *   sequence length expected by the LSTM model.
    * @param {number} sampleStep How many characters to skip when going from one
@@ -42,16 +42,16 @@ export class TextData {
       throw new Error('Model identifier is not provided.');
     }
 
-    this._dataIdentifier = dataIdentifier;
+    this.dataIdentifier_ = dataIdentifier;
 
-    this._textString = textString;
-    this._textLen = textString.length;
-    this._sampleLen = sampleLen;
-    this._sampleStep = sampleStep;
+    this.textString_ = textString;
+    this.textLen_ = textString.length;
+    this.sampleLen_ = sampleLen;
+    this.sampleStep_ = sampleStep;
 
-    this._getCharSet();
-    this._convertAllTextToIndices();
-    this._generateExampleBeginIndices();
+    this.getCharSet_();
+    this.convertAllTextToIndices_();
+    this.generateExampleBeginIndices_();
   }
 
   /**
@@ -60,7 +60,7 @@ export class TextData {
    * @returns {string} The data identifier.
    */
   dataIdentifier() {
-    return this._dataIdentifier;
+    return this.dataIdentifier_;
   }
 
   /**
@@ -69,14 +69,14 @@ export class TextData {
    * @returns {number} Length of training text data.
    */
   textLen() {
-    return this._textLen;
+    return this.textLen_;
   }
 
   /**
    * Get the length of each training example.
    */
   sampleLen() {
-    return this._sampleLen;
+    return this.sampleLen_;
   }
 
   /**
@@ -86,7 +86,7 @@ export class TextData {
    *   characters there are in the training text data.
    */
   charSetSize() {
-    return this._charSetSize;
+    return this.charSetSize_;
   }
 
   /**
@@ -99,16 +99,16 @@ export class TextData {
    */
   nextDataEpoch(numExamples) {
     const xsBuffer = new tf.TensorBuffer([
-        numExamples, this._sampleLen, this._charSetSize]);
-    const ysBuffer  = new tf.TensorBuffer([numExamples, this._charSetSize]);
+        numExamples, this.sampleLen_, this.charSetSize_]);
+    const ysBuffer  = new tf.TensorBuffer([numExamples, this.charSetSize_]);
     for (let i = 0; i < numExamples; ++i) {
-      const beginIndex = this._exampleBeginIndices[
-          this._examplePosition % this._exampleBeginIndices.length];
-      for (let j = 0; j < this._sampleLen; ++j) {
-        xsBuffer.set(1, i, j, this._indices[beginIndex + j]);
+      const beginIndex = this.exampleBeginIndices_[
+          this.examplePosition_ % this.exampleBeginIndices_.length];
+      for (let j = 0; j < this.sampleLen_; ++j) {
+        xsBuffer.set(1, i, j, this.indices_[beginIndex + j]);
       }
-      ysBuffer.set(1, i, this._indices[beginIndex + this._sampleLen]);
-      this._examplePosition++;
+      ysBuffer.set(1, i, this.indices_[beginIndex + this.sampleLen_]);
+      this.examplePosition_++;
     }
     return [xsBuffer.toTensor(), ysBuffer.toTensor()];
   }
@@ -120,7 +120,7 @@ export class TextData {
    * @returns {string} The unique character at `index` of the character set.
    */
   getFromCharSet(index) {
-    return this._charSet[index];
+    return this.charSet_[index];
   }
 
   /**
@@ -132,7 +132,7 @@ export class TextData {
   textToIndices(text) {
     const indices = [];
     for (let i = 0; i < text.length; ++i) {
-      indices.push(this._charSet.indexOf(text[i]));
+      indices.push(this.charSet_.indexOf(text[i]));
     }
     return indices;
   }
@@ -145,8 +145,8 @@ export class TextData {
    */
   getRandomSlice() {
     const startIndex =
-        Math.round(Math.random() * (this._textLen - this._sampleLen - 1));
-    const textSlice = this._slice(startIndex, startIndex + this._sampleLen);
+        Math.round(Math.random() * (this.textLen_ - this.sampleLen_ - 1));
+    const textSlice = this.slice_(startIndex, startIndex + this.sampleLen_);
     return [textSlice, this.textToIndices(textSlice)];
   }
 
@@ -158,44 +158,44 @@ export class TextData {
    * @param {bool} useIndices Whether to return the indices instead of string.
    * @returns {string | Uint16Array} The result of the slicing.
    */
-  _slice(startIndex, endIndex) {
-    return this._textString.slice(startIndex, endIndex);
+  slice_(startIndex, endIndex) {
+    return this.textString_.slice(startIndex, endIndex);
   }
 
   /**
    * Get the set of unique characters from text.
    */
-  _getCharSet() {
-    this._charSet = [];
-    for (let i = 0; i < this._textLen; ++i) {
-      if (this._charSet.indexOf(this._textString[i]) === -1) {
-        this._charSet.push(this._textString[i]);
+  getCharSet_() {
+    this.charSet_ = [];
+    for (let i = 0; i < this.textLen_; ++i) {
+      if (this.charSet_.indexOf(this.textString_[i]) === -1) {
+        this.charSet_.push(this.textString_[i]);
       }
     }
-    this._charSetSize = this._charSet.length;
+    this.charSetSize_ = this.charSet_.length;
   }
 
   /**
    * Convert all training text to integer indices.
    */
-  _convertAllTextToIndices() {
-    this._indices = new Uint16Array(this.textToIndices(this._textString));
+  convertAllTextToIndices_() {
+    this.indices_ = new Uint16Array(this.textToIndices(this.textString_));
   }
 
   /**
    * Generate the example-begin indices; shuffle them randomly.
    */
-  _generateExampleBeginIndices() {
+  generateExampleBeginIndices_() {
     // Prepare beginning indices of examples.
-    this._exampleBeginIndices = [];
+    this.exampleBeginIndices_ = [];
     for (let i = 0;
-        i < this._textLen - this._sampleLen - 1;
-        i += this._sampleStep) {
-      this._exampleBeginIndices.push(i);
+        i < this.textLen_ - this.sampleLen_ - 1;
+        i += this.sampleStep_) {
+      this.exampleBeginIndices_.push(i);
     }
 
     // Randomly shuffle the beginning indices.
-    tf.util.shuffle(this._exampleBeginIndices);
-    this._examplePosition = 0;
+    tf.util.shuffle(this.exampleBeginIndices_);
+    this.examplePosition_ = 0;
   }
 }

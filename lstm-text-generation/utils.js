@@ -18,25 +18,6 @@
 import * as tf from '@tensorflow/tfjs';
 
 /**
- * Draw one sample from a multinomial distribution.
- *
- * @param {number[]} probs Probabilities. Assumed to sum to 1.
- * @returns {number} A zero-based sample index.
- */
-function sampleOneFromMultinomial(probs) {
-  const score = Math.random();
-  let cumProb = 0;
-  const n = probs.length;
-  for (let i = 0; i < n; ++i) {
-    if (score >= cumProb && score < cumProb + probs[i]) {
-      return i;
-    }
-    cumProb += probs[i];
-  }
-  return n - 1;
-}
-
-/**
  * Draw a sample based onprobabilities.
  *
  * @param {tf.Tensor} preds Predicted probabilities, as a 1D `tf.Tensor` of
@@ -55,8 +36,6 @@ export function sample(preds, temperature) {
     preds = tf.div(expPreds, sumExpPreds);
     // Treat preds a the probabilites of a multinomial distribution and
     // randomly draw a sample from the distribution.
-    // TODO(cais): Investigate why tf.multinomial gives different results.
-    //   When the difference is resolved, use tf.multinomial here.
-    return sampleOneFromMultinomial(preds.dataSync());
+    return tf.multinomial(preds, 1, null, true).dataSync()[0];
   });
 }

@@ -23,7 +23,8 @@ import {TextData} from './data';
 import {SaveableLSTMTextGenerator} from './index';
 
 const TEXT_DATA_URLS = {
-  'nietzsche': 'https://storage.googleapis.com/tfjs-examples/lstm-text-generation/data/nietzsche.txt',
+  'nietzsche':
+      'https://storage.googleapis.com/tfjs-examples/lstm-text-generation/data/nietzsche.txt',
   'tfjs-code': 'https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@0.11.7/dist/tf.js'
 }
 
@@ -44,6 +45,7 @@ const lstmLayersSizesInput = document.getElementById('lstm-layer-sizes');
 const examplesPerEpochInput = document.getElementById('examples-per-epoch');
 const batchSizeInput = document.getElementById('batch-size');
 const epochsInput = document.getElementById('epochs');
+const validationSplitInput = document.getElementById('validation-split');
 const learningRateInput = document.getElementById('learning-rate');
 
 const generateLengthInput = document.getElementById('generate-length');
@@ -67,6 +69,7 @@ function logStatus(message) {
 }
 
 let lossValues;
+let batchCount;
 
 /**
  * A function to call when a training process starts.
@@ -86,23 +89,34 @@ export function onTrainBegin() {
  *   per second.
  */
 export function onTrainBatchEnd(loss, progress, examplesPerSec) {
-  const batchCount = lossValues.length + 1;
-  lossValues.push({'batch': batchCount, 'loss': loss});
-  embed(
-    '#loss-canvas', {
-      '$schema': 'https://vega.github.io/schema/vega-lite/v2.json',
-      'data': {'values': lossValues},
-      'mark': 'line',
-      'encoding': {
-        'x': {'field': 'batch', 'type': 'ordinal'},
-        'y': {'field': 'loss', 'type': 'quantitative'},
-      },
-      'width': 300,
-    },
-    {});
+  batchCount = lossValues.length + 1;
+  lossValues.push({'batch': batchCount, 'loss': loss, 'split': 'training'});
+  plotLossValues();
   logStatus(
       `Model training: ${(progress * 1e2).toFixed(1)}% complete... ` +
       `(${examplesPerSec.toFixed(0)} examples/s)`);
+}
+
+export function onTrainEpochEnd(validationLoss) {
+  lossValues.push(
+      {'batch': batchCount, 'loss': validationLoss, 'split': 'validation'});
+  plotLossValues();
+}
+
+function plotLossValues() {
+  embed(
+      '#loss-canvas', {
+        '$schema': 'https://vega.github.io/schema/vega-lite/v2.json',
+        'data': {'values': lossValues},
+        'mark': 'line',
+        'encoding': {
+          'x': {'field': 'batch', 'type': 'ordinal'},
+          'y': {'field': 'loss', 'type': 'quantitative'},
+          'color': {'field': 'split', 'type': 'nominal'}
+        },
+        'width': 300,
+      },
+      {});
 }
 
 /**
@@ -176,14 +190,15 @@ export function setUpUI() {
       disableModelButtons();
 
       if (textGenerator == null) {
-        throw new Error('Load text data set first.');
+        logStatus('ERROR: Please load text data set first.');
+        return;
       }
       const generateLength = Number.parseInt(generateLengthInput.value);
       const temperature = Number.parseFloat(temperatureInput.value);
       if (!(generateLength > 0)) {
         logStatus(
-          `ERROR: Invalid generation length: ${generateLength}. ` +
-          `Generation length must be a positive number.`);
+            `ERROR: Invalid generation length: ${generateLength}. ` +
+            `Generation length must be a positive number.`);
         enableModelButtons();
         return;
       }
@@ -272,10 +287,11 @@ export function setUpUI() {
     }
 
     if (testText.value.length === 0) {
-      throw new Error("ERROR: Empty text data.");
+      logStatus('ERROR: Empty text data.');
+      return;
     }
-    textData = new TextData(
-        dataIdentifier, testText.value, sampleLen, sampleStep);
+    textData =
+        new TextData(dataIdentifier, testText.value, sampleLen, sampleStep);
     textGenerator = new SaveableLSTMTextGenerator(textData);
     await refreshLocalModelStatus();
   });
@@ -284,7 +300,8 @@ export function setUpUI() {
     createOrLoadModelButton.disabled = true;
     if (textGenerator == null) {
       createOrLoadModelButton.disabled = false;
-      throw new Error('Load text data set first.');
+      logStatus('ERROR: Please load text data set first.');
+      return;
     }
 
     if (await textGenerator.checkStoredModelStatus()) {
@@ -298,9 +315,8 @@ export function setUpUI() {
     } else {
       // Create model from scratch.
       logStatus('Creating model... Please wait.');
-      const lstmLayerSizes =
-          lstmLayersSizesInput.value.trim().split(',')
-          .map(s => Number.parseInt(s));
+      const lstmLayerSizes = lstmLayersSizesInput.value.trim().split(',').map(
+          s => Number.parseInt(s));
 
       // Sanity check on the LSTM layer sizes.
       if (lstmLayerSizes.length === 0) {
@@ -330,10 +346,12 @@ export function setUpUI() {
 
   deleteModelButton.addEventListener('click', async () => {
     if (textGenerator == null) {
-      throw new Error('Load text data set first.');
+      logStatus('ERROR: Please load text data set first.');
+      return;
     }
-    if (confirm(`Are you sure you want to delete the model ` +
-        `'${textGenerator.modelIdentifier()}'?`)) {
+    if (confirm(
+            `Are you sure you want to delete the model ` +
+            `'${textGenerator.modelIdentifier()}'?`)) {
       console.log(await textGenerator.removeModel());
       await refreshLocalModelStatus();
     }
@@ -341,21 +359,40 @@ export function setUpUI() {
 
   trainModelButton.addEventListener('click', async () => {
     if (textGenerator == null) {
-      throw new Error('Load text data set first.');
+      logStatus('ERROR: Please load text data set first.');
+      return;
     }
 
     const numEpochs = Number.parseInt(epochsInput.value);
+    if (!(numEpochs > 0)) {
+      logStatus(`ERROR: Invalid number of epochs: ${numEpochs}`);
+      return;
+    }
     const examplesPerEpoch = Number.parseInt(examplesPerEpochInput.value);
+    if (!(examplesPerEpoch > 0)) {
+      logStatus(`ERROR: Invalid examples per epoch: ${examplesPerEpoch}`);
+      return;
+    }
     const batchSize = Number.parseInt(batchSizeInput.value);
+    if (!(batchSize > 0)) {
+      logStatus(`ERROR: Invalid batch size: ${batchSize}`);
+      return;
+    }
+    const validationSplit = Number.parseFloat(validationSplitInput.value);
+    if (!(validationSplit >= 0 && validationSplit < 1)) {
+      logStatus(`ERROR: Invalid validation split: ${validationSplit}`);
+      return;
+    }
     const learningRate = Number.parseFloat(learningRateInput.value);
     if (!(learningRate > 0)) {
-      createOrLoadModelButton.disabled = false;
-      throw new Error(`Invalid learning rate: ${learningRate}`);
+      logStatus(`ERROR: Invalid learning rate: ${learningRate}`);
+      return;
     }
 
     textGenerator.compileModel(learningRate);
     disableModelButtons();
-    await textGenerator.fitModel(numEpochs, examplesPerEpoch, batchSize);
+    await textGenerator.fitModel(
+        numEpochs, examplesPerEpoch, batchSize, validationSplit);
     console.log(await textGenerator.saveModel());
     await refreshLocalModelStatus();
     enableModelButtons();
@@ -365,7 +402,8 @@ export function setUpUI() {
 
   generateTextButton.addEventListener('click', async () => {
     if (textGenerator == null) {
-      throw new Error('Load text data set first.');
+      logStatus('ERROR: Load text data set first.');
+      return;
     }
     await generateText();
   });

@@ -20,15 +20,16 @@
  *
  * Inspiration comes from:
  *
- * - https://github.com/keras-team/keras/blob/master/examples/lstm_text_generation.py
- * - Andrej Karpathy. "The Unreasonable Effectiveness of Recurrent Neural Networks"
- *   http://karpathy.github.io/2015/05/21/rnn-effectiveness/
+ * -
+ * https://github.com/keras-team/keras/blob/master/examples/lstm_text_generation.py
+ * - Andrej Karpathy. "The Unreasonable Effectiveness of Recurrent Neural
+ * Networks" http://karpathy.github.io/2015/05/21/rnn-effectiveness/
  */
 
 import * as tf from '@tensorflow/tfjs';
 
 import {TextData} from './data';
-import {onTextGenerationBegin, onTextGenerationChar, onTrainBatchEnd, onTrainBegin, setUpUI} from './ui';
+import {onTextGenerationBegin, onTextGenerationChar, onTrainBatchEnd, onTrainBegin, onTrainEpochEnd, setUpUI} from './ui';
 import {sample} from './utils';
 
 /**
@@ -73,10 +74,8 @@ export class LSTMTextGenerator {
         inputShape: i === 0 ? [this.sampleLen_, this.charSetSize_] : undefined
       }));
     }
-    this.model.add(tf.layers.dense({
-      units: this.charSetSize_,
-      activation: 'softmax'
-    }));
+    this.model.add(
+        tf.layers.dense({units: this.charSetSize_, activation: 'softmax'}));
   }
 
   /**
@@ -98,8 +97,10 @@ export class LSTMTextGenerator {
    * @param {number} examplesPerEpoch Number of epochs to use in each training
    *   epochs.
    * @param {number} batchSize Batch size to use during training.
+   * @param {number} validationSplit Validation split to be used during the
+   *   training epochs.
    */
-  async fitModel(numEpochs, examplesPerEpoch, batchSize) {
+  async fitModel(numEpochs, examplesPerEpoch, batchSize, validationSplit) {
     let batchCount = 0;
     const batchesPerEpoch = examplesPerEpoch / batchSize;
     const totalBatches = numEpochs * batchesPerEpoch;
@@ -109,10 +110,11 @@ export class LSTMTextGenerator {
 
     let t = new Date().getTime();
     for (let i = 0; i < numEpochs; ++i) {
-      const [xs, ys] =  this.textData_.nextDataEpoch(examplesPerEpoch);
+      const [xs, ys] = this.textData_.nextDataEpoch(examplesPerEpoch);
       await this.model.fit(xs, ys, {
         epochs: 1,
         batchSize: batchSize,
+        validationSplit,
         callbacks: {
           onBatchEnd: async (batch, logs) => {
             // Calculate the training speed in the current batch, in # of
@@ -123,7 +125,10 @@ export class LSTMTextGenerator {
             onTrainBatchEnd(
                 logs.loss, ++batchCount / totalBatches, examplesPerSec);
             await tf.nextFrame();
-          }
+          },
+          onEpochEnd: async (epoch, logs) => {
+            onTrainEpochEnd(logs.val_loss);
+          },
         }
       });
       xs.dispose();
@@ -236,7 +241,7 @@ export class SaveableLSTMTextGenerator extends LSTMTextGenerator {
     }
   }
 
-    /**
+  /**
    * Remove the locally saved model from IndexedDB.
    */
   async removeModel() {

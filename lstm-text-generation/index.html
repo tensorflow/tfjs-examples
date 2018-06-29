@@ -62,6 +62,9 @@ limitations under the License.
   input:disabled {
     background: #eeeeee;
   }
+  textarea {
+    width:98%;
+  }
 </style>
 
 <body>
@@ -78,7 +81,7 @@ limitations under the License.
       </select>
       <button id="load-text-data">Load text data</button>
       <div>
-        <textarea class="monospace" id="test-text" readonly="true" value="" rows="10" cols="120"></textarea>
+        <textarea class="monospace" id="test-text" readonly="true" value="" rows="10"></textarea>
       </div>
     </div>
 
@@ -143,11 +146,11 @@ limitations under the License.
       </div>
       <div>
           <span class="input-title">Seed text:</span>
-          <textarea class="monospace" id="seed-text" value="" rows="4" cols="120"></textarea>
+          <textarea class="monospace" id="seed-text" value="" rows="4"></textarea>
         </div>
       <div>
         <span class="input-title">Generated text:</span>
-        <textarea class="monospace" id="generated-text" readonly="true" value="" rows="10" cols="120"></textarea>
+        <textarea class="monospace" id="generated-text" readonly="true" value="" rows="10"></textarea>
       </div>
     </div>
   </div>

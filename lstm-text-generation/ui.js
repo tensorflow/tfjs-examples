@@ -22,6 +22,7 @@ import embed from 'vega-embed';
 import {TextData} from './data';
 import {SaveableLSTMTextGenerator} from './index';
 
+// TODO(cais): Support user-supplied text data.
 const TEXT_DATA_URLS = {
   'nietzsche':
       'https://storage.googleapis.com/tfjs-examples/lstm-text-generation/data/nietzsche.txt',

@@ -1,4 +1,21 @@
 /**
+ * @license
+ * Copyright 2018 Google LLC. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * =============================================================================
+ */
+
+/**
  * Based on: http://incompleteideas.net/book/code/pole.c
  */
 
@@ -37,22 +54,25 @@ export class CartPole {
     this.forceMag = 10.0;
     this.tau = 0.02;  // Seconds between state updates.
 
+    this.xThreshold =  2.4;
+    this.thetaTheshold = 12 / 360 * 2 * Math.PI;
+
     this.x = 0;  // Cart position, meters.
     this.xDot = 0;  // Cart velocity.
     this.theta = 0;  // Pole angle, radians.
     this.thetaDot = 0;  // Pole angle velocity.
     if (initializeStateRandomly) {
-      this.setRandomState_();
+      this.setRandomState();
     }
   }
 
   /**
    * Set the state of the cart-pole system randomly.
    */
-  setRandomState_() {
+  setRandomState() {
     this.x = Math.random() - 0.5;
     this.xDot = (Math.random() - 0.5) * 1;
-    this.theta = (Math.random() - 0.5) * (Math.PI / 2 * 0.3);
+    this.theta = (Math.random() - 0.5) * 2 * (6 / 360 * 2 * Math.PI);
     this.thetaDot =  (Math.random() - 0.5) * 0.5;
   }
 
@@ -75,6 +95,7 @@ export class CartPole {
    *   A value <= 0 leads to a leftward force of the same fixed magnitude.
    */
   update(action) {
+    console.log(action);  // DEBUG
     const force = action > 0 ? this.forceMag : -this.forceMag;
 
     const cosTheta = Math.cos(this.theta);
@@ -95,9 +116,22 @@ export class CartPole {
     this.theta += this.tau * this.thetaDot;
     this.thetaDot += this.tau * thetaAcc;
 
-    console.log(
-        `x = ${this.x}; xDot = ${this.xDot};\n'` +
-        `theta = ${this.theta}; thetaDot = ${this.theta}`);  // DEBUG
+    return this.isDone();
+  }
+
+  /**
+   * Determine whether this simulation is done.
+   *
+   * A simulation is done when `x` (position of the cart) goes out of bound
+   * or when `theta` (angle of the pole) goes out of bound.
+   *
+   * @returns {bool} Whether the simulation is done.
+   */
+  isDone() {
+    return (this.x < -this.xThreshold ||
+            this.x > this.xThreshold ||
+            this.theta < -this.thetaTheshold ||
+            this.theta > this.thetaTheshold);
   }
 
   /**

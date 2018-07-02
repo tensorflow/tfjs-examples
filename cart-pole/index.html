@@ -54,7 +54,7 @@ limitations under the License.
     }
     .input-label {
       display: inline-block;
-      width: 150px;
+      width: 15em;
     }
 
     .canvases {
@@ -118,11 +118,19 @@ limitations under the License.
     <h1>TensorFlow.js Layers: Cart Pole Reinforcement Learning</h1>
 
     <div>
+      <div>
+        <div class="input-div">
+          <span class="input-label">Number of iterations:</span>
+          <input id="num-iterations" value="20"></input>
+        </div>
+        <button id="train">Train</button>
+      </div>
+
       <div id="horizontal-section">
         <canvas id="cart-pole-canvas" height="400px" width="600px"></canvas>
         <button id="left">Left</button>
         <button id="right">Right</button>
-        <button id="step">Step</button>
+
         <div class="canvases" id="lossCanvas"></div>
       </div>
     </div>

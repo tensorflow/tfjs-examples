@@ -5560,14 +5560,14 @@ vega-hierarchy@^3.0.1:
     vega-wordcloud "^3.0.0"
 
 vega-lite@^2.5.2:
-  version "2.5.2"
-  resolved "https://registry.yarnpkg.com/vega-lite/-/vega-lite-2.5.2.tgz#adb1d34af09f8942e14459aa53f029c14a7c46cf"
+  version "2.6.0"
+  resolved "https://registry.yarnpkg.com/vega-lite/-/vega-lite-2.6.0.tgz#ce79c2db0311b0b920afdf2cd7384556a334e2f0"
   dependencies:
     "@types/json-stable-stringify" "^1.0.32"
     json-stable-stringify "^1.0.1"
     tslib "^1.9.2"
     vega-event-selector "^2.0.0"
-    vega-typings "^0.3.4"
+    vega-typings "^0.3.17"
     vega-util "^1.7.0"
     yargs "^11.0.0"
 
@@ -5663,7 +5663,7 @@ vega-transforms@^2.0.0:
     vega-statistics "^1.2.1"
     vega-util "^1.7.0"
 
-vega-typings@*, vega-typings@^0.3.3, vega-typings@^0.3.4:
+vega-typings@*, vega-typings@^0.3.17, vega-typings@^0.3.3:
   version "0.3.17"
   resolved "https://registry.yarnpkg.com/vega-typings/-/vega-typings-0.3.17.tgz#7c0074371634761017aeed76df5355c927da3b21"
   dependencies:

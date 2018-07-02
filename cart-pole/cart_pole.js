@@ -95,7 +95,6 @@ export class CartPole {
    *   A value <= 0 leads to a leftward force of the same fixed magnitude.
    */
   update(action) {
-    console.log(action);  // DEBUG
     const force = action > 0 ? this.forceMag : -this.forceMag;
 
     const cosTheta = Math.cos(this.theta);

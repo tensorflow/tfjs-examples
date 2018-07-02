@@ -1,6 +1,5 @@
 import * as tf from '@tensorflow/tfjs';
 import {CartPole} from './cart_pole';
-import { max } from '@tensorflow/tfjs';
 
 /**
  * Policy network for controlling the cart-pole system.
@@ -20,21 +19,16 @@ class PolicyNetwork {
     }));
     this.model_.add(tf.layers.dense({units: 1}));
     this.oneTensor_ = tf.scalar(1);
-
-    // this.gradFn = tf.variableGrads(this.getCrossEntropyAndSaveActions);
   }
 
   getGradientsAndSaveActions(inputTensor) {
     const f = () => tf.tidy(() => {
       const [logits, actions] = this.getLogitsAndActions_(inputTensor);
-      console.log(`actions:`, actions.shape); actions.print();  // DEBUG
       this.currentActions_ = actions.dataSync();
       const labels = this.oneTensor_.sub(
           tf.tensor2d(this.currentActions_, actions.shape));
-      console.log(`labels:`); labels.print();  // DEBUG
       const crossEntropy =
           tf.sigmoidCrossEntropyWithLogits(labels, logits).asScalar();
-      console.log(`crossEntropy:`); crossEntropy.print();  // DEBUG
       return crossEntropy;
     });
     return tf.variableGrads(f);
@@ -43,15 +37,6 @@ class PolicyNetwork {
   getCurrentActions() {
     return this.currentActions_;
   }
-
-  // getCrossEntropyAndSaveActions(inputs) {
-  //   const [logits, actions] = this.getLogitsAndActions_(inputs);
-
-
-  //   // TODO(cais): Confirm correctness.
-
-  //   return
-  // }
 
   /**
    * Get action based  on a state tensor.
@@ -69,53 +54,121 @@ class PolicyNetwork {
       // Probabilites of the left and right actions.
       const leftRightProbs =
           tf.concat([leftProb, this.oneTensor_.sub(leftProb)], 1);
-      leftRightProbs.print();  // DEBUG
       const actions = tf.multinomial(leftRightProbs, 1, null, true);
       return [logits, actions];
     });
   }
 
-  discountAndNormalizeRewards
+  train(cartPoleSystem,
+        optimizer,
+        discountRate,
+        numGames,
+        maxStepsPerGame) {
+    tf.tidy(() => {
+      const allGradients = [];
+      const allRewards = [];
+      const gameSteps = [];
+      for (let i = 0; i < numGames; ++i) {
+        cartPoleSystem.setRandomState();
+        const gameRewards = [];
+        const gameGradients = [];
+        for (let j = 0; j < maxStepsPerGame; ++j) {
+          const inputTensor = cartPoleSystem.getStateTensor();
+          const gradients =
+              this.getGradientsAndSaveActions(inputTensor).grads;
+          inputTensor.dispose();
 
-  train(cartPoleSystem, optimizer, discountRate, numGames, maxStepsPerGame) {
-    const allGradients = [];
-    const allRewards = [];
-    for (let i = 0; i < numGames; ++i) {
-      cartPoleSystem.setRandomState();
-      const gameRewards = [];
-      const gameGradients = [];
-      for (let j = 0; j < maxStepsPerGame; ++j) {
-        const inputTensor = cartPoleSystem.getStateTensor();
-        const gradients =
-            this.getGradientsAndSaveActions(inputTensor).grads;
-        inputTensor.dispose();
-
-        gameGradients.push(gradients);
-        const action = this.currentActions_[0];
-        console.log(`j = ${j}, action = ${action}`);
-        const isDone = cartPoleSystem.update(action);
-        cartPoleSystem.render(cartPoleCanvas);
-        if (isDone) {
-          console.log('Done!');
-          gameRewards.push(0);
-          break;
-        } else {
-          gameRewards.push(1);
+          this.pushGradients_(gameGradients, gradients);
+          const action = this.currentActions_[0];
+          const isDone = cartPoleSystem.update(action);
+          // cartPoleSystem.render(cartPoleCanvas);
+          // await tf.nextFrame();
+          if (isDone) {
+            console.log('Done!');
+            gameRewards.push(0);
+            break;
+          } else {
+            gameRewards.push(1);
+          }
+          if (j >= maxStepsPerGame) {
+            break;
+          }
         }
+        gameSteps.push(gameRewards.length);
+        this.pushGradients_(allGradients, gameGradients);
+        allRewards.push(gameRewards);
+        // TODO(cais): Dispose all gradient tensors.
       }
-      allGradients.push(gameGradients);
-      allRewards.push(gameRewards);
-      // TODO(cais): Dispose all gradient tensors.
+      console.log(`game steps = ${gameSteps}, mean = ${mean(gameSteps)}`);
+      const normalizedRewards =
+          discountAndNormalizeRewards(allRewards, discountRate);
+      // console.log('normalizedRewards:', normalizedRewards);  // DEBUG
+
+      const gradientsToApply =
+          scaleAndAverageGradients(allGradients, normalizedRewards);
+      optimizer.applyGradients(gradientsToApply);
+    });
+  }
+
+  pushGradients_(record, gradients) {
+    for (const key in gradients) {
+      if (key in record) {
+        record[key].push(gradients[key]);
+      } else {
+        record[key] = [gradients[key]];
+      }
     }
   }
 }
 
+function mean(xs) {
+  return xs.reduce((x, prev) => prev + x) / xs.length;
+}
+
+function discountRewards(rewards, discountRate) {
+  const discounted = [];
+  for (let i = rewards.length - 1; i >=0; --i) {
+    const reward = rewards[i];
+    const prevReward =
+        discounted.length > 0 ? discounted[discounted.length - 1] : 0;
+    discounted.push(discountRate * prevReward + reward);
+  }
+  discounted.reverse();
+  return discounted;
+}
+
+function discountAndNormalizeRewards(rewardSequences, discountRate) {
+  const discounted = [];
+  for (const sequence of rewardSequences) {
+    discounted.push(discountRewards(sequence, discountRate))
+  }
+
+  // Compute the overall mean and stddev.
+  const flattened = [];
+  for (const sequence of discounted) {
+    flattened.push(...sequence);
+  }
+  const [mean, std] = tf.tidy(() => {
+    const r = tf.tensor1d(flattened);
+    const mean = tf.mean(r);
+    const std = tf.sqrt(tf.mean(tf.square(r.sub(mean))));
+    return [mean.dataSync()[0], std.dataSync()[0]];
+  });
+
+  // TODO(cais): Maybe normalized should be a tf.Tensor.
+  const normalized = [];
+  for (const rs of discounted) {
+    normalized.push(rs.map(r => (r - mean) / std));
+  }
+  return normalized;
+}
+
 const cartPoleCanvas = document.getElementById('cart-pole-canvas');
+const numIterationsInput = document.getElementById('num-iterations');
 const leftButton = document.getElementById('left');
 const rightButton = document.getElementById('right');
-const stepButton = document.getElementById('step');
+const trainButton = document.getElementById('train');
 const cartPole = new CartPole(true);
-console.log(cartPole);  // DEBUG
 
 cartPole.render(cartPoleCanvas);
 
@@ -129,24 +182,58 @@ rightButton.addEventListener('click', () => {
   cartPole.render(cartPoleCanvas);
 });
 
+function scaleAndAverageGradients(allGradients, normalizedRewards) {
+  return tf.tidy(() => {
+    const rewardScalars = [];
+    for (const rewardSequence of normalizedRewards) {
+      const rewardScalarSequence = rewardSequence.map(r => tf.scalar(r));
+      rewardScalars.push(rewardScalarSequence);
+    }
+
+    // TODO(cais): Use tighter tidy() scopes.
+    const gradients = {};
+
+    for (const varName in allGradients) {
+      const varGradients = allGradients[varName];
+
+      const numGames = varGradients.length;
+      gradients[varName] = tf.tidy(() => {
+        let numGradients = 0;
+        let sum = tf.zerosLike(varGradients[0][0]);
+        for (let g = 0; g < numGames; ++g) {
+          const numSteps = varGradients[g].length;
+          for (let s = 0; s < numSteps; ++s) {
+            // TODO(cais): Use broadcasting, vectorized multiplication for
+            //   performance?
+            const scaledGradients =
+                varGradients[g][s].mul(rewardScalars[g][s]);
+            sum = sum.add(scaledGradients);
+            numGradients++;
+          }
+        }
+        return sum.div(tf.scalar(numGradients));
+      });
+    }
+    return gradients;
+  });
+}
 
 const policyNet =  new PolicyNetwork(5);
 
-stepButton.addEventListener('click', () => {
-  // const inputTensor = cartPole.getStateTensor();
-  // const out = policyNet.getGradientsAndSaveActions(inputTensor);
-  // console.log(`out:`, out);  // DEBUG
-  // // crossEntropy.print();  // DEBUG
-  // // TODO(cais): Do not use private member.
-  // const [state, done] = cartPole.update(policyNet.getCurrentActions()[0]);
-  // console.log(`done = ${done}`);  // DEBUG
-  // cartPole.render(cartPoleCanvas);
-
+trainButton.addEventListener('click', () => {
+  const trainIterations = Number.parseInt(numIterationsInput.value);
+  console.log('trainIterations:', trainIterations);
+  // TODO(cais): Value sanity checks.
   const discountRate = 0.95;
-  const numGames = 1;
+  const numGames = 20;
   const maxStepsPerGame = 200;
+  const learningRate = 0.05;
 
+  const optimizer = tf.train.adam(learningRate);
 
-  policyNet.train(cartPole, null, discountRate, numGames, maxStepsPerGame);
-
+  for (let i = 0; i < trainIterations; ++i) {
+    policyNet.train(
+        cartPole, optimizer, discountRate, numGames, maxStepsPerGame);
+    console.log(`Num tensor = ${tf.memory().numTensors}`);  // DEBUG
+  }
 });

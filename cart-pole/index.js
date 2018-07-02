@@ -59,7 +59,7 @@ class PolicyNetwork {
     });
   }
 
-  train(cartPoleSystem,
+  async train(cartPoleSystem,
         optimizer,
         discountRate,
         numGames,
@@ -82,7 +82,6 @@ class PolicyNetwork {
           const action = this.currentActions_[0];
           const isDone = cartPoleSystem.update(action);
           // cartPoleSystem.render(cartPoleCanvas);
-          // await tf.nextFrame();
           if (isDone) {
             console.log('Done!');
             gameRewards.push(0);
@@ -97,12 +96,10 @@ class PolicyNetwork {
         gameSteps.push(gameRewards.length);
         this.pushGradients_(allGradients, gameGradients);
         allRewards.push(gameRewards);
-        // TODO(cais): Dispose all gradient tensors.
       }
       console.log(`game steps = ${gameSteps}, mean = ${mean(gameSteps)}`);
       const normalizedRewards =
           discountAndNormalizeRewards(allRewards, discountRate);
-      // console.log('normalizedRewards:', normalizedRewards);  // DEBUG
 
       const gradientsToApply =
           scaleAndAverageGradients(allGradients, normalizedRewards);
@@ -220,7 +217,7 @@ function scaleAndAverageGradients(allGradients, normalizedRewards) {
 
 const policyNet =  new PolicyNetwork(5);
 
-trainButton.addEventListener('click', () => {
+trainButton.addEventListener('click', async () => {
   const trainIterations = Number.parseInt(numIterationsInput.value);
   console.log('trainIterations:', trainIterations);
   // TODO(cais): Value sanity checks.
@@ -232,7 +229,7 @@ trainButton.addEventListener('click', () => {
   const optimizer = tf.train.adam(learningRate);
 
   for (let i = 0; i < trainIterations; ++i) {
-    policyNet.train(
+    await policyNet.train(
         cartPole, optimizer, discountRate, numGames, maxStepsPerGame);
     console.log(`Num tensor = ${tf.memory().numTensors}`);  // DEBUG
   }

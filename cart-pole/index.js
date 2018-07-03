@@ -27,9 +27,7 @@ class PolicyNetwork {
       this.currentActions_ = actions.dataSync();
       const labels = this.oneTensor_.sub(
           tf.tensor2d(this.currentActions_, actions.shape));
-      const crossEntropy =
-          tf.sigmoidCrossEntropyWithLogits(labels, logits).asScalar();
-      return crossEntropy;
+      return tf.sigmoidCrossEntropyWithLogits(labels, logits).asScalar();
     });
     return tf.variableGrads(f);
   }
@@ -60,28 +58,27 @@ class PolicyNetwork {
   }
 
   async train(cartPoleSystem,
-        optimizer,
-        discountRate,
-        numGames,
-        maxStepsPerGame) {
-    tf.tidy(() => {
+              optimizer,
+              discountRate,
+              numGames,
+              maxStepsPerGame) {
       const allGradients = [];
       const allRewards = [];
       const gameSteps = [];
+      // let totalStepCounter = 0;
       for (let i = 0; i < numGames; ++i) {
         cartPoleSystem.setRandomState();
         const gameRewards = [];
         const gameGradients = [];
         for (let j = 0; j < maxStepsPerGame; ++j) {
-          const inputTensor = cartPoleSystem.getStateTensor();
-          const gradients =
-              this.getGradientsAndSaveActions(inputTensor).grads;
-          inputTensor.dispose();
+          const gradients = tf.tidy(() => {
+            const inputTensor = cartPoleSystem.getStateTensor();
+            return this.getGradientsAndSaveActions(inputTensor).grads;
+          });
 
           this.pushGradients_(gameGradients, gradients);
           const action = this.currentActions_[0];
           const isDone = cartPoleSystem.update(action);
-          // cartPoleSystem.render(cartPoleCanvas);
           if (isDone) {
             console.log('Done!');
             gameRewards.push(0);
@@ -96,15 +93,18 @@ class PolicyNetwork {
         gameSteps.push(gameRewards.length);
         this.pushGradients_(allGradients, gameGradients);
         allRewards.push(gameRewards);
+        await tf.nextFrame();
       }
       console.log(`game steps = ${gameSteps}, mean = ${mean(gameSteps)}`);
-      const normalizedRewards =
-          discountAndNormalizeRewards(allRewards, discountRate);
 
-      const gradientsToApply =
-          scaleAndAverageGradients(allGradients, normalizedRewards);
-      optimizer.applyGradients(gradientsToApply);
-    });
+      tf.tidy(() => {
+        const normalizedRewards =
+            discountAndNormalizeRewards(allRewards, discountRate);
+        const gradientsToApply =
+            scaleAndAverageGradients(allGradients, normalizedRewards);
+        optimizer.applyGradients(gradientsToApply);
+      });
+      tf.dispose(allGradients);
   }
 
   pushGradients_(record, gradients) {
@@ -135,29 +135,31 @@ function discountRewards(rewards, discountRate) {
 }
 
 function discountAndNormalizeRewards(rewardSequences, discountRate) {
-  const discounted = [];
-  for (const sequence of rewardSequences) {
-    discounted.push(discountRewards(sequence, discountRate))
-  }
+  return tf.tidy(() => {
+    const discounted = [];
+    for (const sequence of rewardSequences) {
+      discounted.push(discountRewards(sequence, discountRate))
+    }
 
-  // Compute the overall mean and stddev.
-  const flattened = [];
-  for (const sequence of discounted) {
-    flattened.push(...sequence);
-  }
-  const [mean, std] = tf.tidy(() => {
-    const r = tf.tensor1d(flattened);
-    const mean = tf.mean(r);
-    const std = tf.sqrt(tf.mean(tf.square(r.sub(mean))));
-    return [mean.dataSync()[0], std.dataSync()[0]];
+    // Compute the overall mean and stddev.
+    const flattened = [];
+    for (const sequence of discounted) {
+      flattened.push(...sequence);
+    }
+    const [mean, std] = tf.tidy(() => {
+      const r = tf.tensor1d(flattened);
+      const mean = tf.mean(r);
+      const std = tf.sqrt(tf.mean(tf.square(r.sub(mean))));
+      return [mean.dataSync()[0], std.dataSync()[0]];
+    });
+
+    // TODO(cais): Maybe normalized should be a tf.Tensor.
+    const normalized = [];
+    for (const rs of discounted) {
+      normalized.push(rs.map(r => (r - mean) / std));
+    }
+    return normalized;
   });
-
-  // TODO(cais): Maybe normalized should be a tf.Tensor.
-  const normalized = [];
-  for (const rs of discounted) {
-    normalized.push(rs.map(r => (r - mean) / std));
-  }
-  return normalized;
 }
 
 const cartPoleCanvas = document.getElementById('cart-pole-canvas');
@@ -219,7 +221,6 @@ const policyNet =  new PolicyNetwork(5);
 
 trainButton.addEventListener('click', async () => {
   const trainIterations = Number.parseInt(numIterationsInput.value);
-  console.log('trainIterations:', trainIterations);
   // TODO(cais): Value sanity checks.
   const discountRate = 0.95;
   const numGames = 20;
@@ -231,6 +232,6 @@ trainButton.addEventListener('click', async () => {
   for (let i = 0; i < trainIterations; ++i) {
     await policyNet.train(
         cartPole, optimizer, discountRate, numGames, maxStepsPerGame);
-    console.log(`Num tensor = ${tf.memory().numTensors}`);  // DEBUG
+    await tf.nextFrame();
   }
 });

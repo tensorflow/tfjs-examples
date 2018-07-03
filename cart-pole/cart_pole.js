@@ -80,12 +80,14 @@ export class CartPole {
    * Get current state as a tf.Tensor of shape [1, 4].
    */
   getStateTensor() {
-    const buffer = new tf.TensorBuffer([1, 4]);
-    buffer.set(this.x, 0, 0);
-    buffer.set(this.xDot, 0, 1);
-    buffer.set(this.theta, 0, 2);
-    buffer.set(this.thetaDot, 0, 3);
-    return buffer.toTensor();
+    return tf.tidy(() => {
+      const buffer = new tf.TensorBuffer([1, 4]);
+      buffer.set(this.x, 0, 0);
+      buffer.set(this.xDot, 0, 1);
+      buffer.set(this.theta, 0, 2);
+      buffer.set(this.thetaDot, 0, 3);
+      return buffer.toTensor();
+    });
   }
 
   /**

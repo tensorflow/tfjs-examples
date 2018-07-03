@@ -23,8 +23,14 @@ limitations under the License.
   <body>
 
   <style>
+    #app-status {
+      color: blue;
+      font-size: 150%;
+      padding-bottom: 1em;
+    }
     button {
       font-size: 105%;
+      min-width: 120px;
     }
     #demo-status {
       font-family: Monospace;
@@ -85,6 +91,12 @@ limitations under the License.
       color: white;
     }
 
+    .horizontal-sections {
+      display: inline-block;
+      padding-right: 20px;
+      vertical-align: top;
+      border: 1px #AAA solid;
+    }
     .region {
       margin-top: 6px;
       margin-bottom: 6px;
@@ -98,59 +110,72 @@ limitations under the License.
       display: inline-block;
       width: 150px;
     }
+    .buttons-section {
+      float: right;
+    }
 
     .region-title {
       font-weight: bold;
     }
 
-    .load-save-section {
-      padding-top: 3px;
-      padding-bottom: 3px;
-    }
-
-    .logit-span {
-      padding-right: 1em;
-    }
-    .correct-prediction {
-      background-color: greenyellow
-    }
-    .wrong-prediction {
-      background-color: red;
-    }
   </style>
 
   <body>
-    <h1>TensorFlow.js Layers:<br/>Cart Pole Reinforcement Learning</h1>
+    <h1>TensorFlow.js Example:<br/>Reinforcement Learning: Cart Pole </h1>
 
     <div>
       <div>
+        <div class="horizontal-sections">
           <div class="input-div">
             <span class="input-label">Locally-stored model</span>
             <input id="stored-model-status" value="N/A" readonly="true"></input>
-            <button id="delete-stored-model" disabled="true">Delete locally-stored model</button>
+            <button id="delete-stored-model" disabled="true">Delete</button>
+          </div>
+          <div class="input-div">
+            <span class="input-label">Number of iterations:</span>
+            <input id="num-iterations" value="20"></input>
+          </div>
+          <div class="input-div">
+            <span class="input-label">Games per iteration:</span>
+            <input id="games-per-iteration" value="20"></input>
+          </div>
+          <div class="input-div">
+            <span class="input-label">Max. steps per game:</span>
+            <input id="max-steps-per-game" value="500"></input>
+          </div>
+          <div class="input-div">
+            <span class="input-label">Reward discount rate:</span>
+            <input id="discount-rate" value="0.95"></input>
+          </div>
+          <div class="input-div">
+            <span class="input-label">Learning rate:</span>
+            <input id="learning-rate" value="0.05"></input>
+          </div>
+          <div class="buttons-section">
+            <button id="train">Train</button>
+            <button id="test">Test</button>
+          </div>
         </div>
-        <div class="input-div">
-          <span class="input-label">Number of iterations:</span>
-          <input id="num-iterations" value="20"></input>
+
+        <div class="horizontal-sections">
+          <div>
+            <span id="iteration-status" class="status-span"></span>
+            <progress value="0" max="100" id="iteration-progress"></progress>
+          </div>
+          <div>
+            <span id="train-status" class="status-span"></span>
+            <progress value="0" max="100" id="train-progress"></progress>
+          </div>
+          <div class="canvases" id="steps-canvas"></div>
         </div>
-        <button id="train">Train</button>
-        <div>
-          <span id="iteration-status" class="status-span"></span>
-          <progress value="0" max="100" id="iteration-progress"></progress>
-        </div>
-        <div>
-          <span id="train-status" class="status-span"></span>
-          <progress value="0" max="100" id="train-progress"></progress>
-        </div>
-        <div class="canvases" id="steps-canvas"></div>
       </div>
 
-      <div id="horizontal-section">
+      <div>
+        <span id="app-status">Standing by.</span>
+      </div>
+
+      <div>
         <canvas id="cart-pole-canvas" height="400px" width="600px"></canvas>
-        <button id="left">Left</button>
-        <button id="right">Right</button>
-        <button id="test">Test</button>
-        <span id="test-result"></span>
       </div>
     </div>
 

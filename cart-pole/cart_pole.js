@@ -129,10 +129,10 @@ export class CartPole {
    * @returns {bool} Whether the simulation is done.
    */
   isDone() {
-    return (this.x < -this.xThreshold ||
-            this.x > this.xThreshold ||
-            this.theta < -this.thetaTheshold ||
-            this.theta > this.thetaTheshold);
+    return this.x < -this.xThreshold ||
+           this.x > this.xThreshold ||
+           this.theta < -this.thetaTheshold ||
+           this.theta > this.thetaTheshold;
   }
 
   /**

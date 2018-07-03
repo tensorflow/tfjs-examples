@@ -16,9 +16,8 @@
  */
 
 import * as tf from '@tensorflow/tfjs';
-import embed from 'vega-embed';
 
-import {CartPole} from './cart_pole';
+import {onGameEnd, setUpUI} from './ui';
 
 /**
  * Policy network for controlling the cart-pole system.
@@ -119,7 +118,6 @@ class PolicyNetwork {
       allRewards.push(gameRewards);
       await tf.nextFrame();
     }
-    console.log(`game steps = ${gameSteps}, mean = ${mean(gameSteps)}`);
 
     tf.tidy(() => {
       const normalizedRewards =
@@ -143,7 +141,7 @@ class PolicyNetwork {
   }
 }
 
-class SaveablePolicyNetwork extends PolicyNetwork {
+export class SaveablePolicyNetwork extends PolicyNetwork {
   constructor(hiddenLayerSizes) {
     super(hiddenLayerSizes);
     this.MODEL_SAVE_PATH_ = 'indexeddb://cart-pole-v1';
@@ -187,10 +185,6 @@ class SaveablePolicyNetwork extends PolicyNetwork {
     const modelsInfo = await tf.io.listModels();
     return modelsInfo[this.MODEL_SAVE_PATH_];
   }
-}
-
-function mean(xs) {
-  return xs.reduce((x, prev) => prev + x) / xs.length;
 }
 
 function discountRewards(rewards, discountRate) {
@@ -269,153 +263,4 @@ function scaleAndAverageGradients(allGradients, normalizedRewards) {
   });
 }
 
-let policyNet;
-
-(async function() {
-  policyNet = new SaveablePolicyNetwork(5);
-  if (await policyNet.checkStoredModelStatus() != null) {
-    policyNet.loadModel();
-  }
-  await updateLocallyStoredModelStatus();
-})();
-
-
-
-const cartPole = new CartPole(true);
-
-// TODO(cais): Move to ui.js.
-const storedModelStatusInput = document.getElementById('stored-model-status');
-const deleteStoredModel = document.getElementById('delete-stored-model');
-const cartPoleCanvas = document.getElementById('cart-pole-canvas');
-const numIterationsInput = document.getElementById('num-iterations');
-const leftButton = document.getElementById('left');
-const rightButton = document.getElementById('right');
-const trainButton = document.getElementById('train');
-const testButton = document.getElementById('test');
-const testResult = document.getElementById('test-result');
-const iterationStatus = document.getElementById('iteration-status');
-const iterationProgress = document.getElementById('iteration-progress');
-const trainStatus = document.getElementById('train-status');
-const trainProgress = document.getElementById('train-progress');
-
-cartPole.render(cartPoleCanvas);
-
-leftButton.addEventListener('click', () => {
-  cartPole.update(-1);
-  cartPole.render(cartPoleCanvas);
-});
-
-rightButton.addEventListener('click', () => {
-  cartPole.update(1);
-  cartPole.render(cartPoleCanvas);
-});
-
-
-let meanStepValues = [];
-
-function onGameEnd(gameCount, totalGames) {
-  iterationStatus.textContent = `Game ${gameCount} of ${totalGames}`;
-  iterationProgress.value = gameCount / totalGames * 100;
-}
-
-function onIterationEnd(iterationCount, totalIterations) {
-  trainStatus.textContent =
-      `Iteration ${iterationCount} of ${totalIterations}`;
-  trainProgress.value =iterationCount / totalIterations * 100;
-}
-
-function plotSteps() {
-  embed(
-      '#steps-canvas', {
-        '$schema': 'https://vega.github.io/schema/vega-lite/v2.json',
-        'data': {'values': meanStepValues},
-        'mark': 'line',
-        'encoding': {
-          'x': {'field': 'iteration', 'type': 'ordinal'},
-          'y': {'field': 'meanSteps', 'type': 'quantitative'},
-        },
-        'width': 300,
-      },
-      {});
-}
-
-// TODO(cais): Move to ui.js.
-function disableUI() {
-  trainButton.disabled = true;
-  testButton.disabled = true;
-}
-
-function enableUI() {
-  trainButton.disabled = false;
-  testButton.disabled = false;
-}
-
-async function updateLocallyStoredModelStatus() {
-  const modelInfo = await policyNet.checkStoredModelStatus();
-  if (modelInfo == null) {
-    storedModelStatusInput.value = 'No stored model.';
-    deleteStoredModel.disabled = true;
-  } else {
-    storedModelStatusInput.value =
-        `Saved @ ${modelInfo.dateSaved.toISOString()}`;
-    deleteStoredModel.disabled = false;
-  }
-}
-
-deleteStoredModel.addEventListener('click', async () => {
-  if (confirm(
-      `Are you sure you want to delete the locally-stored model?`)) {
-    await policyNet.removeModel();
-  }
-  await updateLocallyStoredModelStatus();
-});
-
-trainButton.addEventListener('click', async () => {
-  disableUI();
-  const trainIterations = Number.parseInt(numIterationsInput.value);
-  // TODO(cais): Value sanity checks.
-  const discountRate = 0.95;
-  const numGames = 20;
-  const maxStepsPerGame = 200;
-  const learningRate = 0.05;
-
-  const optimizer = tf.train.adam(learningRate);
-
-  meanStepValues = [];
-  onIterationEnd(0, trainIterations);
-  for (let i = 0; i < trainIterations; ++i) {
-    const gameSteps = await policyNet.train(
-        cartPole, optimizer, discountRate, numGames, maxStepsPerGame);
-    meanStepValues.push({
-      iteration: i + 1,
-      meanSteps: mean(gameSteps)
-    });
-    console.log(`# of tensors: ${tf.memory().numTensors}`);  // DEBUG
-    plotSteps();
-    onIterationEnd(i + 1, trainIterations);
-    await policyNet.saveModel();
-    await updateLocallyStoredModelStatus();
-    await tf.nextFrame();
-  }
-  enableUI();
-});
-
-testButton.addEventListener('click', async () => {
-  disableUI();
-  let isDone = false;
-  const cartPole = new CartPole(true);
-  cartPole.setRandomState();
-  let steps = 0;
-  while (!isDone) {
-    steps++;
-    tf.tidy(() => {
-      const action =
-          policyNet.getLogitsAndActions(cartPole.getStateTensor())[1].dataSync()[0];
-      isDone = cartPole.update(action);
-      cartPole.render(cartPoleCanvas);
-    });
-    await tf.nextFrame();
-  }
-  testResult.textContent = `Survived ${steps} step(s).`;
-  enableUI();
-});
+setUpUI();

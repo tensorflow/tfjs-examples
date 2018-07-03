@@ -98,8 +98,8 @@ class PolicyNetwork {
         this.pushGradients_(gameGradients, gradients);
         const action = this.currentActions_[0];
         const isDone = cartPoleSystem.update(action);
-        cartPoleSystem.render(cartPoleCanvas);
-        await tf.nextFrame();
+        // cartPoleSystem.render(cartPoleCanvas);
+        // wait tf.nextFrame();
         if (isDone) {
           gameRewards.push(0);
           onGameEnd(i + 1, numGames);
@@ -329,7 +329,7 @@ testButton.addEventListener('click', async () => {
     steps++;
     tf.tidy(() => {
       const action =
-          policyNet.getLogitsAndActions(cartPole.getStateTensor())[1];
+          policyNet.getLogitsAndActions(cartPole.getStateTensor())[1].dataSync()[0];
       isDone = cartPole.update(action);
       cartPole.render(cartPoleCanvas);
     });

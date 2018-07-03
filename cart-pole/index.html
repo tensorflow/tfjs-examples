@@ -93,6 +93,10 @@ limitations under the License.
       border-width: 1px;
       border-color: #888;
     }
+    .status-span {
+      display: inline-block;
+      width: 150px;
+    }
 
     .region-title {
       font-weight: bold;
@@ -115,7 +119,7 @@ limitations under the License.
   </style>
 
   <body>
-    <h1>TensorFlow.js Layers: Cart Pole Reinforcement Learning</h1>
+    <h1>TensorFlow.js Layers:<br/>Cart Pole Reinforcement Learning</h1>
 
     <div>
       <div>
@@ -124,14 +128,23 @@ limitations under the License.
           <input id="num-iterations" value="20"></input>
         </div>
         <button id="train">Train</button>
+        <div>
+          <span id="iteration-status" class="status-span"></span>
+          <progress value="0" max="100" id="iteration-progress"></progress>
+        </div>
+        <div>
+          <span id="train-status" class="status-span"></span>
+          <progress value="0" max="100" id="train-progress"></progress>
+        </div>
+        <div class="canvases" id="steps-canvas"></div>
       </div>
 
       <div id="horizontal-section">
         <canvas id="cart-pole-canvas" height="400px" width="600px"></canvas>
         <button id="left">Left</button>
         <button id="right">Right</button>
-
-        <div class="canvases" id="steps-canvas"></div>
+        <button id="test">Test</button>
+        <span id="test-result"></span>
       </div>
     </div>
 

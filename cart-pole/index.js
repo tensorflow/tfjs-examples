@@ -1,4 +1,23 @@
+/**
+ * @license
+ * Copyright 2018 Google LLC. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * =============================================================================
+ */
+
 import * as tf from '@tensorflow/tfjs';
+import embed from 'vega-embed';
+
 import {CartPole} from './cart_pole';
 
 /**
@@ -23,7 +42,7 @@ class PolicyNetwork {
 
   getGradientsAndSaveActions(inputTensor) {
     const f = () => tf.tidy(() => {
-      const [logits, actions] = this.getLogitsAndActions_(inputTensor);
+      const [logits, actions] = this.getLogitsAndActions(inputTensor);
       this.currentActions_ = actions.dataSync();
       const labels = this.oneTensor_.sub(
           tf.tensor2d(this.currentActions_, actions.shape));
@@ -43,7 +62,7 @@ class PolicyNetwork {
    * @returns {Float32Array} 0-1 action values for all the examples in the batch,
    *   length = batchSize.
    */
-  getLogitsAndActions_(inputs) {
+  getLogitsAndActions(inputs) {
     return tf.tidy(() => {
       const logits = this.model_.predict(inputs);
 
@@ -65,46 +84,50 @@ class PolicyNetwork {
       const allGradients = [];
       const allRewards = [];
       const gameSteps = [];
-      // let totalStepCounter = 0;
-      for (let i = 0; i < numGames; ++i) {
-        cartPoleSystem.setRandomState();
-        const gameRewards = [];
-        const gameGradients = [];
-        for (let j = 0; j < maxStepsPerGame; ++j) {
-          const gradients = tf.tidy(() => {
-            const inputTensor = cartPoleSystem.getStateTensor();
-            return this.getGradientsAndSaveActions(inputTensor).grads;
-          });
+    onGameEnd(0, numGames);
+    for (let i = 0; i < numGames; ++i) {
+      cartPoleSystem.setRandomState();
+      const gameRewards = [];
+      const gameGradients = [];
+      for (let j = 0; j < maxStepsPerGame; ++j) {
+        const gradients = tf.tidy(() => {
+          const inputTensor = cartPoleSystem.getStateTensor();
+          return this.getGradientsAndSaveActions(inputTensor).grads;
+        });
 
-          this.pushGradients_(gameGradients, gradients);
-          const action = this.currentActions_[0];
-          const isDone = cartPoleSystem.update(action);
-          if (isDone) {
-            console.log('Done!');
-            gameRewards.push(0);
-            break;
-          } else {
-            gameRewards.push(1);
-          }
-          if (j >= maxStepsPerGame) {
-            break;
-          }
-        }
-        gameSteps.push(gameRewards.length);
-        this.pushGradients_(allGradients, gameGradients);
-        allRewards.push(gameRewards);
+        this.pushGradients_(gameGradients, gradients);
+        const action = this.currentActions_[0];
+        const isDone = cartPoleSystem.update(action);
+        cartPoleSystem.render(cartPoleCanvas);
         await tf.nextFrame();
+        if (isDone) {
+          gameRewards.push(0);
+          onGameEnd(i + 1, numGames);
+          break;
+        } else {
+          gameRewards.push(1);
+        }
+        if (j >= maxStepsPerGame) {
+          onGameEnd(i + 1, numGames);
+          break;
+        }
       }
-      console.log(`game steps = ${gameSteps}, mean = ${mean(gameSteps)}`);
+      gameSteps.push(gameRewards.length);
+      this.pushGradients_(allGradients, gameGradients);
+      allRewards.push(gameRewards);
+      await tf.nextFrame();
+    }
+    console.log(`game steps = ${gameSteps}, mean = ${mean(gameSteps)}`);
 
-      tf.tidy(() => {
-        const normalizedRewards =
-            discountAndNormalizeRewards(allRewards, discountRate);
-        const gradientsToApply =
-            scaleAndAverageGradients(allGradients, normalizedRewards);
-        optimizer.applyGradients(gradientsToApply);
-      });
-      tf.dispose(allGradients);
+    tf.tidy(() => {
+      const normalizedRewards =
+          discountAndNormalizeRewards(allRewards, discountRate);
+      const gradientsToApply =
+          scaleAndAverageGradients(allGradients, normalizedRewards);
+      optimizer.applyGradients(gradientsToApply);
+    });
+    tf.dispose(allGradients);
+    return gameSteps;
   }
 
   pushGradients_(record, gradients) {
@@ -162,25 +185,6 @@ function discountAndNormalizeRewards(rewardSequences, discountRate) {
   });
 }
 
-const cartPoleCanvas = document.getElementById('cart-pole-canvas');
-const numIterationsInput = document.getElementById('num-iterations');
-const leftButton = document.getElementById('left');
-const rightButton = document.getElementById('right');
-const trainButton = document.getElementById('train');
-const cartPole = new CartPole(true);
-
-cartPole.render(cartPoleCanvas);
-
-leftButton.addEventListener('click', () => {
-  cartPole.update(-1);
-  cartPole.render(cartPoleCanvas);
-});
-
-rightButton.addEventListener('click', () => {
-  cartPole.update(1);
-  cartPole.render(cartPoleCanvas);
-});
-
 function scaleAndAverageGradients(allGradients, normalizedRewards) {
   return tf.tidy(() => {
     const rewardScalars = [];
@@ -217,9 +221,78 @@ function scaleAndAverageGradients(allGradients, normalizedRewards) {
   });
 }
 
-const policyNet =  new PolicyNetwork(5);
+const policyNet = new PolicyNetwork(5);
+
+const cartPole = new CartPole(true);
+
+// TODO(cais): Move to ui.js.
+const cartPoleCanvas = document.getElementById('cart-pole-canvas');
+const numIterationsInput = document.getElementById('num-iterations');
+const leftButton = document.getElementById('left');
+const rightButton = document.getElementById('right');
+const trainButton = document.getElementById('train');
+const testButton = document.getElementById('test');
+const testResult = document.getElementById('test-result');
+const iterationStatus = document.getElementById('iteration-status');
+const iterationProgress = document.getElementById('iteration-progress');
+const trainStatus = document.getElementById('train-status');
+const trainProgress = document.getElementById('train-progress');
+
+cartPole.render(cartPoleCanvas);
+
+leftButton.addEventListener('click', () => {
+  cartPole.update(-1);
+  cartPole.render(cartPoleCanvas);
+});
+
+rightButton.addEventListener('click', () => {
+  cartPole.update(1);
+  cartPole.render(cartPoleCanvas);
+});
+
+
+let meanStepValues = [];
+
+function onGameEnd(gameCount, totalGames) {
+  iterationStatus.textContent = `Game ${gameCount} of ${totalGames}`;
+  iterationProgress.value = gameCount / totalGames * 100;
+}
+
+function onIterationEnd(iterationCount, totalIterations) {
+  trainStatus.textContent =
+      `Iteration ${iterationCount} of ${totalIterations}`;
+  trainProgress.value =iterationCount / totalIterations * 100;
+}
+
+function plotSteps() {
+  embed(
+      '#steps-canvas', {
+        '$schema': 'https://vega.github.io/schema/vega-lite/v2.json',
+        'data': {'values': meanStepValues},
+        'mark': 'line',
+        'encoding': {
+          'x': {'field': 'iteration', 'type': 'ordinal'},
+          'y': {'field': 'meanSteps', 'type': 'quantitative'},
+        },
+        'width': 300,
+      },
+      {});
+}
+
+// TODO(cais): Move to ui.js.
+function disableUI() {
+  trainButton.disabled = true;
+  testButton.disabled = true;
+}
+
+function enableUI() {
+  trainButton.disabled = false;
+  testButton.disabled = false;
+}
+
 
 trainButton.addEventListener('click', async () => {
+  disableUI();
   const trainIterations = Number.parseInt(numIterationsInput.value);
   // TODO(cais): Value sanity checks.
   const discountRate = 0.95;
@@ -229,9 +302,39 @@ trainButton.addEventListener('click', async () => {
 
   const optimizer = tf.train.adam(learningRate);
 
+  meanStepValues = [];
+  onIterationEnd(0, trainIterations);
   for (let i = 0; i < trainIterations; ++i) {
-    await policyNet.train(
+    const gameSteps = await policyNet.train(
         cartPole, optimizer, discountRate, numGames, maxStepsPerGame);
+    meanStepValues.push({
+      iteration: i + 1,
+      meanSteps: mean(gameSteps)
+    });
+    console.log(`# of tensors: ${tf.memory().numTensors}`);  // DEBUG
+    plotSteps();
+    onIterationEnd(i + 1, trainIterations);
     await tf.nextFrame();
   }
+  enableUI();
+});
+
+testButton.addEventListener('click', async () => {
+  disableUI();
+  let isDone = false;
+  const cartPole = new CartPole(true);
+  cartPole.setRandomState();
+  let steps = 0;
+  while (!isDone) {
+    steps++;
+    tf.tidy(() => {
+      const action =
+          policyNet.getLogitsAndActions(cartPole.getStateTensor())[1];
+      isDone = cartPole.update(action);
+      cartPole.render(cartPoleCanvas);
+    });
+    await tf.nextFrame();
+  }
+  testResult.textContent = `Survived ${steps} step(s).`;
+  enableUI();
 });

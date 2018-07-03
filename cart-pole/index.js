@@ -27,12 +27,14 @@ class PolicyNetwork {
   /**
    * Constructor of PolicyNetwork.
    *
-   * @param {number} hiddenLayerSize Size of the hidden layer.
+   * @param {number | number[]} hiddenLayerSizes Size of the hidden layer, as
+   *   a single number (for a single hidden layer) or an Array of numbers (for
+   *   any number of hidden layers).
    */
-  constructor(hiddenLayerSize) {
+  constructor(hiddenLayerSizes) {
     this.model_ = tf.sequential();
     this.model_.add(tf.layers.dense({
-      units: hiddenLayerSize,
+      units: hiddenLayerSizes,
       activation: 'elu',
       inputShape: [4]
     }));
@@ -141,6 +143,52 @@ class PolicyNetwork {
   }
 }
 
+class SaveablePolicyNetwork extends PolicyNetwork {
+  constructor(hiddenLayerSizes) {
+    super(hiddenLayerSizes);
+    this.MODEL_SAVE_PATH_ = 'indexeddb://cart-pole-v1';
+  }
+
+  async saveModel() {
+    return await this.model_.save(this.MODEL_SAVE_PATH_);
+  }
+
+  async loadModel() {
+    const modelsInfo = await tf.io.listModels();
+    if (this.MODEL_SAVE_PATH_ in modelsInfo) {
+      console.log(`Loading existing model...`);
+      this.model_ = await tf.loadModel(this.MODEL_SAVE_PATH_);
+      console.log(`Loaded model from ${this.MODEL_SAVE_PATH_}`);
+    } else {
+      throw new Error(
+          `Cannot find model at ${this.MODEL_SAVE_PATH_}. ` +
+          `Creating model from scratch.`);
+    }
+  }
+
+  /**
+   * Remove the locally saved model from IndexedDB.
+   */
+  async removeModel() {
+    if (await this.checkStoredModelStatus() == null) {
+      throw new Error(
+          'Cannot remove locally saved model because it does not exist.');
+    }
+    return await tf.io.removeModel(this.MODEL_SAVE_PATH_);
+  }
+
+  /**
+   * Check the status of locally saved model.
+   *
+   * @returns If the locally saved model exists, the model info as a JSON
+   *   object. Else, `undefined`.
+   */
+  async checkStoredModelStatus() {
+    const modelsInfo = await tf.io.listModels();
+    return modelsInfo[this.MODEL_SAVE_PATH_];
+  }
+}
+
 function mean(xs) {
   return xs.reduce((x, prev) => prev + x) / xs.length;
 }
@@ -221,11 +269,23 @@ function scaleAndAverageGradients(allGradients, normalizedRewards) {
   });
 }
 
-const policyNet = new PolicyNetwork(5);
+let policyNet;
+
+(async function() {
+  policyNet = new SaveablePolicyNetwork(5);
+  if (await policyNet.checkStoredModelStatus() != null) {
+    policyNet.loadModel();
+  }
+  await updateLocallyStoredModelStatus();
+})();
+
+
 
 const cartPole = new CartPole(true);
 
 // TODO(cais): Move to ui.js.
+const storedModelStatusInput = document.getElementById('stored-model-status');
+const deleteStoredModel = document.getElementById('delete-stored-model');
 const cartPoleCanvas = document.getElementById('cart-pole-canvas');
 const numIterationsInput = document.getElementById('num-iterations');
 const leftButton = document.getElementById('left');
@@ -290,6 +350,25 @@ function enableUI() {
   testButton.disabled = false;
 }
 
+async function updateLocallyStoredModelStatus() {
+  const modelInfo = await policyNet.checkStoredModelStatus();
+  if (modelInfo == null) {
+    storedModelStatusInput.value = 'No stored model.';
+    deleteStoredModel.disabled = true;
+  } else {
+    storedModelStatusInput.value =
+        `Saved @ ${modelInfo.dateSaved.toISOString()}`;
+    deleteStoredModel.disabled = false;
+  }
+}
+
+deleteStoredModel.addEventListener('click', async () => {
+  if (confirm(
+      `Are you sure you want to delete the locally-stored model?`)) {
+    await policyNet.removeModel();
+  }
+  await updateLocallyStoredModelStatus();
+});
 
 trainButton.addEventListener('click', async () => {
   disableUI();
@@ -314,6 +393,8 @@ trainButton.addEventListener('click', async () => {
     console.log(`# of tensors: ${tf.memory().numTensors}`);  // DEBUG
     plotSteps();
     onIterationEnd(i + 1, trainIterations);
+    await policyNet.saveModel();
+    await updateLocallyStoredModelStatus();
     await tf.nextFrame();
   }
   enableUI();

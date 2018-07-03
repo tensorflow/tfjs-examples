@@ -31,7 +31,8 @@ limitations under the License.
       font-weight: bold;
     }
     input {
-      width: 75px;
+      font-family: monospace;
+      width: 200px;
     }
 
     .input-div {
@@ -123,6 +124,11 @@ limitations under the License.
 
     <div>
       <div>
+          <div class="input-div">
+            <span class="input-label">Locally-stored model</span>
+            <input id="stored-model-status" value="N/A" readonly="true"></input>
+            <button id="delete-stored-model" disabled="true">Delete locally-stored model</button>
+        </div>
         <div class="input-div">
           <span class="input-label">Number of iterations:</span>
           <input id="num-iterations" value="20"></input>

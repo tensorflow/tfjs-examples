@@ -141,8 +141,8 @@ export class CartPole {
    * @param {HTMLCanvasElement} canvas
    */
   render(canvas) {
-    const X_MIN = -2;
-    const X_MAX = 2;
+    const X_MIN = -this.xThreshold;
+    const X_MAX = this.xThreshold;
     const xRange = X_MAX - X_MIN;
     const scale = canvas.width / xRange;
 

@@ -16,7 +16,7 @@
  */
 
 /**
- * Based on: http://incompleteideas.net/book/code/pole.c
+ * Implementation based on: http://incompleteideas.net/book/code/pole.c
  */
 
 import * as tf from '@tensorflow/tfjs';
@@ -32,7 +32,9 @@ import * as tf from '@tensorflow/tfjs';
  *     a vertical position.
  *   - thetaDot: The angular velocity of the pole.
  *
- * The system is controlled through a single action.
+ * The system is controlled through a single action:
+ *
+ *   - leftward or rightward force.
  */
 export class CartPole {
 

@@ -15,6 +15,25 @@
  * =============================================================================
  */
 
+/**
+ * TensorFlow.js Reinforcement Learning Example: Balancing a Cart-Pole System.
+ *
+ * The simulation, training, testing and visualization parts are written
+ * purely in JavaScript and can run in the web browser with WebGL acceleration.
+ *
+ * This reinforcement learning (RL) problem was proposed in:
+ *
+ * - Barto, Sutton, and Anderson, "Neuronlike Adaptive Elements That Can Solve
+ *   Difficult Learning Control Problems," IEEE Trans. Syst., Man, Cybern.,
+ *   Vol. SMC-13, pp. 834--846, Sept.--Oct. 1983
+ * - Sutton, "Temporal Aspects of Credit Assignment in Reinforcement Learning",
+ *   Ph.D. Dissertation, Department of Computer and Information Science,
+ *   University of Massachusetts, Amherst, 1984.
+ *
+ * It later became one of OpenAI's gym environmnets:
+ *   https://github.com/openai/gym/blob/master/gym/envs/classic_control/cartpole.py
+ */
+
 import * as tf from '@tensorflow/tfjs';
 
 import {maybeRenderDuringTraining, onGameEnd, setUpUI} from './ui';

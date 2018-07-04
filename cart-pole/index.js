@@ -109,12 +109,12 @@ class PolicyNetwork {
    *   training.
    * @param {tf.train.Optimizer} optimizer An instance of TensorFlow.js
    *   Optimizer to use for training.
-   * @param {number} discountRate Reward discounting rate: a number between
+   * @param {number} discountRate Reward discounting rate: a number between 0
    *   and 1.
    * @param {number} numGames Number of game to play for each model parameter
    *   update.
    * @param {number} maxStepsPerGame Maximum number of steps to perform during
-   *   a game. If this number is reached, the game will be ended immediately.
+   *   a game. If this number is reached, the game will end immediately.
    * @returns {number[]} The number of steps completed in the `numGames` games
    *   in this round of training.
    */
@@ -173,7 +173,7 @@ class PolicyNetwork {
   }
 
   /**
-   * Push new dictionary of gradients into records.
+   * Push a new dictionary of gradients into records.
    *
    * @param {{[varName: string]: tf.Tensor[]}} record The record of variable
    *   gradient: a map from variable name to the Array of gradient values for
@@ -271,6 +271,14 @@ export class SaveablePolicyNetwork extends PolicyNetwork {
   }
 }
 
+/**
+ * Discount the reward values.
+ *
+ * @param {number[]} rewards The reward values to be discounted.
+ * @param {number} discountRate Discount rate: a number between 0 and 1, e.g.,
+ *   0.95.
+ * @returns {tf.Tensor} The discounted reward values as a 1D tf.Tensor.
+ */
 function discountRewards(rewards, discountRate) {
   const discountedBuffer = tf.buffer([rewards.length]);
   let prev = 0;
@@ -279,10 +287,24 @@ function discountRewards(rewards, discountRate) {
     discountedBuffer.set(current, i);
     prev = current;
   }
-  // discounted.reverse();
   return discountedBuffer.toTensor();
 }
 
+/**
+ * Discount and normalize reward values.
+ *
+ * This function perrforms two steps:
+ *
+ * 1. Discounts the reward values using `discountRate`.
+ * 2. Normalize the reward values with the global reward mean and standard
+ *    deviation.
+ *
+ * @param {number[][]} rewardSequences Sequences of reward values.
+ * @param {number} discountRate Discount rate: a number between 0 and 1, e.g.,
+ *   0.95.
+ * @returns {tf.Tensor[]} The discounted and normalize reward values as an
+ *   Array of tf.Tensor.
+ */
 function discountAndNormalizeRewards(rewardSequences, discountRate) {
   return tf.tidy(() => {
     const discounted = [];
@@ -299,30 +321,45 @@ function discountAndNormalizeRewards(rewardSequences, discountRate) {
   });
 }
 
+/**
+ * Scale the gradient values using normalized reward values and compute average.
+ *
+ * The gradient values are scaled by the normalized reward values. Then they
+ * are averaged across all games and all steps.
+ *
+ * @param {{[varName: string]: tf.Tensor[][]}} allGradients A map from variable
+ *   name to all the gradient values for the variable across all games and all
+ *   steps.
+ * @param {tf.Tensor[]} normalizedRewards An Array of normalized reward values
+ *   for all the games. Each element of the Array is a 1D tf.Tensor of which
+ *   the length equals the number of steps in the game.
+ * @returns {{[varName: string]: tf.Tensor}} Scaled and averaged gradients
+ *   for the variables.
+ */
 function scaleAndAverageGradients(allGradients, normalizedRewards) {
   return tf.tidy(() => {
-    // TODO(cais): Use tighter tidy() scopes?
-    console.log('normalizedRewards:', normalizedRewards);  // DEBUG
-
-    // Stack gradients together.
     const gradients = {};
     for (const varName in allGradients) {
-      const varAllGradients = allGradients[varName];
-      gradients[varName] =
-          varAllGradients.map(varGameGradients => tf.stack(varGameGradients));
-      for (let g = 0; g < gradients[varName].length; ++g) {
-        // This mul() call uses broadcasting.
+      gradients[varName] = tf.tidy(() => {
+        // Stack gradients together.
+        const varGradients = allGradients[varName].map(
+            varGameGradients => tf.stack(varGameGradients));
+        // Expand dimensions of reward tensors to prepare for multiplication
+        // with broadcasting.
         const expandedDims = [];
-        for (let i = 0; i < gradients[varName][g].rank - 1; ++i) {
+        for (let i = 0; i < varGradients[0].rank - 1; ++i) {
           expandedDims.push(1);
         }
-        gradients[varName][g] = gradients[varName][g].mul(
-            normalizedRewards[g].reshape(
-                normalizedRewards[g].shape.concat(expandedDims)));
-      }
-      // Concatenate the scaled gradients together, then average them across all
-      // the steps of all the games.
-      gradients[varName] = tf.mean(tf.concat(gradients[varName], 0), 0);
+        const reshapedNormalizedRewards = normalizedRewards.map(
+            rs => rs.reshape(rs.shape.concat(expandedDims)));
+        for (let g = 0; g < varGradients.length; ++g) {
+          // This mul() call uses broadcasting.
+          varGradients[g] = varGradients[g].mul(reshapedNormalizedRewards[g]);
+        }
+        // Concatenate the scaled gradients together, then average them across
+        // all the steps of all the games.
+        return tf.mean(tf.concat(varGradients, 0), 0);
+      });
     }
     return gradients;
   });

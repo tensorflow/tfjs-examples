@@ -199,8 +199,6 @@ export async function setUpUI() {
             cartPole, optimizer, discountRate, gamesPerIteration,
             maxStepsPerGame);
         const t1 = new Date().getTime();
-        console.log(gameSteps);
-        console.log(sum(gameSteps));
         const stepsPerSecond = sum(gameSteps) / ((t1 - t0) / 1e3);
         t0 = t1;
         trainSpeed.textContent = `${stepsPerSecond.toFixed(1)} steps/s`

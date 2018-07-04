@@ -22,5 +22,20 @@
  * @returns {number} The arithmetic mean of `xs`
  */
 export function mean(xs) {
-  return xs.reduce((x, prev) => prev + x) / xs.length;
+  return sum(xs) / xs.length;
+}
+
+/**
+ * Calculate the sum of an Array of numbers.
+ *
+ * @param {number[]} xs
+ * @returns {number} The sum of `xs`.
+ * @throws Error if `xs` is empty.
+ */
+export function sum(xs) {
+  if (xs.length === 0) {
+    throw new Error('Expected xs to be a non-empty Array.');
+  } else {
+    return xs.reduce((x, prev) => prev + x);
+  }
 }

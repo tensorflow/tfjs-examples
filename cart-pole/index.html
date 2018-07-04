@@ -135,7 +135,7 @@ limitations under the License.
       <div>
         <div class="horizontal-sections">
           <div class="input-div">
-            <span class="input-label">Locally-stored model</span>
+            <span class="input-label">Locally-stored network</span>
             <input id="stored-model-status" value="N/A" disabled="true" readonly="true"></input>
             <button id="delete-stored-model" disabled="true">Delete</button>
           </div>
@@ -168,6 +168,10 @@ limitations under the License.
             <span class="input-label">Learning rate:</span>
             <input id="learning-rate" value="0.05"></input>
           </div>
+          <div class="input-div">
+            <span class="input-label">Render during training:</span>
+            <input type="checkbox" id="render-during-training" />
+          </div>
           <div class="buttons-section">
             <button id="train" disabled="true">Train</button>
             <button id="test" disabled="true">Test</button>
@@ -183,12 +187,16 @@ limitations under the License.
             <span id="train-status" class="status-span"></span>
             <progress value="0" max="100" id="train-progress"></progress>
           </div>
+          <div>
+            <span class="status-span">Training speed:</span>
+            <span id="train-speed" class="status-span"></span>
+          </div>
           <div class="canvases" id="steps-canvas"></div>
         </div>
       </div>
 
       <div>
-        <canvas id="cart-pole-canvas" height="400px" width="600px"></canvas>
+        <canvas id="cart-pole-canvas" height="150px" width="500px"></canvas>
       </div>
     </div>
 

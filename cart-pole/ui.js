@@ -20,7 +20,7 @@ import * as tf from '@tensorflow/tfjs';
 
 import {CartPole} from './cart_pole';
 import {SaveablePolicyNetwork} from './index';
-import {mean} from './utils';
+import {mean, sum} from './utils';
 
 const appStatus = document.getElementById('app-status');
 const storedModelStatusInput = document.getElementById('stored-model-status');
@@ -34,16 +34,27 @@ const gamesPerIterationInput = document.getElementById('games-per-iteration');
 const discountRateInput = document.getElementById('discount-rate');
 const maxStepsPerGameInput = document.getElementById('max-steps-per-game');
 const learningRateInput = document.getElementById('learning-rate');
+const renderDuringTrainingCheckbox = document.getElementById('render-during-training');
 
 const trainButton = document.getElementById('train');
 const testButton = document.getElementById('test');
 const iterationStatus = document.getElementById('iteration-status');
 const iterationProgress = document.getElementById('iteration-progress');
 const trainStatus = document.getElementById('train-status');
+const trainSpeed = document.getElementById('train-speed');
 const trainProgress = document.getElementById('train-progress');
 
 // Module-global instance of policy network.
 let policyNet;
+
+let renderDuringTraining = false;
+
+export async function maybeRenderDuringTraining(cartPole) {
+  if (renderDuringTraining) {
+    cartPole.render(cartPoleCanvas);
+    await tf.nextFrame();
+  }
+}
 
 function logStatus(message) {
   appStatus.textContent = message;
@@ -104,6 +115,7 @@ async function updateLocallyStoredModelStatus() {
   hiddenLayerSizesInput.disabled = policyNet != null;
   trainButton.disabled = policyNet == null;
   testButton.disabled = policyNet == null;
+  renderDuringTrainingCheckbox.checked = renderDuringTraining;
 }
 
 export async function setUpUI() {
@@ -115,6 +127,10 @@ export async function setUpUI() {
     hiddenLayerSizesInput.value = policyNet.hiddenLayerSizes();
   }
   await updateLocallyStoredModelStatus();
+
+  renderDuringTrainingCheckbox.addEventListener('change', () => {
+    renderDuringTraining = renderDuringTrainingCheckbox.checked;
+  });
 
   createModelButton.addEventListener('click', async () => {
     try {
@@ -177,10 +193,17 @@ export async function setUpUI() {
 
       meanStepValues = [];
       onIterationEnd(0, trainIterations);
+      let t0 = new Date().getTime();
       for (let i = 0; i < trainIterations; ++i) {
         const gameSteps = await policyNet.train(
             cartPole, optimizer, discountRate, gamesPerIteration,
             maxStepsPerGame);
+        const t1 = new Date().getTime();
+        console.log(gameSteps);
+        console.log(sum(gameSteps));
+        const stepsPerSecond = sum(gameSteps) / ((t1 - t0) / 1e3);
+        t0 = t1;
+        trainSpeed.textContent = `${stepsPerSecond.toFixed(1)} steps/s`
         meanStepValues.push({
           iteration: i + 1,
           meanSteps: mean(gameSteps)

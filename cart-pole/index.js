@@ -17,7 +17,7 @@
 
 import * as tf from '@tensorflow/tfjs';
 
-import {onGameEnd, setUpUI} from './ui';
+import {maybeRenderDuringTraining, onGameEnd, setUpUI} from './ui';
 
 /**
  * Policy network for controlling the cart-pole system.
@@ -124,8 +124,9 @@ class PolicyNetwork {
         this.pushGradients_(gameGradients, gradients);
         const action = this.currentActions_[0];
         const isDone = cartPoleSystem.update(action);
-        // cartPoleSystem.render(cartPoleCanvas);
-        // wait tf.nextFrame();
+
+        await maybeRenderDuringTraining(cartPoleSystem);
+
         if (isDone) {
           gameRewards.push(0);
           onGameEnd(i + 1, numGames);

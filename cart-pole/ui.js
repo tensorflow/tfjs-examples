@@ -47,8 +47,17 @@ const trainProgress = document.getElementById('train-progress');
 // Module-global instance of policy network.
 let policyNet;
 
-let renderDuringTraining = false;
+/**
+ * Display a message to the info div.
+ *
+ * @param {string} message The message to be displayed.
+ */
+function logStatus(message) {
+  appStatus.textContent = message;
+}
 
+// Objects and functions to support display of cart pole status during training.
+let renderDuringTraining = false;
 export async function maybeRenderDuringTraining(cartPole) {
   if (renderDuringTraining) {
     cartPole.render(cartPoleCanvas);
@@ -56,21 +65,34 @@ export async function maybeRenderDuringTraining(cartPole) {
   }
 }
 
-function logStatus(message) {
-  appStatus.textContent = message;
-}
-
+/**
+ * A function invoked at the end of every game during training.
+ *
+ * @param {number} gameCount A count of how many games has completed so far in
+ *   the current iteration of training.
+ * @param {number} totalGames Total number of games to complete in the current
+ *   iteration of training.
+ */
 export function onGameEnd(gameCount, totalGames) {
   iterationStatus.textContent = `Game ${gameCount} of ${totalGames}`;
   iterationProgress.value = gameCount / totalGames * 100;
 }
 
+/**
+ * A function invokved at the end of a training iteration.
+ *
+ * @param {number} iterationCount A count of how many iterations has completed
+ *   so far in the current round of training.
+ * @param {*} totalIterations Total number of iterations to complete in the
+ *   current round of training.
+ */
 function onIterationEnd(iterationCount, totalIterations) {
   trainStatus.textContent =
       `Iteration ${iterationCount} of ${totalIterations}`;
   trainProgress.value =iterationCount / totalIterations * 100;
 }
 
+// Objects and function to support the plotting of game steps during training.
 let meanStepValues = [];
 function plotSteps() {
   embed(
@@ -87,19 +109,19 @@ function plotSteps() {
       {});
 }
 
-function disableUI() {
+function disableModelControls() {
   trainButton.disabled = true;
   testButton.disabled = true;
   deleteStoredModelButton.disabled = true;
 }
 
-function enableUI() {
+function enableModelControls() {
   trainButton.disabled = false;
   testButton.disabled = false;
   deleteStoredModelButton.disabled = false;
 }
 
-async function updateLocallyStoredModelStatus() {
+async function updateUIControlStatus() {
   const modelInfo = await SaveablePolicyNetwork.checkStoredModelStatus();
   if (modelInfo == null) {
     storedModelStatusInput.value = 'No stored model.';
@@ -122,11 +144,11 @@ export async function setUpUI() {
   const cartPole = new CartPole(true);
 
   if (await SaveablePolicyNetwork.checkStoredModelStatus() != null) {
-    // The `null` argument means the network should be loaded from IndexedDB.
     policyNet = await SaveablePolicyNetwork.loadModel();
+    logStatus('Loaded policy network from IndexedDB.');
     hiddenLayerSizesInput.value = policyNet.hiddenLayerSizes();
   }
-  await updateLocallyStoredModelStatus();
+  await updateUIControlStatus();
 
   renderDuringTrainingCheckbox.addEventListener('change', () => {
     renderDuringTraining = renderDuringTrainingCheckbox.checked;
@@ -145,15 +167,12 @@ export async function setUpUI() {
                 }
                 return num;
               });
-      console.log('Calling constructor SaveablePolicyNetwork');  // DEBUG
       policyNet = new SaveablePolicyNetwork(hiddenLayerSizes);
-      console.log('DONE Calling constructor SaveablePolicyNetwork');  // DEBUG
-      await updateLocallyStoredModelStatus();
+      console.log('DONE constructing new instance of SaveablePolicyNetwork');
+      await updateUIControlStatus();
     } catch (err) {
       logStatus(`ERROR: ${err.message}`);
     }
-
-    // policyNet = new SaveablePolicyNetwork();
   });
 
   deleteStoredModelButton.addEventListener('click', async () => {
@@ -161,12 +180,12 @@ export async function setUpUI() {
         `Are you sure you want to delete the locally-stored model?`)) {
       await policyNet.removeModel();
       policyNet = null;
-      await updateLocallyStoredModelStatus();
+      await updateUIControlStatus();
     }
   });
 
   trainButton.addEventListener('click', async () => {
-    disableUI();
+    disableModelControls();
 
     try {
       const trainIterations = Number.parseInt(numIterationsInput.value);
@@ -188,7 +207,9 @@ export async function setUpUI() {
       }
       const learningRate = Number.parseFloat(learningRateInput.value);
 
-      logStatus('Training policy network... Please wait. Network will be saved to IndexedDB when training is complete.');
+      logStatus(
+          'Training policy network... Please wait. ' +
+          'Network will be saved to IndexedDB when training is complete.');
       const optimizer = tf.train.adam(learningRate);
 
       meanStepValues = [];
@@ -206,23 +227,22 @@ export async function setUpUI() {
           iteration: i + 1,
           meanSteps: mean(gameSteps)
         });
-        console.log(`# of tensors: ${tf.memory().numTensors}`);  // DEBUG
+        console.log(`# of tensors: ${tf.memory().numTensors}`);
         plotSteps();
         onIterationEnd(i + 1, trainIterations);
         await tf.nextFrame();
       }
       await policyNet.saveModel();
-      await updateLocallyStoredModelStatus();
+      await updateUIControlStatus();
       logStatus('Training completed.');
     } catch (err) {
       logStatus(`ERROR: ${err.message}`);
     }
-    enableUI();
+    enableModelControls();
   });
 
-  // TODO(cais): Move to index.js?
   testButton.addEventListener('click', async () => {
-    disableUI();
+    disableModelControls();
     let isDone = false;
     const cartPole = new CartPole(true);
     cartPole.setRandomState();
@@ -241,7 +261,7 @@ export async function setUpUI() {
       await tf.nextFrame();
     }
     logStatus(`Test finished. Survived ${steps} step(s).`);
-    console.log(`# of tensors: ${tf.memory().numTensors}`);  // DEBUG
-    enableUI();
+    console.log(`# of tensors: ${tf.memory().numTensors}`);
+    enableModelControls();
   });
 }

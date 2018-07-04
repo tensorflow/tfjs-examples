@@ -250,9 +250,7 @@ export class SaveablePolicyNetwork extends PolicyNetwork {
       console.log(`Loaded model from ${MODEL_SAVE_PATH_}`);
       return new SaveablePolicyNetwork(model);
     } else {
-      throw new Error(
-          `Cannot find model at ${MODEL_SAVE_PATH_}. ` +
-          `Creating model from scratch.`);
+      throw new Error(`Cannot find model at ${MODEL_SAVE_PATH_}.`);
     }
   }
 
@@ -301,7 +299,7 @@ export class SaveablePolicyNetwork extends PolicyNetwork {
 function discountRewards(rewards, discountRate) {
   const discountedBuffer = tf.buffer([rewards.length]);
   let prev = 0;
-  for (let i = rewards.length - 1; i >=0; --i) {
+  for (let i = rewards.length - 1; i >= 0; --i) {
     const current = discountRate * prev + rewards[i];
     discountedBuffer.set(current, i);
     prev = current;

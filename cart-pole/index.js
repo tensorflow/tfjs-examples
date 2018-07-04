@@ -102,6 +102,22 @@ class PolicyNetwork {
     });
   }
 
+  /**
+   * Train the policy network's model.
+   *
+   * @param {CartPole} cartPoleSystem The cart-pole system object to use during
+   *   training.
+   * @param {tf.train.Optimizer} optimizer An instance of TensorFlow.js
+   *   Optimizer to use for training.
+   * @param {number} discountRate Reward discounting rate: a number between
+   *   and 1.
+   * @param {number} numGames Number of game to play for each model parameter
+   *   update.
+   * @param {number} maxStepsPerGame Maximum number of steps to perform during
+   *   a game. If this number is reached, the game will be ended immediately.
+   * @returns {number[]} The number of steps completed in the `numGames` games
+   *   in this round of training.
+   */
   async train(cartPoleSystem,
               optimizer,
               discountRate,
@@ -156,6 +172,15 @@ class PolicyNetwork {
     return gameSteps;
   }
 
+  /**
+   * Push new dictionary of gradients into records.
+   *
+   * @param {{[varName: string]: tf.Tensor[]}} record The record of variable
+   *   gradient: a map from variable name to the Array of gradient values for
+   *   the variable.
+   * @param {{[varName: string]: tf.Tensor}} gradients The new gradients to push
+   *   into `record`: a map from variable name to the gradient Tensor.
+   */
   pushGradients_(record, gradients) {
     for (const key in gradients) {
       if (key in record) {
@@ -170,6 +195,9 @@ class PolicyNetwork {
 // The IndexedDB path where the model of the policy network will be saved.
 const MODEL_SAVE_PATH_ = 'indexeddb://cart-pole-v1';
 
+/**
+ * A subclass of PolicyNetwork that supports saving and loading.
+ */
 export class SaveablePolicyNetwork extends PolicyNetwork {
 
   /**
@@ -181,10 +209,20 @@ export class SaveablePolicyNetwork extends PolicyNetwork {
     super(hiddenLayerSizesOrModel);
   }
 
+  /**
+   * Save the model to IndexedDB.
+   */
   async saveModel() {
     return await this.model_.save(MODEL_SAVE_PATH_);
   }
 
+  /**
+   * Load the model fom IndexedDB.
+   *
+   * @returns {SaveablePolicyNetwork} The instance of loaded
+   *   `SaveablePolicyNetwork`.
+   * @throws {Error} If no model can be found in IndexedDB.
+   */
   static async loadModel() {
     const modelsInfo = await tf.io.listModels();
     if (MODEL_SAVE_PATH_ in modelsInfo) {

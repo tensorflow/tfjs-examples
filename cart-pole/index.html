@@ -93,7 +93,8 @@ limitations under the License.
 
     .horizontal-sections {
       display: inline-block;
-      padding-right: 20px;
+      padding-left: 0px;
+      padding-right: 10px;
       vertical-align: top;
       border: 1px #AAA solid;
     }
@@ -118,6 +119,9 @@ limitations under the License.
       font-weight: bold;
     }
 
+    input :disabled {
+      background-color: #AAA,
+    }
   </style>
 
   <body>
@@ -125,12 +129,25 @@ limitations under the License.
 
     <div>
       <div>
+        <span id="app-status">Standing by.</span>
+      </div>
+
+      <div>
         <div class="horizontal-sections">
           <div class="input-div">
             <span class="input-label">Locally-stored model</span>
-            <input id="stored-model-status" value="N/A" readonly="true"></input>
+            <input id="stored-model-status" value="N/A" disabled="true" readonly="true"></input>
             <button id="delete-stored-model" disabled="true">Delete</button>
           </div>
+
+          <div class="horizontal-sections">
+            <div class="input-div">
+              <span class="input-label">Hidden layer size(s) (e.g.: "5", "8,6"):</span>
+              <input id="hidden-layer-sizes" value="4"></input>
+              <button id="create-model" disabled="true">Create model</button>
+            </div>
+          </div>
+
           <div class="input-div">
             <span class="input-label">Number of iterations:</span>
             <input id="num-iterations" value="20"></input>
@@ -152,8 +169,8 @@ limitations under the License.
             <input id="learning-rate" value="0.05"></input>
           </div>
           <div class="buttons-section">
-            <button id="train">Train</button>
-            <button id="test">Test</button>
+            <button id="train" disabled="true">Train</button>
+            <button id="test" disabled="true">Test</button>
           </div>
         </div>
 
@@ -168,10 +185,6 @@ limitations under the License.
           </div>
           <div class="canvases" id="steps-canvas"></div>
         </div>
-      </div>
-
-      <div>
-        <span id="app-status">Standing by.</span>
       </div>
 
       <div>

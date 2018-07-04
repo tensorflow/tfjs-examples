@@ -24,6 +24,8 @@ import {mean} from './utils';
 
 const appStatus = document.getElementById('app-status');
 const storedModelStatusInput = document.getElementById('stored-model-status');
+const hiddenLayerSizesInput = document.getElementById('hidden-layer-sizes');
+const createModelButton = document.getElementById('create-model');
 const deleteStoredModelButton = document.getElementById('delete-stored-model');
 const cartPoleCanvas = document.getElementById('cart-pole-canvas');
 
@@ -87,33 +89,64 @@ function enableUI() {
 }
 
 async function updateLocallyStoredModelStatus() {
-  const modelInfo = await policyNet.checkStoredModelStatus();
+  const modelInfo = await SaveablePolicyNetwork.checkStoredModelStatus();
   if (modelInfo == null) {
     storedModelStatusInput.value = 'No stored model.';
     deleteStoredModelButton.disabled = true;
+
   } else {
     storedModelStatusInput.value =
         `Saved @ ${modelInfo.dateSaved.toISOString()}`;
     deleteStoredModelButton.disabled = false;
+    createModelButton.disabled = true;
   }
+  createModelButton.disabled = policyNet != null;
+  hiddenLayerSizesInput.disabled = policyNet != null;
+  trainButton.disabled = policyNet == null;
+  testButton.disabled = policyNet == null;
 }
 
 export async function setUpUI() {
   const cartPole = new CartPole(true);
-  policyNet = new SaveablePolicyNetwork(5);
 
-  if (await policyNet.checkStoredModelStatus() != null) {
-    policyNet.loadModel();
+  if (await SaveablePolicyNetwork.checkStoredModelStatus() != null) {
+    // The `null` argument means the network should be loaded from IndexedDB.
+    policyNet = await SaveablePolicyNetwork.loadModel();
+    hiddenLayerSizesInput.value = policyNet.hiddenLayerSizes();
   }
   await updateLocallyStoredModelStatus();
+
+  createModelButton.addEventListener('click', async () => {
+    try {
+      const hiddenLayerSizes =
+          hiddenLayerSizesInput.value.trim().split(',').map(
+              v => {
+                const num = Number.parseInt(v.trim());
+                if (!(num > 0)) {
+                  throw new Error(
+                      `Invalid hidden layer sizes string: ` +
+                      `${hiddenLayerSizesInput.value}`);
+                }
+                return num;
+              });
+      console.log('Calling constructor SaveablePolicyNetwork');  // DEBUG
+      policyNet = new SaveablePolicyNetwork(hiddenLayerSizes);
+      console.log('DONE Calling constructor SaveablePolicyNetwork');  // DEBUG
+      await updateLocallyStoredModelStatus();
+    } catch (err) {
+      logStatus(`ERROR: ${err.message}`);
+    }
+
+    // policyNet = new SaveablePolicyNetwork();
+  });
 
   deleteStoredModelButton.addEventListener('click', async () => {
     if (confirm(
         `Are you sure you want to delete the locally-stored model?`)) {
       await policyNet.removeModel();
+      policyNet = null;
+      await updateLocallyStoredModelStatus();
     }
-    policyNet = null;
-    await updateLocallyStoredModelStatus();
   });
 
   trainButton.addEventListener('click', async () => {
@@ -139,7 +172,7 @@ export async function setUpUI() {
       }
       const learningRate = Number.parseFloat(learningRateInput.value);
 
-      logStatus('Training policy network... Please wait.');
+      logStatus('Training policy network... Please wait. Network will be saved to IndexedDB when training is complete.');
       const optimizer = tf.train.adam(learningRate);
 
       meanStepValues = [];

@@ -272,15 +272,15 @@ export class SaveablePolicyNetwork extends PolicyNetwork {
 }
 
 function discountRewards(rewards, discountRate) {
-  const discounted = [];
+  const discountedBuffer = tf.buffer([rewards.length]);
+  let prev = 0;
   for (let i = rewards.length - 1; i >=0; --i) {
-    const reward = rewards[i];
-    const prevReward =
-        discounted.length > 0 ? discounted[discounted.length - 1] : 0;
-    discounted.push(discountRate * prevReward + reward);
+    const current = discountRate * prev + rewards[i];
+    discountedBuffer.set(current, i);
+    prev = current;
   }
-  discounted.reverse();
-  return discounted;
+  // discounted.reverse();
+  return discountedBuffer.toTensor();
 }
 
 function discountAndNormalizeRewards(rewardSequences, discountRate) {
@@ -289,59 +289,40 @@ function discountAndNormalizeRewards(rewardSequences, discountRate) {
     for (const sequence of rewardSequences) {
       discounted.push(discountRewards(sequence, discountRate))
     }
-
     // Compute the overall mean and stddev.
-    const flattened = [];
-    for (const sequence of discounted) {
-      flattened.push(...sequence);
-    }
-    const [mean, std] = tf.tidy(() => {
-      const r = tf.tensor1d(flattened);
-      const mean = tf.mean(r);
-      const std = tf.sqrt(tf.mean(tf.square(r.sub(mean))));
-      return [mean.dataSync()[0], std.dataSync()[0]];
-    });
-
-    // TODO(cais): Maybe normalized should be a tf.Tensor.
-    const normalized = [];
-    for (const rs of discounted) {
-      normalized.push(rs.map(r => (r - mean) / std));
-    }
+    const concatenated = tf.concat(discounted);
+    const mean = tf.mean(concatenated);
+    const std = tf.sqrt(tf.mean(tf.square(concatenated.sub(mean))));
+    // Normalize the reward sequences using the mean and std.
+    const normalized = discounted.map(rs => rs.sub(mean).div(std));
     return normalized;
   });
 }
 
 function scaleAndAverageGradients(allGradients, normalizedRewards) {
   return tf.tidy(() => {
-    const rewardScalars = [];
-    for (const rewardSequence of normalizedRewards) {
-      const rewardScalarSequence = rewardSequence.map(r => tf.scalar(r));
-      rewardScalars.push(rewardScalarSequence);
-    }
+    // TODO(cais): Use tighter tidy() scopes?
+    console.log('normalizedRewards:', normalizedRewards);  // DEBUG
 
-    // TODO(cais): Use tighter tidy() scopes.
+    // Stack gradients together.
     const gradients = {};
-
     for (const varName in allGradients) {
-      const varGradients = allGradients[varName];
-
-      const numGames = varGradients.length;
-      gradients[varName] = tf.tidy(() => {
-        let numGradients = 0;
-        let sum = tf.zerosLike(varGradients[0][0]);
-        for (let g = 0; g < numGames; ++g) {
-          const numSteps = varGradients[g].length;
-          for (let s = 0; s < numSteps; ++s) {
-            // TODO(cais): Use broadcasting, vectorized multiplication for
-            //   performance?
-            const scaledGradients =
-                varGradients[g][s].mul(rewardScalars[g][s]);
-            sum = sum.add(scaledGradients);
-            numGradients++;
-          }
+      const varAllGradients = allGradients[varName];
+      gradients[varName] =
+          varAllGradients.map(varGameGradients => tf.stack(varGameGradients));
+      for (let g = 0; g < gradients[varName].length; ++g) {
+        // This mul() call uses broadcasting.
+        const expandedDims = [];
+        for (let i = 0; i < gradients[varName][g].rank - 1; ++i) {
+          expandedDims.push(1);
         }
-        return sum.div(tf.scalar(numGradients));
-      });
+        gradients[varName][g] = gradients[varName][g].mul(
+            normalizedRewards[g].reshape(
+                normalizedRewards[g].shape.concat(expandedDims)));
+      }
+      // Concatenate the scaled gradients together, then average them across all
+      // the steps of all the games.
+      gradients[varName] = tf.mean(tf.concat(gradients[varName], 0), 0);
     }
     return gradients;
   });

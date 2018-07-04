@@ -76,6 +76,9 @@ export async function maybeRenderDuringTraining(cartPole) {
 export function onGameEnd(gameCount, totalGames) {
   iterationStatus.textContent = `Game ${gameCount} of ${totalGames}`;
   iterationProgress.value = gameCount / totalGames * 100;
+  if (gameCount === totalGames) {
+    iterationStatus.textContent = 'Updating weights...';
+  }
 }
 
 /**
@@ -121,7 +124,7 @@ function enableModelControls() {
   deleteStoredModelButton.disabled = false;
 }
 
-async function updateUIControlStatus() {
+async function updateUIControlState() {
   const modelInfo = await SaveablePolicyNetwork.checkStoredModelStatus();
   if (modelInfo == null) {
     storedModelStatusInput.value = 'No stored model.';
@@ -148,7 +151,7 @@ export async function setUpUI() {
     logStatus('Loaded policy network from IndexedDB.');
     hiddenLayerSizesInput.value = policyNet.hiddenLayerSizes();
   }
-  await updateUIControlStatus();
+  await updateUIControlState();
 
   renderDuringTrainingCheckbox.addEventListener('change', () => {
     renderDuringTraining = renderDuringTrainingCheckbox.checked;
@@ -169,7 +172,7 @@ export async function setUpUI() {
               });
       policyNet = new SaveablePolicyNetwork(hiddenLayerSizes);
       console.log('DONE constructing new instance of SaveablePolicyNetwork');
-      await updateUIControlStatus();
+      await updateUIControlState();
     } catch (err) {
       logStatus(`ERROR: ${err.message}`);
     }
@@ -180,7 +183,7 @@ export async function setUpUI() {
         `Are you sure you want to delete the locally-stored model?`)) {
       await policyNet.removeModel();
       policyNet = null;
-      await updateUIControlStatus();
+      await updateUIControlState();
     }
   });
 
@@ -233,7 +236,7 @@ export async function setUpUI() {
         await tf.nextFrame();
       }
       await policyNet.saveModel();
-      await updateUIControlStatus();
+      await updateUIControlState();
       logStatus('Training completed.');
     } catch (err) {
       logStatus(`ERROR: ${err.message}`);

@@ -6,8 +6,7 @@ This example illustrates how to use TensorFlow.js to perform simple
 reinforcement learning (RL). Specifically, it showcases an implementation
 of the policy-gradient method in TensorFlow.js with a combination of the Layers
 and gradients API. This implementation is used to solve the classic cart-pole
-control problem, which was originally proposed in
-was proposed in:
+control problem, which was originally proposed in:
 
 - Barto, Sutton, and Anderson, "Neuronlike Adaptive Elements That Can Solve
   Difficult Learning Control Problems," IEEE Trans. Syst., Man, Cybern.,
@@ -18,6 +17,9 @@ was proposed in:
 
 It later became one of OpenAI's gym environmnets:
   https://github.com/openai/gym/blob/master/gym/envs/classic_control/cartpole.py
+
+For an overview of policy gradient methods, see:
+  http://www.scholarpedia.org/article/Policy_gradient_methods
 
 ### Features:
 

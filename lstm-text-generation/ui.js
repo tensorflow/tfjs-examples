@@ -1,4 +1,3 @@
-
 /**
  * @license
  * Copyright 2018 Google LLC. All Rights Reserved.
@@ -26,7 +25,11 @@ import {SaveableLSTMTextGenerator} from './index';
 const TEXT_DATA_URLS = {
   'nietzsche':
       'https://storage.googleapis.com/tfjs-examples/lstm-text-generation/data/nietzsche.txt',
-  'tfjs-code': 'https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@0.11.7/dist/tf.js'
+  'agrippa': 'https://ia600609.us.archive.org/29/items/HeinrichCorneliusAgrippa-PhilosophyOfNaturalMagicAllIiiVolumes_224/HeinrichCorneliusAgrippa-philosophyOfNaturalMagicAllIiiVolumes_djvu.txt',
+  'pgm': 'https://ia600208.us.archive.org/22/items/TheGreekMagicalPapyriInTranslation/The_Greek_Magical_Papyri_in_Translation_djvu.txt',
+  'carnegie': 'https://ia801200.us.archive.org/3/items/DaleCarnegieHOWTOWINFRIENDSANDINFLUENCEPEOPLE_201609/Dale%20Carnegie%20HOW%20TO%20WIN%20FRIENDS%20AND%20INFLUENCE%20PEOPLE_djvu.txt',
+  'liberal': 'https://ia801005.us.archive.org/6/items/CrowleyTheBookOfTheLaw/Crowley,%20Aleister%20-%201904%20-%20The%20Book%20of%20the%20Law_djvu.txt',
+  'tao': 'https://ia600209.us.archive.org/11/items/TaoTeChing/Tao_Te_Ching_djvu.txt'
 }
 
 // UI controls.

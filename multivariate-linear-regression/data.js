@@ -38,13 +38,13 @@ async function loadCsv(filename) {
       resolve(readCsv(csvName));
       return;
     }
-    const file = fs.createWriteStream(filename);
+    const file = fs.createWriteStream(csvName);
     console.log(`  * Downloading from: ${url}`);
     https.get(url, (response) => {
       const unzip = zlib.createGunzip();
       response.pipe(unzip).pipe(file);
       unzip.on('end', () => {
-        resolve(readCsv(filename));
+        resolve(readCsv(csvName));
       });
     });
   });
@@ -164,6 +164,8 @@ class BostonHousingDataset {
       targetIndex = 3;
     }
 
+    console.log(dataIndex, targetIndex, size, this.trainBatchIndex);
+
     const dataShape = [size, NUM_FEATURES];
     const data = new Float32Array(tf.util.sizeFromShape(dataShape));
 
@@ -172,12 +174,19 @@ class BostonHousingDataset {
 
     let dataOffset = 0;
     let targetOffset = 0;
+    let batchIndex = 0;
     while ((isTrainingData ? this.trainBatchIndex : this.testBatchIndex) <
            batchIndexMax) {
-      data.set(this.dataset[dataIndex][this.trainBatchIndex], dataOffset);
-      target.set(this.dataset[targetIndex][this.trainBatchIndex], targetOffset);
+      data.set(this.dataset[dataIndex][batchIndex], dataOffset);
+      target.set(this.dataset[targetIndex][batchIndex], targetOffset);
 
-      isTrainingData ? this.trainBatchIndex++ : this.testBatchIndex++;
+      if (isTrainingData) {
+        this.trainBatchIndex++;
+      } else {
+        this.testBatchIndex++;
+      }
+
+      batchIndex += 1;
       dataOffset += NUM_FEATURES;
       targetOffset += 1;
     }

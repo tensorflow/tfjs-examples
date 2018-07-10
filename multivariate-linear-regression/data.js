@@ -20,6 +20,7 @@ const fs = require('fs');
 const https = require('https');
 const zlib = require('zlib');
 const csv = require('csv-parser')
+const utils = require('./utils');
 
 // Boston Housing data constants:
 const BASE_URL = 'https://storage.googleapis.com/cvdf-datasets/boston-housing/';
@@ -27,7 +28,6 @@ const TRAIN_DATA = 'train-data';
 const TRAIN_TARGET = 'train-target';
 const TEST_DATA = 'test-data';
 const TEST_TARGET = 'test-target';
-const NUM_FEATURES = 13;
 
 // Downloads a test file only once and returns the csv
 async function loadCsv(filename) {
@@ -57,7 +57,8 @@ async function readCsv(filename) {
         .pipe(csv())
         .on('data',
             data => {
-              const output = Object.keys(data).sort().map(key => data[key]);
+              const output =
+                  Object.keys(data).sort().map(key => parseFloat(data[key]));
               result.push(output)
             })
         .on('end', () => resolve(result));
@@ -66,7 +67,7 @@ async function readCsv(filename) {
 
 
 // Shuffles data and label using Fisher-Yates algorithm.
-function shuffle(data, label) {
+const shuffle = (data, label) => {
   let counter = data.length;
   let temp = 0;
   let index = 0;
@@ -82,7 +83,25 @@ function shuffle(data, label) {
     label[counter] = label[index];
     label[index] = temp;
   }
-}
+};
+
+const normalizeDataset = (dataset) => {
+  const numFeatures = dataset[0].length;
+
+  for (let i = 0; i < numFeatures; i++) {
+    const vector = dataset.map(row => row[i]);
+    const vectorMean = utils.mean(vector);
+    const vectorStddev = utils.stddev(vector);
+    const vectorNormalized =
+        utils.normalizeVector(vector, vectorMean, vectorStddev);
+
+    vectorNormalized.forEach((value, index) => {
+      dataset[index][i] = value;
+    });
+  }
+
+  return dataset;
+};
 
 /** Helper class to handle loading training and test data. */
 class BostonHousingDataset {
@@ -92,6 +111,12 @@ class BostonHousingDataset {
     this.testSize = 0;
     this.trainBatchIndex = 0;
     this.testBatchIndex = 0;
+
+    this.NUM_FEATURES = 13;
+  }
+
+  get num_features() {
+    return this.NUM_FEATURES;
   }
 
   /** Loads training and test data. */
@@ -100,6 +125,9 @@ class BostonHousingDataset {
       loadCsv(TRAIN_DATA), loadCsv(TRAIN_TARGET), loadCsv(TEST_DATA),
       loadCsv(TEST_TARGET)
     ]);
+
+    this.dataset[0] = normalizeDataset(this.dataset[0]);
+    this.dataset[2] = normalizeDataset(this.dataset[2]);
 
     this.trainSize = this.dataset[0].length;
     this.testSize = this.dataset[2].length;
@@ -150,23 +178,21 @@ class BostonHousingDataset {
     let targetIndex;
     if (isTrainingData) {
       batchIndexMax = this.trainBatchIndex + batchSize > this.trainSize ?
-          this.trainSize - this.trainBatchIndex :
+          this.trainSize :
           batchSize + this.trainBatchIndex;
       size = batchIndexMax - this.trainBatchIndex;
       dataIndex = 0;
       targetIndex = 1;
     } else {
       batchIndexMax = this.testBatchIndex + batchSize > this.testSize ?
-          this.testSize - this.testBatchIndex :
+          this.testSize :
           batchSize + this.testBatchIndex;
       size = batchIndexMax - this.testBatchIndex;
       dataIndex = 2;
       targetIndex = 3;
     }
 
-    console.log(dataIndex, targetIndex, size, this.trainBatchIndex);
-
-    const dataShape = [size, NUM_FEATURES];
+    const dataShape = [size, this.NUM_FEATURES];
     const data = new Float32Array(tf.util.sizeFromShape(dataShape));
 
     const targetShape = [size, 1];
@@ -174,24 +200,23 @@ class BostonHousingDataset {
 
     let dataOffset = 0;
     let targetOffset = 0;
-    let batchIndex = 0;
+    let batchIndex =
+        isTrainingData ? this.trainBatchIndex : this.testBatchIndex;
     while ((isTrainingData ? this.trainBatchIndex : this.testBatchIndex) <
            batchIndexMax) {
       data.set(this.dataset[dataIndex][batchIndex], dataOffset);
       target.set(this.dataset[targetIndex][batchIndex], targetOffset);
 
-      if (isTrainingData) {
-        this.trainBatchIndex++;
-      } else {
-        this.testBatchIndex++;
-      }
-
-      batchIndex += 1;
-      dataOffset += NUM_FEATURES;
+      batchIndex =
+          isTrainingData ? ++this.trainBatchIndex : ++this.testBatchIndex;
+      dataOffset += this.NUM_FEATURES;
       targetOffset += 1;
     }
 
-    return {data: tf.tensor2d(data, dataShape), target: tf.tensor1d(target)};
+    return {
+      data: tf.tensor2d(data, dataShape),
+      target: tf.tensor1d(target).reshape(targetShape)
+    };
   }
 }
 

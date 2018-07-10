@@ -35,7 +35,7 @@ async function train() {
 
     if (step % 20 === 0) {
       const loss = history.history.loss[0].toFixed(6);
-      const acc = history.history.acc[0].toFixed(4);
+      const acc = (history.history.acc[0] * 100.0).toFixed(2);
       console.log(`  - step: ${step}: loss: ${loss}, accuracy: ${acc}`);
     }
     step++;

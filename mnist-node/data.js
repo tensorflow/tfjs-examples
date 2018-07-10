@@ -202,14 +202,14 @@ class MnistDataset {
     let labelsIndex;
     if (isTrainingData) {
       batchIndexMax = this.trainBatchIndex + batchSize > this.trainSize ?
-          this.trainSize - this.trainBatchIndex :
+          this.trainSize :
           batchSize + this.trainBatchIndex;
       size = batchIndexMax - this.trainBatchIndex;
       imagesIndex = 0;
       labelsIndex = 1;
     } else {
       batchIndexMax = this.testBatchIndex + batchSize > this.testSize ?
-          this.testSize - this.testBatchIndex :
+          this.testSize :
           batchSize + this.testBatchIndex;
       size = batchIndexMax - this.testBatchIndex;
       imagesIndex = 2;
@@ -225,12 +225,15 @@ class MnistDataset {
 
     let imageOffset = 0;
     let labelOffset = 0;
+    let batchIndex =
+      isTrainingData ? this.trainBatchIndex : this.testBatchIndex;
     while ((isTrainingData ? this.trainBatchIndex : this.testBatchIndex) <
            batchIndexMax) {
-      images.set(this.dataset[imagesIndex][this.trainBatchIndex], imageOffset);
-      labels.set(this.dataset[labelsIndex][this.trainBatchIndex], labelOffset);
+      images.set(this.dataset[imagesIndex][batchIndex], imageOffset);
+      labels.set(this.dataset[labelsIndex][batchIndex], labelOffset);
 
-      isTrainingData ? this.trainBatchIndex++ : this.testBatchIndex++;
+      batchIndex =
+        isTrainingData ? ++this.trainBatchIndex : ++this.testBatchIndex;
       imageOffset += IMAGE_FLAT_SIZE;
       labelOffset += 1;
     }

@@ -832,12 +832,13 @@ browserify-cipher@^1.0.0:
     evp_bytestokey "^1.0.0"
 
 browserify-des@^1.0.0:
-  version "1.0.1"
-  resolved "https://registry.yarnpkg.com/browserify-des/-/browserify-des-1.0.1.tgz#3343124db6d7ad53e26a8826318712bdc8450f9c"
+  version "1.0.2"
+  resolved "https://registry.yarnpkg.com/browserify-des/-/browserify-des-1.0.2.tgz#3af4f1f59839403572f1c66204375f7a7f703e9c"
   dependencies:
     cipher-base "^1.0.1"
     des.js "^1.0.0"
     inherits "^2.0.1"
+    safe-buffer "^5.1.2"
 
 browserify-rsa@^4.0.0:
   version "4.0.1"
@@ -937,12 +938,12 @@ caniuse-api@^1.5.2:
     lodash.uniq "^4.5.0"
 
 caniuse-db@^1.0.30000529, caniuse-db@^1.0.30000634, caniuse-db@^1.0.30000639:
-  version "1.0.30000864"
-  resolved "https://registry.yarnpkg.com/caniuse-db/-/caniuse-db-1.0.30000864.tgz#35a4b2325a8d4553a46b516dbc233bf391d75555"
+  version "1.0.30000865"
+  resolved "https://registry.yarnpkg.com/caniuse-db/-/caniuse-db-1.0.30000865.tgz#82ffb64d40f7567620aac02d3a632079689abc6b"
 
 caniuse-lite@^1.0.30000792, caniuse-lite@^1.0.30000844:
-  version "1.0.30000864"
-  resolved "https://registry.yarnpkg.com/caniuse-lite/-/caniuse-lite-1.0.30000864.tgz#7a08c78da670f23c06f11aa918831b8f2dd60ddc"
+  version "1.0.30000865"
+  resolved "https://registry.yarnpkg.com/caniuse-lite/-/caniuse-lite-1.0.30000865.tgz#70026616e8afe6e1442f8bb4e1092987d81a2f25"
 
 chalk@^1.1.3:
   version "1.1.3"
@@ -2305,7 +2306,11 @@ js-beautify@^1.7.5:
     mkdirp "~0.5.0"
     nopt "~3.0.1"
 
-js-tokens@^3.0.0, js-tokens@^3.0.2:
+"js-tokens@^3.0.0 || ^4.0.0":
+  version "4.0.0"
+  resolved "https://registry.yarnpkg.com/js-tokens/-/js-tokens-4.0.0.tgz#19203fb59991df98e3a287050d4647cdeaf32499"
+
+js-tokens@^3.0.2:
   version "3.0.2"
   resolved "https://registry.yarnpkg.com/js-tokens/-/js-tokens-3.0.2.tgz#9866df395102130e38f7f996bceb65443209c25b"
 
@@ -2427,10 +2432,10 @@ long@^4.0.0:
   resolved "https://registry.yarnpkg.com/long/-/long-4.0.0.tgz#9a7b71cfb7d361a194ea555241c92f7468d5bf28"
 
 loose-envify@^1.0.0:
-  version "1.3.1"
-  resolved "https://registry.yarnpkg.com/loose-envify/-/loose-envify-1.3.1.tgz#d1a8ad33fa9ce0e713d65fdd0ac8b748d478c848"
+  version "1.4.0"
+  resolved "https://registry.yarnpkg.com/loose-envify/-/loose-envify-1.4.0.tgz#71ee51fa7be4caec1a63839f7e682d8132d30caf"
   dependencies:
-    js-tokens "^3.0.0"
+    js-tokens "^3.0.0 || ^4.0.0"
 
 lru-cache@^3.2.0:
   version "3.2.0"
@@ -4097,7 +4102,7 @@ vega-embed@^3.0.0:
     vega-themes "^2.1.0"
     vega-tooltip "^0.12.0"
 
-vega-encode@^3.1.1:
+vega-encode@^3.1.2:
   version "3.1.2"
   resolved "https://registry.yarnpkg.com/vega-encode/-/vega-encode-3.1.2.tgz#4ff176cce96c0cfe78143cc7710c881e27d1970f"
   dependencies:
@@ -4147,19 +4152,19 @@ vega-hierarchy@^3.0.2:
     vega-util "^1.7.0"
 
 "vega-lib@^4.0.0 || ^3.3.0":
-  version "4.0.0"
-  resolved "https://registry.yarnpkg.com/vega-lib/-/vega-lib-4.0.0.tgz#17a462ab3ab01e37e733149675f39ceb1a9b323e"
+  version "4.1.0"
+  resolved "https://registry.yarnpkg.com/vega-lib/-/vega-lib-4.1.0.tgz#9b730af49b3a167238c3551843ddf183407fd3cf"
   dependencies:
     vega-crossfilter "^3.0.0"
     vega-dataflow "^4.0.3"
-    vega-encode "^3.1.1"
+    vega-encode "^3.1.2"
     vega-event-selector "^2.0.0"
     vega-expression "^2.3.1"
     vega-force "^3.0.0"
     vega-geo "^3.1.0"
     vega-hierarchy "^3.0.2"
     vega-loader "^3.0.1"
-    vega-parser "^3.5.0"
+    vega-parser "^3.6.1"
     vega-projection "^1.2.0"
     vega-runtime "^3.0.3"
     vega-scale "^2.4.0"
@@ -4169,7 +4174,7 @@ vega-hierarchy@^3.0.2:
     vega-typings "*"
     vega-util "^1.7.0"
     vega-view "^3.3.2"
-    vega-view-transforms "^2.0.1"
+    vega-view-transforms "^2.0.2"
     vega-voronoi "^3.0.0"
     vega-wordcloud "^3.0.0"
 
@@ -4195,9 +4200,9 @@ vega-loader@^3.0.1:
     topojson-client "^3.0.0"
     vega-util "^1.7.0"
 
-vega-parser@^3.5.0:
-  version "3.6.0"
-  resolved "https://registry.yarnpkg.com/vega-parser/-/vega-parser-3.6.0.tgz#ce0e331e8876942ef45ea96fab24bb93543caa45"
+vega-parser@^3.5.0, vega-parser@^3.6.1:
+  version "3.6.1"
+  resolved "https://registry.yarnpkg.com/vega-parser/-/vega-parser-3.6.1.tgz#fbce5531a55ac6394c0b727e2da5d9fb9d4a7989"
   dependencies:
     d3-array "^1.2.1"
     d3-color "^1.2.0"
@@ -4287,7 +4292,7 @@ vega-util@1, vega-util@^1.7.0:
   version "1.7.0"
   resolved "https://registry.yarnpkg.com/vega-util/-/vega-util-1.7.0.tgz#0ca0512bb8dcc6541165c34663d115d0712e0cf1"
 
-vega-view-transforms@^2.0.1:
+vega-view-transforms@^2.0.2:
   version "2.0.2"
   resolved "https://registry.yarnpkg.com/vega-view-transforms/-/vega-view-transforms-2.0.2.tgz#5c2877bb9e7ebef296f740b60c5e1612d2666dcd"
   dependencies:

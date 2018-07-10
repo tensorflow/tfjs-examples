@@ -40,6 +40,12 @@ import {maybeRenderDuringTraining, onGameEnd, setUpUI} from './ui';
 
 /**
  * Policy network for controlling the cart-pole system.
+ *
+ * The role of the policy network is to select an action based on the observed
+ * state of the system. In this case, the action is the leftward or rightward
+ * force and the observed system state is a four-dimensional vector, consisting
+ * of cart position, cart velocity, pole angle and pole angular velocity.
+ *
  */
 class PolicyNetwork {
   /**
@@ -54,13 +60,10 @@ class PolicyNetwork {
    */
   constructor(hiddenLayerSizesOrModel) {
     if (hiddenLayerSizesOrModel instanceof tf.Model) {
-      this.model_ = hiddenLayerSizesOrModel;
+      this.model = hiddenLayerSizesOrModel;
     } else {
-      this.createModel_(hiddenLayerSizesOrModel);
+      this.createModel(hiddenLayerSizesOrModel);
     }
-
-
-    this.oneTensor_ = tf.scalar(1);
   }
 
   /**
@@ -70,55 +73,22 @@ class PolicyNetwork {
    *   a single number (for a single hidden layer) or an Array of numbers (for
    *   any number of hidden layers).
    */
-  createModel_(hiddenLayerSizes) {
+  createModel(hiddenLayerSizes) {
     if (!Array.isArray(hiddenLayerSizes)) {
       hiddenLayerSizes = [hiddenLayerSizes];
     }
-    this.model_ = tf.sequential();
-    for (const hiddenLayerSize of hiddenLayerSizes) {
-      this.model_.add(tf.layers.dense({
+    this.model = tf.sequential();
+    hiddenLayerSizes.forEach((hiddenLayerSize, i) => {
+      this.model.add(tf.layers.dense({
         units: hiddenLayerSize,
         activation: 'elu',
-        inputShape: [4]
+        // `inputShape` is required only for the first layer.
+        inputShape: i === 0 ? [4] : undefined
       }));
-    }
-    this.model_.add(tf.layers.dense({units: 1}));
-  }
-
-  getGradientsAndSaveActions(inputTensor) {
-    const f = () => tf.tidy(() => {
-      const [logits, actions] = this.getLogitsAndActions(inputTensor);
-      this.currentActions_ = actions.dataSync();
-      const labels = this.oneTensor_.sub(
-          tf.tensor2d(this.currentActions_, actions.shape));
-      return tf.sigmoidCrossEntropyWithLogits(labels, logits).asScalar();
     });
-    return tf.variableGrads(f);
-  }
-
-  getCurrentActions() {
-    return this.currentActions_;
-  }
-
-  /**
-   * Get action based  on a state tensor.
-   *
-   * @param {tf.Tensor} inputs A tf.Tensor instance of shape `[batchSize, 4]`.
-   * @returns {Float32Array} 0-1 action values for all the examples in the batch,
-   *   length = batchSize.
-   */
-  getLogitsAndActions(inputs) {
-    return tf.tidy(() => {
-      const logits = this.model_.predict(inputs);
-
-      // Get the probability of the left word action.
-      const leftProb = tf.sigmoid(logits);
-      // Probabilites of the left and right actions.
-      const leftRightProbs =
-          tf.concat([leftProb, this.oneTensor_.sub(leftProb)], 1);
-      const actions = tf.multinomial(leftRightProbs, 1, null, true);
-      return [logits, actions];
-    });
+    // The last layer has only one unit. The single output number will be
+    // converted to a probability of selecting the leftward-force action.
+    this.model.add(tf.layers.dense({units: 1}));
   }
 
   /**
@@ -137,58 +107,112 @@ class PolicyNetwork {
    * @returns {number[]} The number of steps completed in the `numGames` games
    *   in this round of training.
    */
-  async train(cartPoleSystem,
-              optimizer,
-              discountRate,
-              numGames,
-              maxStepsPerGame) {
-      const allGradients = [];
-      const allRewards = [];
-      const gameSteps = [];
+  async train(
+      cartPoleSystem, optimizer, discountRate, numGames, maxStepsPerGame) {
+    const allGradients = [];
+    const allRewards = [];
+    const gameSteps = [];
     onGameEnd(0, numGames);
     for (let i = 0; i < numGames; ++i) {
+      // Randomly initailize the state of the cart-pole system at the beginning
+      // of every game.
       cartPoleSystem.setRandomState();
       const gameRewards = [];
       const gameGradients = [];
       for (let j = 0; j < maxStepsPerGame; ++j) {
+        // For every step of the game, remember gradients of the policy
+        // network's weights with respect to the probability of the action
+        // choice that lead to the reward.
         const gradients = tf.tidy(() => {
           const inputTensor = cartPoleSystem.getStateTensor();
           return this.getGradientsAndSaveActions(inputTensor).grads;
         });
 
-        this.pushGradients_(gameGradients, gradients);
+        this.pushGradients(gameGradients, gradients);
         const action = this.currentActions_[0];
         const isDone = cartPoleSystem.update(action);
 
         await maybeRenderDuringTraining(cartPoleSystem);
 
-        if (isDone) {
-          gameRewards.push(0);
+        if (isDone || j >= maxStepsPerGame) {
+          if (isDone) {
+            // When the game ends before max step count is reached, a reward of
+            // 0 is given.
+            gameRewards.push(0);
+          }
           onGameEnd(i + 1, numGames);
           break;
         } else {
+          // As long as the game doesn't end, each step leads to a reward of 1.
+          // These reward values will later be "discounted", leading to
+          // higher reward values for longer-lasting games.
           gameRewards.push(1);
-        }
-        if (j >= maxStepsPerGame) {
-          onGameEnd(i + 1, numGames);
-          break;
         }
       }
       gameSteps.push(gameRewards.length);
-      this.pushGradients_(allGradients, gameGradients);
+      this.pushGradients(allGradients, gameGradients);
       allRewards.push(gameRewards);
       await tf.nextFrame();
     }
 
     tf.tidy(() => {
+      // The following line does three things:
+      // 1. Performs reward discounting, i.e., make recent rewards count more
+      //    that rewards from the further past. The effect is that the reward
+      //    values from a game with many steps becomes larger than the values
+      //    from a game with fewer steps.
+      // 2. Normalize the rewards, i.e., subtract the global mean value of the
+      //    rewards and divide the result by the global standard deviation of
+      //    the rewards. Together with step 1, this makes the rewards from
+      //    long-lasting games positive rewards; rewards from short-lasting
+      //    games become negative rewards.
+      // 3. Scale the gradients with the normalized reward values.
       const normalizedRewards =
           discountAndNormalizeRewards(allRewards, discountRate);
-      const gradientsToApply =
-          scaleAndAverageGradients(allGradients, normalizedRewards);
-      optimizer.applyGradients(gradientsToApply);
+      // Add the scaled gradients to the weights of the policy network. This
+      // step makes the policy network more likely to make choices that lead
+      // to long-lasting games in the future (i.e., the crux of this RL
+      // algorithm.)
+      optimizer.applyGradients(
+          scaleAndAverageGradients(allGradients, normalizedRewards));
     });
     tf.dispose(allGradients);
     return gameSteps;
+  }
+
+  getGradientsAndSaveActions(inputTensor) {
+    const f = () => tf.tidy(() => {
+      const [logits, actions] = this.getLogitsAndActions(inputTensor);
+      this.currentActions_ = actions.dataSync();
+      const labels =
+          tf.sub(1, tf.tensor2d(this.currentActions_, actions.shape));
+      return tf.sigmoidCrossEntropyWithLogits(labels, logits).asScalar();
+    });
+    return tf.variableGrads(f);
+  }
+
+  getCurrentActions() {
+    return this.currentActions_;
+  }
+
+  /**
+   * Get action based  on a state tensor.
+   *
+   * @param {tf.Tensor} inputs A tf.Tensor instance of shape `[batchSize, 4]`.
+   * @returns {Float32Array} 0-1 action values for all the examples in the batch,
+   *   length = batchSize.
+   */
+  getLogitsAndActions(inputs) {
+    return tf.tidy(() => {
+      const logits = this.model.predict(inputs);
+
+      // Get the probability of the left word action.
+      const leftProb = tf.sigmoid(logits);
+      // Probabilites of the left and right actions.
+      const leftRightProbs = tf.concat([leftProb, tf.sub(1, leftProb)], 1);
+      const actions = tf.multinomial(leftRightProbs, 1, null, true);
+      return [logits, actions];
+    });
   }
 
   /**
@@ -200,7 +224,7 @@ class PolicyNetwork {
    * @param {{[varName: string]: tf.Tensor}} gradients The new gradients to push
    *   into `record`: a map from variable name to the gradient Tensor.
    */
-  pushGradients_(record, gradients) {
+  pushGradients(record, gradients) {
     for (const key in gradients) {
       if (key in record) {
         record[key].push(gradients[key]);
@@ -218,7 +242,6 @@ const MODEL_SAVE_PATH_ = 'indexeddb://cart-pole-v1';
  * A subclass of PolicyNetwork that supports saving and loading.
  */
 export class SaveablePolicyNetwork extends PolicyNetwork {
-
   /**
    * Constructor of SaveablePolicyNetwork
    *
@@ -232,7 +255,7 @@ export class SaveablePolicyNetwork extends PolicyNetwork {
    * Save the model to IndexedDB.
    */
   async saveModel() {
-    return await this.model_.save(MODEL_SAVE_PATH_);
+    return await this.model.save(MODEL_SAVE_PATH_);
   }
 
   /**
@@ -281,8 +304,8 @@ export class SaveablePolicyNetwork extends PolicyNetwork {
    */
   hiddenLayerSizes() {
     const sizes = [];
-    for (let i = 0; i < this.model_.layers.length - 1; ++i) {
-      sizes.push(this.model_.layers[i].units);
+    for (let i = 0; i < this.model.layers.length - 1; ++i) {
+      sizes.push(this.model.layers[i].units);
     }
     return sizes.length === 1 ? sizes[0] : sizes;
   }

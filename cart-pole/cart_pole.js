@@ -37,7 +37,6 @@ import * as tf from '@tensorflow/tfjs';
  *   - leftward or rightward force.
  */
 export class CartPole {
-
   /**
    *
    * @param {bool} initializeStateRandomly Whether to initialize the state
@@ -57,13 +56,13 @@ export class CartPole {
     this.forceMag = 10.0;
     this.tau = 0.02;  // Seconds between state updates.
 
-    this.xThreshold =  2.4;
+    this.xThreshold = 2.4;
     this.thetaTheshold = 12 / 360 * 2 * Math.PI;
 
     // The control-theory state variables of the cart-pole system.
-    this.x = 0;  // Cart position, meters.
-    this.xDot = 0;  // Cart velocity.
-    this.theta = 0;  // Pole angle, radians.
+    this.x = 0;         // Cart position, meters.
+    this.xDot = 0;      // Cart velocity.
+    this.theta = 0;     // Pole angle, radians.
     this.thetaDot = 0;  // Pole angle velocity.
 
     if (initializeStateRandomly) {
@@ -78,7 +77,7 @@ export class CartPole {
     this.x = Math.random() - 0.5;
     this.xDot = (Math.random() - 0.5) * 1;
     this.theta = (Math.random() - 0.5) * 2 * (6 / 360 * 2 * Math.PI);
-    this.thetaDot =  (Math.random() - 0.5) * 0.5;
+    this.thetaDot = (Math.random() - 0.5) * 0.5;
   }
 
   /**
@@ -110,10 +109,9 @@ export class CartPole {
     const temp =
         (force + this.poleMoment * this.thetaDot * this.thetaDot * sinTheta) /
         this.totalMass;
-    const thetaAcc =
-        (this.gravity * sinTheta - cosTheta * temp) /
+    const thetaAcc = (this.gravity * sinTheta - cosTheta * temp) /
         (this.length *
-            (4 / 3 - this.massPole * cosTheta * cosTheta / this.totalMass));
+         (4 / 3 - this.massPole * cosTheta * cosTheta / this.totalMass));
     const xAcc = temp - this.poleMoment * thetaAcc * cosTheta / this.totalMass;
 
     // Update the four state variables, using Euler's metohd.
@@ -134,47 +132,7 @@ export class CartPole {
    * @returns {bool} Whether the simulation is done.
    */
   isDone() {
-    return this.x < -this.xThreshold ||
-           this.x > this.xThreshold ||
-           this.theta < -this.thetaTheshold ||
-           this.theta > this.thetaTheshold;
-  }
-
-  /**
-   * Render the current state of the system on an HTML canvas.
-   *
-   * @param {HTMLCanvasElement} canvas
-   */
-  render(canvas) {
-    const X_MIN = -this.xThreshold;
-    const X_MAX = this.xThreshold;
-    const xRange = X_MAX - X_MIN;
-    const scale = canvas.width / xRange;
-
-    const context = canvas.getContext('2d');
-    context.clearRect(0, 0, canvas.width, canvas.height);
-    const halfW = canvas.width / 2;
-
-    // 1. Draw the cart.
-    const railY = canvas.height * 0.8;
-    const cartW = this.cartWidth * scale;
-    const cartH = this.cartHeight * scale;
-
-    const cartX = this.x * scale + halfW;
-
-    context.beginPath();
-    context.rect(cartX - cartW / 2, railY - cartH / 2, cartW, cartH);
-    context.stroke();
-
-    // 2. Draw the pole.
-    const angle = this.theta + Math.PI / 2;
-    const poleTopX =
-        halfW + scale * (this.x + Math.cos(angle) * this.length);
-    const poleTopY =
-        railY - scale * (this.cartHeight / 2 + Math.sin(angle) * this.length);
-    context.beginPath();
-    context.moveTo(cartX, railY - cartH / 2);
-    context.lineTo(poleTopX, poleTopY);
-    context.stroke();
+    return this.x < -this.xThreshold || this.x > this.xThreshold ||
+        this.theta < -this.thetaTheshold || this.theta > this.thetaTheshold;
   }
 }

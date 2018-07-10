@@ -303,9 +303,7 @@ export async function setUpUI() {
     while (!isDone) {
       steps++;
       tf.tidy(() => {
-        const action =
-            policyNet.getLogitsAndActions(cartPole.getStateTensor())[1]
-                .dataSync()[0];
+        const action = policyNet.getActions(cartPole.getStateTensor())[0];
         logStatus(
             `Test in progress. ` +
             `Action: ${action === 1 ? '←' : ' →'} (Step ${steps})`);

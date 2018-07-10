@@ -196,11 +196,12 @@ class PolicyNetwork {
   }
 
   /**
-   * Get action based  on a state tensor.
+   * Get policy-network logits and the action based on state-tensor inputs.
    *
    * @param {tf.Tensor} inputs A tf.Tensor instance of shape `[batchSize, 4]`.
-   * @returns {Float32Array} 0-1 action values for all the examples in the batch,
-   *   length = batchSize.
+   * @returns {[tf.Tensor, tf.Tensor]}
+   *   1. The logits tensor, of shape `[batchSize, 1]`.
+   *   2. The actions tensor, of shape `[batchSize, 1]`.
    */
   getLogitsAndActions(inputs) {
     return tf.tidy(() => {
@@ -213,6 +214,17 @@ class PolicyNetwork {
       const actions = tf.multinomial(leftRightProbs, 1, null, true);
       return [logits, actions];
     });
+  }
+
+  /**
+   * Get actions based on a state-tensor input.
+   *
+   * @param {tf.Tensor} inputs A tf.Tensor instance of shape `[batchSize, 4]`.
+   * @param {Float32Array} inputs The actions for the inputs, with length
+   *   `batchSize`.
+   */
+  getActions(inputs) {
+    return this.getLogitsAndActions(inputs)[1].dataSync();
   }
 
   /**

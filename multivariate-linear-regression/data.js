@@ -15,96 +15,17 @@
  * =============================================================================
  */
 
-const tf = require('@tensorflow/tfjs');
-const fs = require('fs');
-const https = require('https');
-const zlib = require('zlib');
-const csv = require('csv-parser')
-const utils = require('./utils');
+import * as tf from '@tensorflow/tfjs';
+import * as utils from './utils';
 
 // Boston Housing data constants:
-const BASE_URL = 'https://storage.googleapis.com/cvdf-datasets/boston-housing/';
 const TRAIN_DATA = 'train-data';
 const TRAIN_TARGET = 'train-target';
 const TEST_DATA = 'test-data';
 const TEST_TARGET = 'test-target';
 
-// Downloads a test file only once and returns the csv
-async function loadCsv(filename) {
-  return new Promise(resolve => {
-    const url = `${BASE_URL}${filename}.gz`;
-    const csvName = `${filename}.csv`;
-    if (fs.existsSync(csvName)) {
-      resolve(readCsv(csvName));
-      return;
-    }
-    const file = fs.createWriteStream(csvName);
-    console.log(`  * Downloading from: ${url}`);
-    https.get(url, (response) => {
-      const unzip = zlib.createGunzip();
-      response.pipe(unzip).pipe(file);
-      unzip.on('end', () => {
-        resolve(readCsv(csvName));
-      });
-    });
-  });
-}
-
-async function readCsv(filename) {
-  return new Promise(resolve => {
-    const result = [];
-    fs.createReadStream(filename)
-        .pipe(csv())
-        .on('data',
-            data => {
-              const output =
-                  Object.keys(data).sort().map(key => parseFloat(data[key]));
-              result.push(output)
-            })
-        .on('end', () => resolve(result));
-  });
-}
-
-
-// Shuffles data and label using Fisher-Yates algorithm.
-const shuffle = (data, label) => {
-  let counter = data.length;
-  let temp = 0;
-  let index = 0;
-  while (counter > 0) {
-    index = (Math.random() * counter) | 0;
-    counter--;
-    // data:
-    temp = data[counter];
-    data[counter] = data[index];
-    data[index] = temp;
-    // label:
-    temp = label[counter];
-    label[counter] = label[index];
-    label[index] = temp;
-  }
-};
-
-const normalizeDataset = (dataset) => {
-  const numFeatures = dataset[0].length;
-
-  for (let i = 0; i < numFeatures; i++) {
-    const vector = dataset.map(row => row[i]);
-    const vectorMean = utils.mean(vector);
-    const vectorStddev = utils.stddev(vector);
-    const vectorNormalized =
-        utils.normalizeVector(vector, vectorMean, vectorStddev);
-
-    vectorNormalized.forEach((value, index) => {
-      dataset[index][i] = value;
-    });
-  }
-
-  return dataset;
-};
-
 /** Helper class to handle loading training and test data. */
-class BostonHousingDataset {
+export class BostonHousingDataset {
   constructor() {
     this.dataset = null;
     this.trainSize = 0;
@@ -122,19 +43,28 @@ class BostonHousingDataset {
   /** Loads training and test data. */
   async loadData() {
     this.dataset = await Promise.all([
-      loadCsv(TRAIN_DATA), loadCsv(TRAIN_TARGET), loadCsv(TEST_DATA),
-      loadCsv(TEST_TARGET)
+      utils.loadCsv(TRAIN_DATA), utils.loadCsv(TRAIN_TARGET),
+      utils.loadCsv(TEST_DATA), utils.loadCsv(TEST_TARGET)
     ]);
 
-    this.dataset[0] = normalizeDataset(this.dataset[0]);
-    this.dataset[2] = normalizeDataset(this.dataset[2]);
+    let {dataset: trainDataset, vectorMeans, vectorStddevs} =
+        utils.normalizeDataset(this.dataset[0]);
+
+    this.dataset[0] = trainDataset;
+
+    let {dataset: testDataset} = utils.normalizeDataset(
+        this.dataset[2], false, vectorMeans, vectorStddevs);
+
+    this.dataset[2] = testDataset;
+
+    console.log(this.dataset);
 
     this.trainSize = this.dataset[0].length;
     this.testSize = this.dataset[2].length;
 
     // Shuffle training and test data:
-    shuffle(this.dataset[0], this.dataset[1]);
-    shuffle(this.dataset[2], this.dataset[3]);
+    utils.shuffle(this.dataset[0], this.dataset[1]);
+    utils.shuffle(this.dataset[2], this.dataset[3]);
   }
 
   /** Resets training data batches. */
@@ -161,17 +91,17 @@ class BostonHousingDataset {
    * Returns an object with training data and target for a given batch size.
    */
   nextTrainBatch(batchSize) {
-    return this._generateBatch(true, batchSize);
+    return this.generateBatch(true, batchSize);
   }
 
   /**
    * Returns an object with test data and target for a given batch size.
    */
   nextTestBatch(batchSize) {
-    return this._generateBatch(false, batchSize);
+    return this.generateBatch(false, batchSize);
   }
 
-  _generateBatch(isTrainingData, batchSize) {
+  generateBatch(isTrainingData, batchSize) {
     let batchIndexMax;
     let size;
     let dataIndex;
@@ -219,5 +149,3 @@ class BostonHousingDataset {
     };
   }
 }
-
-module.exports = new BostonHousingDataset();

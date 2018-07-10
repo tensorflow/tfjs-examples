@@ -15,19 +15,18 @@
  * =============================================================================
  */
 
-const tf = require('@tensorflow/tfjs');
-require('@tensorflow/tfjs-node');
+import * as tf from '@tensorflow/tfjs';
+import {BostonHousingDataset} from './data';
 
-const timer = require('node-simple-timer');
-const data = require('./data');
+const data = new BostonHousingDataset();
 
 const NUM_EPOCHS = 700;
 const BATCH_SIZE = 50;
 const TEST_SIZE = 173;
 const LEARNING_RATE = 0.01;
 
-const weights = tf.variable(tf.randomNormal(shape = [data.num_features, 1]));
-const bias = tf.variable(tf.randomNormal(shape = [1]));
+const weights = tf.variable(tf.randomNormal([data.num_features, 1]));
+const bias = tf.variable(tf.randomNormal([1]));
 
 const optimizer = tf.train.sgd(LEARNING_RATE);
 
@@ -57,6 +56,7 @@ async function train() {
     if (step && step % 2 === 0) {
       console.log(`  - step: ${step}: loss: ${loss.dataSync()}`);
     }
+    await tf.nextFrame();
     step++;
   }
 
@@ -76,28 +76,26 @@ async function test() {
 }
 
 async function run() {
-  const totalTimer = new timer.Timer();
-  totalTimer.start();
+  const totalTimerStart = performance.now();
 
   await data.loadData();
 
-  const epochTimer = new timer.Timer();
   for (let i = 0; i < NUM_EPOCHS; i++) {
-    epochTimer.start();
+    const epochTimerStart = performance.now();
     const trainSteps = await train();
-    epochTimer.end();
+    const epochTimerEnd = performance.now();
     data.resetTraining();
 
-    const time = epochTimer.seconds().toFixed(2);
-    const stepsSec = (trainSteps / epochTimer.seconds()).toFixed(2);
+    const time = ((epochTimerEnd - epochTimerStart) / 1000.0).toFixed(2);
+    const stepsSec = (trainSteps / time).toFixed(2);
     console.log(
         `* End Epoch: ${i + 1}: time: ${time}secs (${stepsSec} steps/sec)`);
 
     await test();
   }
 
-  totalTimer.end();
-  const time = totalTimer.seconds().toFixed(2);
+  const totalTimerEnd = performance.now();
+  const time = ((totalTimerEnd - totalTimerStart) / 1000.0).toFixed(2);
   console.log(`**** Trained ${NUM_EPOCHS} epochs in ${time} secs`);
 }
 

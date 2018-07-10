@@ -24,7 +24,7 @@ import * as tf from '@tensorflow/tfjs';
 /**
  * Cart-pole system simulator.
  *
- * The system has four state variables:
+ * In the control-theory senso, there are four state variables in this system:
  *
  *   - x: The 1D location of the cart.
  *   - xDot: The velocity of the cart.
@@ -41,10 +41,11 @@ export class CartPole {
   /**
    *
    * @param {bool} initializeStateRandomly Whether to initialize the state
-   *   randomlly. If `false` (default), all states will be initialized to
+   *   randomly. If `false` (default), all states will be initialized to
    *   zero.
    */
   constructor(initializeStateRandomly) {
+    // Constants that characterize the system.
     this.gravity = 9.8;
     this.massCart = 1.0;
     this.massPole = 0.1;
@@ -59,10 +60,12 @@ export class CartPole {
     this.xThreshold =  2.4;
     this.thetaTheshold = 12 / 360 * 2 * Math.PI;
 
+    // The control-theory state variables of the cart-pole system.
     this.x = 0;  // Cart position, meters.
     this.xDot = 0;  // Cart velocity.
     this.theta = 0;  // Pole angle, radians.
     this.thetaDot = 0;  // Pole angle velocity.
+
     if (initializeStateRandomly) {
       this.setRandomState();
     }

@@ -114,7 +114,7 @@ class PolicyNetwork {
     const gameSteps = [];
     onGameEnd(0, numGames);
     for (let i = 0; i < numGames; ++i) {
-      // Randomly initailize the state of the cart-pole system at the beginning
+      // Randomly initialize the state of the cart-pole system at the beginning
       // of every game.
       cartPoleSystem.setRandomState();
       const gameRewards = [];
@@ -158,14 +158,14 @@ class PolicyNetwork {
     tf.tidy(() => {
       // The following line does three things:
       // 1. Performs reward discounting, i.e., make recent rewards count more
-      //    that rewards from the further past. The effect is that the reward
-      //    values from a game with many steps becomes larger than the values
+      //    than rewards from the further past. The effect is that the reward
+      //    values from a game with many steps become larger than the values
       //    from a game with fewer steps.
       // 2. Normalize the rewards, i.e., subtract the global mean value of the
       //    rewards and divide the result by the global standard deviation of
       //    the rewards. Together with step 1, this makes the rewards from
-      //    long-lasting games positive rewards; rewards from short-lasting
-      //    games become negative rewards.
+      //    long-lasting games positive and rewards from short-lasting
+      //    negative.
       // 3. Scale the gradients with the normalized reward values.
       const normalizedRewards =
           discountAndNormalizeRewards(allRewards, discountRate);
@@ -207,7 +207,7 @@ class PolicyNetwork {
     return tf.tidy(() => {
       const logits = this.model.predict(inputs);
 
-      // Get the probability of the left word action.
+      // Get the probability of the leftward action.
       const leftProb = tf.sigmoid(logits);
       // Probabilites of the left and right actions.
       const leftRightProbs = tf.concat([leftProb, tf.sub(1, leftProb)], 1);

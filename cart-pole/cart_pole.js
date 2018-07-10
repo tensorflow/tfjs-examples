@@ -24,7 +24,7 @@ import * as tf from '@tensorflow/tfjs';
 /**
  * Cart-pole system simulator.
  *
- * In the control-theory senso, there are four state variables in this system:
+ * In the control-theory sense, there are four state variables in this system:
  *
  *   - x: The 1D location of the cart.
  *   - xDot: The velocity of the cart.

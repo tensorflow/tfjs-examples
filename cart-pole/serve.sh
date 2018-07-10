@@ -25,7 +25,6 @@
 # resolved, a single Parcel server will be sufficient.
 
 NODE_ENV=development
-RESOURCE_PORT=1235
 
 # Ensure that http-server is available
 yarn

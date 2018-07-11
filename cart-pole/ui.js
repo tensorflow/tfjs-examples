@@ -63,7 +63,7 @@ let renderDuringTraining = false;
 export async function maybeRenderDuringTraining(cartPole) {
   if (renderDuringTraining) {
     renderCartPole(cartPole, cartPoleCanvas);
-    await tf.nextFrame();
+    await tf.nextFrame();  // Unblock UI thread.
   }
 }
 
@@ -174,7 +174,7 @@ async function updateUIControlState() {
 
   } else {
     storedModelStatusInput.value =
-        `Saved @ ${modelInfo.dateSaved.toISOString()}`;
+        `Saved@${modelInfo.dateSaved.toISOString()}`;
     deleteStoredModelButton.disabled = false;
     createModelButton.disabled = true;
   }
@@ -274,7 +274,7 @@ export async function setUpUI() {
           console.log(`# of tensors: ${tf.memory().numTensors}`);
           plotSteps();
           onIterationEnd(i + 1, trainIterations);
-          await tf.nextFrame();
+          await tf.nextFrame();  // Unblock UI thread.
           await policyNet.saveModel();
           await updateUIControlState();
 
@@ -310,7 +310,7 @@ export async function setUpUI() {
         isDone = cartPole.update(action);
         renderCartPole(cartPole, cartPoleCanvas);
       });
-      await tf.nextFrame();
+      await tf.nextFrame();  // Unblock UI thread.
       if (stopRequested) {
         break;
       }

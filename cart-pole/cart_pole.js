@@ -38,12 +38,9 @@ import * as tf from '@tensorflow/tfjs';
  */
 export class CartPole {
   /**
-   *
-   * @param {bool} initializeStateRandomly Whether to initialize the state
-   *   randomly. If `false` (default), all states will be initialized to
-   *   zero.
+   * Constructor of CartPole.
    */
-  constructor(initializeStateRandomly) {
+  constructor() {
     // Constants that characterize the system.
     this.gravity = 9.8;
     this.massCart = 1.0;
@@ -56,42 +53,33 @@ export class CartPole {
     this.forceMag = 10.0;
     this.tau = 0.02;  // Seconds between state updates.
 
+    // Threshold values, beyond which a simulation will be marked as failed.
     this.xThreshold = 2.4;
     this.thetaTheshold = 12 / 360 * 2 * Math.PI;
 
-    // The control-theory state variables of the cart-pole system.
-    this.x = 0;         // Cart position, meters.
-    this.xDot = 0;      // Cart velocity.
-    this.theta = 0;     // Pole angle, radians.
-    this.thetaDot = 0;  // Pole angle velocity.
-
-    if (initializeStateRandomly) {
-      this.setRandomState();
-    }
+    this.setRandomState();
   }
 
   /**
    * Set the state of the cart-pole system randomly.
    */
   setRandomState() {
+    // The control-theory state variables of the cart-pole system.
+    // Cart position, meters.
     this.x = Math.random() - 0.5;
+    // Cart velocity.
     this.xDot = (Math.random() - 0.5) * 1;
+    // Pole angle, radians.
     this.theta = (Math.random() - 0.5) * 2 * (6 / 360 * 2 * Math.PI);
-    this.thetaDot = (Math.random() - 0.5) * 0.5;
+    // Pole angle velocity.
+    this.thetaDot =  (Math.random() - 0.5) * 0.5;
   }
 
   /**
    * Get current state as a tf.Tensor of shape [1, 4].
    */
   getStateTensor() {
-    return tf.tidy(() => {
-      const buffer = new tf.TensorBuffer([1, 4]);
-      buffer.set(this.x, 0, 0);
-      buffer.set(this.xDot, 0, 1);
-      buffer.set(this.theta, 0, 2);
-      buffer.set(this.thetaDot, 0, 3);
-      return buffer.toTensor();
-    });
+    return tf.tensor2d([[this.x, this.xDot, this.theta, this.thetaDot]]);
   }
 
   /**

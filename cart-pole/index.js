@@ -345,7 +345,7 @@ function discountRewards(rewards, discountRate) {
 /**
  * Discount and normalize reward values.
  *
- * This function perrforms two steps:
+ * This function performs two steps:
  *
  * 1. Discounts the reward values using `discountRate`.
  * 2. Normalize the reward values with the global reward mean and standard

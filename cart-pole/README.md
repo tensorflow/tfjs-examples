@@ -33,8 +33,11 @@ The gist of the RL algorithm in this example (see [index.js](../index.js)) is:
    which is to make the policy network more likely to select actions that lead
    to the longer-lasting games given the same system states.
 
-For a more detailed  overview of policy gradient methods, see:
+For a more detailed overview of policy gradient methods, see:
   http://www.scholarpedia.org/article/Policy_gradient_methods
+
+For a more graphical illustration of the cart-pole problem, see:
+  http://gym.openai.com/envs/CartPole-v1/
 
 ### Features:
 

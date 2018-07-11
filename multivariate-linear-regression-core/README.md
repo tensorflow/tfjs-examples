@@ -1,26 +1,20 @@
-# TensorFlow.js Example: Multivariate Linear Regression with Node.js
+# TensorFlow.js Example: Multivariate Linear Regression for browser
 
-This example shows you how to perform Multivariate Linear Regression under Node.js.
+This example shows you how to perform Multivariate Linear Regression for browser using Boston Housing Dataset.
 
-Prepare the node environment:
+Prepare the environment:
 ```sh
 $ npm install
 # Or
 $ yarn
 ```
 
-Run the training script:
+To build the example, run:
 ```sh
-$ node index.js
+$ yarn build
 ```
 
-If you are running on a Linux system that is [CUDA compatible](https://www.tensorflow.org/install/install_linux), try installing the GPU
-package and replacing the require statement:
-
+To watch the example, run:
 ```sh
-$ npm install @tensorflow/tfjs-node-gpu
-# Or
-$ yarn add @tensorflow/tfjs-node-gpu
+$ yarn watch
 ```
-
-After installing the package, replace `require('@tensorflow/tfjs-node')` with `require('@tensorflow/tfjs-node-gpu');` in index.js

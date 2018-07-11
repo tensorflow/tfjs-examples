@@ -10,7 +10,7 @@
   },
   "dependencies": {
     "@tensorflow/tfjs": "^0.12.0",
-    "@tensorflow/tfjs-node": "^0.1.7",
+    "@tensorflow/tfjs-node": "^0.1.8",
     "node-simple-timer": "^0.1.1"
   },
   "scripts": {

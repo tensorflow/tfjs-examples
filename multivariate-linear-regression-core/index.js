@@ -20,62 +20,57 @@ import {BostonHousingDataset} from './data';
 
 const data = new BostonHousingDataset();
 
-const NUM_EPOCHS = 700;
+const NUM_EPOCHS = 500;
 const BATCH_SIZE = 50;
 const TEST_SIZE = 173;
 const LEARNING_RATE = 0.01;
 
-const weights = tf.variable(tf.randomNormal([data.num_features, 1]));
-const bias = tf.variable(tf.randomNormal([1]));
+const sgd = tf.train.sgd(LEARNING_RATE);
 
-const optimizer = tf.train.sgd(LEARNING_RATE);
+const model = tf.sequential();
+model.add(tf.layers.dense({
+  inputShape: [data.num_features],
+  units: 1,
+  kernelInitializer: 'randomNormal',
+  biasInitializer: 'randomNormal',
+  useBias: true
+}));
+model.compile({optimizer: sgd, loss: 'meanSquaredError'});
 
-const model = (input) => {
-  return tf.tidy(() => {
-    const output = input.matMul(weights).add(bias);
-    return output;
-  });
-};
-
-const calculateLoss = (targets, prediction) => {
-  return tf.tidy(() => {
-    return tf.losses.meanSquaredError(targets, prediction);
-  });
-};
-
-async function train() {
+const train = async () => {
   let step = 0;
-  let returnLoss = true;
 
   while (data.hasMoreTrainingData()) {
     const batch = data.nextTrainBatch(BATCH_SIZE);
-    const loss = optimizer.minimize(() => {
-      const cost = calculateLoss(batch.target, model(batch.data));
-      return cost;
-    }, returnLoss);
+    const history = await model.fit(
+        batch.data, batch.target, {batchSize: BATCH_SIZE, shuffle: true});
+
     if (step && step % 2 === 0) {
-      console.log(`  - step: ${step}: loss: ${loss.dataSync()}`);
+      const loss = history.history.loss[0].toFixed(6);
+      console.log(`  - step: ${step}: loss: ${loss}`);
     }
+
     await tf.nextFrame();
     step++;
   }
 
   return step;
-}
+};
 
-async function test() {
+const test = async () => {
   if (!data.hasMoreTestData()) {
     data.resetTest();
   }
+
   const evalData = data.nextTestBatch(TEST_SIZE);
-  const predictions = model(evalData.data);
+  const predictions = model.predict(evalData.data);
   const targets = evalData.target;
 
-  const loss = calculateLoss(targets, predictions).dataSync();
+  const loss = tf.losses.meanSquaredError(targets, predictions).dataSync();
   console.log(`* Test set loss: ${loss}\n`);
-}
+};
 
-async function run() {
+const run = async () => {
   const totalTimerStart = performance.now();
 
   await data.loadData();
@@ -97,6 +92,6 @@ async function run() {
   const totalTimerEnd = performance.now();
   const time = ((totalTimerEnd - totalTimerStart) / 1000.0).toFixed(2);
   console.log(`**** Trained ${NUM_EPOCHS} epochs in ${time} secs`);
-}
+};
 
 run();

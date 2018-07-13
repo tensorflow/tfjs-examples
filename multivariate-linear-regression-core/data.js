@@ -57,91 +57,33 @@ export class BostonHousingDataset {
 
     this.dataset[2] = testDataset;
 
-    console.log(this.dataset);
-
     this.trainSize = this.dataset[0].length;
     this.testSize = this.dataset[2].length;
   }
 
-  /** Resets training data batches. */
-  resetTraining() {
-    this.trainBatchIndex = 0;
-  }
+  getTrainData() {
+    const dataShape = [this.trainSize, this.NUM_FEATURES];
+    const targetShape = [this.trainSize, 1];
 
-  /** Resets test data batches. */
-  resetTest() {
-    this.testBatchIndex = 0;
-  }
-
-  /** Returns true if the training data has another batch. */
-  hasMoreTrainingData() {
-    return this.trainBatchIndex < this.trainSize;
-  }
-
-  /** Returns true if the test data has another batch. */
-  hasMoreTestData() {
-    return this.testBatchIndex < this.testSize;
-  }
-
-  /**
-   * Returns an object with training data and target for a given batch size.
-   */
-  nextTrainBatch(batchSize) {
-    return this.generateBatch(true, batchSize);
-  }
-
-  /**
-   * Returns an object with test data and target for a given batch size.
-   */
-  nextTestBatch(batchSize) {
-    return this.generateBatch(false, batchSize);
-  }
-
-  generateBatch(isTrainingData, batchSize) {
-    let batchIndexMax;
-    let size;
-    let dataIndex;
-    let targetIndex;
-    if (isTrainingData) {
-      batchIndexMax = this.trainBatchIndex + batchSize > this.trainSize ?
-          this.trainSize :
-          batchSize + this.trainBatchIndex;
-      size = batchIndexMax - this.trainBatchIndex;
-      dataIndex = 0;
-      targetIndex = 1;
-    } else {
-      batchIndexMax = this.testBatchIndex + batchSize > this.testSize ?
-          this.testSize :
-          batchSize + this.testBatchIndex;
-      size = batchIndexMax - this.testBatchIndex;
-      dataIndex = 2;
-      targetIndex = 3;
-    }
-
-    const dataShape = [size, this.NUM_FEATURES];
-    const data = new Float32Array(tf.util.sizeFromShape(dataShape));
-
-    const targetShape = [size, 1];
-    const target = new Float32Array(tf.util.sizeFromShape(targetShape));
-
-    let dataOffset = 0;
-    let targetOffset = 0;
-    let batchIndex =
-        isTrainingData ? this.trainBatchIndex : this.testBatchIndex;
-    while ((isTrainingData ? this.trainBatchIndex : this.testBatchIndex) <
-           batchIndexMax) {
-      data.set(this.dataset[dataIndex][batchIndex], dataOffset);
-      target.set(this.dataset[targetIndex][batchIndex], targetOffset);
-
-      batchIndex =
-          isTrainingData ? ++this.trainBatchIndex : ++this.testBatchIndex;
-      dataOffset += this.NUM_FEATURES;
-      targetOffset += 1;
-    }
+    const trainData = Float32Array.from([].concat.apply([], this.dataset[0]));
+    const trainTarget = Float32Array.from([].concat.apply([], this.dataset[1]));
 
     return {
-      data: tf.tensor2d(data, dataShape),
-      target: tf.tensor1d(target).reshape(targetShape)
+      data: tf.tensor2d(trainData, dataShape),
+      target: tf.tensor1d(trainTarget).reshape(targetShape)
+    };
+  }
+
+  getTestData() {
+    const dataShape = [this.testSize, this.NUM_FEATURES];
+    const targetShape = [this.testSize, 1];
+
+    const testData = Float32Array.from([].concat.apply([], this.dataset[2]));
+    const testTarget = Float32Array.from([].concat.apply([], this.dataset[3]));
+
+    return {
+      data: tf.tensor2d(testData, dataShape),
+      target: tf.tensor1d(testTarget).reshape(targetShape)
     };
   }
 }

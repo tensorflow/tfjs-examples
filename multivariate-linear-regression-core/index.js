@@ -20,54 +20,31 @@ import {BostonHousingDataset} from './data';
 
 const data = new BostonHousingDataset();
 
-const NUM_EPOCHS = 500;
+const NUM_EPOCHS = 250;
 const BATCH_SIZE = 50;
-const TEST_SIZE = 173;
 const LEARNING_RATE = 0.01;
 
 const sgd = tf.train.sgd(LEARNING_RATE);
 
 const model = tf.sequential();
-model.add(tf.layers.dense({
-  inputShape: [data.num_features],
-  units: 1,
-  kernelInitializer: 'randomNormal',
-  biasInitializer: 'randomNormal',
-  useBias: true
-}));
+model.add(tf.layers.dense({inputShape: [data.num_features], units: 1}));
 model.compile({optimizer: sgd, loss: 'meanSquaredError'});
 
-const train = async () => {
-  let step = 0;
+const train = async (epoch, trainData) => {
+  await model.fit(trainData.data, trainData.target, {
+    batchSize: BATCH_SIZE,
+    epochs: 1,
+    callbacks: {
+      onEpochEnd: async (_, logs) => {
+        console.log(`* Train set loss: ${logs.loss.toFixed(4)}`);
 
-  while (data.hasMoreTrainingData()) {
-    const batch = data.nextTrainBatch(BATCH_SIZE);
-    const history = await model.fit(
-        batch.data, batch.target, {batchSize: BATCH_SIZE, shuffle: true});
-
-    if (step && step % 2 === 0) {
-      const loss = history.history.loss[0].toFixed(6);
-      console.log(`  - step: ${step}: loss: ${loss}`);
+        // tf.nextFrame makes program wait till requestAnimationFrame
+        // has completed. This helps mitigate blocking of UI thread
+        // and thus browser tab.
+        await tf.nextFrame();
+      }
     }
-
-    await tf.nextFrame();
-    step++;
-  }
-
-  return step;
-};
-
-const test = async () => {
-  if (!data.hasMoreTestData()) {
-    data.resetTest();
-  }
-
-  const evalData = data.nextTestBatch(TEST_SIZE);
-  const predictions = model.predict(evalData.data);
-  const targets = evalData.target;
-
-  const loss = tf.losses.meanSquaredError(targets, predictions).dataSync();
-  console.log(`* Test set loss: ${loss}\n`);
+  });
 };
 
 const run = async () => {
@@ -75,23 +52,30 @@ const run = async () => {
 
   await data.loadData();
 
-  for (let i = 0; i < NUM_EPOCHS; i++) {
+  const trainData = data.getTrainData();
+  const testData = data.getTestData();
+
+  for (let epoch = 1; epoch <= NUM_EPOCHS; epoch++) {
+    console.log(`** Start Epoch ${epoch} **`);
+
     const epochTimerStart = performance.now();
-    const trainSteps = await train();
+    await train(epoch, trainData);
     const epochTimerEnd = performance.now();
-    data.resetTraining();
 
     const time = ((epochTimerEnd - epochTimerStart) / 1000.0).toFixed(2);
-    const stepsSec = (trainSteps / time).toFixed(2);
-    console.log(
-        `* End Epoch: ${i + 1}: time: ${time}secs (${stepsSec} steps/sec)`);
 
-    await test();
+    const result =
+        model.evaluate(testData.data, testData.target, {batchSize: BATCH_SIZE});
+
+    const loss = result.get().toFixed(4);
+
+    console.log(`* Test set loss: ${loss}`);
+    console.log(`** End Epoch ${epoch}: time: ${time}secs **`);
   }
 
   const totalTimerEnd = performance.now();
   const time = ((totalTimerEnd - totalTimerStart) / 1000.0).toFixed(2);
-  console.log(`**** Trained ${NUM_EPOCHS} epochs in ${time} secs`);
+  console.log(`**** Trained ${NUM_EPOCHS} epochs in ${time} secs ****`);
 };
 
 run();

@@ -61,6 +61,27 @@ export const loadCsv = async (filename) => {
 };
 
 /**
+ * Shuffles data and label using Fisher-Yates algorithm.
+ */
+export const shuffle = (data, label) => {
+  let counter = data.length;
+  let temp = 0;
+  let index = 0;
+  while (counter > 0) {
+    index = (Math.random() * counter) | 0;
+    counter--;
+    // data:
+    temp = data[counter];
+    data[counter] = data[index];
+    data[index] = temp;
+    // label:
+    temp = label[counter];
+    label[counter] = label[index];
+    label[index] = temp;
+  }
+};
+
+/**
  * Calculate the arithmetic mean of a vector.
  *
  * @param {Array} vector The vector represented as an Array of Numbers.

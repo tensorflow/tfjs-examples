@@ -59,6 +59,9 @@ export class BostonHousingDataset {
 
     this.trainSize = this.dataset[0].length;
     this.testSize = this.dataset[2].length;
+
+    utils.shuffle(this.dataset[0], this.dataset[1]);
+    utils.shuffle(this.dataset[2], this.dataset[3]);
   }
 
   getTrainData() {

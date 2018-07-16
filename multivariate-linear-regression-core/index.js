@@ -20,23 +20,35 @@ import {BostonHousingDataset} from './data';
 
 const data = new BostonHousingDataset();
 
-const NUM_EPOCHS = 250;
-const BATCH_SIZE = 50;
-const LEARNING_RATE = 0.01;
+data.loadData().then(() => {
+  const trainData = data.getTrainData();
+  const testData = data.getTestData();
 
-const sgd = tf.train.sgd(LEARNING_RATE);
+  const NUM_EPOCHS = 500;
+  const BATCH_SIZE = 50;
+  const LEARNING_RATE = 0.01;
 
-const model = tf.sequential();
-model.add(tf.layers.dense({inputShape: [data.num_features], units: 1}));
-model.compile({optimizer: sgd, loss: 'meanSquaredError'});
+  const sgd = tf.train.sgd(LEARNING_RATE);
 
-const train = async (epoch, trainData) => {
-  await model.fit(trainData.data, trainData.target, {
+  const model = tf.sequential();
+  model.add(tf.layers.dense({inputShape: [data.num_features], units: 1}));
+  model.compile({optimizer: sgd, loss: 'meanSquaredError'});
+
+  model.fit(trainData.data, trainData.target, {
     batchSize: BATCH_SIZE,
-    epochs: 1,
+    epochs: NUM_EPOCHS,
+    validationSplit: 0.15,
     callbacks: {
-      onEpochEnd: async (_, logs) => {
+      onEpochEnd: async (epoch, logs) => {
+        console.log(`* Epoch ${epoch}`);
         console.log(`* Train set loss: ${logs.loss.toFixed(4)}`);
+
+        const result = model.evaluate(
+            testData.data, testData.target, {batchSize: BATCH_SIZE});
+
+        const loss = result.get().toFixed(4);
+
+        console.log(`* Test set loss: ${loss}`);
 
         // tf.nextFrame makes program wait till requestAnimationFrame
         // has completed. This helps mitigate blocking of UI thread
@@ -45,37 +57,4 @@ const train = async (epoch, trainData) => {
       }
     }
   });
-};
-
-const run = async () => {
-  const totalTimerStart = performance.now();
-
-  await data.loadData();
-
-  const trainData = data.getTrainData();
-  const testData = data.getTestData();
-
-  for (let epoch = 1; epoch <= NUM_EPOCHS; epoch++) {
-    console.log(`** Start Epoch ${epoch} **`);
-
-    const epochTimerStart = performance.now();
-    await train(epoch, trainData);
-    const epochTimerEnd = performance.now();
-
-    const time = ((epochTimerEnd - epochTimerStart) / 1000.0).toFixed(2);
-
-    const result =
-        model.evaluate(testData.data, testData.target, {batchSize: BATCH_SIZE});
-
-    const loss = result.get().toFixed(4);
-
-    console.log(`* Test set loss: ${loss}`);
-    console.log(`** End Epoch ${epoch}: time: ${time}secs **`);
-  }
-
-  const totalTimerEnd = performance.now();
-  const time = ((totalTimerEnd - totalTimerStart) / 1000.0).toFixed(2);
-  console.log(`**** Trained ${NUM_EPOCHS} epochs in ${time} secs ****`);
-};
-
-run();
+});

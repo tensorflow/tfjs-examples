@@ -34,7 +34,7 @@
   },
   "dependencies": {
     "@tensorflow/tfjs": "^0.12.1",
-    "@tensorflow/tfjs-node": "^0.1.8",
+    "@tensorflow/tfjs-node": "^0.1.9",
     "baseball-pitchfx-types": "~0.0.4",
     "node-simple-timer": "~0.0.1",
     "socket.io": "~2.1.0",

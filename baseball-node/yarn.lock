@@ -84,9 +84,9 @@
   version "0.7.0"
   resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-layers/-/tfjs-layers-0.7.0.tgz#6bee18a220ece102a56be785cd1c67028f968a63"
 
-"@tensorflow/tfjs-node@^0.1.8":
-  version "0.1.8"
-  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-node/-/tfjs-node-0.1.8.tgz#d14fbe24af4f158ee9f4d9de2a10e9c30f160bec"
+"@tensorflow/tfjs-node@^0.1.9":
+  version "0.1.9"
+  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-node/-/tfjs-node-0.1.9.tgz#0cb5b3da2c11f2b8a2a6c087d2fead9006fe23aa"
   dependencies:
     bindings "~1.3.0"
 

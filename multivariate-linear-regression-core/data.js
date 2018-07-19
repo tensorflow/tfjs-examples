@@ -36,7 +36,7 @@ export class BostonHousingDataset {
     this.NUM_FEATURES = 13;
   }
 
-  get num_features() {
+  get numFeatures() {
     return this.NUM_FEATURES;
   }
 

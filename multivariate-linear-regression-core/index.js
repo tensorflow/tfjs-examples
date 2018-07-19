@@ -20,7 +20,7 @@ import {BostonHousingDataset} from './data';
 
 const data = new BostonHousingDataset();
 
-data.loadData().then(() => {
+data.loadData().then(async () => {
   const trainData = data.getTrainData();
   const testData = data.getTestData();
 
@@ -31,24 +31,18 @@ data.loadData().then(() => {
   const sgd = tf.train.sgd(LEARNING_RATE);
 
   const model = tf.sequential();
-  model.add(tf.layers.dense({inputShape: [data.num_features], units: 1}));
+  model.add(tf.layers.dense({inputShape: [data.numFeatures], units: 1}));
   model.compile({optimizer: sgd, loss: 'meanSquaredError'});
 
-  model.fit(trainData.data, trainData.target, {
+  await model.fit(trainData.data, trainData.target, {
     batchSize: BATCH_SIZE,
     epochs: NUM_EPOCHS,
-    validationSplit: 0.15,
+    validationSplit: 0.2,
     callbacks: {
       onEpochEnd: async (epoch, logs) => {
         console.log(`* Epoch ${epoch}`);
         console.log(`* Train set loss: ${logs.loss.toFixed(4)}`);
-
-        const result = model.evaluate(
-            testData.data, testData.target, {batchSize: BATCH_SIZE});
-
-        const loss = result.get().toFixed(4);
-
-        console.log(`* Test set loss: ${loss}`);
+        console.log(`* Validation set loss: ${logs.val_loss.toFixed(4)}`);
 
         // tf.nextFrame makes program wait till requestAnimationFrame
         // has completed. This helps mitigate blocking of UI thread
@@ -57,4 +51,11 @@ data.loadData().then(() => {
       }
     }
   });
+
+  const result =
+      model.evaluate(testData.data, testData.target, {batchSize: BATCH_SIZE});
+
+  const loss = result.get().toFixed(4);
+
+  console.log(`* Test set loss: ${loss}`);
 });

@@ -16,23 +16,33 @@
  */
 
 import * as tf from '@tensorflow/tfjs';
+
 import {BostonHousingDataset} from './data';
+
+import * as ui from './ui';
 
 const data = new BostonHousingDataset();
 
 data.loadData().then(async () => {
+  await ui.updateStatus('status', 'Getting training and testing data')
   const trainData = data.getTrainData();
   const testData = data.getTestData();
 
-  const NUM_EPOCHS = 500;
+  const NUM_EPOCHS = 250;
   const BATCH_SIZE = 50;
   const LEARNING_RATE = 0.01;
 
   const sgd = tf.train.sgd(LEARNING_RATE);
 
+  await ui.updateStatus('status', 'Building model')
+
   const model = tf.sequential();
   model.add(tf.layers.dense({inputShape: [data.numFeatures], units: 1}));
   model.compile({optimizer: sgd, loss: 'meanSquaredError'});
+
+  const losses = new Array();
+
+  await ui.updateStatus('status', 'Started training!');
 
   await model.fit(trainData.data, trainData.target, {
     batchSize: BATCH_SIZE,
@@ -40,9 +50,15 @@ data.loadData().then(async () => {
     validationSplit: 0.2,
     callbacks: {
       onEpochEnd: async (epoch, logs) => {
-        console.log(`* Epoch ${epoch}`);
-        console.log(`* Train set loss: ${logs.loss.toFixed(4)}`);
-        console.log(`* Validation set loss: ${logs.val_loss.toFixed(4)}`);
+        await ui.updateStatus('status', `Epoch ${epoch} completed!`);
+        const validationLoss = logs.val_loss.toFixed(4);
+        const trainLoss = logs.loss.toFixed(4);
+
+        losses.push({'x': epoch, 'y': trainLoss, 'loss': 'Train Loss'});
+        losses.push(
+            {'x': epoch, 'y': validationLoss, 'loss': 'Validation Loss'});
+
+        await ui.plotData('#plot', losses);
 
         // tf.nextFrame makes program wait till requestAnimationFrame
         // has completed. This helps mitigate blocking of UI thread
@@ -52,10 +68,12 @@ data.loadData().then(async () => {
     }
   });
 
+  await ui.updateStatus('status', `Running on test data`);
+
   const result =
       model.evaluate(testData.data, testData.target, {batchSize: BATCH_SIZE});
 
-  const loss = result.get().toFixed(4);
+  const testLoss = result.get().toFixed(4);
 
-  console.log(`* Test set loss: ${loss}`);
+  await ui.updateStatus('status', `Test set loss: ${testLoss}`);
 });

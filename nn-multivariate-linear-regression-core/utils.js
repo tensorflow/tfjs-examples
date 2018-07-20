@@ -16,12 +16,19 @@
  */
 const Papa = require('papaparse');
 
-// Change this to Google cloud link once data is pushed
-// Probably would need to add logic to unzip gzip before parsing csv
+// Change this to Google cloud link once data is pushed.
+// Probably would need to add logic to unzip gzip before parsing csv.
 const BASE_URL =
   'https://gist.githubusercontent.com/ManrajGrover/a4b2b6bf0abda231b4b49af8b9950688/raw/661367f1ab938642ff0d216276b77ace5d288b04/';
 
-async function parseCsv(data) {
+
+/**
+ *
+ * @param {Array<Object>} data Downloaded data.
+ *
+ * @returns {Promise.Array<number[]>} Resolves to data with values parsed as floats.
+ */
+const parseCsv = async (data) => {
   return new Promise(resolve => {
     data = data.map((row) => {
       return Object.keys(row).sort().map(key => parseFloat(row[key]));
@@ -29,12 +36,16 @@ async function parseCsv(data) {
 
     resolve(data);
   });
-}
+};
 
 /**
- *  Downloads and returns the csv
+ * Downloads and returns the csv.
+ *
+ * @param {string} filename Name of file to be loaded.
+ *
+ * @returns {Promise.Array<number[]>} Resolves to parsed csv data.
  */
-export async function loadCsv(filename) {
+export const loadCsv = async (filename) => {
   return new Promise(resolve => {
     const url = `${BASE_URL}${filename}.csv`;
 
@@ -47,7 +58,7 @@ export async function loadCsv(filename) {
       }
     })
   });
-}
+};
 
 /**
  * Shuffles data and label using Fisher-Yates algorithm.
@@ -71,11 +82,11 @@ export const shuffle = (data, label) => {
 };
 
 /**
- * Calculate the arithmetic mean of a vector
+ * Calculate the arithmetic mean of a vector.
  *
  * @param {Array} vector The vector represented as an Array of Numbers.
  *
- * @returns The arithmetic mean.
+ * @returns {number} The arithmetic mean.
  */
 const mean = (vector) => {
   let sum = 0;
@@ -90,7 +101,7 @@ const mean = (vector) => {
  *
  * @param {Array} vector The vector represented as an Array of Numbers.
  *
- * @returns The standard deviation.
+ * @returns {number} The standard deviation.
  */
 const stddev = (vector) => {
   let squareSum = 0;
@@ -104,9 +115,11 @@ const stddev = (vector) => {
 /**
  * Normalize a vector by its mean and standard deviation.
  *
- * @param {Array} vector Vector to be normalized
- * @param {float} vectorMean Mean to be used
- * @param {float} vectorStddev Standard Deviation to be used
+ * @param {Array} vector Vector to be normalized.
+ * @param {number} vectorMean Mean to be used.
+ * @param {number} vectorStddev Standard Deviation to be used.
+ *
+ * @returns {Array} Normalized vector.
  */
 const normalizeVector = (vector, vectorMean, vectorStddev) => {
   return vector.map(x => (x - vectorMean) / vectorStddev);
@@ -115,13 +128,13 @@ const normalizeVector = (vector, vectorMean, vectorStddev) => {
 /**
  * Normalizes the dataset
  *
- * @param {Array} dataset Dataset to be normalized
- * @param {Boolean} isTrainData Whether it is training data or not
- * @param {Array} vectorMeans Mean of each column of dataset
- * @param {Array} vectorStddevs Standard deviation of each column of dataset
+ * @param {Array} dataset Dataset to be normalized.
+ * @param {boolean} isTrainData Whether it is training data or not.
+ * @param {Array} vectorMeans Mean of each column of dataset.
+ * @param {Array} vectorStddevs Standard deviation of each column of dataset.
  *
  * @returns {Object} Contains normalized dataset, mean of each vector column,
- *                   standard deviation of each vector column
+ *                   standard deviation of each vector column.
  */
 export const normalizeDataset =
   (dataset, isTrainData = true, vectorMeans = [], vectorStddevs = []) => {

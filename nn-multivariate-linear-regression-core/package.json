@@ -1,5 +1,5 @@
 {
-  "name": "tfjs-examples-mlr-core",
+  "name": "tfjs-examples-nn-regression",
   "version": "0.1.0",
   "description": "",
   "main": "index.js",
@@ -10,12 +10,13 @@
   },
   "dependencies": {
     "@tensorflow/tfjs": "^0.12.0",
-    "papaparse": "^4.5.0"
+    "papaparse": "^4.5.0",
+    "vega-embed": "^3.18.1",
+    "vega-lite": "^2.3.1"
   },
   "scripts": {
     "watch": "cross-env NODE_ENV=development parcel index.html --no-hmr --open",
-    "build": "cross-env NODE_ENV=production parcel build index.html --no-minify --public-url ./",
-    "postinstall": "yarn upgrade --pattern @tensorflow"
+    "build": "cross-env NODE_ENV=production parcel build index.html --no-minify --public-url ./"
   },
   "devDependencies": {
     "babel-plugin-transform-runtime": "~6.23.0",

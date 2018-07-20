@@ -63,9 +63,9 @@
   version "0.7.0"
   resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-layers/-/tfjs-layers-0.7.0.tgz#6bee18a220ece102a56be785cd1c67028f968a63"
 
-"@tensorflow/tfjs-tsne@0.1.0":
-  version "0.1.0"
-  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-tsne/-/tfjs-tsne-0.1.0.tgz#9083d9b86488d13f195d3d3cc662ba107e89ad50"
+"@tensorflow/tfjs-tsne@0.2.0":
+  version "0.2.0"
+  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-tsne/-/tfjs-tsne-0.2.0.tgz#ed6e3320f5c2d179afd89637ef7379eb00813270"
 
 "@tensorflow/tfjs@^0.12.0":
   version "0.12.0"

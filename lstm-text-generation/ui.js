@@ -29,11 +29,11 @@ const TEXT_DATA_URLS = {
     needle: 'Nietzsche'
   },
   'julesverne': {
-    url: 'https://raw.githubusercontent.com/osadalakmal/6-006/master/docdist/t1.verne.txt',
+    url: 'https://storage.googleapis.com/tfjs-examples/lstm-text-generation/data/t1.verne.txt',
     needle: 'Jules Verne'
   },
   'shakespeare': {
-    url: 'https://raw.githubusercontent.com/osadalakmal/6-006/master/docdist/t8.shakespeare.txt',
+    url: 'https://storage.googleapis.com/tfjs-examples/lstm-text-generation/data/t8.shakespeare.txt',
     needle: 'Shakespeare'
   },
   'tfjs-code': {

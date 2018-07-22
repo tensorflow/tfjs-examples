@@ -24,9 +24,22 @@ import {SaveableLSTMTextGenerator} from './index';
 
 // TODO(cais): Support user-supplied text data.
 const TEXT_DATA_URLS = {
-  'nietzsche':
-      'https://storage.googleapis.com/tfjs-examples/lstm-text-generation/data/nietzsche.txt',
-  'tfjs-code': 'https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@0.11.7/dist/tf.js'
+  'nietzsche': {
+    url:'https://storage.googleapis.com/tfjs-examples/lstm-text-generation/data/nietzsche.txt',
+    needle: 'Nietzsche'
+  },
+  'julesverne': {
+    url: 'https://storage.googleapis.com/tfjs-examples/lstm-text-generation/data/t1.verne.txt',
+    needle: 'Jules Verne'
+  },
+  'shakespeare': {
+    url: 'https://storage.googleapis.com/tfjs-examples/lstm-text-generation/data/t8.shakespeare.txt',
+    needle: 'Shakespeare'
+  },
+  'tfjs-code': {
+    url: 'https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@0.11.7/dist/tf.js',
+    needle: 'TensorFlow.js Code (Compiled, 0.11.7)'
+  }
 }
 
 // UI controls.
@@ -259,6 +272,23 @@ export function setUpUI() {
     lstmLayersSizesInput.value = lstmLayerSizes;
   }
 
+  function updateTextInputParameters() {
+    Object.keys(TEXT_DATA_URLS).forEach(key => {
+      var opt = document.createElement('option');
+      opt.value = key;
+      opt.innerHTML = TEXT_DATA_URLS[key].needle;
+      textDataSelect.appendChild(opt);
+    });
+  }
+
+  function hashCode(str) {
+    let hash = 5381, i = str.length;
+    while(i)  {
+      hash = (hash * 33) ^ str.charCodeAt(--i);
+    }
+    return hash >>> 0;
+  }
+
   /**
    * Initialize UI state.
    */
@@ -266,30 +296,38 @@ export function setUpUI() {
   disableModelParameterControls();
 
   /**
+   * Update Text Inputs
+   */
+  updateTextInputParameters();
+  
+  /**
    * Wire up UI callbacks.
    */
 
   loadTextDataButton.addEventListener('click', async () => {
     textDataSelect.disabled = true;
     loadTextDataButton.disabled = true;
-    const dataIdentifier = textDataSelect.value;
-    const url = TEXT_DATA_URLS[dataIdentifier];
-    try {
-      logStatus(`Loading text data from URL: ${url} ...`);
-      const response = await fetch(url);
-      const textString = await response.text();
-      testText.value = textString;
-      logStatus(
-          `Done loading text data ` +
-          `(length=${(textString.length / 1024).toFixed(1)}k). ` +
-          `Next, please load or create model.`);
-    } catch (err) {
-      logStatus('Failed to load text data: ' + err.message);
-    }
-
-    if (testText.value.length === 0) {
-      logStatus('ERROR: Empty text data.');
-      return;
+    let dataIdentifier = textDataSelect.value;
+    const url = TEXT_DATA_URLS[dataIdentifier].url;
+    if( testText.value.length === 0) {
+      try {
+        logStatus(`Loading text data from URL: ${url} ...`);
+        const response = await fetch(url);
+        const textString = await response.text();
+        testText.value = textString;
+        logStatus(
+            `Done loading text data ` +
+            `(length=${(textString.length / 1024).toFixed(1)}k). ` +
+            `Next, please load or create model.`);
+      } catch (err) {
+        logStatus('Failed to load text data: ' + err.message);
+      }
+      if (testText.value.length === 0) {
+        logStatus('ERROR: Empty text data.');
+        return;
+      }
+    } else {
+      dataIdentifier = hashCode(testText.value);
     }
     textData =
         new TextData(dataIdentifier, testText.value, sampleLen, sampleStep);

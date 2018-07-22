@@ -9,12 +9,7 @@ $ npm install
 $ yarn
 ```
 
-To build the example, run:
-```sh
-$ yarn build
-```
-
-To watch the example, run:
+To build and watch the example, run:
 ```sh
 $ yarn watch
 ```

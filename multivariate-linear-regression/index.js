@@ -32,12 +32,14 @@ data.loadData().then(async () => {
   const BATCH_SIZE = 50;
   const LEARNING_RATE = 0.01;
 
-  const sgd = tf.train.sgd(LEARNING_RATE);
+  const sgd = tf.train.rmsprop(LEARNING_RATE);
 
   await ui.updateStatus('status', 'Building model')
 
   const model = tf.sequential();
-  model.add(tf.layers.dense({inputShape: [data.numFeatures], units: 1}));
+  model.add(tf.layers.dense({inputShape: [data.numFeatures], units: 100, activation: 'relu'}));
+  model.add(tf.layers.dense({units: 1}));
+  // model.add(tf.layers.dense({inputShape: [data.numFeatures], units: 1}));
   model.compile({optimizer: sgd, loss: 'meanSquaredError'});
 
   const losses = new Array();

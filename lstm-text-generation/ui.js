@@ -281,6 +281,14 @@ export function setUpUI() {
     });
   }
 
+  function hashCode(str) {
+    var hash = 5381, i    = str.length;
+    while(i) {
+      hash = (hash * 33) ^ str.charCodeAt(--i);
+    }
+    return hash >>> 0;
+  }
+
   /**
    * Initialize UI state.
    */
@@ -319,7 +327,7 @@ export function setUpUI() {
         return;
       }
     } else {
-      dataIdentifier = 'custom';
+      dataIdentifier = hashCode(testText.value);
     }
     textData =
         new TextData(dataIdentifier, testText.value, sampleLen, sampleStep);

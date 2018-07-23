@@ -71,17 +71,14 @@ limitations under the License.
   <h1>TensorFlow.js Example:<br/>Train LSTM to Generate Text</h1>
   <div>
     <div id="app-status" class="vertical-sections">
-      <span>Please select a text data source and click "load text data" first.</span>
+      <span>Please select a text data source or enter your custom text in the text box below and click "load text data" first</span>
     </div>
 
     <div class="vertical-sections">
-      <select id="text-data-select">
-        <option value="tfjs-code">TensorFlow.js Code (Compiled, 0.11.7)</option>
-        <option value="nietzsche">Nietzsche</option>
-      </select>
+      <select id="text-data-select"></select>
       <button id="load-text-data">Load text data</button>
       <div>
-        <textarea class="monospace" id="test-text" readonly="true" value="" rows="10"></textarea>
+        <textarea class="monospace" id="test-text" value="" rows="10"></textarea>
       </div>
     </div>
 

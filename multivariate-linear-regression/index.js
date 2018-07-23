@@ -50,7 +50,7 @@ data.loadData().then(async () => {
         await ui.updateStatus(`Epoch ${epoch + 1} of ${NUM_EPOCHS} completed.`);
         trainLoss = logs.loss;
         valLoss = logs.val_loss;
-        await ui.plotData('#plot', epoch, trainLoss, valLoss);
+        await ui.plotData(epoch, trainLoss, valLoss);
 
         // tf.nextFrame makes program wait till requestAnimationFrame
         // has completed. This helps mitigate blocking of UI thread

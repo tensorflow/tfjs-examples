@@ -22,8 +22,9 @@ export const updateStatus = (message) => {
   statusElement.textContent = message;
 };
 
+const plotContainerId = '#plot';
 const losses = [];
-export const plotData = async (container, epoch, trainLoss, valLoss) => {
+export const plotData = async (epoch, trainLoss, valLoss) => {
   losses.push({
     'epoch': epoch,
     'loss': trainLoss,
@@ -48,5 +49,5 @@ export const plotData = async (container, epoch, trainLoss, valLoss) => {
     }
   };
 
-  return renderChart(container, spec, {actions: false});
+  return renderChart(plotContainerId, spec, {actions: false});
 }

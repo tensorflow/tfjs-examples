@@ -66,7 +66,7 @@ data.loadData().then(async () => {
       model.evaluate(testData.data, testData.target, {batchSize: BATCH_SIZE});
   const testLoss = result.get().toFixed(4);
   await ui.updateStatus(
-      `Final train-set loss: ${trainLoss};` +
-      `Final validation-set loss: ${valLoss};` +
+      `Final train-set loss: ${trainLoss.toFixed(4)}\n` +
+      `Final validation-set loss: ${valLoss.toFixed(4)}\n` +
       `Test-set loss: ${testLoss}`);
 });

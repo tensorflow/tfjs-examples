@@ -19,7 +19,7 @@ import renderChart from 'vega-embed';
 
 const statusElement = document.getElementById('status');
 export const updateStatus = (message) => {
-  statusElement.textContent = message;
+  statusElement.value = message;
 };
 
 const plotContainerId = '#plot';

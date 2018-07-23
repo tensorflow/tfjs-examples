@@ -33,7 +33,7 @@ export class BostonHousingDataset {
     this.trainBatchIndex = 0;
     this.testBatchIndex = 0;
 
-    this.NUM_FEATURES = 13;
+    this.NUM_FEATURES = 12;
   }
 
   get numFeatures() {

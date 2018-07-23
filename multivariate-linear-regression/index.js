@@ -18,49 +18,39 @@
 import * as tf from '@tensorflow/tfjs';
 
 import {BostonHousingDataset} from './data';
-
 import * as ui from './ui';
 
-const data = new BostonHousingDataset();
+// Some hyperparameters for model training.
+const NUM_EPOCHS = 250;
+const BATCH_SIZE = 50;
+const LEARNING_RATE = 0.01;
 
+const data = new BostonHousingDataset();
 data.loadData().then(async () => {
-  await ui.updateStatus('status', 'Getting training and testing data')
+  await ui.updateStatus('Getting training and testing data')
   const trainData = data.getTrainData();
   const testData = data.getTestData();
 
-  const NUM_EPOCHS = 250;
-  const BATCH_SIZE = 50;
-  const LEARNING_RATE = 0.01;
+  const sgd = tf.train.sgd(LEARNING_RATE);
 
-  const sgd = tf.train.rmsprop(LEARNING_RATE);
-
-  await ui.updateStatus('status', 'Building model')
-
+  await ui.updateStatus('Building model')
   const model = tf.sequential();
-  model.add(tf.layers.dense({inputShape: [data.numFeatures], units: 100, activation: 'relu'}));
-  model.add(tf.layers.dense({units: 1}));
-  // model.add(tf.layers.dense({inputShape: [data.numFeatures], units: 1}));
+  model.add(tf.layers.dense({inputShape: [data.numFeatures], units: 1}));
   model.compile({optimizer: sgd, loss: 'meanSquaredError'});
 
-  const losses = new Array();
-
-  await ui.updateStatus('status', 'Started training!');
-
+  let trainLoss;
+  let valLoss;
+  await ui.updateStatus('Training starting...');
   await model.fit(trainData.data, trainData.target, {
     batchSize: BATCH_SIZE,
     epochs: NUM_EPOCHS,
     validationSplit: 0.2,
     callbacks: {
       onEpochEnd: async (epoch, logs) => {
-        await ui.updateStatus('status', `Epoch ${epoch} completed!`);
-        const validationLoss = logs.val_loss.toFixed(4);
-        const trainLoss = logs.loss.toFixed(4);
-
-        losses.push({'x': epoch, 'y': trainLoss, 'loss': 'Train Loss'});
-        losses.push(
-            {'x': epoch, 'y': validationLoss, 'loss': 'Validation Loss'});
-
-        await ui.plotData('#plot', losses);
+        await ui.updateStatus(`Epoch ${epoch + 1} of ${NUM_EPOCHS} completed.`);
+        trainLoss = logs.loss;
+        valLoss = logs.val_loss;
+        await ui.plotData('#plot', epoch, trainLoss, valLoss);
 
         // tf.nextFrame makes program wait till requestAnimationFrame
         // has completed. This helps mitigate blocking of UI thread
@@ -70,12 +60,12 @@ data.loadData().then(async () => {
     }
   });
 
-  await ui.updateStatus('status', `Running on test data`);
-
+  await ui.updateStatus('Running on test data...');
   const result =
       model.evaluate(testData.data, testData.target, {batchSize: BATCH_SIZE});
-
   const testLoss = result.get().toFixed(4);
-
-  await ui.updateStatus('status', `Test set loss: ${testLoss}`);
+  await ui.updateStatus(
+      `Final train-set loss: ${trainLoss};` +
+      `Final validation-set loss: ${valLoss};` +
+      `Test-set loss: ${testLoss}`);
 });

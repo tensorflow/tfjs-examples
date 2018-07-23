@@ -27,13 +27,13 @@ const LEARNING_RATE = 0.01;
 
 const data = new BostonHousingDataset();
 data.loadData().then(async () => {
-  await ui.updateStatus('Getting training and testing data')
+  await ui.updateStatus('Getting training and testing data');
   const trainData = data.getTrainData();
   const testData = data.getTestData();
 
   const sgd = tf.train.sgd(LEARNING_RATE);
 
-  await ui.updateStatus('Building model')
+  await ui.updateStatus('Building model');
   const model = tf.sequential();
   model.add(tf.layers.dense({inputShape: [data.numFeatures], units: 1}));
   model.compile({optimizer: sgd, loss: 'meanSquaredError'});

@@ -101,7 +101,7 @@ export function predict(x) {
   return Array.from(pred.dataSync());
 }
 
-// Given a logits or label vector, return the class indices.
+// Given a digit or label vector, return the class indices.
 export function classesFromLabel(y) {
   const axis = 1;
   const pred = y.argMax(axis);

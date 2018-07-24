@@ -53,7 +53,7 @@ data.loadData().then(async () => {
         valLoss = logs.val_loss;
         await ui.plotData(epoch, trainLoss, valLoss);
 
-        // tf.nextFrame makes program wait till requestAnimationFrame
+        // tf.nextFrame makes the program wait until requestAnimationFrame()
         // has completed. This helps mitigate blocking of UI thread
         // and thus browser tab.
         await tf.nextFrame();
@@ -64,9 +64,9 @@ data.loadData().then(async () => {
   await ui.updateStatus('Running on test data...');
   const result =
       model.evaluate(testData.data, testData.target, {batchSize: BATCH_SIZE});
-  const testLoss = result.get().toFixed(4);
+  const testLoss = result.get();
   await ui.updateStatus(
       `Final train-set loss: ${trainLoss.toFixed(4)}\n` +
       `Final validation-set loss: ${valLoss.toFixed(4)}\n` +
-      `Test-set loss: ${testLoss}`);
+      `Test-set loss: ${testLoss.toFixed(4)}`);
 });

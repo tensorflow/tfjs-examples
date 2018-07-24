@@ -17,23 +17,36 @@
 
 import renderChart from 'vega-embed';
 
-export const updateStatus = async (id, message) => {
-  return document.getElementById(id).innerHTML = message;
+const statusElement = document.getElementById('status');
+export const updateStatus = (message) => {
+  statusElement.value = message;
 };
 
-export const plotData = async (container, values) => {
+const losses = [];
+export const plotData = async (epoch, trainLoss, valLoss) => {
+  losses.push({
+    'epoch': epoch,
+    'loss': trainLoss,
+    'split': 'Train Loss'
+  });
+  losses.push({
+    'epoch': epoch,
+    'loss': valLoss,
+    'split': 'Validation Loss'
+  });
+
   const spec = {
     '$schema': 'https://vega.github.io/schema/vega-lite/v2.json',
     'width': 300,
     'height': 300,
-    'data': {'values': values},
+    'data': {'values': losses},
     'mark': 'line',
     'encoding': {
-      'x': {'field': 'x', 'type': 'quantitative'},
-      'y': {'field': 'y', 'type': 'quantitative'},
-      'color': {'field': 'loss', 'type': 'nominal'}
+      'x': {'field': 'epoch', 'type': 'quantitative'},
+      'y': {'field': 'loss', 'type': 'quantitative'},
+      'color': {'field': 'split', 'type': 'nominal'}
     }
   };
 
-  return renderChart(container, spec, {actions: false});
+  return renderChart('#plot', spec, {actions: false});
 }

@@ -1,0 +1,56 @@
+{
+  "name": "tfjs-audio-model",
+  "version": "0.0.1",
+  "description": "audio model for tfjs",
+  "main": "index.js",
+  "license": "Apache-2.0",
+  "private": true,
+  "dependencies": {
+    "@tensorflow/tfjs": "0.12.3",
+    "eventemitter3": "^2.0.3",
+    "d3": "5.4.0",
+    "dct": "^0.0.3",
+    "kissfft-js": "0.1.8"
+
+  },
+  "scripts": {
+    "build": "tsc",
+    "lint": "tslint -p . -t verbose",
+    "watch": "NODE_ENV=development parcel --no-hmr --open src/index.html "
+  },
+  "devDependencies": {
+    "babel-plugin-transform-runtime": "~6.23.0",
+    "babel-polyfill": "~6.26.0",
+    "babel-preset-env": "~1.6.1",
+    "clang-format": "~1.2.2",
+    "parcel-bundler": "~1.6.2",
+    "typescript": "^2.8.3",
+    "@types/node": "10.1.0",
+    "@types/d3": "5.0.0",
+    "tslint": "~5.8.0",
+    "tslint-no-circular-imports": "~0.5.0"
+  },
+  "babel": {
+    "presets": [
+      [
+        "env",
+        {
+          "modules": false,
+          "targets": {
+            "browsers": [
+              "> 1%",
+              "last 3 versions",
+              "ie >= 9",
+              "ios >= 8",
+              "android >= 4.2"
+            ]
+          },
+          "useBuiltIns": false
+        }
+      ]
+    ],
+    "plugins": [
+      "transform-runtime"
+    ]
+  }
+}

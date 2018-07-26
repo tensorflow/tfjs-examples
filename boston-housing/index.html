@@ -19,13 +19,19 @@ limitations under the License.
 
 <head>
   <link rel="stylesheet" href="https://code.getmdl.io/1.3.0/material.cyan-teal.min.css" />
+  <style>
+    textarea {
+      border: none;
+      resize: none;
+    }
+  </style>
 </head>
 
 <body>
   <h3>TensorFlow.js: Train Multivariate Linear Regression with the Core API</h3>
 
-  <div id="status">Loading data...</div>
   <div id="plot"></div>
+  <textarea rows="3" cols="60" readonly="true" id="status">Loading data...</textarea>
   <script src="index.js"></script>
 </body>
 

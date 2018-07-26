@@ -16,11 +16,8 @@
  */
 const Papa = require('papaparse');
 
-// Change this to Google cloud link once data is pushed.
-// Probably would need to add logic to unzip gzip before parsing csv.
 const BASE_URL =
-    'https://gist.githubusercontent.com/ManrajGrover/a4b2b6bf0abda231b4b49af8b9950688/raw/661367f1ab938642ff0d216276b77ace5d288b04/';
-
+    'https://storage.googleapis.com/tfjs-examples/multivariate-linear-regression/data/';
 
 /**
  *
@@ -33,7 +30,6 @@ const parseCsv = async (data) => {
     data = data.map((row) => {
       return Object.keys(row).sort().map(key => parseFloat(row[key]));
     });
-
     resolve(data);
   });
 };
@@ -49,7 +45,7 @@ export const loadCsv = async (filename) => {
   return new Promise(resolve => {
     const url = `${BASE_URL}${filename}.csv`;
 
-    console.log(`  * Downloading from: ${url}`);
+    console.log(`  * Downloading data from: ${url}`);
     Papa.parse(url, {
       download: true,
       header: true,

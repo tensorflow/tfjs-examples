@@ -18,7 +18,6 @@
 import * as tf from '@tensorflow/tfjs';
 
 import {BostonHousingDataset} from './data';
-// import {union} from './node_modules/vega-lite/build/src/util';
 import * as ui from './ui';
 
 // Some hyperparameters for model training.

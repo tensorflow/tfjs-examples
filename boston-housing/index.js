@@ -18,6 +18,7 @@
 import * as tf from '@tensorflow/tfjs';
 
 import {BostonHousingDataset} from './data';
+// import {union} from './node_modules/vega-lite/build/src/util';
 import * as ui from './ui';
 
 // Some hyperparameters for model training.
@@ -26,18 +27,33 @@ const BATCH_SIZE = 50;
 const LEARNING_RATE = 0.01;
 
 const data = new BostonHousingDataset();
-data.loadData().then(async () => {
+
+export const linearRegressionModel = () => {
+  const model = tf.sequential();
+  model.add(tf.layers.dense({inputShape: [data.numFeatures], units: 1}));
+
+  return model;
+};
+
+export const neuralNetworkRegressionModel = () => {
+  const model = tf.sequential();
+  model.add(tf.layers.dense(
+      {inputShape: [data.numFeatures], units: 10, activation: 'relu'}));
+  model.add(tf.layers.dense({units: 10, activation: 'relu'}));
+  model.add(tf.layers.dense({units: 1}));
+
+  return model;
+};
+
+export const run = async (model) => {
   await ui.updateStatus('Getting training and testing data...');
   const trainData = data.getTrainData();
   const testData = data.getTestData();
 
-  await ui.updateStatus('Building model...');
-  const model = tf.sequential();
-  model.add(tf.layers.dense({inputShape: [data.numFeatures], units: 1}));
-  model.compile({
-    optimizer: tf.train.sgd(LEARNING_RATE),
-    loss: 'meanSquaredError'
-  });
+  await ui.updateStatus('Compiling model...');
+
+  model.compile(
+      {optimizer: tf.train.sgd(LEARNING_RATE), loss: 'meanSquaredError'});
 
   let trainLoss;
   let valLoss;
@@ -69,4 +85,10 @@ data.loadData().then(async () => {
       `Final train-set loss: ${trainLoss.toFixed(4)}\n` +
       `Final validation-set loss: ${valLoss.toFixed(4)}\n` +
       `Test-set loss: ${testLoss.toFixed(4)}`);
-});
+};
+
+document.addEventListener('DOMContentLoaded', async () => {
+  await data.loadData();
+  await ui.updateStatus('Data loaded!');
+  await ui.setup();
+}, false);

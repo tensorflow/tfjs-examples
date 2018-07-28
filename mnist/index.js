@@ -67,7 +67,15 @@ model.add(tf.layers.maxPooling2d({poolSize: [2, 2], strides: [2, 2]}));
 // Now we flatten the output from the 2D filters into a 1D vector to prepare
 // it for input into our last layer. This is common practice when feeding
 // higher dimensional data to a final classification output layer.
-model.add(tf.layers.flatten());
+model.add(tf.layers.flatten({}));
+model.add(tf.layers.dropout({rate: 0.25}));
+
+model.add(tf.layers.dense({units: 100, activation: 'relu'}));
+model.add(tf.layers.dropout({rate: 0.5}));
+
+// model.add(tf.layers.flatten({inputShape: [28, 28, 1]}));
+
+// model.add(tf.layers.dense({units: 1200, activation: 'relu'}));
 
 // Our last layer is a dense layer which has 10 output units, one for each
 // output class (i.e. 0, 1, 2, 3, 4, 5, 6, 7, 8, 9). Here the classes actually
@@ -91,7 +99,7 @@ model.add(tf.layers.dense(
 // too high may overshoot optimal parameters. Learning rate is one of the most
 // important hyperparameters to set correctly. Finding the right value takes
 // practice and is often best found empirically by trying many values.
-const LEARNING_RATE = 0.15;
+const LEARNING_RATE = 0.01;
 
 // We are using Stochastic Gradient Descent (SGD) as our optimization algorithm.
 // This is the most famous modern optimization algorithm in deep learning and
@@ -100,7 +108,7 @@ const LEARNING_RATE = 0.15;
 // Momentum) are variants on SGD. SGD is an iterative method for minimizing an
 // objective function. It tries to find the minimum of our loss function with
 // respect to the model's weight parameters.
-const optimizer = tf.train.sgd(LEARNING_RATE);
+const optimizer = tf.train.rmsprop(LEARNING_RATE);
 
 // We compile our model by specifying an optimizer, a loss function, and a list
 // of metrics that we will use for model evaluation. Here we're using a
@@ -122,7 +130,7 @@ const BATCH_SIZE = 64;
 // The number of batches to train on before freezing the model and considering
 // it trained. This will result in BATCH_SIZE x TRAIN_BATCHES examples being
 // fed to the model during training.
-const TRAIN_BATCHES = 150;
+const TRAIN_BATCHES = 500;
 
 // Every few batches, test accuracy over many examples. Ideally, we'd compute
 // accuracy over the whole test set, but for performance we'll use a subset.
@@ -173,6 +181,7 @@ async function train() {
     ui.plotLosses(lossValues);
 
     if (validationData != null) {
+      console.log(history.history.val_acc);  // DEBUG
       accuracyValues.push({'batch': i, 'accuracy': accuracy, 'set': 'train'});
       ui.plotAccuracies(accuracyValues);
     }

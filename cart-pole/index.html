@@ -25,8 +25,12 @@ limitations under the License.
   <style>
     #app-status {
       color: blue;
+      font-family: monospace;
       font-size: 150%;
       padding-bottom: 1em;
+    }
+    #cart-pole-canvas {
+      display: none;
     }
     button {
       font-size: 105%;
@@ -72,6 +76,10 @@ limitations under the License.
     <div>
       <div>
         <span id="app-status">Standing by.</span>
+      </div>
+
+      <div>
+        <canvas id="cart-pole-canvas" height="150px" width="500px"></canvas>
       </div>
 
       <div>
@@ -135,10 +143,6 @@ limitations under the License.
           </div>
           <div class="canvases" id="steps-canvas"></div>
         </div>
-      </div>
-
-      <div>
-        <canvas id="cart-pole-canvas" height="150px" width="500px"></canvas>
       </div>
     </div>
 

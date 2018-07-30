@@ -125,7 +125,6 @@ function enableModelControls() {
   deleteStoredModelButton.disabled = false;
 }
 
-
 /**
  * Render the current state of the system on an HTML canvas.
  *
@@ -134,6 +133,9 @@ function enableModelControls() {
  *   the rendering will happen.
  */
 function renderCartPole(cartPole, canvas) {
+  if (!canvas.style.display) {
+    canvas.style.display = 'block';
+  }
   const X_MIN = -cartPole.xThreshold;
   const X_MAX = cartPole.xThreshold;
   const xRange = X_MAX - X_MIN;
@@ -306,7 +308,7 @@ export async function setUpUI() {
         const action = policyNet.getActions(cartPole.getStateTensor())[0];
         logStatus(
             `Test in progress. ` +
-            `Action: ${action === 1 ? '←' : ' →'} (Step ${steps})`);
+            `Action: ${action === 1 ? '<--' : ' -->'} (Step ${steps})`);
         isDone = cartPole.update(action);
         renderCartPole(cartPole, cartPoleCanvas);
       });

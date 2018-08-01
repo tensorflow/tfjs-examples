@@ -135,12 +135,12 @@ class PolicyNetwork {
         await maybeRenderDuringTraining(cartPoleSystem);
 
         if (isDone || j >= maxStepsPerGame) {
+          onGameEnd(i + 1, numGames);
           if (isDone) {
             // When the game ends before max step count is reached, a reward of
             // 0 is given.
             gameRewards.push(0);
           }
-          onGameEnd(i + 1, numGames);
           break;
         } else {
           // As long as the game doesn't end, each step leads to a reward of 1.

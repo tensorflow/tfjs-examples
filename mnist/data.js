@@ -17,8 +17,8 @@
 
 import * as tf from '@tensorflow/tfjs';
 
-const IMAGE_H = 28;
-const IMAGE_W = 28;
+export const IMAGE_H = 28;
+export const IMAGE_W = 28;
 const IMAGE_SIZE = IMAGE_H * IMAGE_W;
 const NUM_CLASSES = 10;
 const NUM_DATASET_ELEMENTS = 65000;
@@ -110,8 +110,7 @@ export class MnistData {
         this.trainImages,
         [this.trainImages.length / IMAGE_SIZE, IMAGE_H, IMAGE_W, 1]);
     const labels = tf.tensor2d(
-        this.trainLabels,
-        [this.trainLabels.length / NUM_CLASSES, NUM_CLASSES]);
+        this.trainLabels, [this.trainLabels.length / NUM_CLASSES, NUM_CLASSES]);
     return {xs, labels};
   }
 
@@ -120,8 +119,7 @@ export class MnistData {
         this.testImages,
         [this.testImages.length / IMAGE_SIZE, IMAGE_H, IMAGE_W, 1]);
     const labels = tf.tensor2d(
-        this.testLabels,
-        [this.testLabels.length / NUM_CLASSES, NUM_CLASSES]);
+        this.testLabels, [this.testLabels.length / NUM_CLASSES, NUM_CLASSES]);
     return {xs, labels};
   }
 }

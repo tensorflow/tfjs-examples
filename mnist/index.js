@@ -20,121 +20,132 @@ import * as tf from '@tensorflow/tfjs';
 // This is a helper class for loading and managing MNIST data specifically.
 // It is a useful example of how you could create your own data manager class
 // for arbitrary data though. It's worth a look :)
-import {MnistData} from './data';
+import {IMAGE_H, IMAGE_W, MnistData} from './data';
 
 // This is a helper class for drawing loss graphs and MNIST images to the
 // window. For the purposes of understanding the machine learning bits, you can
 // largely ignore it
 import * as ui from './ui';
 
-// Create a sequential neural network model. tf.sequential provides an API for
-// creating "stacked" models where the output from one layer is used as the
-// input to the next layer.
-const model = tf.sequential();
+function createConvModel(includeDropout) {
+  // Create a sequential neural network model. tf.sequential provides an API
+  // for creating "stacked" models where the output from one layer is used as
+  // the input to the next layer.
+  const model = tf.sequential();
 
-// The first layer of the convolutional neural network plays a dual role:
-// it is both the input layer of the neural network and a layer that performs
-// the first convolution operation on the input. It receives the 28x28 pixels
-// black and white images. This input layer uses 8 filters with a kernel size
-// of 5 pixels each. It uses a simple RELU activation function which pretty
-// much just looks like this: __/
-model.add(tf.layers.conv2d({
-  inputShape: [28, 28, 1],
-  kernelSize: 5,
-  filters: 8,
-  strides: 1,
-  activation: 'relu',
-  kernelInitializer: 'varianceScaling'
-}));
+  // The first layer of the convolutional neural network plays a dual role:
+  // it is both the input layer of the neural network and a layer that performs
+  // the first convolution operation on the input. It receives the 28x28 pixels
+  // black and white images. This input layer uses 8 filters with a kernel size
+  // of 5 pixels each. It uses a simple RELU activation function which pretty
+  // much just looks like this: __/
+  model.add(tf.layers.conv2d({
+    inputShape: [IMAGE_H, IMAGE_W, 1],
+    kernelSize: 5,
+    filters: 8,
+    strides: 1,
+    activation: 'relu'
+  }));
 
-// After the first layer we include a MaxPooling layer. This acts as a sort of
-// downsampling using max values in a region instead of averaging.
-// https://www.quora.com/What-is-max-pooling-in-convolutional-neural-networks
-model.add(tf.layers.maxPooling2d({poolSize: [2, 2], strides: [2, 2]}));
+  // After the first layer we include a MaxPooling layer. This acts as a sort of
+  // downsampling using max values in a region instead of averaging.
+  // https://www.quora.com/What-is-max-pooling-in-convolutional-neural-networks
+  model.add(tf.layers.maxPooling2d({poolSize: [2, 2], strides: [2, 2]}));
 
-// Our third layer is another convolution, this time with 16 filters.
-model.add(tf.layers.conv2d({
-  kernelSize: 5,
-  filters: 16,
-  strides: 1,
-  activation: 'relu',
-  kernelInitializer: 'varianceScaling'
-}));
+  // Our third layer is another convolution, this time with 16 filters.
+  model.add(tf.layers.conv2d(
+      {kernelSize: 5, filters: 16, strides: 1, activation: 'relu'}));
 
-// Max pooling again.
-model.add(tf.layers.maxPooling2d({poolSize: [2, 2], strides: [2, 2]}));
+  // Max pooling again.
+  model.add(tf.layers.maxPooling2d({poolSize: [2, 2], strides: [2, 2]}));
 
-// Now we flatten the output from the 2D filters into a 1D vector to prepare
-// it for input into our last layer. This is common practice when feeding
-// higher dimensional data to a final classification output layer.
-model.add(tf.layers.flatten({}));
-model.add(tf.layers.dropout({rate: 0.25}));
+  // Now we flatten the output from the 2D filters into a 1D vector to prepare
+  // it for input into our last layer. This is common practice when feeding
+  // higher dimensional data to a final classification output layer.
+  model.add(tf.layers.flatten({}));
 
-model.add(tf.layers.dense({units: 100, activation: 'relu'}));
-model.add(tf.layers.dropout({rate: 0.5}));
+  if (includeDropout) {
+    model.add(tf.layers.dropout({rate: 0.25}));
+  }
 
-// model.add(tf.layers.flatten({inputShape: [28, 28, 1]}));
+  model.add(tf.layers.dense({units: 100, activation: 'relu'}));
 
-// model.add(tf.layers.dense({units: 1200, activation: 'relu'}));
+  if (includeDropout) {
+    model.add(tf.layers.dropout({rate: 0.5}));
+  }
 
-// Our last layer is a dense layer which has 10 output units, one for each
-// output class (i.e. 0, 1, 2, 3, 4, 5, 6, 7, 8, 9). Here the classes actually
-// represent numbers, but it's the same idea if you had classes that represented
-// other entities like dogs and cats (two output classes: 0, 1).
-// We use the softmax function as the activation for the output layer as it
-// creates a probability distribution over our 10 classes so their output values
-// sum to 1.
-model.add(tf.layers.dense(
-    {units: 10, kernelInitializer: 'varianceScaling', activation: 'softmax'}));
-model.summary();
+  // Our last layer is a dense layer which has 10 output units, one for each
+  // output class (i.e. 0, 1, 2, 3, 4, 5, 6, 7, 8, 9). Here the classes actually
+  // represent numbers, but it's the same idea if you had classes that
+  // represented other entities like dogs and cats (two output classes: 0, 1).
+  // We use the softmax function as the activation for the output layer as it
+  // creates a probability distribution over our 10 classes so their output
+  // values sum to 1.
+  model.add(tf.layers.dense({units: 10, activation: 'softmax'}));
 
-// Now that we've defined our model, we will define our optimizer. The optimizer
-// will be used to optimize our model's weight values during training so that
-// we can decrease our training loss and increase our classification accuracy.
+  return model;
+}
 
-// The learning rate defines the magnitude by which we update our weights each
-// training step. The higher the value, the faster our loss values converge,
-// but also the more likely we are to overshoot optimal parameters
-// when making an update. A learning rate that is too low will take too long to
-// find optimal (or good enough) weight parameters while a learning rate that is
-// too high may overshoot optimal parameters. Learning rate is one of the most
-// important hyperparameters to set correctly. Finding the right value takes
-// practice and is often best found empirically by trying many values.
-const LEARNING_RATE = 0.01;
+function createDenseModel(includeDropout) {
+  const model = tf.sequential();
+  model.add(tf.layers.flatten({inputShape: [IMAGE_H, IMAGE_W, 1]}));
+  if (includeDropout) {
+    model.add(tf.layers.dropout({rate: 0.25}));
+  }
+  model.add(tf.layers.dense({units: 40, activation: 'relu'}));
+  if (includeDropout) {
+    model.add(tf.layers.dropout({rate: 0.5}));
+  }
+  model.add(tf.layers.dense({units: 10, activation: 'softmax'}));
+  return model;
+}
 
-// We are using Stochastic Gradient Descent (SGD) as our optimization algorithm.
-// This is the most famous modern optimization algorithm in deep learning and
-// it is largely to thank for the current machine learning renaissance.
-// Most other optimizers you will come across (e.g. ADAM, RMSProp, AdaGrad,
-// Momentum) are variants on SGD. SGD is an iterative method for minimizing an
-// objective function. It tries to find the minimum of our loss function with
-// respect to the model's weight parameters.
-const optimizer = tf.train.rmsprop(LEARNING_RATE);
-
-// We compile our model by specifying an optimizer, a loss function, and a list
-// of metrics that we will use for model evaluation. Here we're using a
-// categorical crossentropy loss, the standard choice for a multi-class
-// classification problem like MNIST digits.
-model.compile({
-  optimizer: optimizer,
-  loss: 'categoricalCrossentropy',
-  metrics: ['accuracy'],
-});
-
-// Batch size is another important hyperparameter. It defines the number of
-// examples we group together, or batch, between updates to the model's weights
-// during training. A value that is too low will update weights using too few
-// examples and will not generalize well. Larger batch sizes require more memory
-// resources and aren't guaranteed to perform better.
-const BATCH_SIZE = 512;
-
-const TRAIN_EPOCHS = 3;
-
-// Every few batches, test accuracy over many examples. Ideally, we'd compute
-// accuracy over the whole test set, but for performance we'll use a subset.
-
-async function train() {
+async function train(model) {
   ui.isTraining();
+
+  // Now that we've defined our model, we will define our optimizer. The
+  // optimizer will be used to optimize our model's weight values during
+  // training so that we can decrease our training loss and increase our
+  // classification accuracy.
+
+  // The learning rate defines the magnitude by which we update our weights each
+  // training step. The higher the value, the faster our loss values converge,
+  // but also the more likely we are to overshoot optimal parameters
+  // when making an update. A learning rate that is too low will take too long
+  // to find optimal (or good enough) weight parameters while a learning rate
+  // that is too high may overshoot optimal parameters. Learning rate is one of
+  // the most important hyperparameters to set correctly. Finding the right
+  // value takes practice and is often best found empirically by trying many
+  // values.
+  const LEARNING_RATE = 0.01;
+
+  // We are using Stochastic Gradient Descent (SGD) as our optimization
+  // algorithm. This is the most famous modern optimization algorithm in deep
+  // learning and it is largely to thank for the current machine learning
+  // renaissance. Most other optimizers you will come across (e.g. ADAM,
+  // RMSProp, AdaGrad, Momentum) are variants on SGD. SGD is an iterative method
+  // for minimizing an objective function. It tries to find the minimum of our
+  // loss function with respect to the model's weight parameters.
+  const optimizer = tf.train.rmsprop(LEARNING_RATE);
+
+  // We compile our model by specifying an optimizer, a loss function, and a
+  // list of metrics that we will use for model evaluation. Here we're using a
+  // categorical crossentropy loss, the standard choice for a multi-class
+  // classification problem like MNIST digits.
+  model.compile({
+    optimizer: optimizer,
+    loss: 'categoricalCrossentropy',
+    metrics: ['accuracy'],
+  });
+
+  // Batch size is another important hyperparameter. It defines the number of
+  // examples we group together, or batch, between updates to the model's
+  // weights during training. A value that is too low will update weights using
+  // too few examples and will not generalize well. Larger batch sizes require
+  // more memory resources and aren't guaranteed to perform better.
+  const BATCH_SIZE = 512;
+
+  const TRAIN_EPOCHS = 3;
 
   // We'll keep a buffer of loss and accuracy values over time.
   let trainBatchCount = 0;
@@ -143,26 +154,21 @@ async function train() {
 
   const trainData = data.getTrainData();
   const testData = data.getTestData();
-  console.log(trainData.xs.shape);  // DEBUG
-  console.log(testData.xs.shape);  // DEBUG
 
-  const evalResult = model.evaluate(testData.xs, testData.labels);
-  console.log(evalResult);  // DEBUG
-  evalResult[0].print();
-  evalResult[1].print();
-  lossValues.push(
-      {'batch': trainBatchCount, 'loss': evalResult[0].dataSync()[0], 'set': 'validation'});
-  accuracyValues.push(
-      {'batch': trainBatchCount, 'accuracy': evalResult[1].dataSync()[0], 'set': 'validation'});
-  // TODO(cais): Put this at the end.
+  const totalNumBatches =
+      Math.ceil(trainData.xs.shape[0] / BATCH_SIZE) * TRAIN_EPOCHS;
 
-  const history = await model.fit(trainData.xs, trainData.labels, {
+  await model.fit(trainData.xs, trainData.labels, {
     batchSize: BATCH_SIZE,
     validationSplit: 0.15,
     epochs: TRAIN_EPOCHS,
     callbacks: {
       onBatchEnd: async (batch, logs) => {
         trainBatchCount++;
+        ui.logStatus(
+            `Training... (` +
+            `${(trainBatchCount / totalNumBatches * 100).toFixed(1)}%` +
+            ` complete)`);
         lossValues.push(
             {'batch': trainBatchCount, 'loss': logs.loss, 'set': 'train'});
         accuracyValues.push(
@@ -189,53 +195,14 @@ async function train() {
     }
   });
 
-  // // Iteratively train our model on mini-batches of data.
-  // for (let i = 0; i < TRAIN_BATCHES; i++) {
-  //   const [batch, validationData] = tf.tidy(() => {
-  //     const batch = data.nextTrainBatch(BATCH_SIZE);
-  //     batch.xs = batch.xs.reshape([BATCH_SIZE, 28, 28, 1]);
-
-  //     let validationData;
-  //     // Every few batches test the accuracy of the model.
-  //     if (i % TEST_ITERATION_FREQUENCY === 0) {
-  //       const testBatch = data.nextTestBatch(TEST_BATCH_SIZE);
-  //       validationData = [
-  //         // Reshape the training data from [64, 28x28] to [64, 28, 28, 1] so
-  //         // that we can feed it to our convolutional neural net.
-  //         testBatch.xs.reshape([TEST_BATCH_SIZE, 28, 28, 1]),
-  //         testBatch.labels
-  //       ];
-  //     }
-  //     return [batch, validationData];
-  //   });
-
-  //   // The entire dataset doesn't fit into memory so we call train repeatedly
-  //   // with batches using the fit() method.
-  //   const history = await model.fit(
-  //       batch.xs, batch.labels,
-  //       {batchSize: BATCH_SIZE, validationData, epochs: 1});
-
-  //   const loss = history.history.loss[0];
-  //   const accuracy = history.history.acc[0];
-
-  //   // Plot loss / accuracy.
-  //   lossValues.push({'batch': i, 'loss': loss, 'set': 'train'});
-  //   ui.plotLosses(lossValues);
-
-  //   if (validationData != null) {
-  //     console.log(history.history.val_acc);  // DEBUG
-  //     accuracyValues.push({'batch': i, 'accuracy': accuracy, 'set':
-  //     'train'}); ui.plotAccuracies(accuracyValues);
-  //   }
-
-  //   // Call dispose on the training/test tensors to free their GPU memory.
-  //   tf.dispose([batch, validationData]);
-
-  //   // tf.nextFrame() returns a promise that resolves at the next call to
-  //   // requestAnimationFrame(). By awaiting this promise we keep our model
-  //   // training from blocking the main UI thread and freezing the browser.
-  //   await tf.nextFrame();
-  // }
+  const testResult = model.evaluate(testData.xs, testData.labels);
+  const testAcc = testResult[1].dataSync()[0];
+  ui.logStatus(
+      `Final validation accuracy: ` +
+      `${
+          (accuracyValues[accuracyValues.length - 1].accuracy * 100)
+              .toFixed(3)}; ` +
+      `Final test accuracy: ${(testAcc * 100).toFixed(3)}`);
 }
 
 async function showPredictions() {
@@ -246,7 +213,7 @@ async function showPredictions() {
   // from GPU memory after execution without having to call dispose().
   // The tf.tidy callback runs synchronously.
   tf.tidy(() => {
-    const output = model.predict(batch.xs.reshape([-1, 28, 28, 1]));
+    const output = model.predict(batch.xs.reshape([-1, IMAGE_H, IMAGE_W, 1]));
 
     // tf.argMax() returns the indices of the maximum values in the tensor along
     // a specific axis. Categorical classification tasks like this one often
@@ -268,6 +235,24 @@ async function showPredictions() {
   });
 }
 
+function createModel() {
+  let model;
+  const modelType = ui.getModelTypeId();
+  console.log(`modelType = ${modelType}`);  // DEBUG
+  if (modelType === 'ConvNet with Dropout') {
+    model = createConvModel(true);
+  } else if (modelType === 'ConvNet without Dropouot') {
+    model = createConvModel(false);
+  } else if (modelType === 'DenseNet with Dropouot') {
+    model = createDenseModel(true);
+  } else if (modelType === 'DenseNet without Dropout') {
+    model = createDenseModel(false);
+  } else {
+    throw new Error(`Invalid model type: ${modelType}`);
+  }
+  return model;
+}
+
 let data;
 async function load() {
   data = new MnistData();
@@ -276,10 +261,16 @@ async function load() {
 
 // This is our main function. It loads the MNIST data, trains the model, and
 // then shows what the model predicted on unseen test data.
-async function mnist() {
+ui.setTrainButtonCallback(async () => {
+  ui.logStatus('Loading MNIST data...');
   await load();
-  await train();
-  // TODO(cais): Restore.
-  // showPredictions();
-}
-mnist();
+
+  ui.logStatus('Creating model...');
+  const model = createModel();
+  model.summary();
+
+  ui.logStatus('Starting model training...');
+  await train(model);
+
+  showPredictions();
+});

@@ -21,8 +21,12 @@ const statusElement = document.getElementById('status');
 const messageElement = document.getElementById('message');
 const imagesElement = document.getElementById('images');
 
+export function logStatus(message) {
+  statusElement.innerText = message;
+}
+
 export function isTraining() {
-  statusElement.innerText = 'Training...';
+  logStatus('Training...');
 }
 export function trainingLog(message) {
   messageElement.innerText = `${message}\n`;
@@ -30,7 +34,7 @@ export function trainingLog(message) {
 }
 
 export function showTestResults(batch, predictions, labels) {
-  statusElement.innerText = 'Testing...';
+  logStatus('Testing...');
 
   const testExamples = batch.xs.shape[0];
   let totalCorrect = 0;
@@ -78,7 +82,7 @@ export function plotLosses(lossValues) {
       },
       {width: 360});
   lossLabelElement.innerText =
-      'last loss: ' + lossValues[lossValues.length - 1].loss.toFixed(2);
+      'last loss: ' + lossValues[lossValues.length - 1].loss.toFixed(3);
 }
 
 export function plotAccuracies(accuracyValues) {
@@ -98,7 +102,7 @@ export function plotAccuracies(accuracyValues) {
       },
       {'width': 360});
   accuracyLabelElement.innerText = 'last accuracy: ' +
-      (accuracyValues[accuracyValues.length - 1].accuracy * 100).toFixed(2) +
+      (accuracyValues[accuracyValues.length - 1].accuracy * 100).toFixed(1) +
       '%';
 }
 
@@ -117,4 +121,16 @@ export function draw(image, canvas) {
     imageData.data[j + 3] = 255;
   }
   ctx.putImageData(imageData, 0, 0);
+}
+
+export function getModelTypeId() {
+  return document.getElementById('model-type').value;
+}
+
+export function setTrainButtonCallback(callback) {
+  const button = document.getElementById('train');
+  button.addEventListener('click', () => {
+    button.setAttribute('disabled', true);
+    callback();
+  });
 }

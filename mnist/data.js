@@ -105,6 +105,13 @@ export class MnistData {
         this.datasetLabels.slice(NUM_CLASSES * NUM_TRAIN_ELEMENTS);
   }
 
+  /**
+   * Get all training data as a data tensor and a labels tensor.
+   *
+   * @returns
+   *   xs: The data tensor, of shape `[numExamples, 28, 28, 1]`.
+   *   labels: The one-hot encoded labels tensor, of shape `[numExamples, 10]`.
+   */
   getTrainData() {
     const xs = tf.tensor4d(
         this.trainImages,
@@ -114,12 +121,22 @@ export class MnistData {
     return {xs, labels};
   }
 
-  getTestData() {
-    const xs = tf.tensor4d(
+  /**
+   * Get all test data as a data tensor a a labels tensor.
+   *
+   * @param {number} numExamples
+   */
+  getTestData(numExamples) {
+    let xs = tf.tensor4d(
         this.testImages,
         [this.testImages.length / IMAGE_SIZE, IMAGE_H, IMAGE_W, 1]);
-    const labels = tf.tensor2d(
+    let labels = tf.tensor2d(
         this.testLabels, [this.testLabels.length / NUM_CLASSES, NUM_CLASSES]);
+
+    if (numExamples != null) {
+      xs = xs.slice([0, 0, 0, 0], [numExamples, IMAGE_H, IMAGE_W, 1]);
+      labels = labels.slice([0, 0], [numExamples, NUM_CLASSES]);
+    }
     return {xs, labels};
   }
 }

@@ -25,6 +25,9 @@ limitations under the License.
       #content {
         padding: 15px;
       }
+      body, input, select, button {
+        font-family: monospace;
+      }
       canvas {
         width: 200px;
       }
@@ -54,19 +57,30 @@ limitations under the License.
         display: inline-block;
         width: 460px;
       }
+      .hparam-label {
+        display: inline-block;
+        width: 250px;
+      }
     </style>
 
     <div id="content">
       <h3>TensorFlow.js: Train MNIST with the Layers API</h3>
 
       <div>
-        <span>Model Type:</span>
-        <select id="model-type">
-          <option>ConvNet with Dropout</option>
-          <option>ConvNet without Dropout</option>
-          <option>DenseNet with Dropout</option>
-          <option>DenseNet without Dropout</option>
-        </select>
+        <div>
+          <span class="hparam-label">Model Type:</span>
+          <select id="model-type">
+            <option>ConvNet with Dropout</option>
+            <option>ConvNet without Dropout</option>
+            <option>DenseNet with Dropout</option>
+            <option>DenseNet without Dropout</option>
+          </select>
+        </div>
+
+        <div>
+          <span class="hparam-label"># of training epochs:</span>
+          <input id="train-epochs" value="3">
+        </div>
 
         <button id="train">Load Data and Train Model</button>
       </div>

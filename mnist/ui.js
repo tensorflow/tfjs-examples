@@ -25,17 +25,12 @@ export function logStatus(message) {
   statusElement.innerText = message;
 }
 
-export function isTraining() {
-  logStatus('Training...');
-}
 export function trainingLog(message) {
   messageElement.innerText = `${message}\n`;
   console.log(message);
 }
 
 export function showTestResults(batch, predictions, labels) {
-  logStatus('Testing...');
-
   const testExamples = batch.xs.shape[0];
   let totalCorrect = 0;
   for (let i = 0; i < testExamples; i++) {
@@ -127,10 +122,16 @@ export function getModelTypeId() {
   return document.getElementById('model-type').value;
 }
 
+export function getTrainEpochs() {
+  return Number.parseInt(document.getElementById('train-epochs').value);
+}
+
 export function setTrainButtonCallback(callback) {
-  const button = document.getElementById('train');
-  button.addEventListener('click', () => {
-    button.setAttribute('disabled', true);
+  const trainButton = document.getElementById('train');
+  const modelType = document.getElementById('model-type');
+  trainButton.addEventListener('click', () => {
+    trainButton.setAttribute('disabled', true);
+    modelType.setAttribute('disabled', true);
     callback();
   });
 }

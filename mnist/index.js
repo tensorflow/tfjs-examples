@@ -27,6 +27,13 @@ import {IMAGE_H, IMAGE_W, MnistData} from './data';
 // largely ignore it
 import * as ui from './ui';
 
+/**
+ * Creates a convolutional neural network (Convnet) for the MNIST data.
+ *
+ * @param {boolean} includeDropout Whether to include dropout layers in this
+ *   model.
+ * @returns {tf.Model} An instance of tf.Model.
+ */
 function createConvModel(includeDropout) {
   // Create a sequential neural network model. tf.sequential provides an API
   // for creating "stacked" models where the output from one layer is used as
@@ -64,12 +71,15 @@ function createConvModel(includeDropout) {
   // higher dimensional data to a final classification output layer.
   model.add(tf.layers.flatten({}));
 
+  // Dropout layer randomly zeros out a fraction of its input layer's
+  // activations during training. This mitigates overfitting.
   if (includeDropout) {
     model.add(tf.layers.dropout({rate: 0.25}));
   }
 
   model.add(tf.layers.dense({units: 100, activation: 'relu'}));
 
+  // We add another dropout layer here to further mitigate overfitting.
   if (includeDropout) {
     model.add(tf.layers.dropout({rate: 0.5}));
   }
@@ -86,6 +96,20 @@ function createConvModel(includeDropout) {
   return model;
 }
 
+/**
+ * Creates a model consisting of only flatten, dense and dropout layers.
+ *
+ * The model create here has approximately the same number of parameters
+ * (~31k) as the convnet created by `createConvModel()`, but is
+ * expected to show a significantly worse accuracy after training, due to the
+ * fact that it doesn't utilize the spatial information as the convnet does.
+ *
+ * This is for comparison with the convolutional network above.
+ *
+ * @param {boolean} includeDropout Whether to include dropout layers in this
+ *   model.
+ * @returns {tf.Model} An instance of tf.Model.
+ */
 function createDenseModel(includeDropout) {
   const model = tf.sequential();
   model.add(tf.layers.flatten({inputShape: [IMAGE_H, IMAGE_W, 1]}));
@@ -100,8 +124,13 @@ function createDenseModel(includeDropout) {
   return model;
 }
 
+/**
+ * Compile and train the given model.
+ *
+ * @param {*} model The model to
+ */
 async function train(model) {
-  ui.isTraining();
+  ui.logStatus('Training model...');
 
   // Now that we've defined our model, we will define our optimizer. The
   // optimizer will be used to optimize our model's weight values during
@@ -119,19 +148,22 @@ async function train(model) {
   // values.
   const LEARNING_RATE = 0.01;
 
-  // We are using Stochastic Gradient Descent (SGD) as our optimization
-  // algorithm. This is the most famous modern optimization algorithm in deep
-  // learning and it is largely to thank for the current machine learning
-  // renaissance. Most other optimizers you will come across (e.g. ADAM,
-  // RMSProp, AdaGrad, Momentum) are variants on SGD. SGD is an iterative method
-  // for minimizing an objective function. It tries to find the minimum of our
-  // loss function with respect to the model's weight parameters.
+  // We are using rmsprop as our optimizer.
+  // An optimizer is an iterative method for minimizing an loss function.
+  // It tries to find the minimum of our loss function with respect to the
+  // model's weight parameters.
   const optimizer = tf.train.rmsprop(LEARNING_RATE);
 
   // We compile our model by specifying an optimizer, a loss function, and a
   // list of metrics that we will use for model evaluation. Here we're using a
   // categorical crossentropy loss, the standard choice for a multi-class
   // classification problem like MNIST digits.
+  // The categorical crossentropy loss is differentiable and hence makes
+  // model training possible. But it is not amenable to easy interpretation
+  // by a human. This is why we include a "metric", namely accuracy, which is
+  // simply a measure of how many of the examples are classified correctly.
+  // This metric is not differentiable and hence cannot be used as the loss
+  // function of the model.
   model.compile({
     optimizer: optimizer,
     loss: 'categoricalCrossentropy',
@@ -145,7 +177,8 @@ async function train(model) {
   // more memory resources and aren't guaranteed to perform better.
   const BATCH_SIZE = 512;
 
-  const TRAIN_EPOCHS = 3;
+  // Get number of training epochs from the UI.
+  const trainEpochs = ui.getTrainEpochs();
 
   // We'll keep a buffer of loss and accuracy values over time.
   let trainBatchCount = 0;
@@ -156,19 +189,22 @@ async function train(model) {
   const testData = data.getTestData();
 
   const totalNumBatches =
-      Math.ceil(trainData.xs.shape[0] / BATCH_SIZE) * TRAIN_EPOCHS;
+      Math.ceil(trainData.xs.shape[0] / BATCH_SIZE) * trainEpochs;
 
+  // During the long-running fit() call for model training, we include
+  // callbacks, so that we can plot the loss and accuracy values in the page
+  // as the training progresses.
   await model.fit(trainData.xs, trainData.labels, {
     batchSize: BATCH_SIZE,
     validationSplit: 0.15,
-    epochs: TRAIN_EPOCHS,
+    epochs: trainEpochs,
     callbacks: {
       onBatchEnd: async (batch, logs) => {
         trainBatchCount++;
         ui.logStatus(
             `Training... (` +
             `${(trainBatchCount / totalNumBatches * 100).toFixed(1)}%` +
-            ` complete)`);
+            ` complete). To stop training, refresh or close page.`);
         lossValues.push(
             {'batch': trainBatchCount, 'loss': logs.loss, 'set': 'train'});
         accuracyValues.push(
@@ -196,24 +232,30 @@ async function train(model) {
   });
 
   const testResult = model.evaluate(testData.xs, testData.labels);
-  const testAcc = testResult[1].dataSync()[0];
+  const testAccPercent = testResult[1].dataSync()[0] * 100;
+  const finalValAccPercent =
+      accuracyValues[accuracyValues.length - 1].accuracy * 100;
   ui.logStatus(
-      `Final validation accuracy: ` +
-      `${
-          (accuracyValues[accuracyValues.length - 1].accuracy * 100)
-              .toFixed(3)}; ` +
-      `Final test accuracy: ${(testAcc * 100).toFixed(3)}`);
+      `Final validation accuracy: ${finalValAccPercent.toFixed(1)}%; ` +
+      `Final test accuracy: ${testAccPercent.toFixed(1)}%`);
 }
 
-async function showPredictions() {
+/**
+ * Show predictions on a number of test examples.
+ *
+ * @param {tf.Model} model The model to be used for making the predictions.
+ */
+async function showPredictions(model) {
   const testExamples = 100;
-  const batch = data.nextTestBatch(testExamples);
+  const examples = data.getTestData(testExamples);
+  console.log(examples);  // DEBUG
 
   // Code wrapped in a tf.tidy() function callback will have their tensors freed
   // from GPU memory after execution without having to call dispose().
   // The tf.tidy callback runs synchronously.
   tf.tidy(() => {
-    const output = model.predict(batch.xs.reshape([-1, IMAGE_H, IMAGE_W, 1]));
+    const output = model.predict(examples.xs);
+    console.log(output);  // DEBUG
 
     // tf.argMax() returns the indices of the maximum values in the tensor along
     // a specific axis. Categorical classification tasks like this one often
@@ -228,22 +270,21 @@ async function showPredictions() {
     // that we can use them in our normal CPU JavaScript code
     // (for a non-blocking version of this function, use data()).
     const axis = 1;
-    const labels = Array.from(batch.labels.argMax(axis).dataSync());
+    const labels = Array.from(examples.labels.argMax(axis).dataSync());
     const predictions = Array.from(output.argMax(axis).dataSync());
 
-    ui.showTestResults(batch, predictions, labels);
+    ui.showTestResults(examples, predictions, labels);
   });
 }
 
 function createModel() {
   let model;
   const modelType = ui.getModelTypeId();
-  console.log(`modelType = ${modelType}`);  // DEBUG
   if (modelType === 'ConvNet with Dropout') {
     model = createConvModel(true);
-  } else if (modelType === 'ConvNet without Dropouot') {
+  } else if (modelType === 'ConvNet without Dropout') {
     model = createConvModel(false);
-  } else if (modelType === 'DenseNet with Dropouot') {
+  } else if (modelType === 'DenseNet with Dropout') {
     model = createDenseModel(true);
   } else if (modelType === 'DenseNet without Dropout') {
     model = createDenseModel(false);
@@ -272,5 +313,5 @@ ui.setTrainButtonCallback(async () => {
   ui.logStatus('Starting model training...');
   await train(model);
 
-  showPredictions();
+  showPredictions(model);
 });

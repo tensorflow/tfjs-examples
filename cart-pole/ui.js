@@ -206,12 +206,13 @@ function renderCartPole(cartPole, canvas) {
   const limitTopY = groundY - canvas.height / 2;
   context.beginPath();
   context.strokeStyle = '#ff0000';
-  context.lineWidth = 4;
-  context.moveTo(0, groundY);
-  context.lineTo(0, limitTopY);
+  context.lineWidth = 2;
+  context.moveTo(1, groundY);
+  context.lineTo(1, limitTopY);
+  context.stroke();
   context.beginPath();
-  context.moveTo(canvas.width, groundY);
-  context.lineTo(canvas.width, limitTopY);
+  context.moveTo(canvas.width - 1, groundY);
+  context.lineTo(canvas.width - 1, limitTopY);
   context.stroke();
 }
 

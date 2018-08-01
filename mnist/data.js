@@ -17,7 +17,9 @@
 
 import * as tf from '@tensorflow/tfjs';
 
-const IMAGE_SIZE = 784;
+const IMAGE_H = 28;
+const IMAGE_W = 28;
+const IMAGE_SIZE = IMAGE_H * IMAGE_W;
 const NUM_CLASSES = 10;
 const NUM_DATASET_ELEMENTS = 65000;
 
@@ -103,42 +105,23 @@ export class MnistData {
         this.datasetLabels.slice(NUM_CLASSES * NUM_TRAIN_ELEMENTS);
   }
 
-  nextTrainBatch(batchSize) {
-    return this.nextBatch(
-        batchSize, [this.trainImages, this.trainLabels], () => {
-          this.shuffledTrainIndex =
-              (this.shuffledTrainIndex + 1) % this.trainIndices.length;
-          return this.trainIndices[this.shuffledTrainIndex];
-        });
+  getTrainData() {
+    const xs = tf.tensor4d(
+        this.trainImages,
+        [this.trainImages.length / IMAGE_SIZE, IMAGE_H, IMAGE_W, 1]);
+    const labels = tf.tensor2d(
+        this.trainLabels,
+        [this.trainLabels.length / NUM_CLASSES, NUM_CLASSES]);
+    return {xs, labels};
   }
 
-  nextTestBatch(batchSize) {
-    return this.nextBatch(batchSize, [this.testImages, this.testLabels], () => {
-      this.shuffledTestIndex =
-          (this.shuffledTestIndex + 1) % this.testIndices.length;
-      return this.testIndices[this.shuffledTestIndex];
-    });
-  }
-
-  nextBatch(batchSize, data, index) {
-    const batchImagesArray = new Float32Array(batchSize * IMAGE_SIZE);
-    const batchLabelsArray = new Uint8Array(batchSize * NUM_CLASSES);
-
-    for (let i = 0; i < batchSize; i++) {
-      const idx = index();
-
-      const image =
-          data[0].slice(idx * IMAGE_SIZE, idx * IMAGE_SIZE + IMAGE_SIZE);
-      batchImagesArray.set(image, i * IMAGE_SIZE);
-
-      const label =
-          data[1].slice(idx * NUM_CLASSES, idx * NUM_CLASSES + NUM_CLASSES);
-      batchLabelsArray.set(label, i * NUM_CLASSES);
-    }
-
-    const xs = tf.tensor2d(batchImagesArray, [batchSize, IMAGE_SIZE]);
-    const labels = tf.tensor2d(batchLabelsArray, [batchSize, NUM_CLASSES]);
-
+  getTestData() {
+    const xs = tf.tensor4d(
+        this.testImages,
+        [this.testImages.length / IMAGE_SIZE, IMAGE_H, IMAGE_W, 1]);
+    const labels = tf.tensor2d(
+        this.testLabels,
+        [this.testLabels.length / NUM_CLASSES, NUM_CLASSES]);
     return {xs, labels};
   }
 }

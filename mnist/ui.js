@@ -73,7 +73,7 @@ export function plotLosses(lossValues) {
         'encoding': {
           'x': {'field': 'batch', 'type': 'ordinal'},
           'y': {'field': 'loss', 'type': 'quantitative'},
-          'color': {'field': 'set', 'type': 'nominal', 'legend': null},
+          'color': {'field': 'set', 'type': 'nominal'},
         }
       },
       {width: 360});
@@ -88,12 +88,12 @@ export function plotAccuracies(accuracyValues) {
         '$schema': 'https://vega.github.io/schema/vega-lite/v2.json',
         'data': {'values': accuracyValues},
         'width': 260,
-        'mark': {'type': 'line', 'legend': null},
+        'mark': {'type': 'line'},
         'orient': 'vertical',
         'encoding': {
           'x': {'field': 'batch', 'type': 'ordinal'},
           'y': {'field': 'accuracy', 'type': 'quantitative'},
-          'color': {'field': 'set', 'type': 'nominal', 'legend': null},
+          'color': {'field': 'set', 'type': 'nominal'},
         }
       },
       {'width': 360});

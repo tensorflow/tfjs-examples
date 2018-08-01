@@ -81,7 +81,6 @@ export function plotLosses(lossValues) {
 }
 
 export function plotAccuracies(accuracyValues) {
-  // console.log('accuracyValues:', accuracyValues);  // DEBUG
   embed(
       '#accuracyCanvas', {
         '$schema': 'https://vega.github.io/schema/vega-lite/v2.json',

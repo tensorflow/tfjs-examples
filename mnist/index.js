@@ -248,14 +248,12 @@ async function train(model) {
 async function showPredictions(model) {
   const testExamples = 100;
   const examples = data.getTestData(testExamples);
-  console.log(examples);  // DEBUG
 
   // Code wrapped in a tf.tidy() function callback will have their tensors freed
   // from GPU memory after execution without having to call dispose().
   // The tf.tidy callback runs synchronously.
   tf.tidy(() => {
     const output = model.predict(examples.xs);
-    console.log(output);  // DEBUG
 
     // tf.argMax() returns the indices of the maximum values in the tensor along
     // a specific axis. Categorical classification tasks like this one often

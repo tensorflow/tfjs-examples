@@ -182,8 +182,6 @@ async function train(model) {
 
   // We'll keep a buffer of loss and accuracy values over time.
   let trainBatchCount = 0;
-  const lossValues = [];
-  const accuracyValues = [];
 
   const trainData = data.getTrainData();
   const testData = data.getTestData();
@@ -194,6 +192,7 @@ async function train(model) {
   // During the long-running fit() call for model training, we include
   // callbacks, so that we can plot the loss and accuracy values in the page
   // as the training progresses.
+  let valAcc;
   await model.fit(trainData.xs, trainData.labels, {
     batchSize: BATCH_SIZE,
     validationSplit: 0.15,
@@ -205,36 +204,20 @@ async function train(model) {
             `Training... (` +
             `${(trainBatchCount / totalNumBatches * 100).toFixed(1)}%` +
             ` complete). To stop training, refresh or close page.`);
-        lossValues.push(
-            {'batch': trainBatchCount, 'loss': logs.loss, 'set': 'train'});
-        accuracyValues.push(
-            {'batch': trainBatchCount, 'accuracy': logs.acc, 'set': 'train'});
-        ui.plotLosses(lossValues);
-        ui.plotAccuracies(accuracyValues);
+        ui.plotLoss(trainBatchCount, logs.loss, 'train');
+        ui.plotAccuracy(trainBatchCount, logs.acc, 'train');
       },
       onEpochEnd: async (epoch, logs) => {
-        lossValues.push({
-          'batch': trainBatchCount,
-          'loss': logs.val_loss,
-          'set': 'validation'
-        });
-        accuracyValues.push({
-          'batch': trainBatchCount,
-          'accuracy': logs.val_acc,
-          'set': 'validation'
-        });
-        console.log(
-            `onEpochEnd: epoch = ${epoch}, log = ${JSON.stringify(logs)}`);
-        ui.plotLosses(lossValues);
-        ui.plotAccuracies(accuracyValues);
+        valAcc = logs.val_acc;
+        ui.plotLoss(trainBatchCount, logs.val_loss, 'validation');
+        ui.plotAccuracy(trainBatchCount, logs.val_acc, 'validation');
       }
     }
   });
 
   const testResult = model.evaluate(testData.xs, testData.labels);
   const testAccPercent = testResult[1].dataSync()[0] * 100;
-  const finalValAccPercent =
-      accuracyValues[accuracyValues.length - 1].accuracy * 100;
+  const finalValAccPercent = valAcc * 100;
   ui.logStatus(
       `Final validation accuracy: ${finalValAccPercent.toFixed(1)}%; ` +
       `Final test accuracy: ${testAccPercent.toFixed(1)}%`);

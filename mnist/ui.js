@@ -61,7 +61,10 @@ export function showTestResults(batch, predictions, labels) {
 
 const lossLabelElement = document.getElementById('loss-label');
 const accuracyLabelElement = document.getElementById('accuracy-label');
-export function plotLosses(lossValues) {
+
+const lossValues = [];
+export function plotLoss(batch, loss, set) {
+  lossValues.push({batch, loss, set});
   embed(
       '#lossCanvas', {
         '$schema': 'https://vega.github.io/schema/vega-lite/v2.json',
@@ -76,11 +79,12 @@ export function plotLosses(lossValues) {
         }
       },
       {width: 360});
-  lossLabelElement.innerText =
-      'last loss: ' + lossValues[lossValues.length - 1].loss.toFixed(3);
+  lossLabelElement.innerText = `last loss: ${loss.toFixed(3)}`;
 }
 
-export function plotAccuracies(accuracyValues) {
+const accuracyValues = [];
+export function plotAccuracy(batch, accuracy, set) {
+  accuracyValues.push({batch, accuracy, set});
   embed(
       '#accuracyCanvas', {
         '$schema': 'https://vega.github.io/schema/vega-lite/v2.json',
@@ -95,9 +99,8 @@ export function plotAccuracies(accuracyValues) {
         }
       },
       {'width': 360});
-  accuracyLabelElement.innerText = 'last accuracy: ' +
-      (accuracyValues[accuracyValues.length - 1].accuracy * 100).toFixed(1) +
-      '%';
+  accuracyLabelElement.innerText =
+      `last accuracy: ${(accuracy * 100).toFixed(1)}%`;
 }
 
 export function draw(image, canvas) {

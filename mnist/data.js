@@ -32,16 +32,11 @@ const MNIST_LABELS_PATH =
     'https://storage.googleapis.com/learnjs-data/model-builder/mnist_labels_uint8';
 
 /**
- * A class that fetches the sprited MNIST dataset and returns shuffled batches.
- *
- * NOTE: This will get much easier. For now, we do data fetching and
- * manipulation manually.
+ * A class that fetches the sprited MNIST dataset and provide data as
+ * tf.Tensors.
  */
 export class MnistData {
-  constructor() {
-    this.shuffledTrainIndex = 0;
-    this.shuffledTestIndex = 0;
-  }
+  constructor() {}
 
   async load() {
     // Make a request for the MNIST sprited image.
@@ -90,11 +85,6 @@ export class MnistData {
 
     this.datasetLabels = new Uint8Array(await labelsResponse.arrayBuffer());
 
-    // Create shuffled indices into the train/test set for when we select a
-    // random dataset element for training / validation.
-    this.trainIndices = tf.util.createShuffledIndices(NUM_TRAIN_ELEMENTS);
-    this.testIndices = tf.util.createShuffledIndices(NUM_TEST_ELEMENTS);
-
     // Slice the the images and labels into train and test sets.
     this.trainImages =
         this.datasetImages.slice(0, IMAGE_SIZE * NUM_TRAIN_ELEMENTS);
@@ -109,8 +99,9 @@ export class MnistData {
    * Get all training data as a data tensor and a labels tensor.
    *
    * @returns
-   *   xs: The data tensor, of shape `[numExamples, 28, 28, 1]`.
-   *   labels: The one-hot encoded labels tensor, of shape `[numExamples, 10]`.
+   *   xs: The data tensor, of shape `[numTrainExamples, 28, 28, 1]`.
+   *   labels: The one-hot encoded labels tensor, of shape
+   *     `[numTrainExamples, 10]`.
    */
   getTrainData() {
     const xs = tf.tensor4d(
@@ -124,7 +115,13 @@ export class MnistData {
   /**
    * Get all test data as a data tensor a a labels tensor.
    *
-   * @param {number} numExamples
+   * @param {number} numExamples Optional number of examples to get. If not
+   *     provided,
+   *   all test examples will be returned.
+   * @returns
+   *   xs: The data tensor, of shape `[numTestExamples, 28, 28, 1]`.
+   *   labels: The one-hot encoded labels tensor, of shape
+   *     `[numTestExamples, 10]`.
    */
   getTestData(numExamples) {
     let xs = tf.tensor4d(

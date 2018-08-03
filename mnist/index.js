@@ -50,7 +50,6 @@ function createConvModel(includeDropout) {
     inputShape: [IMAGE_H, IMAGE_W, 1],
     kernelSize: 5,
     filters: 8,
-    strides: 1,
     activation: 'relu'
   }));
 
@@ -60,8 +59,7 @@ function createConvModel(includeDropout) {
   model.add(tf.layers.maxPooling2d({poolSize: [2, 2], strides: [2, 2]}));
 
   // Our third layer is another convolution, this time with 16 filters.
-  model.add(tf.layers.conv2d(
-      {kernelSize: 5, filters: 16, strides: 1, activation: 'relu'}));
+  model.add(tf.layers.conv2d({kernelSize: 5, filters: 16, activation: 'relu'}));
 
   // Max pooling again.
   model.add(tf.layers.maxPooling2d({poolSize: [2, 2], strides: [2, 2]}));

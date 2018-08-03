@@ -17,7 +17,7 @@
 
 import renderChart from 'vega-embed';
 
-import {linearRegressionModel, neuralNetworkRegressionModel, run} from './index';
+import { linearRegressionModel, multiLayerPerceptronRegressionModel, run} from './index';
 
 const statusElement = document.getElementById('status');
 export const updateStatus = (message) => {
@@ -35,7 +35,7 @@ export const setup = async () => {
   }, false);
 
   trainNeuralNetworkLinearRegression.addEventListener('click', async (e) => {
-    const model = neuralNetworkRegressionModel();
+    const model = multiLayerPerceptronRegressionModel();
     losses = [];
     await run(model);
   }, false);

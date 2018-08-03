@@ -22,11 +22,16 @@ import * as ui from './ui';
 
 // Some hyperparameters for model training.
 const NUM_EPOCHS = 250;
-const BATCH_SIZE = 50;
+const BATCH_SIZE = 40;
 const LEARNING_RATE = 0.01;
 
 const data = new BostonHousingDataset();
 
+/**
+ * Builds and returns Linear Regression Model.
+ *
+ * @returns {tf.Sequential} The linear regression model.
+ */
 export const linearRegressionModel = () => {
   const model = tf.sequential();
   model.add(tf.layers.dense({inputShape: [data.numFeatures], units: 1}));
@@ -34,16 +39,28 @@ export const linearRegressionModel = () => {
   return model;
 };
 
-export const neuralNetworkRegressionModel = () => {
+/**
+ * Builds and returns Multi Layer Perceptron Regression Model
+ * with 2 hidden layers, each with 10 units activated by sigmoid.
+ *
+ * @returns {tf.Sequential} The multi layer perceptron regression model.
+ */
+export const multiLayerPerceptronRegressionModel = () => {
   const model = tf.sequential();
   model.add(tf.layers.dense(
-      {inputShape: [data.numFeatures], units: 10, activation: 'relu'}));
-  model.add(tf.layers.dense({units: 10, activation: 'relu'}));
+      {inputShape: [data.numFeatures], units: 50, activation: 'sigmoid'}));
+  model.add(tf.layers.dense({units: 50, activation: 'sigmoid'}));
   model.add(tf.layers.dense({units: 1}));
 
   return model;
 };
 
+/**
+ * Fetches training and testing data, compiles `model`, trains the model
+ * using train data and runs model against test data.
+ *
+ * @param {tf.Sequential} model Model to be trained.
+ */
 export const run = async (model) => {
   await ui.updateStatus('Getting training and testing data...');
   const trainData = data.getTrainData();
@@ -56,7 +73,7 @@ export const run = async (model) => {
 
   let trainLoss;
   let valLoss;
-  await ui.updateStatus('Training starting...');
+  await ui.updateStatus('Starting training process...');
   await model.fit(trainData.data, trainData.target, {
     batchSize: BATCH_SIZE,
     epochs: NUM_EPOCHS,

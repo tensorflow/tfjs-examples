@@ -43,26 +43,29 @@ function createConvModel(includeDropout) {
   // The first layer of the convolutional neural network plays a dual role:
   // it is both the input layer of the neural network and a layer that performs
   // the first convolution operation on the input. It receives the 28x28 pixels
-  // black and white images. This input layer uses 8 filters with a kernel size
+  // black and white images. This input layer uses 16 filters with a kernel size
   // of 5 pixels each. It uses a simple RELU activation function which pretty
   // much just looks like this: __/
   model.add(tf.layers.conv2d({
     inputShape: [IMAGE_H, IMAGE_W, 1],
-    kernelSize: 5,
-    filters: 8,
+    kernelSize: 3,
+    filters: 16,
     activation: 'relu'
   }));
 
   // After the first layer we include a MaxPooling layer. This acts as a sort of
   // downsampling using max values in a region instead of averaging.
   // https://www.quora.com/What-is-max-pooling-in-convolutional-neural-networks
-  model.add(tf.layers.maxPooling2d({poolSize: [2, 2], strides: [2, 2]}));
+  model.add(tf.layers.maxPooling2d({poolSize: 2, strides: 2}));
 
-  // Our third layer is another convolution, this time with 16 filters.
-  model.add(tf.layers.conv2d({kernelSize: 5, filters: 16, activation: 'relu'}));
+  // Our third layer is another convolution, this time with 32 filters.
+  model.add(tf.layers.conv2d({kernelSize: 3, filters: 32, activation: 'relu'}));
 
   // Max pooling again.
-  model.add(tf.layers.maxPooling2d({poolSize: [2, 2], strides: [2, 2]}));
+  model.add(tf.layers.maxPooling2d({poolSize: 2, strides: 2}));
+
+  // Add another conv2d layer.
+  model.add(tf.layers.conv2d({kernelSize: 3, filters: 32, activation: 'relu'}));
 
   // Now we flatten the output from the 2D filters into a 1D vector to prepare
   // it for input into our last layer. This is common practice when feeding
@@ -75,7 +78,7 @@ function createConvModel(includeDropout) {
     model.add(tf.layers.dropout({rate: 0.25}));
   }
 
-  model.add(tf.layers.dense({units: 100, activation: 'relu'}));
+  model.add(tf.layers.dense({units: 64, activation: 'relu'}));
 
   // We add another dropout layer here to further mitigate overfitting.
   if (includeDropout) {
@@ -114,7 +117,7 @@ function createDenseModel(includeDropout) {
   if (includeDropout) {
     model.add(tf.layers.dropout({rate: 0.25}));
   }
-  model.add(tf.layers.dense({units: 40, activation: 'relu'}));
+  model.add(tf.layers.dense({units: 42, activation: 'relu'}));
   if (includeDropout) {
     model.add(tf.layers.dropout({rate: 0.5}));
   }
@@ -150,7 +153,7 @@ async function train(model) {
   // An optimizer is an iterative method for minimizing an loss function.
   // It tries to find the minimum of our loss function with respect to the
   // model's weight parameters.
-  const optimizer = tf.train.rmsprop(LEARNING_RATE);
+  const optimizer = 'rmsprop';
 
   // We compile our model by specifying an optimizer, a loss function, and a
   // list of metrics that we will use for model evaluation. Here we're using a
@@ -163,7 +166,7 @@ async function train(model) {
   // This metric is not differentiable and hence cannot be used as the loss
   // function of the model.
   model.compile({
-    optimizer: optimizer,
+    optimizer,
     loss: 'categoricalCrossentropy',
     metrics: ['accuracy'],
   });
@@ -173,7 +176,11 @@ async function train(model) {
   // weights during training. A value that is too low will update weights using
   // too few examples and will not generalize well. Larger batch sizes require
   // more memory resources and aren't guaranteed to perform better.
-  const BATCH_SIZE = 512;
+  const batchSize = 64;
+
+  // Leave out the last 15% of the training data for validation, to monitor
+  // overfitting during training.
+  const validationSplit = 0.15;
 
   // Get number of training epochs from the UI.
   const trainEpochs = ui.getTrainEpochs();
@@ -185,15 +192,16 @@ async function train(model) {
   const testData = data.getTestData();
 
   const totalNumBatches =
-      Math.ceil(trainData.xs.shape[0] / BATCH_SIZE) * trainEpochs;
+      Math.ceil(trainData.xs.shape[0] * (1 - validationSplit) / batchSize) *
+      trainEpochs;
 
   // During the long-running fit() call for model training, we include
   // callbacks, so that we can plot the loss and accuracy values in the page
   // as the training progresses.
   let valAcc;
   await model.fit(trainData.xs, trainData.labels, {
-    batchSize: BATCH_SIZE,
-    validationSplit: 0.15,
+    batchSize,
+    validationSplit,
     epochs: trainEpochs,
     callbacks: {
       onBatchEnd: async (batch, logs) => {
@@ -204,11 +212,13 @@ async function train(model) {
             ` complete). To stop training, refresh or close page.`);
         ui.plotLoss(trainBatchCount, logs.loss, 'train');
         ui.plotAccuracy(trainBatchCount, logs.acc, 'train');
+        await tf.nextFrame();
       },
       onEpochEnd: async (epoch, logs) => {
         valAcc = logs.val_acc;
         ui.plotLoss(trainBatchCount, logs.val_loss, 'validation');
         ui.plotAccuracy(trainBatchCount, logs.val_acc, 'validation');
+        await tf.nextFrame();
       }
     }
   });

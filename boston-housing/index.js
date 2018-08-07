@@ -22,26 +22,58 @@ import * as ui from './ui';
 
 // Some hyperparameters for model training.
 const NUM_EPOCHS = 250;
-const BATCH_SIZE = 50;
+const BATCH_SIZE = 40;
 const LEARNING_RATE = 0.01;
 
 const data = new BostonHousingDataset();
-data.loadData().then(async () => {
+
+/**
+ * Builds and returns Linear Regression Model.
+ *
+ * @returns {tf.Sequential} The linear regression model.
+ */
+export const linearRegressionModel = () => {
+  const model = tf.sequential();
+  model.add(tf.layers.dense({inputShape: [data.numFeatures], units: 1}));
+
+  return model;
+};
+
+/**
+ * Builds and returns Multi Layer Perceptron Regression Model
+ * with 2 hidden layers, each with 10 units activated by sigmoid.
+ *
+ * @returns {tf.Sequential} The multi layer perceptron regression model.
+ */
+export const multiLayerPerceptronRegressionModel = () => {
+  const model = tf.sequential();
+  model.add(tf.layers.dense(
+      {inputShape: [data.numFeatures], units: 50, activation: 'sigmoid'}));
+  model.add(tf.layers.dense({units: 50, activation: 'sigmoid'}));
+  model.add(tf.layers.dense({units: 1}));
+
+  return model;
+};
+
+/**
+ * Fetches training and testing data, compiles `model`, trains the model
+ * using train data and runs model against test data.
+ *
+ * @param {tf.Sequential} model Model to be trained.
+ */
+export const run = async (model) => {
   await ui.updateStatus('Getting training and testing data...');
   const trainData = data.getTrainData();
   const testData = data.getTestData();
 
-  await ui.updateStatus('Building model...');
-  const model = tf.sequential();
-  model.add(tf.layers.dense({inputShape: [data.numFeatures], units: 1}));
-  model.compile({
-    optimizer: tf.train.sgd(LEARNING_RATE),
-    loss: 'meanSquaredError'
-  });
+  await ui.updateStatus('Compiling model...');
+
+  model.compile(
+      {optimizer: tf.train.sgd(LEARNING_RATE), loss: 'meanSquaredError'});
 
   let trainLoss;
   let valLoss;
-  await ui.updateStatus('Training starting...');
+  await ui.updateStatus('Starting training process...');
   await model.fit(trainData.data, trainData.target, {
     batchSize: BATCH_SIZE,
     epochs: NUM_EPOCHS,
@@ -69,4 +101,10 @@ data.loadData().then(async () => {
       `Final train-set loss: ${trainLoss.toFixed(4)}\n` +
       `Final validation-set loss: ${valLoss.toFixed(4)}\n` +
       `Test-set loss: ${testLoss.toFixed(4)}`);
-});
+};
+
+document.addEventListener('DOMContentLoaded', async () => {
+  await data.loadData();
+  await ui.updateStatus('Data loaded!');
+  await ui.setup();
+}, false);

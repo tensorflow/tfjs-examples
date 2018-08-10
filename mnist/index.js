@@ -168,7 +168,7 @@ async function train(model) {
   model.compile({
     optimizer,
     loss: 'categoricalCrossentropy',
-    metrics: ['accuracy'],
+    metrics: ['accuracy']
   });
 
   // Batch size is another important hyperparameter. It defines the number of

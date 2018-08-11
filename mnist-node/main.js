@@ -16,40 +16,13 @@
  */
 
 const tf = require('@tensorflow/tfjs');
+const ProgressBar = require('progress');
 require('@tensorflow/tfjs-node-gpu');
 
-const timer = require('node-simple-timer');
-const ProgressBar = require('progress');
 const data = require('./data');
 const model = require('./model');
 
-const NUM_EPOCHS = 10;
-const BATCH_SIZE = 100;
-const TEST_SIZE = 50;
-
-async function test() {
-  if (!data.hasMoreTestData()) {
-    data.resetTest();
-  }
-  const evalData = data.nextTestBatch(TEST_SIZE);
-  const output = model.predict(evalData.image);
-  const predictions = output.argMax(1).dataSync();
-  const labels = evalData.label.argMax(1).dataSync();
-
-  let correct = 0;
-  for (let i = 0; i < TEST_SIZE; i++) {
-    if (predictions[i] === labels[i]) {
-      correct++;
-    }
-  }
-  const accuracy = ((correct / TEST_SIZE) * 100).toFixed(2);
-  console.log(`* Test set accuracy: ${accuracy}%\n`);
-}
-
 async function run() {
-  const totalTimer = new timer.Timer();
-  totalTimer.start();
-
   await data.loadData();
 
   const {images: trainImages, labels: trainLabels} = data.getTrainData();

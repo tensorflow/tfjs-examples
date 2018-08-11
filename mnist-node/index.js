@@ -16,32 +16,16 @@
  */
 
 const tf = require('@tensorflow/tfjs');
-require('@tensorflow/tfjs-node');
+require('@tensorflow/tfjs-node-gpu');
 
 const timer = require('node-simple-timer');
+const ProgressBar = require('progress');
 const data = require('./data');
 const model = require('./model');
 
 const NUM_EPOCHS = 10;
 const BATCH_SIZE = 100;
 const TEST_SIZE = 50;
-
-async function train() {
-  let step = 0;
-  while (data.hasMoreTrainingData()) {
-    const batch = data.nextTrainBatch(BATCH_SIZE);
-    const history = await model.fit(
-        batch.image, batch.label, {batchSize: BATCH_SIZE, shuffle: true});
-
-    if (step % 20 === 0) {
-      const loss = history.history.loss[0].toFixed(6);
-      const acc = history.history.acc[0].toFixed(4);
-      console.log(`  - step: ${step}: loss: ${loss}, accuracy: ${acc}`);
-    }
-    step++;
-  }
-  return step;
-}
 
 async function test() {
   if (!data.hasMoreTestData()) {
@@ -68,24 +52,58 @@ async function run() {
 
   await data.loadData();
 
-  const epochTimer = new timer.Timer();
-  for (let i = 0; i < NUM_EPOCHS; i++) {
-    epochTimer.start();
-    const trainSteps = await train();
-    epochTimer.end();
-    data.resetTraining();
+  const {images: trainImages, labels: trainLabels} = data.getTrainData();
+  model.summary();
 
-    const time = epochTimer.seconds().toFixed(2);
-    const stepsSec = (trainSteps / epochTimer.seconds()).toFixed(2);
-    console.log(
-        `* End Epoch: ${i + 1}: time: ${time}secs (${stepsSec} steps/sec)`);
+  let progressBar;
+  let epochBeginTime;
+  let millisPerStep;
+  const epochs = 20;
+  const batchSize = 128;
+  const validationSplit = 0.15;
+  const numTrainExamplesPerEpoch =
+      trainImages.shape[0] * (1 - validationSplit);
+  const numTrainBatchesPerEpoch =
+      Math.ceil(numTrainExamplesPerEpoch / batchSize);
+  await model.fit(trainImages, trainLabels, {
+    epochs,
+    batchSize,
+    validationSplit,
+    callbacks: {
+      onEpochBegin: async (epoch) => {
+        progressBar = new ProgressBar(
+            ':bar: :eta', {total: numTrainBatchesPerEpoch, head: `>`});
+        console.log(`Epoch ${epoch + 1} / ${epochs}`);
+        epochBeginTime = tf.util.now();
+      },
+      onBatchEnd: async (batch, logs) => {
+        if (batch === numTrainBatchesPerEpoch - 1) {
+          millisPerStep =
+              (tf.util.now() - epochBeginTime) / numTrainExamplesPerEpoch;
+        }
+        progressBar.tick();
+        await tf.nextFrame();
+      },
+      onEpochEnd: async (epoch, logs) => {
+        console.log(
+            `Loss: ${logs.loss.toFixed(3)} (train), ` +
+            `${logs.val_loss.toFixed(3)} (val); ` +
+            `Accuracy: ${logs.acc.toFixed(3)} (train), ` +
+            `${logs.val_acc.toFixed(3)} (val) ` +
+            `(${millisPerStep.toFixed(2)} ms/step)`);
+        await tf.nextFrame();
+      }
+    }
+  });
 
-    test();
-  }
+  const {images: testImages, labels: testLabels} = data.getTestData();
+  const evalOutput = model.evaluate(testImages, testLabels);
 
-  totalTimer.end();
-  const time = totalTimer.seconds().toFixed(2);
-  console.log(`**** Trained ${NUM_EPOCHS} epochs in ${time} secs`);
+  console.log();
+  console.log('Evaluation result:');
+  console.log(
+      `  Loss = ${evalOutput[0].dataSync()[0].toFixed(3)}; `+
+      `Acurracy = ${evalOutput[1].dataSync()[0].toFixed(3)}`);
 }
 
 run();

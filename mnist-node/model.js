@@ -39,8 +39,7 @@ model.add(tf.layers.flatten());
 model.add(tf.layers.dense(
     {units: 10, kernelInitializer: 'varianceScaling', activation: 'softmax'}));
 
-const LEARNING_RATE = 0.15;
-const optimizer = tf.train.sgd(LEARNING_RATE);
+const optimizer = 'rmsprop';
 model.compile({
   optimizer: optimizer,
   loss: 'categoricalCrossentropy',

@@ -73,7 +73,7 @@ export class WebsitePhishingDataset {
 
     return {
       data: tf.tensor2d(trainData, dataShape),
-      target: tf.oneHot(tf.tensor1d(trainTarget).toInt(), this.NUM_CLASSES)
+      target: tf.tensor1d(trainTarget)
     };
   }
 
@@ -85,7 +85,7 @@ export class WebsitePhishingDataset {
 
     return {
       data: tf.tensor2d(testData, dataShape),
-      target: tf.oneHot(tf.tensor1d(testTarget).toInt(), this.NUM_CLASSES)
+      target: tf.tensor1d(testTarget)
     };
   }
 }

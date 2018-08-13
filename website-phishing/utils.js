@@ -14,7 +14,8 @@
  * limitations under the License.
  * =============================================================================
  */
-const Papa = require('papaparse');
+import * as tf from '@tensorflow/tfjs';
+import * as Papa from 'papaparse';
 
 const BASE_URL =
     'https://gist.githubusercontent.com/ManrajGrover/6589d3fd3eb9a0719d2a83128741dfc1/raw/d0a86602a87bfe147c240e87e6a9641786cafc19/';
@@ -162,3 +163,54 @@ export const normalizeDataset =
 
       return {dataset, vectorMeans, vectorStddevs};
     };
+
+/**
+ * Binarizes a tensor based on threshold.
+ *
+ * @param {tf.Tensor} y Tensor to be binarized.
+ */
+const binarize = (y) => {
+  const condition = y.greater(tf.scalar(0.5));
+  return tf.where(condition, tf.onesLike(y), tf.zerosLike(y));
+};
+
+/**
+ * Builds and returns Confusion Matrix.
+ *
+ * @param {tf.Tensor} y Tensor containing actual target.
+ * @param {tf.Tensor} yPred Tensor containing predicted probabilities.
+ */
+export const getConfusionMatrix = (y, yPred) => {
+  // [[TN, FP],
+  //  [FN, TP]]
+  const confusionMatrix = [[0, 0], [0, 0]];
+
+  const yData = y.dataSync();
+  const yPredData = binarize(yPred).dataSync();
+
+  for (let index = 0; index < yData.length; ++index) {
+    confusionMatrix[yData[index]][yPredData[index]] += 1;
+  }
+
+  return confusionMatrix;
+};
+
+/**
+ * Calculates and returns precision score.
+ *
+ * @param {Array<number[]>} confusionMatrix Confusion Matrix.
+ */
+export const getPrecisionScore = (confusionMatrix) => {
+  return confusionMatrix[1][1] /
+      (confusionMatrix[1][1] + confusionMatrix[0][1]);
+};
+
+/**
+ * Calculates and returns recall score.
+ *
+ * @param {Array<number[]>} confusionMatrix Confusion Matrix.
+ */
+export const getRecallScore = (confusionMatrix) => {
+  return confusionMatrix[1][1] /
+      (confusionMatrix[1][1] + confusionMatrix[1][0]);
+};

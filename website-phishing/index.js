@@ -19,11 +19,11 @@ import * as tf from '@tensorflow/tfjs';
 
 import {WebsitePhishingDataset} from './data';
 import * as ui from './ui';
+import * as utils from './utils';
 
 // Some hyperparameters for model training.
-const NUM_EPOCHS = 250;
-const BATCH_SIZE = 200;
-const LEARNING_RATE = 0.01;
+const NUM_EPOCHS = 400;
+const BATCH_SIZE = 350;
 
 const data = new WebsitePhishingDataset();
 data.loadData().then(async () => {
@@ -34,14 +34,11 @@ data.loadData().then(async () => {
   await ui.updateStatus('Building model...');
   const model = tf.sequential();
   model.add(tf.layers.dense(
-      {inputShape: [data.numFeatures], units: 30, activation: 'sigmoid'}));
-  model.add(tf.layers.dense({units: 30, activation: 'sigmoid'}));
-  model.add(tf.layers.dense({units: 2, activation: 'softmax'}));
-  model.compile({
-    optimizer: tf.train.adam(),
-    loss: 'categoricalCrossentropy',
-    metrics: ['accuracy']
-  });
+      {inputShape: [data.numFeatures], units: 100, activation: 'sigmoid'}));
+  model.add(tf.layers.dense({units: 100, activation: 'sigmoid'}));
+  model.add(tf.layers.dense({units: 1, activation: 'sigmoid'}));
+  model.compile(
+      {optimizer: 'adam', loss: 'binaryCrossentropy', metrics: ['accuracy']});
 
   let trainLoss;
   let valLoss;
@@ -68,6 +65,7 @@ data.loadData().then(async () => {
         // tf.nextFrame makes the program wait until requestAnimationFrame()
         // has completed. This helps mitigate blocking of UI thread
         // and thus browser tab.
+        // TODO(manraj): Remove this line once next version of tfjs comes out.
         await tf.nextFrame();
       }
     }
@@ -76,13 +74,25 @@ data.loadData().then(async () => {
   await ui.updateStatus('Running on test data...');
   const result =
       model.evaluate(testData.data, testData.target, {batchSize: BATCH_SIZE});
+
+  const predictions =
+      model.predict(testData.data, testData.target, {batchSize: BATCH_SIZE});
+
+  const confusionMatrix =
+      utils.getConfusionMatrix(testData.target, predictions);
+  console.log(confusionMatrix);
   const testLoss = result[0].get();
   const testAcc = result[1].get();
+  const precision = utils.getPrecisionScore(confusionMatrix);
+  const recall = utils.getRecallScore(confusionMatrix);
 
   await ui.updateStatus(
       `Final train-set loss: ${trainLoss.toFixed(4)} accuracy: ${
           trainAcc.toFixed(4)}\n` +
       `Final validation-set loss: ${valLoss.toFixed(4)} accuracy: ${
           valAcc.toFixed(4)}\n` +
-      `Test-set loss: ${testLoss.toFixed(4)} accuracy: ${testAcc.toFixed(4)}`);
+      `Test-set loss: ${testLoss.toFixed(4)} accuracy: ${
+          testAcc.toFixed(4)}\n` +
+      `Precision: ${precision.toFixed(4)}\n` +
+      `Recall: ${recall.toFixed(4)}`);
 });

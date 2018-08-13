@@ -27,6 +27,8 @@
 #  - package.json
 #  - `yarn build` script which generates a dist/ folder in the example directory.
 
+set -e
+
 if [ -z "$1" ]
   then
     EXAMPLES=$(ls -d */)
@@ -47,8 +49,6 @@ for i in $EXAMPLES; do
   echo "building ${EXAMPLE_NAME}..."
   yarn
   yarn build
-  gsutil mkdir -p gs://tfjs-examples/$EXAMPLE_NAME
-  gsutil mkdir -p gs://tfjs-examples/$EXAMPLE_NAME/dist
   gsutil -m cp dist/* gs://tfjs-examples/$EXAMPLE_NAME/dist
   cd ..
 done

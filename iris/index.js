@@ -179,5 +179,5 @@ async function iris() {
   ui.status('Standing by.');
   ui.wireUpEvaluateTableCallbacks(() => predictOnManualInput(model));
 }
-
+tf.ENV.set('DEBUG', true);
 iris();

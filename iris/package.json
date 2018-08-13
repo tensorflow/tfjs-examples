@@ -14,8 +14,7 @@
   },
   "scripts": {
     "build": "cross-env NODE_ENV=production parcel build index.html --no-minify --public-url ./",
-    "watch": "./serve.sh",
-    "postinstall": "yarn upgrade --pattern @tensorflow"
+    "watch": "./serve.sh"
   },
   "devDependencies": {
     "babel-plugin-transform-runtime": "~6.23.0",

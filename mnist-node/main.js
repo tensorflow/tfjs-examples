@@ -16,8 +16,8 @@
  */
 
 const tf = require('@tensorflow/tfjs');
-const ProgressBar = require('progress');
 require('@tensorflow/tfjs-node');
+const ProgressBar = require('progress');
 
 const data = require('./data');
 const model = require('./model');
@@ -72,8 +72,7 @@ async function run() {
   const {images: testImages, labels: testLabels} = data.getTestData();
   const evalOutput = model.evaluate(testImages, testLabels);
 
-  console.log();
-  console.log('Evaluation result:');
+  console.log('\nEvaluation result:');
   console.log(
       `  Loss = ${evalOutput[0].dataSync()[0].toFixed(3)}; `+
       `Acurracy = ${evalOutput[1].dataSync()[0].toFixed(3)}`);

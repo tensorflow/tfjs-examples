@@ -32,8 +32,9 @@ const TEST_IMAGES_FILE = 't10k-images-idx3-ubyte';
 const TEST_LABELS_FILE = 't10k-labels-idx1-ubyte';
 const IMAGE_HEADER_MAGIC_NUM = 2051;
 const IMAGE_HEADER_BYTES = 16;
-const IMAGE_DIMENSION_SIZE = 28;
-const IMAGE_FLAT_SIZE = IMAGE_DIMENSION_SIZE * IMAGE_DIMENSION_SIZE;
+const IMAGE_HEIGHT = 28;
+const IMAGE_WIDTH = 28;
+const IMAGE_FLAT_SIZE = IMAGE_HEIGHT * IMAGE_WIDTH;
 const LABEL_HEADER_MAGIC_NUM = 2049;
 const LABEL_HEADER_BYTES = 8;
 const LABEL_RECORD_BYTE = 1;
@@ -59,25 +60,6 @@ async function fetchOnceAndSaveToDiskWithBuffer(filename) {
   });
 }
 
-// Shuffles data and label using Fisher-Yates algorithm.
-function shuffle(data, label) {
-  let counter = data.length;
-  let temp = 0;
-  let index = 0;
-  while (counter > 0) {
-    index = (Math.random() * counter) | 0;
-    counter--;
-    // data:
-    temp = data[counter];
-    data[counter] = data[index];
-    data[index] = temp;
-    // label:
-    temp = label[counter];
-    label[counter] = label[index];
-    label[index] = temp;
-  }
-}
-
 function loadHeaderValues(buffer, headerLength) {
   const headerValues = [];
   for (let i = 0; i < headerLength / 4; i++) {
@@ -91,21 +73,21 @@ async function loadImages(filename) {
   const buffer = await fetchOnceAndSaveToDiskWithBuffer(filename);
 
   const headerBytes = IMAGE_HEADER_BYTES;
-  const recordBytes = IMAGE_DIMENSION_SIZE * IMAGE_DIMENSION_SIZE;
+  const recordBytes = IMAGE_HEIGHT * IMAGE_WIDTH;
 
   const headerValues = loadHeaderValues(buffer, headerBytes);
   assert.equal(headerValues[0], IMAGE_HEADER_MAGIC_NUM);
-  assert.equal(headerValues[2], IMAGE_DIMENSION_SIZE);
-  assert.equal(headerValues[3], IMAGE_DIMENSION_SIZE);
-
-  const downsize = 1.0 / 255.0;
+  assert.equal(headerValues[2], IMAGE_HEIGHT);
+  assert.equal(headerValues[3], IMAGE_WIDTH);
 
   const images = [];
   let index = headerBytes;
   while (index < buffer.byteLength) {
     const array = new Float32Array(recordBytes);
     for (let i = 0; i < recordBytes; i++) {
-      array[i] = buffer.readUInt8(index++) * downsize;
+      // Normalize the pixel values into the 0-1 interval, from
+      // the original 0-255 interval.
+      array[i] = buffer.readUInt8(index++) / 255;
     }
     images.push(array);
   }
@@ -155,89 +137,49 @@ class MnistDataset {
     ]);
     this.trainSize = this.dataset[0].length;
     this.testSize = this.dataset[2].length;
-
-    // Shuffle training and test data:
-    shuffle(this.dataset[0], this.dataset[1]);
-    shuffle(this.dataset[2], this.dataset[3]);
   }
 
-  /** Resets training data batches. */
-  resetTraining() {
-    this.trainBatchIndex = 0;
+  getTrainData() {
+    return this.getData_(true);
   }
 
-  /** Resets test data batches. */
-  resetTest() {
-    this.testBatchIndex = 0;
+  getTestData() {
+    return this.getData_(false);
   }
 
-  /** Returns true if the training data has another batch. */
-  hasMoreTrainingData() {
-    return this.trainBatchIndex < this.trainSize;
-  }
-
-  /** Returns true if the test data has another batch. */
-  hasMoreTestData() {
-    return this.testBatchIndex < this.testSize;
-  }
-
-  /**
-   * Returns an object with training images and labels for a given batch size.
-   */
-  nextTrainBatch(batchSize) {
-    return this._generateBatch(true, batchSize);
-  }
-
-  /**
-   * Returns an object with test images and labels for a given batch size.
-   */
-  nextTestBatch(batchSize) {
-    return this._generateBatch(false, batchSize);
-  }
-
-  _generateBatch(isTrainingData, batchSize) {
-    let batchIndexMax;
-    let size;
+  getData_(isTrainingData) {
     let imagesIndex;
     let labelsIndex;
     if (isTrainingData) {
-      batchIndexMax = this.trainBatchIndex + batchSize > this.trainSize ?
-          this.trainSize - this.trainBatchIndex :
-          batchSize + this.trainBatchIndex;
-      size = batchIndexMax - this.trainBatchIndex;
       imagesIndex = 0;
       labelsIndex = 1;
     } else {
-      batchIndexMax = this.testBatchIndex + batchSize > this.testSize ?
-          this.testSize - this.testBatchIndex :
-          batchSize + this.testBatchIndex;
-      size = batchIndexMax - this.testBatchIndex;
       imagesIndex = 2;
       labelsIndex = 3;
     }
+    const size = this.dataset[imagesIndex].length;
+    tf.util.assert(
+        this.dataset[labelsIndex].length === size,
+        `Mismatch in the number of images (${size}) and ` +
+            `the number of labels (${this.dataset[labelsIndex].length})`);
 
     // Only create one big array to hold batch of images.
-    const imagesShape = [size, IMAGE_DIMENSION_SIZE, IMAGE_DIMENSION_SIZE, 1];
+    const imagesShape = [size, IMAGE_HEIGHT, IMAGE_WIDTH, 1];
     const images = new Float32Array(tf.util.sizeFromShape(imagesShape));
-
-    const labelsShape = [size, 1];
-    const labels = new Int32Array(tf.util.sizeFromShape(labelsShape));
+    const labels = new Int32Array(tf.util.sizeFromShape([size, 1]));
 
     let imageOffset = 0;
     let labelOffset = 0;
-    while ((isTrainingData ? this.trainBatchIndex : this.testBatchIndex) <
-           batchIndexMax) {
-      images.set(this.dataset[imagesIndex][this.trainBatchIndex], imageOffset);
-      labels.set(this.dataset[labelsIndex][this.trainBatchIndex], labelOffset);
-
-      isTrainingData ? this.trainBatchIndex++ : this.testBatchIndex++;
+    for (let i = 0; i < size; ++i) {
+      images.set(this.dataset[imagesIndex][i], imageOffset);
+      labels.set(this.dataset[labelsIndex][i], labelOffset);
       imageOffset += IMAGE_FLAT_SIZE;
       labelOffset += 1;
     }
 
     return {
-      image: tf.tensor4d(images, imagesShape),
-      label: tf.oneHot(tf.tensor1d(labels, 'int32'), LABEL_FLAT_SIZE).toFloat()
+      images: tf.tensor4d(images, imagesShape),
+      labels: tf.oneHot(tf.tensor1d(labels, 'int32'), LABEL_FLAT_SIZE).toFloat()
     };
   }
 }

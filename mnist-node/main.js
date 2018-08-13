@@ -17,7 +17,7 @@
 
 const tf = require('@tensorflow/tfjs');
 const ProgressBar = require('progress');
-require('@tensorflow/tfjs-node-gpu');
+require('@tensorflow/tfjs-node');
 
 const data = require('./data');
 const model = require('./model');

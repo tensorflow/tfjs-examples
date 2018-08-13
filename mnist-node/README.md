@@ -14,7 +14,7 @@ $ yarn
 
 Run the training script:
 ```sh
-$ node index.js
+$ node main.js
 ```
 
 If you are running on a Linux system that is [CUDA compatible](https://www.tensorflow.org/install/install_linux), try installing the GPU
@@ -26,4 +26,4 @@ $ npm install @tensorflow/tfjs-node-gpu
 $ yarn add @tensorflow/tfjs-node-gpu
 ```
 
-After installing the package, replace `require('@tensorflow/tfjs-node')` with `require('@tensorflow/tfjs-node-gpu');` in index.js
+After installing the package, replace `require('@tensorflow/tfjs-node')` with `require('@tensorflow/tfjs-node-gpu');` in main.js

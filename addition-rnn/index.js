@@ -264,7 +264,7 @@ class AdditionRNNDemo {
         epochs: 1,
         batchSize,
         validationData: [this.testXs, this.testYs],
-        yieldEvery: 'never'
+        yieldEvery: 'epoch'
       });
       const elapsedMs = performance.now() - beginMs;
       const examplesPerSec = this.testXs.shape[0] / (elapsedMs / 1000);

@@ -14,48 +14,6 @@
  * limitations under the License.
  * =============================================================================
  */
-const Papa = require('papaparse');
-
-const BASE_URL =
-    'https://storage.googleapis.com/tfjs-examples/multivariate-linear-regression/data/';
-
-/**
- *
- * @param {Array<Object>} data Downloaded data.
- *
- * @returns {Promise.Array<number[]>} Resolves to data with values parsed as floats.
- */
-const parseCsv = async (data) => {
-  return new Promise(resolve => {
-    data = data.map((row) => {
-      return Object.keys(row).sort().map(key => parseFloat(row[key]));
-    });
-    resolve(data);
-  });
-};
-
-/**
- * Downloads and returns the csv.
- *
- * @param {string} filename Name of file to be loaded.
- *
- * @returns {Promise.Array<number[]>} Resolves to parsed csv data.
- */
-export const loadCsv = async (filename) => {
-  return new Promise(resolve => {
-    const url = `${BASE_URL}${filename}.csv`;
-
-    console.log(`  * Downloading data from: ${url}`);
-    Papa.parse(url, {
-      download: true,
-      header: true,
-      complete: (results) => {
-        resolve(parseCsv(results['data']));
-      }
-    })
-  });
-};
-
 /**
  * Calculate the arithmetic mean of a vector.
  *
@@ -101,43 +59,46 @@ const normalizeVector = (vector, vectorMean, vectorStddev) => {
 };
 
 /**
- * Normalizes the dataset
+ * Calculates the mean and standard deviation of each column of a data array.
+ *
+ * @param {Array} dataset Dataset from which to calculate the mean and std.
+ *
+ * @returns {Object} Contains the mean of each vector column,
+ *                   standard deviation of each vector column.
+ */
+export const determineMeanAndStd =
+    (dataset) => {
+      const numFeatures = dataset[0].length;
+      let vectorMeans = [];
+      let vectorStddevs = [];
+      for (let i = 0; i < numFeatures; i++) {
+        const vector = dataset.map(row => row[i]);
+        vectorMeans.push(mean(vector));
+        vectorStddevs.push(stddev(vector));
+      }
+      return {vectorMeans, vectorStddevs};
+    }
+
+/**
+ * Normalizes the dataset to zero-mean, unit standard deviation by subtracting
+ * the supplied mean and dividing by the supplied standard deviation.
  *
  * @param {Array} dataset Dataset to be normalized.
- * @param {boolean} isTrainData Whether it is training data or not.
  * @param {Array} vectorMeans Mean of each column of dataset.
  * @param {Array} vectorStddevs Standard deviation of each column of dataset.
  *
- * @returns {Object} Contains normalized dataset, mean of each vector column,
- *                   standard deviation of each vector column.
+ * @returns {Array} Normalized dataset.
  */
-export const normalizeDataset =
-    (dataset, isTrainData = true, vectorMeans = [], vectorStddevs = []) => {
-      const numFeatures = dataset[0].length;
-      let vectorMean;
-      let vectorStddev;
+export const normalizeDataset = (dataset, vectorMeans, vectorStddevs) => {
+  const numFeatures = dataset[0].length;
+  for (let i = 0; i < numFeatures; i++) {
+    const vector = dataset.map(row => row[i]);
+    const vectorNormalized =
+        normalizeVector(vector, vectorMeans[i], vectorStddevs[i]);
 
-      for (let i = 0; i < numFeatures; i++) {
-        const vector = dataset.map(row => row[i]);
-
-        if (isTrainData) {
-          vectorMean = mean(vector);
-          vectorStddev = stddev(vector);
-
-          vectorMeans.push(vectorMean);
-          vectorStddevs.push(vectorStddev);
-        } else {
-          vectorMean = vectorMeans[i];
-          vectorStddev = vectorStddevs[i];
-        }
-
-        const vectorNormalized =
-            normalizeVector(vector, vectorMean, vectorStddev);
-
-        vectorNormalized.forEach((value, index) => {
-          dataset[index][i] = value;
-        });
-      }
-
-      return {dataset, vectorMeans, vectorStddevs};
-    };
+    vectorNormalized.forEach((value, index) => {
+      dataset[index][i] = value;
+    });
+  }
+  return dataset;
+};

@@ -18,20 +18,64 @@
 import * as tf from '@tensorflow/tfjs';
 import * as utils from './utils';
 
+const Papa = require('papaparse');
+
 // Boston Housing data constants:
-const TRAIN_DATA = 'train-data';
-const TRAIN_TARGET = 'train-target';
-const TEST_DATA = 'test-data';
-const TEST_TARGET = 'test-target';
+const BASE_URL =
+    'https://storage.googleapis.com/tfjs-examples/multivariate-linear-regression/data/';
+
+const TRAIN_FEATURES_FN = 'train-data.csv';
+const TRAIN_TARGET_FN = 'train-target.csv';
+const TEST_FEATURES_FN = 'test-data.csv';
+const TEST_TARGET_FN = 'test-target.csv';
+
+/**
+ *
+ * @param {Array<Object>} data Downloaded data.
+ *
+ * @returns {Promise.Array<number[]>} Resolves to data with values parsed as floats.
+ */
+const parseCsv = async (data) => {
+  return new Promise(resolve => {
+    data = data.map((row) => {
+      return Object.keys(row).sort().map(key => parseFloat(row[key]));
+    });
+    resolve(data);
+  });
+};
+
+/**
+ * Downloads and returns the csv.
+ *
+ * @param {string} filename Name of file to be loaded.
+ *
+ * @returns {Promise.Array<number[]>} Resolves to parsed csv data.
+ */
+export const loadCsv = async (filename) => {
+  return new Promise(resolve => {
+    const url = `${BASE_URL}${filename}`;
+
+    console.log(`  * Downloading data from: ${url}`);
+    Papa.parse(url, {
+      download: true,
+      header: true,
+      complete: (results) => {
+        resolve(parseCsv(results['data']));
+      }
+    })
+  });
+};
+
+
 
 /** Helper class to handle loading training and test data. */
 export class BostonHousingDataset {
   constructor() {
     // Arrays to hold the data.
     this.trainFeatures = null;
-    this.trainLabels = null;
+    this.trainTargets = null;
     this.testFeatures = null;
-    this.testLabels = null;
+    this.testTargets = null;
     // Metadata
     this.trainSize = 0;
     this.testSize = 0;
@@ -43,27 +87,26 @@ export class BostonHousingDataset {
 
   /** Loads training and test data. */
   async loadData() {
-    [this.trainFeatures, this.trainLabels, this.testFeatures, this.testLabels] =
+    [this.trainFeatures, this.trainTargets, this.testFeatures,
+     this.testTargets] =
         await Promise.all([
-          utils.loadCsv(TRAIN_DATA), utils.loadCsv(TRAIN_TARGET),
-          utils.loadCsv(TEST_DATA), utils.loadCsv(TEST_TARGET)
+          loadCsv(TRAIN_FEATURES_FN), loadCsv(TRAIN_TARGET_FN),
+          loadCsv(TEST_FEATURES_FN), loadCsv(TEST_TARGET_FN)
         ]);
 
-    let {dataset: trainDataset, vectorMeans, vectorStddevs} =
-        utils.normalizeDataset(this.trainFeatures);
+    let {vectorMeans, vectorStddevs} =
+        utils.determineMeanAndStd(this.trainFeatures);
 
-    this.trainFeatures = trainDataset;
-
-    let {dataset: testDataset} = utils.normalizeDataset(
-        this.testFeatures, false, vectorMeans, vectorStddevs);
-
-    this.testFeatures = testDataset;
+    this.trainFeatures =
+        utils.normalizeDataset(this.trainFeatures, vectorMeans, vectorStddevs);
+    this.testFeatures =
+        utils.normalizeDataset(this.testFeatures, vectorMeans, vectorStddevs);
 
     this.trainSize = this.trainFeatures.length;
     this.testSize = this.testFeatures.length;
 
-    shuffle(this.trainFeatures, this.trainLabels);
-    shuffle(this.testFeatures, this.testLabels);
+    shuffle(this.trainFeatures, this.trainTargets);
+    shuffle(this.testFeatures, this.testTargets);
   }
 
   getTrainData() {
@@ -73,7 +116,7 @@ export class BostonHousingDataset {
     const trainData =
         Float32Array.from([].concat.apply([], this.trainFeatures));
     const trainTarget =
-        Float32Array.from([].concat.apply([], this.trainLabels));
+        Float32Array.from([].concat.apply([], this.trainTargets));
 
     return {
       data: tf.tensor2d(trainData, dataShape),
@@ -86,7 +129,7 @@ export class BostonHousingDataset {
     const targetShape = [this.testSize, 1];
 
     const testData = Float32Array.from([].concat.apply([], this.testFeatures));
-    const testTarget = Float32Array.from([].concat.apply([], this.testLabels));
+    const testTarget = Float32Array.from([].concat.apply([], this.testTargets));
 
     return {
       data: tf.tensor2d(testData, dataShape),
@@ -96,9 +139,10 @@ export class BostonHousingDataset {
 }
 
 /**
- * Shuffles data and label (maintaining alignment) using Fisher-Yates algorithm.
+ * Shuffles data and target (maintaining alignment) using Fisher-Yates
+ * algorithm.flab
  */
-function shuffle(data, label) {
+function shuffle(data, target) {
   let counter = data.length;
   let temp = 0;
   let index = 0;
@@ -109,9 +153,9 @@ function shuffle(data, label) {
     temp = data[counter];
     data[counter] = data[index];
     data[index] = temp;
-    // label:
-    temp = label[counter];
-    label[counter] = label[index];
-    label[index] = temp;
+    // target:
+    temp = target[counter];
+    target[counter] = target[index];
+    target[index] = temp;
   }
 };

@@ -36,12 +36,13 @@ export const arraysToTensors = () => {
   tensors.rawTestFeatures = tf.tensor2d(bostonData.testFeatures);
   tensors.testTarget = tf.tensor2d(bostonData.testTarget);
   // Normalize mean and standard deviation of data.
-  let {means, stddevs} =
+  let {mean, std} =
       normalization.determineMeanAndStddev(tensors.rawTrainFeatures);
+
   tensors.trainFeatures =
-      normalization.normalizeTensor(tensors.rawTrainFeatures, means, stddevs);
+      normalization.normalizeTensor(tensors.rawTrainFeatures, mean, std);
   tensors.testFeatures =
-      normalization.normalizeTensor(tensors.rawTestFeatures, means, stddevs);
+      normalization.normalizeTensor(tensors.rawTestFeatures, mean, std);
 };
 
 /**

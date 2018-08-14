@@ -16,8 +16,6 @@
  */
 
 import * as tf from '@tensorflow/tfjs';
-import * as normalization from './normalization';
-
 const Papa = require('papaparse');
 
 
@@ -95,14 +93,6 @@ export class BostonHousingDataset {
           loadCsv(TEST_FEATURES_FN), loadCsv(TEST_TARGET_FN)
         ]);
 
-    let {vectorMeans, vectorStddevs} =
-        normalization.determineMeanAndStd(this.trainFeatures);
-
-    this.trainFeatures = normalization.normalizeDataset(
-        this.trainFeatures, vectorMeans, vectorStddevs);
-    this.testFeatures = normalization.normalizeDataset(
-        this.testFeatures, vectorMeans, vectorStddevs);
-
     this.trainSize = this.trainFeatures.length;
     this.testSize = this.testFeatures.length;
 
@@ -110,8 +100,8 @@ export class BostonHousingDataset {
     shuffle(this.testFeatures, this.testTargets);
   }
 
-  getTrainData() {
-    const dataShape = [this.trainSize, this.numFeatures];
+  getTrainDataAsTensors() {
+    const featuresShape = [this.trainSize, this.numFeatures];
     const targetShape = [this.trainSize, 1];
 
     const trainData =
@@ -120,20 +110,20 @@ export class BostonHousingDataset {
         Float32Array.from([].concat.apply([], this.trainTargets));
 
     return {
-      data: tf.tensor2d(trainData, dataShape),
-      target: tf.tensor1d(trainTarget).reshape(targetShape)
+      features: tf.tensor2d(trainData, featuresShape),
+      target: tf.tensor1d(trainTarget).reshape(targetShape),
     };
   }
 
-  getTestData() {
-    const dataShape = [this.testSize, this.numFeatures];
+  getTestDataAsTensors() {
+    const featuresShape = [this.testSize, this.numFeatures];
     const targetShape = [this.testSize, 1];
 
     const testData = Float32Array.from([].concat.apply([], this.testFeatures));
     const testTarget = Float32Array.from([].concat.apply([], this.testTargets));
 
     return {
-      data: tf.tensor2d(testData, dataShape),
+      features: tf.tensor2d(testData, featuresShape),
       target: tf.tensor1d(testTarget).reshape(targetShape)
     };
   }

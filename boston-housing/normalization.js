@@ -14,91 +14,34 @@
  * limitations under the License.
  * =============================================================================
  */
-/**
- * Calculate the arithmetic mean of a vector.
- *
- * @param {Array} vector The vector represented as an Array of Numbers.
- *
- * @returns {number} The arithmetic mean.
- */
-const mean = (vector) => {
-  let sum = 0;
-  for (const x of vector) {
-    sum += x;
-  }
-  return sum / vector.length;
-};
 
-/**
- * Calculate the standard deviation of a vector.
- *
- * @param {Array} vector The vector represented as an Array of Numbers.
- *
- * @returns {number} The standard deviation.
- */
-const stddev = (vector) => {
-  let squareSum = 0;
-  const vectorMean = mean(vector);
-  for (const x of vector) {
-    squareSum += (x - vectorMean) * (x - vectorMean);
-  }
-  return Math.sqrt(squareSum / (vector.length - 1));
-};
-
-/**
- * Normalize a vector by its mean and standard deviation.
- *
- * @param {Array} vector Vector to be normalized.
- * @param {number} vectorMean Mean to be used.
- * @param {number} vectorStddev Standard Deviation to be used.
- *
- * @returns {Array} Normalized vector.
- */
-const normalizeVector = (vector, vectorMean, vectorStddev) => {
-  return vector.map(x => (x - vectorMean) / vectorStddev);
-};
+import * as tf from '@tensorflow/tfjs';
 
 /**
  * Calculates the mean and standard deviation of each column of a data array.
  *
- * @param {Array} dataset Dataset from which to calculate the mean and std.
+ * @param {Tensor2d} data Dataset from which to calculate the mean and
+ *                        std of each column independently.
  *
- * @returns {Object} Contains the mean of each vector column,
- *                   standard deviation of each vector column.
+ * @returns {Object} Contains the mean and standarddeviation of each vector
+ *                   column.
  */
-export const determineMeanAndStd =
-    (dataset) => {
-      const numFeatures = dataset[0].length;
-      let vectorMeans = [];
-      let vectorStddevs = [];
-      for (let i = 0; i < numFeatures; i++) {
-        const vector = dataset.map(row => row[i]);
-        vectorMeans.push(mean(vector));
-        vectorStddevs.push(stddev(vector));
-      }
-      return {vectorMeans, vectorStddevs};
+export const determineMeanAndStddev =
+    (data) => {
+      const means = tf.mean(data, 0);
+      const zeroMean = tf.sub(data, means);
+      const stddevs = tf.sqrt(tf.mean(tf.mul(zeroMean, zeroMean), 0));
+      return {means, stddevs};
     }
 
 /**
- * Normalizes the dataset to zero-mean, unit standard deviation by subtracting
- * the supplied mean and dividing by the supplied standard deviation.
+ * Given expected mean and standard deviation, normalizes a dataset by
+ * subtracting the mean and dividing by the standard deviation.
  *
- * @param {Array} dataset Dataset to be normalized.
- * @param {Array} vectorMeans Mean of each column of dataset.
- * @param {Array} vectorStddevs Standard deviation of each column of dataset.
- *
- * @returns {Array} Normalized dataset.
+ * @param {Tensor2d} data
+ * @param {Tensor1d} means
+ * @param {Tensor1d} stddevs
  */
-export const normalizeDataset = (dataset, vectorMeans, vectorStddevs) => {
-  const numFeatures = dataset[0].length;
-  for (let i = 0; i < numFeatures; i++) {
-    const vector = dataset.map(row => row[i]);
-    const vectorNormalized =
-        normalizeVector(vector, vectorMeans[i], vectorStddevs[i]);
-
-    vectorNormalized.forEach((value, index) => {
-      dataset[index][i] = value;
-    });
-  }
-  return dataset;
-};
+export const normalizeTensor = (data, means, stddevs) => {
+  return tf.div(tf.sub(data, means), stddevs);
+}

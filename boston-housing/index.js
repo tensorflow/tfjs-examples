@@ -18,6 +18,7 @@
 import * as tf from '@tensorflow/tfjs';
 
 import {BostonHousingDataset} from './data';
+import * as normalization from './normalization';
 import * as ui from './ui';
 
 // Some hyperparameters for model training.
@@ -56,15 +57,24 @@ export const multiLayerPerceptronRegressionModel = () => {
 };
 
 /**
- * Fetches training and testing data, compiles `model`, trains the model
- * using train data and runs model against test data.
+ * Fetches training and testing data, normalizes, compiles `model`, trains the
+ * model using train data and runs model against test data.
  *
  * @param {tf.Sequential} model Model to be trained.
  */
 export const run = async (model) => {
   await ui.updateStatus('Getting training and testing data...');
-  const trainData = data.getTrainData();
-  const testData = data.getTestData();
+  // Load data (possibly from remote CSV).
+  const trainData = data.getTrainDataAsTensors();
+  const testData = data.getTestDataAsTensors();
+  // Normalize mean and standard deviation of data.
+  let {means, stddevs} =
+      normalization.determineMeanAndStddev(trainData.features);
+  trainData.normalizedFeatures =
+      normalization.normalizeTensor(trainData.features, means, stddevs);
+  testData.normalizedFeatures =
+      normalization.normalizeTensor(testData.features, means, stddevs);
+
 
   await ui.updateStatus('Compiling model...');
 
@@ -74,7 +84,7 @@ export const run = async (model) => {
   let trainLoss;
   let valLoss;
   await ui.updateStatus('Starting training process...');
-  await model.fit(trainData.data, trainData.target, {
+  await model.fit(trainData.normalizedFeatures, trainData.target, {
     batchSize: BATCH_SIZE,
     epochs: NUM_EPOCHS,
     validationSplit: 0.2,
@@ -94,8 +104,8 @@ export const run = async (model) => {
   });
 
   await ui.updateStatus('Running on test data...');
-  const result =
-      model.evaluate(testData.data, testData.target, {batchSize: BATCH_SIZE});
+  const result = model.evaluate(
+      testData.normalizedFeatures, testData.target, {batchSize: BATCH_SIZE});
   const testLoss = result.get();
   await ui.updateStatus(
       `Final train-set loss: ${trainLoss.toFixed(4)}\n` +

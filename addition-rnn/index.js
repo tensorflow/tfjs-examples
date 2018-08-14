@@ -360,8 +360,6 @@ class AdditionRNNDemo {
         exampleDiv.className = isCorrect[i] ? 'answer-correct' : 'answer-wrong';
         examplesDiv.appendChild(exampleDiv);
       }
-
-      await tf.nextFrame();
     }
   }
 }

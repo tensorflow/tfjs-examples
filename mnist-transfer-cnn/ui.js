@@ -69,18 +69,15 @@ export function getProgressBarCallbackConfig(epochs) {
           'Please wait and do NOT click anything while the model retrains...',
           'blue');
       trainProg.value = 0;
-      await tf.nextFrame();
     },
     onTrainEnd: async (logs) => {
       status('Done retraining ' + epochs + ' epochs. Standing by.', 'black');
-      await tf.nextFrame();
     },
     onEpochEnd: async (epoch, logs) => {
       status(
           'Please wait and do NOT click anything while the model retrains... ' +
           '(Epoch ' + (epoch + 1) + ' of ' + epochs + ')');
       trainProg.value = (epoch + 1) / epochs * 100;
-      await tf.nextFrame();
     },
   };
   return progressBarCallbackConfig;

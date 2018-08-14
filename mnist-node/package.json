@@ -10,7 +10,8 @@
   },
   "dependencies": {
     "@tensorflow/tfjs": "^0.12.4",
-    "@tensorflow/tfjs-node": "^0.1.11",
+    "@tensorflow/tfjs-node": "^0.1.12",
+    "argparse": "1.0.10",
     "progress": "^2.0.0"
   },
   "scripts": {

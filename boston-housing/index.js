@@ -26,7 +26,7 @@ const NUM_EPOCHS = 200;
 const BATCH_SIZE = 40;
 const LEARNING_RATE = 0.01;
 
-const data = new BostonHousingDataset();
+const bostonData = new BostonHousingDataset();
 
 /**
  * Builds and returns Linear Regression Model.
@@ -35,7 +35,7 @@ const data = new BostonHousingDataset();
  */
 export const linearRegressionModel = () => {
   const model = tf.sequential();
-  model.add(tf.layers.dense({inputShape: [data.numFeatures], units: 1}));
+  model.add(tf.layers.dense({inputShape: [bostonData.numFeatures], units: 1}));
 
   return model;
 };
@@ -48,8 +48,11 @@ export const linearRegressionModel = () => {
  */
 export const multiLayerPerceptronRegressionModel = () => {
   const model = tf.sequential();
-  model.add(tf.layers.dense(
-      {inputShape: [data.numFeatures], units: 50, activation: 'sigmoid'}));
+  model.add(tf.layers.dense({
+    inputShape: [bostonData.numFeatures],
+    units: 50,
+    activation: 'sigmoid'
+  }));
   model.add(tf.layers.dense({units: 50, activation: 'sigmoid'}));
   model.add(tf.layers.dense({units: 1}));
 
@@ -64,16 +67,17 @@ export const multiLayerPerceptronRegressionModel = () => {
  */
 export const run = async (model) => {
   await ui.updateStatus('Getting training and testing data...');
-  // Load data (possibly from remote CSV).
-  const trainData = data.getTrainDataAsTensors();
-  const testData = data.getTestDataAsTensors();
+  // Convert loaded data into CSV.
+  const rawTrainFeatures = tf.tensor2d(bostonData.trainFeatures);
+  const trainTarget = tf.tensor2d(bostonData.trainTarget);
+  const rawTestFeatures = tf.tensor2d(bostonData.testFeatures);
+  const testTarget = tf.tensor2d(bostonData.testTarget);
   // Normalize mean and standard deviation of data.
-  let {means, stddevs} =
-      normalization.determineMeanAndStddev(trainData.features);
-  trainData.normalizedFeatures =
-      normalization.normalizeTensor(trainData.features, means, stddevs);
-  testData.normalizedFeatures =
-      normalization.normalizeTensor(testData.features, means, stddevs);
+  let {means, stddevs} = normalization.determineMeanAndStddev(rawTrainFeatures);
+  const trainFeatures =
+      normalization.normalizeTensor(rawTrainFeatures, means, stddevs);
+  const testFeatures =
+      normalization.normalizeTensor(rawTestFeatures, means, stddevs);
 
 
   await ui.updateStatus('Compiling model...');
@@ -84,10 +88,10 @@ export const run = async (model) => {
   let trainLoss;
   let valLoss;
   await ui.updateStatus('Starting training process...');
-  await model.fit(trainData.normalizedFeatures, trainData.target, {
+  await model.fit(trainFeatures, trainTarget, {
     batchSize: BATCH_SIZE,
     epochs: NUM_EPOCHS,
-    validationData: [testData.normalizedFeatures, testData.target],
+    validationData: [testFeatures, testTarget],
     callbacks: {
       onEpochEnd: async (epoch, logs) => {
         await ui.updateStatus(`Epoch ${epoch + 1} of ${NUM_EPOCHS} completed.`);
@@ -103,8 +107,8 @@ export const run = async (model) => {
   });
 
   await ui.updateStatus('Running on test data...');
-  const result = model.evaluate(
-      testData.normalizedFeatures, testData.target, {batchSize: BATCH_SIZE});
+  const result =
+      model.evaluate(testFeatures, testTarget, {batchSize: BATCH_SIZE});
   const testLoss = result.get();
   await ui.updateStatus(
       `Final train-set loss: ${trainLoss.toFixed(4)}\n` +
@@ -112,7 +116,7 @@ export const run = async (model) => {
 };
 
 document.addEventListener('DOMContentLoaded', async () => {
-  await data.loadData();
+  await bostonData.loadData();
   await ui.updateStatus('Data loaded!');
   await ui.setup();
 }, false);

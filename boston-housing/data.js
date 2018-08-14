@@ -15,7 +15,6 @@
  * =============================================================================
  */
 
-import * as tf from '@tensorflow/tfjs';
 const Papa = require('papaparse');
 
 
@@ -72,9 +71,9 @@ export class BostonHousingDataset {
   constructor() {
     // Arrays to hold the data.
     this.trainFeatures = null;
-    this.trainTargets = null;
+    this.trainTarget = null;
     this.testFeatures = null;
-    this.testTargets = null;
+    this.testTarget = null;
     // Metadata
     this.trainSize = 0;
     this.testSize = 0;
@@ -86,8 +85,7 @@ export class BostonHousingDataset {
 
   /** Loads training and test data. */
   async loadData() {
-    [this.trainFeatures, this.trainTargets, this.testFeatures,
-     this.testTargets] =
+    [this.trainFeatures, this.trainTarget, this.testFeatures, this.testTarget] =
         await Promise.all([
           loadCsv(TRAIN_FEATURES_FN), loadCsv(TRAIN_TARGET_FN),
           loadCsv(TEST_FEATURES_FN), loadCsv(TEST_TARGET_FN)
@@ -96,36 +94,8 @@ export class BostonHousingDataset {
     this.trainSize = this.trainFeatures.length;
     this.testSize = this.testFeatures.length;
 
-    shuffle(this.trainFeatures, this.trainTargets);
-    shuffle(this.testFeatures, this.testTargets);
-  }
-
-  getTrainDataAsTensors() {
-    const featuresShape = [this.trainSize, this.numFeatures];
-    const targetShape = [this.trainSize, 1];
-
-    const trainData =
-        Float32Array.from([].concat.apply([], this.trainFeatures));
-    const trainTarget =
-        Float32Array.from([].concat.apply([], this.trainTargets));
-
-    return {
-      features: tf.tensor2d(trainData, featuresShape),
-      target: tf.tensor1d(trainTarget).reshape(targetShape),
-    };
-  }
-
-  getTestDataAsTensors() {
-    const featuresShape = [this.testSize, this.numFeatures];
-    const targetShape = [this.testSize, 1];
-
-    const testData = Float32Array.from([].concat.apply([], this.testFeatures));
-    const testTarget = Float32Array.from([].concat.apply([], this.testTargets));
-
-    return {
-      features: tf.tensor2d(testData, featuresShape),
-      target: tf.tensor1d(testTarget).reshape(targetShape)
-    };
+    shuffle(this.trainFeatures, this.trainTarget);
+    shuffle(this.testFeatures, this.testTarget);
   }
 }
 

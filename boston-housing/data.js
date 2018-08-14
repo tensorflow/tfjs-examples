@@ -16,9 +16,10 @@
  */
 
 import * as tf from '@tensorflow/tfjs';
-import * as utils from './utils';
+import * as normalization from './normalization';
 
 const Papa = require('papaparse');
+
 
 // Boston Housing data constants:
 const BASE_URL =
@@ -95,12 +96,12 @@ export class BostonHousingDataset {
         ]);
 
     let {vectorMeans, vectorStddevs} =
-        utils.determineMeanAndStd(this.trainFeatures);
+        normalization.determineMeanAndStd(this.trainFeatures);
 
-    this.trainFeatures =
-        utils.normalizeDataset(this.trainFeatures, vectorMeans, vectorStddevs);
-    this.testFeatures =
-        utils.normalizeDataset(this.testFeatures, vectorMeans, vectorStddevs);
+    this.trainFeatures = normalization.normalizeDataset(
+        this.trainFeatures, vectorMeans, vectorStddevs);
+    this.testFeatures = normalization.normalizeDataset(
+        this.testFeatures, vectorMeans, vectorStddevs);
 
     this.trainSize = this.trainFeatures.length;
     this.testSize = this.testFeatures.length;

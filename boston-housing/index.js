@@ -27,10 +27,10 @@ const BATCH_SIZE = 40;
 const LEARNING_RATE = 0.01;
 
 const bostonData = new BostonHousingDataset();
+const tensors = {};
 
 // Convert loaded data into tensors.
 export const arraysToTensors = () => {
-  const tensors = {};
   tensors.rawTrainFeatures = tf.tensor2d(bostonData.trainFeatures);
   tensors.trainTarget = tf.tensor2d(bostonData.trainTarget);
   tensors.rawTestFeatures = tf.tensor2d(bostonData.testFeatures);
@@ -42,7 +42,6 @@ export const arraysToTensors = () => {
       normalization.normalizeTensor(tensors.rawTrainFeatures, means, stddevs);
   tensors.testFeatures =
       normalization.normalizeTensor(tensors.rawTestFeatures, means, stddevs);
-  return tensors;
 };
 
 /**
@@ -83,11 +82,7 @@ export const multiLayerPerceptronRegressionModel = () => {
  * @param {tf.Sequential} model Model to be trained.
  */
 export const run = async (model) => {
-  await ui.updateStatus('Getting training and testing data...');
-  const tensors = arraysToTensors();
-
   await ui.updateStatus('Compiling model...');
-
   model.compile(
       {optimizer: tf.train.sgd(LEARNING_RATE), loss: 'meanSquaredError'});
 
@@ -121,8 +116,24 @@ export const run = async (model) => {
       `Test-set loss: ${testLoss.toFixed(4)}`);
 };
 
+export const computeBaseline = () => {
+  const avgPrice = tf.mean(tensors.trainTarget);
+  console.log(`Average price: ${avgPrice.dataSync()}`);
+  const baseline = tf.mean(tf.pow(tf.sub(tensors.testTarget, avgPrice), 2));
+  console.log(`Baseline loss: ${baseline.dataSync()}`);
+  const baselineMsg = `Baseline loss (meanSquaredError) is ${
+      baseline.dataSync()[0].toFixed(2)}`;
+  ui.updateBaselineStatus(baselineMsg);
+};
+
 document.addEventListener('DOMContentLoaded', async () => {
   await bostonData.loadData();
-  await ui.updateStatus('Data loaded!');
+  ui.updateStatus('Data loaded, converting to tensors');
+  arraysToTensors();
+  ui.updateStatus(
+      'Data is now available as tensors.\n' +
+      'Click a train button to begin.');
+  ui.updateBaselineStatus('Estimating baseline loss');
+  await computeBaseline();
   await ui.setup();
 }, false);

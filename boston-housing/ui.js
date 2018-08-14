@@ -24,6 +24,11 @@ export const updateStatus = (message) => {
   statusElement.value = message;
 };
 
+const baselineStatusElement = document.getElementById('baselineStatus');
+export const updateBaselineStatus = (message) => {
+  baselineStatusElement.value = message;
+};
+
 export const setup = async () => {
   const trainSimpleLinearRegression = document.getElementById('simple-mlr');
   const trainNeuralNetworkLinearRegression = document.getElementById('nn-mlr');

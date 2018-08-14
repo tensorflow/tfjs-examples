@@ -26,13 +26,12 @@ import * as tf from '@tensorflow/tfjs';
  * @returns {Object} Contains the mean and standard deviation of each vector
  *                   column as 1d tensors.
  */
-export const determineMeanAndStddev =
-    (data) => {
-      const means = tf.mean(data, 0);
-      const zeroMean = tf.sub(data, means);
-      const stddevs = tf.sqrt(tf.mean(tf.mul(zeroMean, zeroMean), 0));
-      return {means, stddevs};
-    }
+export function determineMeanAndStddev(data) {
+  const means = tf.mean(data, 0);
+  const zeroMean = tf.sub(data, means);
+  const stddevs = tf.sqrt(tf.mean(tf.mul(zeroMean, zeroMean), 0));
+  return {means, stddevs};
+}
 
 /**
  * Given expected mean and standard deviation, normalizes a dataset by
@@ -45,6 +44,6 @@ export const determineMeanAndStddev =
  * @returns {Tensor2d}: Tensor the same shape as data, but each column
  * normalized to have zero mean and unit standard deviation.
  */
-export const normalizeTensor = (data, means, stddevs) => {
+export function normalizeTensor(data, means, stddevs) {
   return tf.div(tf.sub(data, means), stddevs);
 }

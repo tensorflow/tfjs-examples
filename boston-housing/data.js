@@ -36,7 +36,7 @@ const TEST_TARGET_FN = 'test-target.csv';
 const parseCsv = async (data) => {
   return new Promise(resolve => {
     data = data.map((row) => {
-      return Object.keys(row).sort().map(key => parseFloat(row[key]));
+      return Object.keys(row).map(key => parseFloat(row[key]));
     });
     resolve(data);
   });

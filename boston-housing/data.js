@@ -27,49 +27,53 @@ const TEST_TARGET = 'test-target';
 /** Helper class to handle loading training and test data. */
 export class BostonHousingDataset {
   constructor() {
-    this.dataset = null;
+    // Arrays to hold the data.
+    this.trainFeatures = null;
+    this.trainLabels = null;
+    this.testFeatures = null;
+    this.testLabels = null;
+    // Metadata
     this.trainSize = 0;
     this.testSize = 0;
-    this.trainBatchIndex = 0;
-    this.testBatchIndex = 0;
-
-    this.NUM_FEATURES = 12;
   }
 
   get numFeatures() {
-    return this.NUM_FEATURES;
+    return this.trainFeatures[0].length;
   }
 
   /** Loads training and test data. */
   async loadData() {
-    this.dataset = await Promise.all([
-      utils.loadCsv(TRAIN_DATA), utils.loadCsv(TRAIN_TARGET),
-      utils.loadCsv(TEST_DATA), utils.loadCsv(TEST_TARGET)
-    ]);
+    [this.trainFeatures, this.trainLabels, this.testFeatures, this.testLabels] =
+        await Promise.all([
+          utils.loadCsv(TRAIN_DATA), utils.loadCsv(TRAIN_TARGET),
+          utils.loadCsv(TEST_DATA), utils.loadCsv(TEST_TARGET)
+        ]);
 
     let {dataset: trainDataset, vectorMeans, vectorStddevs} =
-        utils.normalizeDataset(this.dataset[0]);
+        utils.normalizeDataset(this.trainFeatures);
 
-    this.dataset[0] = trainDataset;
+    this.trainFeatures = trainDataset;
 
     let {dataset: testDataset} = utils.normalizeDataset(
-        this.dataset[2], false, vectorMeans, vectorStddevs);
+        this.testFeatures, false, vectorMeans, vectorStddevs);
 
-    this.dataset[2] = testDataset;
+    this.testFeatures = testDataset;
 
-    this.trainSize = this.dataset[0].length;
-    this.testSize = this.dataset[2].length;
+    this.trainSize = this.trainFeatures.length;
+    this.testSize = this.testFeatures.length;
 
-    utils.shuffle(this.dataset[0], this.dataset[1]);
-    utils.shuffle(this.dataset[2], this.dataset[3]);
+    shuffle(this.trainFeatures, this.trainLabels);
+    shuffle(this.testFeatures, this.testLabels);
   }
 
   getTrainData() {
-    const dataShape = [this.trainSize, this.NUM_FEATURES];
+    const dataShape = [this.trainSize, this.numFeatures];
     const targetShape = [this.trainSize, 1];
 
-    const trainData = Float32Array.from([].concat.apply([], this.dataset[0]));
-    const trainTarget = Float32Array.from([].concat.apply([], this.dataset[1]));
+    const trainData =
+        Float32Array.from([].concat.apply([], this.trainFeatures));
+    const trainTarget =
+        Float32Array.from([].concat.apply([], this.trainLabels));
 
     return {
       data: tf.tensor2d(trainData, dataShape),
@@ -78,11 +82,11 @@ export class BostonHousingDataset {
   }
 
   getTestData() {
-    const dataShape = [this.testSize, this.NUM_FEATURES];
+    const dataShape = [this.testSize, this.numFeatures];
     const targetShape = [this.testSize, 1];
 
-    const testData = Float32Array.from([].concat.apply([], this.dataset[2]));
-    const testTarget = Float32Array.from([].concat.apply([], this.dataset[3]));
+    const testData = Float32Array.from([].concat.apply([], this.testFeatures));
+    const testTarget = Float32Array.from([].concat.apply([], this.testLabels));
 
     return {
       data: tf.tensor2d(testData, dataShape),
@@ -90,3 +94,24 @@ export class BostonHousingDataset {
     };
   }
 }
+
+/**
+ * Shuffles data and label (maintaining alignment) using Fisher-Yates algorithm.
+ */
+function shuffle(data, label) {
+  let counter = data.length;
+  let temp = 0;
+  let index = 0;
+  while (counter > 0) {
+    index = (Math.random() * counter) | 0;
+    counter--;
+    // data:
+    temp = data[counter];
+    data[counter] = data[index];
+    data[index] = temp;
+    // label:
+    temp = label[counter];
+    label[counter] = label[index];
+    label[index] = temp;
+  }
+};

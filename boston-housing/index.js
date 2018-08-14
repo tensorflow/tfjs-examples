@@ -87,14 +87,13 @@ export const run = async (model) => {
   await model.fit(trainData.normalizedFeatures, trainData.target, {
     batchSize: BATCH_SIZE,
     epochs: NUM_EPOCHS,
-    validationSplit: 0.2,
+    validationData: [testData.normalizedFeatures, testData.target],
     callbacks: {
       onEpochEnd: async (epoch, logs) => {
         await ui.updateStatus(`Epoch ${epoch + 1} of ${NUM_EPOCHS} completed.`);
         trainLoss = logs.loss;
         valLoss = logs.val_loss;
         await ui.plotData(epoch, trainLoss, valLoss);
-
         // tf.nextFrame makes the program wait until requestAnimationFrame()
         // has completed. This helps mitigate blocking of UI thread
         // and thus browser tab.
@@ -109,7 +108,6 @@ export const run = async (model) => {
   const testLoss = result.get();
   await ui.updateStatus(
       `Final train-set loss: ${trainLoss.toFixed(4)}\n` +
-      `Final validation-set loss: ${valLoss.toFixed(4)}\n` +
       `Test-set loss: ${testLoss.toFixed(4)}`);
 };
 

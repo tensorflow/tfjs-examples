@@ -23,8 +23,8 @@ import * as tf from '@tensorflow/tfjs';
  * @param {Tensor2d} data Dataset from which to calculate the mean and
  *                        std of each column independently.
  *
- * @returns {Object} Contains the mean and standarddeviation of each vector
- *                   column.
+ * @returns {Object} Contains the mean and standard deviation of each vector
+ *                   column as 1d tensors.
  */
 export const determineMeanAndStddev =
     (data) => {
@@ -38,9 +38,12 @@ export const determineMeanAndStddev =
  * Given expected mean and standard deviation, normalizes a dataset by
  * subtracting the mean and dividing by the standard deviation.
  *
- * @param {Tensor2d} data
- * @param {Tensor1d} means
- * @param {Tensor1d} stddevs
+ * @param {Tensor2d} data: Data to normalize. Shape: [batch, numFeatures].
+ * @param {Tensor1d} means: Expected mean of the data. Shape [numFeatures].
+ * @param {Tensor1d} stddevs: Expected std of the data. Shape [numFeatures]
+ *
+ * @returns {Tensor2d}: Tensor the same shape as data, but each column
+ * normalized to have zero mean and unit standard deviation.
  */
 export const normalizeTensor = (data, means, stddevs) => {
   return tf.div(tf.sub(data, means), stddevs);

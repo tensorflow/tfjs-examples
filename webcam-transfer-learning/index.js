@@ -118,7 +118,6 @@ async function train() {
     callbacks: {
       onBatchEnd: async (batch, logs) => {
         ui.trainStatus('Loss: ' + logs.loss.toFixed(5));
-        await tf.nextFrame();
       }
     }
   });

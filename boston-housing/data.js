@@ -64,8 +64,6 @@ export const loadCsv = async (filename) => {
   });
 };
 
-
-
 /** Helper class to handle loading training and test data. */
 export class BostonHousingDataset {
   constructor() {
@@ -74,12 +72,15 @@ export class BostonHousingDataset {
     this.trainTarget = null;
     this.testFeatures = null;
     this.testTarget = null;
-    // Metadata
-    this.trainSize = 0;
-    this.testSize = 0;
+    // Book keeping regarding data state.
+    this._isLoaded = false;
   }
 
   get numFeatures() {
+    // If numFetures is accessed before the data is loaded, raise an error.
+    if (!this._isLoaded) {
+      throw new Error('\'loadData()\' must be called before numFeatures')
+    }
     return this.trainFeatures[0].length;
   }
 
@@ -91,11 +92,9 @@ export class BostonHousingDataset {
           loadCsv(TEST_FEATURES_FN), loadCsv(TEST_TARGET_FN)
         ]);
 
-    this.trainSize = this.trainFeatures.length;
-    this.testSize = this.testFeatures.length;
-
     shuffle(this.trainFeatures, this.trainTarget);
     shuffle(this.testFeatures, this.testTarget);
+    this._isLoaded = true;
   }
 }
 

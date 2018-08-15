@@ -29,7 +29,8 @@ const LEARNING_RATE = 0.01;
 const bostonData = new BostonHousingDataset();
 const tensors = {};
 
-// Convert loaded data into tensors.
+// Convert loaded data into tensors and creates normalized versions of the
+// features.
 export const arraysToTensors = () => {
   tensors.rawTrainFeatures = tf.tensor2d(bostonData.trainFeatures);
   tensors.trainTarget = tf.tensor2d(bostonData.trainTarget);
@@ -53,7 +54,6 @@ export const arraysToTensors = () => {
 export const linearRegressionModel = () => {
   const model = tf.sequential();
   model.add(tf.layers.dense({inputShape: [bostonData.numFeatures], units: 1}));
-
   return model;
 };
 
@@ -77,8 +77,8 @@ export const multiLayerPerceptronRegressionModel = () => {
 };
 
 /**
- * Fetches training and testing data, normalizes, compiles `model`, trains the
- * model using train data and runs model against test data.
+ * Compiles `model` and trains it using the train data and runs model against
+ * test data. Issues a callback to update the UI after each epcoh.
  *
  * @param {tf.Sequential} model Model to be trained.
  */
@@ -93,7 +93,7 @@ export const run = async (model) => {
   await model.fit(tensors.trainFeatures, tensors.trainTarget, {
     batchSize: BATCH_SIZE,
     epochs: NUM_EPOCHS,
-    validationData: [tensors.testFeatures, tensors.testTarget],
+    validationSplit: 0.2,
     callbacks: {
       onEpochEnd: async (epoch, logs) => {
         await ui.updateStatus(`Epoch ${epoch + 1} of ${NUM_EPOCHS} completed.`);
@@ -135,6 +135,6 @@ document.addEventListener('DOMContentLoaded', async () => {
       'Data is now available as tensors.\n' +
       'Click a train button to begin.');
   ui.updateBaselineStatus('Estimating baseline loss');
-  await computeBaseline();
+  computeBaseline();
   await ui.setup();
 }, false);

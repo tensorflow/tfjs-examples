@@ -49,7 +49,7 @@ export const setup = async () => {
 let losses = [];
 export const plotData = async (epoch, trainLoss, valLoss) => {
   losses.push({'epoch': epoch, 'loss': trainLoss, 'split': 'Train Loss'});
-  losses.push({'epoch': epoch, 'loss': valLoss, 'split': 'Testing Loss'});
+  losses.push({'epoch': epoch, 'loss': valLoss, 'split': 'Validation Loss'});
 
   const spec = {
     '$schema': 'https://vega.github.io/schema/vega-lite/v2.json',

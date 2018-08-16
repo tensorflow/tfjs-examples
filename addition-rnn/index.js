@@ -264,6 +264,7 @@ class AdditionRNNDemo {
         epochs: 1,
         batchSize,
         validationData: [this.testXs, this.testYs],
+        yieldEvery: 'epoch'
       });
       const elapsedMs = performance.now() - beginMs;
       const examplesPerSec = this.testXs.shape[0] / (elapsedMs / 1000);
@@ -360,8 +361,6 @@ class AdditionRNNDemo {
         exampleDiv.className = isCorrect[i] ? 'answer-correct' : 'answer-wrong';
         examplesDiv.appendChild(exampleDiv);
       }
-
-      await tf.nextFrame();
     }
   }
 }

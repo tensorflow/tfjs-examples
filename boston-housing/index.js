@@ -37,13 +37,13 @@ export const arraysToTensors = () => {
   tensors.rawTestFeatures = tf.tensor2d(bostonData.testFeatures);
   tensors.testTarget = tf.tensor2d(bostonData.testTarget);
   // Normalize mean and standard deviation of data.
-  let {mean, std} =
+  let {dataMean, dataStd} =
       normalization.determineMeanAndStddev(tensors.rawTrainFeatures);
 
-  tensors.trainFeatures =
-      normalization.normalizeTensor(tensors.rawTrainFeatures, mean, std);
+  tensors.trainFeatures = normalization.normalizeTensor(
+      tensors.rawTrainFeatures, dataMean, dataStd);
   tensors.testFeatures =
-      normalization.normalizeTensor(tensors.rawTestFeatures, mean, std);
+      normalization.normalizeTensor(tensors.rawTestFeatures, dataMean, dataStd);
 };
 
 /**
@@ -111,9 +111,10 @@ export const run = async (model) => {
   await ui.updateStatus('Running on test data...');
   const result = model.evaluate(
       tensors.testFeatures, tensors.testTarget, {batchSize: BATCH_SIZE});
-  const testLoss = result.get();
+  const testLoss = result.dataSync()[0];
   await ui.updateStatus(
       `Final train-set loss: ${trainLoss.toFixed(4)}\n` +
+      `Final validation-set loss: ${valLoss.toFixed(4)}\n` +
       `Test-set loss: ${testLoss.toFixed(4)}`);
 };
 

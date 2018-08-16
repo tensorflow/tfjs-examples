@@ -27,12 +27,12 @@ import * as tf from '@tensorflow/tfjs';
  *                   column as 1d tensors.
  */
 export function determineMeanAndStddev(data) {
-  const mean = tf.mean(data, 0);
-  const diffFromMean = tf.sub(data, mean);
-  const squaredDiffFromMean = tf.pow(diffFromMean, 2);
-  const variance = tf.mean(squaredDiffFromMean, 0);
-  const std = tf.sqrt(variance);
-  return {mean, std};
+  const dataMean = data.mean(0);
+  const diffFromMean = data.sub(dataMean);
+  const squaredDiffFromMean = diffFromMean.square();
+  const variance = squaredDiffFromMean.mean(0);
+  const dataStd = variance.sqrt();
+  return {dataMean, dataStd};
 }
 
 /**
@@ -40,12 +40,12 @@ export function determineMeanAndStddev(data) {
  * subtracting the mean and dividing by the standard deviation.
  *
  * @param {Tensor2d} data: Data to normalize. Shape: [batch, numFeatures].
- * @param {Tensor1d} mean: Expected mean of the data. Shape [numFeatures].
- * @param {Tensor1d} std: Expected std of the data. Shape [numFeatures]
+ * @param {Tensor1d} dataMean: Expected mean of the data. Shape [numFeatures].
+ * @param {Tensor1d} dataStd: Expected std of the data. Shape [numFeatures]
  *
  * @returns {Tensor2d}: Tensor the same shape as data, but each column
  * normalized to have zero mean and unit standard deviation.
  */
-export function normalizeTensor(data, mean, std) {
-  return tf.div(tf.sub(data, mean), std);
+export function normalizeTensor(data, dataMean, dataStd) {
+  return data.sub(dataMean).div(dataStd);
 }

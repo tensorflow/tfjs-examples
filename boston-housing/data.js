@@ -28,6 +28,7 @@ const TEST_FEATURES_FN = 'test-data.csv';
 const TEST_TARGET_FN = 'test-target.csv';
 
 /**
+ * Given CSV data returns an array of arrays of numbers.
  *
  * @param {Array<Object>} data Downloaded data.
  *
@@ -72,13 +73,11 @@ export class BostonHousingDataset {
     this.trainTarget = null;
     this.testFeatures = null;
     this.testTarget = null;
-    // Book keeping regarding data state.
-    this._isLoaded = false;
   }
 
   get numFeatures() {
     // If numFetures is accessed before the data is loaded, raise an error.
-    if (!this._isLoaded) {
+    if (this.trainFeatures == null) {
       throw new Error('\'loadData()\' must be called before numFeatures')
     }
     return this.trainFeatures[0].length;
@@ -94,7 +93,6 @@ export class BostonHousingDataset {
 
     shuffle(this.trainFeatures, this.trainTarget);
     shuffle(this.testFeatures, this.testTarget);
-    this._isLoaded = true;
   }
 }
 

@@ -18,14 +18,33 @@
 import * as tf from '@tensorflow/tfjs';
 
 import {BostonHousingDataset} from './data';
+import * as normalization from './normalization';
 import * as ui from './ui';
 
 // Some hyperparameters for model training.
-const NUM_EPOCHS = 250;
+const NUM_EPOCHS = 200;
 const BATCH_SIZE = 40;
 const LEARNING_RATE = 0.01;
 
-const data = new BostonHousingDataset();
+const bostonData = new BostonHousingDataset();
+const tensors = {};
+
+// Convert loaded data into tensors and creates normalized versions of the
+// features.
+export const arraysToTensors = () => {
+  tensors.rawTrainFeatures = tf.tensor2d(bostonData.trainFeatures);
+  tensors.trainTarget = tf.tensor2d(bostonData.trainTarget);
+  tensors.rawTestFeatures = tf.tensor2d(bostonData.testFeatures);
+  tensors.testTarget = tf.tensor2d(bostonData.testTarget);
+  // Normalize mean and standard deviation of data.
+  let {dataMean, dataStd} =
+      normalization.determineMeanAndStddev(tensors.rawTrainFeatures);
+
+  tensors.trainFeatures = normalization.normalizeTensor(
+      tensors.rawTrainFeatures, dataMean, dataStd);
+  tensors.testFeatures =
+      normalization.normalizeTensor(tensors.rawTestFeatures, dataMean, dataStd);
+};
 
 /**
  * Builds and returns Linear Regression Model.
@@ -34,8 +53,7 @@ const data = new BostonHousingDataset();
  */
 export const linearRegressionModel = () => {
   const model = tf.sequential();
-  model.add(tf.layers.dense({inputShape: [data.numFeatures], units: 1}));
-
+  model.add(tf.layers.dense({inputShape: [bostonData.numFeatures], units: 1}));
   return model;
 };
 
@@ -47,8 +65,11 @@ export const linearRegressionModel = () => {
  */
 export const multiLayerPerceptronRegressionModel = () => {
   const model = tf.sequential();
-  model.add(tf.layers.dense(
-      {inputShape: [data.numFeatures], units: 50, activation: 'sigmoid'}));
+  model.add(tf.layers.dense({
+    inputShape: [bostonData.numFeatures],
+    units: 50,
+    activation: 'sigmoid'
+  }));
   model.add(tf.layers.dense({units: 50, activation: 'sigmoid'}));
   model.add(tf.layers.dense({units: 1}));
 
@@ -56,25 +77,20 @@ export const multiLayerPerceptronRegressionModel = () => {
 };
 
 /**
- * Fetches training and testing data, compiles `model`, trains the model
- * using train data and runs model against test data.
+ * Compiles `model` and trains it using the train data and runs model against
+ * test data. Issues a callback to update the UI after each epcoh.
  *
  * @param {tf.Sequential} model Model to be trained.
  */
 export const run = async (model) => {
-  await ui.updateStatus('Getting training and testing data...');
-  const trainData = data.getTrainData();
-  const testData = data.getTestData();
-
   await ui.updateStatus('Compiling model...');
-
   model.compile(
       {optimizer: tf.train.sgd(LEARNING_RATE), loss: 'meanSquaredError'});
 
   let trainLoss;
   let valLoss;
   await ui.updateStatus('Starting training process...');
-  await model.fit(trainData.data, trainData.target, {
+  await model.fit(tensors.trainFeatures, tensors.trainTarget, {
     batchSize: BATCH_SIZE,
     epochs: NUM_EPOCHS,
     validationSplit: 0.2,
@@ -89,17 +105,33 @@ export const run = async (model) => {
   });
 
   await ui.updateStatus('Running on test data...');
-  const result =
-      model.evaluate(testData.data, testData.target, {batchSize: BATCH_SIZE});
-  const testLoss = result.get();
+  const result = model.evaluate(
+      tensors.testFeatures, tensors.testTarget, {batchSize: BATCH_SIZE});
+  const testLoss = result.dataSync()[0];
   await ui.updateStatus(
       `Final train-set loss: ${trainLoss.toFixed(4)}\n` +
       `Final validation-set loss: ${valLoss.toFixed(4)}\n` +
       `Test-set loss: ${testLoss.toFixed(4)}`);
 };
 
+export const computeBaseline = () => {
+  const avgPrice = tf.mean(tensors.trainTarget);
+  console.log(`Average price: ${avgPrice.dataSync()}`);
+  const baseline = tf.mean(tf.pow(tf.sub(tensors.testTarget, avgPrice), 2));
+  console.log(`Baseline loss: ${baseline.dataSync()}`);
+  const baselineMsg = `Baseline loss (meanSquaredError) is ${
+      baseline.dataSync()[0].toFixed(2)}`;
+  ui.updateBaselineStatus(baselineMsg);
+};
+
 document.addEventListener('DOMContentLoaded', async () => {
-  await data.loadData();
-  await ui.updateStatus('Data loaded!');
+  await bostonData.loadData();
+  ui.updateStatus('Data loaded, converting to tensors');
+  arraysToTensors();
+  ui.updateStatus(
+      'Data is now available as tensors.\n' +
+      'Click a train button to begin.');
+  ui.updateBaselineStatus('Estimating baseline loss');
+  computeBaseline();
   await ui.setup();
 }, false);

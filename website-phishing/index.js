@@ -81,6 +81,8 @@ data.loadData().then(async () => {
   const predictions =
       model.predict(testData.data, testData.target, {batchSize: BATCH_SIZE});
 
+  // TODO(manraj): Use tfjs implementation once precision and recall
+  //               are part of the api.
   const confusionMatrix =
       utils.getConfusionMatrix(testData.target, predictions);
 

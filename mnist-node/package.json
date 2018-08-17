@@ -9,8 +9,8 @@
     "node": ">=8.11.0"
   },
   "dependencies": {
-    "@tensorflow/tfjs": "^0.12.4",
-    "@tensorflow/tfjs-node": "^0.1.12",
+    "@tensorflow/tfjs": "^0.12.5",
+    "@tensorflow/tfjs-node": "^0.1.13",
     "progress": "^2.0.0"
   },
   "scripts": {

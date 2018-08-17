@@ -165,7 +165,7 @@ export const normalizeDataset =
     };
 
 /**
- * Binarizes a tensor based on threshold.
+ * Binarizes a tensor based on threshold of 0.5.
  *
  * @param {tf.Tensor} y Tensor to be binarized.
  */

@@ -75,14 +75,15 @@ data.loadData().then(async () => {
   const result =
       model.evaluate(testData.data, testData.target, {batchSize: BATCH_SIZE});
 
+  const testLoss = result[0].get();
+  const testAcc = result[1].get();
+
   const predictions =
       model.predict(testData.data, testData.target, {batchSize: BATCH_SIZE});
 
   const confusionMatrix =
       utils.getConfusionMatrix(testData.target, predictions);
-  console.log(confusionMatrix);
-  const testLoss = result[0].get();
-  const testAcc = result[1].get();
+
   const precision = utils.getPrecisionScore(confusionMatrix);
   const recall = utils.getRecallScore(confusionMatrix);
 

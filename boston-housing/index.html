@@ -26,12 +26,14 @@ limitations under the License.
       font-size: 20px;
       text-align: center;
     }
+
     .container {
       width: 80%;
       margin-left: auto;
       margin-right: auto;
       text-align: center;
     }
+
     #plot {
       width: auto;
       height: auto;
@@ -41,9 +43,10 @@ limitations under the License.
 
 <body>
   <div class="container">
-    <h3>TensorFlow.js: Train Multivariate Regression with the Layers API</h3>
+    <h3>Multivariate Regression</h3>
     <div id="plot"></div>
     <textarea rows="3" cols="60" readonly="true" id="status">Loading data...</textarea>
+    <textarea rows="3" cols="60" readonly="true" id="baselineStatus">Baseline not computed...</textarea>
     <div id="buttons">
       <button id="simple-mlr">Train Linear Regressor</button>
       <button id="nn-mlr">Train Neural Network Regressor</button>

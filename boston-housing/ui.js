@@ -17,11 +17,16 @@
 
 import renderChart from 'vega-embed';
 
-import {linearRegressionModel, multiLayerPerceptronRegressionModel, run} from './index';
+import {linearRegressionModel, multiLayerPerceptronRegressionModel, run} from '.';
 
 const statusElement = document.getElementById('status');
 export const updateStatus = (message) => {
   statusElement.value = message;
+};
+
+const baselineStatusElement = document.getElementById('baselineStatus');
+export const updateBaselineStatus = (message) => {
+  baselineStatusElement.value = message;
 };
 
 export const setup = async () => {
@@ -48,8 +53,8 @@ export const plotData = async (epoch, trainLoss, valLoss) => {
 
   const spec = {
     '$schema': 'https://vega.github.io/schema/vega-lite/v2.json',
-    'width': 300,
-    'height': 300,
+    'width': 250,
+    'height': 250,
     'data': {'values': losses},
     'mark': 'line',
     'encoding': {

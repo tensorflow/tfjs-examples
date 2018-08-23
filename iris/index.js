@@ -65,9 +65,6 @@ async function trainModel(xTrain, yTrain, xTest, yTest) {
         // Plot the loss and accuracy values at the end of every training epoch.
         ui.plotLosses(lossValues, epoch, logs.loss, logs.val_loss);
         ui.plotAccuracies(accuracyValues, epoch, logs.acc, logs.val_acc);
-
-        // Await web page DOM to refresh for the most recently plotted values.
-        await tf.nextFrame();
       },
     }
   });

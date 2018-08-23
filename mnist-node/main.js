@@ -23,7 +23,7 @@ const ProgressBar = require('progress');
 const data = require('./data');
 const model = require('./model');
 
-async function main(epochs, batchSize, modelSavePath) {
+async function run(epochs, batchSize, modelSavePath) {
   await data.loadData();
 
   const {images: trainImages, labels: trainLabels} = data.getTrainData();
@@ -102,4 +102,4 @@ parser.addArgument('--model_save_path', {
 });
 const args = parser.parseArgs();
 
-main(args.epochs, args.batch_size, args.model_save_path);
+run(args.epochs, args.batch_size, args.model_save_path);

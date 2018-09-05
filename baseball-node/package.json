@@ -10,8 +10,7 @@
     "start-client": "webpack-dev-server --content-base src/client",
     "start-server": "ts-node src/server/server.ts",
     "train-pitch-model": "ts-node src/train/pitch-model.ts",
-    "train-strike-model": "ts-node src/train/strike-model.ts",
-    "postinstall": "yarn upgrade --pattern @tensorflow"
+    "train-strike-model": "ts-node src/train/strike-model.ts"
   },
   "license": "Apache-2.0",
   "devDependencies": {

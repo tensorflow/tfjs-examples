@@ -299,7 +299,7 @@ export function setUpUI() {
    * Update Text Inputs
    */
   updateTextInputParameters();
-  
+
   /**
    * Wire up UI callbacks.
    */

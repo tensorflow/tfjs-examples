@@ -10,8 +10,7 @@
     "start-client": "webpack-dev-server --content-base src/client",
     "start-server": "ts-node src/server/server.ts",
     "train-pitch-model": "ts-node src/train/pitch-model.ts",
-    "train-strike-model": "ts-node src/train/strike-model.ts",
-    "postinstall": "yarn upgrade --pattern @tensorflow"
+    "train-strike-model": "ts-node src/train/strike-model.ts"
   },
   "license": "Apache-2.0",
   "devDependencies": {
@@ -34,7 +33,7 @@
   },
   "dependencies": {
     "@tensorflow/tfjs": "^0.12.5",
-    "@tensorflow/tfjs-node": "^0.1.13",
+    "@tensorflow/tfjs-node": "^0.1.14",
     "baseball-pitchfx-types": "~0.0.4",
     "node-simple-timer": "~0.0.1",
     "socket.io": "~2.1.0",

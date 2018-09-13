@@ -65,10 +65,11 @@
   version "0.7.5"
   resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-layers/-/tfjs-layers-0.7.5.tgz#54241110e0a6e194eafbbd18babca0978788e930"
 
-"@tensorflow/tfjs-node@^0.1.15":
-  version "0.1.15"
-  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-node/-/tfjs-node-0.1.15.tgz#f39992b26b7f7da2f0432c8ab3b20c60d1d1db89"
+"@tensorflow/tfjs-node@^0.1.17":
+  version "0.1.17"
+  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-node/-/tfjs-node-0.1.17.tgz#cc56182a9b6c8442391e79fb279971bd79c65247"
   dependencies:
+    "@tensorflow/tfjs" "^0.12.7"
     adm-zip "^0.4.11"
     bindings "~1.3.0"
     progress "^2.0.0"

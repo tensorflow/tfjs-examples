@@ -78,16 +78,11 @@ data.loadData().then(async () => {
   const testLoss = result[0].get();
   const testAcc = result[1].get();
 
-  const predictions =
-      model.predict(testData.data, testData.target, {batchSize: BATCH_SIZE});
+  const predictions = utils.binarize(
+      model.predict(testData.data, {batchSize: BATCH_SIZE}).as1D());
 
-  // TODO(manraj): Use tfjs implementation once precision and recall
-  //               are part of the api.
-  const confusionMatrix =
-      utils.getConfusionMatrix(testData.target, predictions);
-
-  const precision = utils.getPrecisionScore(confusionMatrix);
-  const recall = utils.getRecallScore(confusionMatrix);
+  const precision = tf.metrics.precision(testData.target, predictions).get();
+  const recall = tf.metrics.recall(testData.target, predictions).get();
 
   await ui.updateStatus(
       `Final train-set loss: ${trainLoss.toFixed(4)} accuracy: ${

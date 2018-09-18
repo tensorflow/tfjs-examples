@@ -15,78 +15,105 @@
  * =============================================================================
  */
 
-import * as tf from '@tensorflow/tfjs';
-import * as utils from './utils';
+const Papa = require('papaparse');
+
 
 // Boston Housing data constants:
-const TRAIN_DATA = 'train-data';
-const TRAIN_TARGET = 'train-target';
-const TEST_DATA = 'test-data';
-const TEST_TARGET = 'test-target';
+const BASE_URL =
+    'https://storage.googleapis.com/tfjs-examples/multivariate-linear-regression/data/';
+
+const TRAIN_FEATURES_FN = 'train-data.csv';
+const TRAIN_TARGET_FN = 'train-target.csv';
+const TEST_FEATURES_FN = 'test-data.csv';
+const TEST_TARGET_FN = 'test-target.csv';
+
+/**
+ * Given CSV data returns an array of arrays of numbers.
+ *
+ * @param {Array<Object>} data Downloaded data.
+ *
+ * @returns {Promise.Array<number[]>} Resolves to data with values parsed as floats.
+ */
+const parseCsv = async (data) => {
+  return new Promise(resolve => {
+    data = data.map((row) => {
+      return Object.keys(row).map(key => parseFloat(row[key]));
+    });
+    resolve(data);
+  });
+};
+
+/**
+ * Downloads and returns the csv.
+ *
+ * @param {string} filename Name of file to be loaded.
+ *
+ * @returns {Promise.Array<number[]>} Resolves to parsed csv data.
+ */
+export const loadCsv = async (filename) => {
+  return new Promise(resolve => {
+    const url = `${BASE_URL}${filename}`;
+
+    console.log(`  * Downloading data from: ${url}`);
+    Papa.parse(url, {
+      download: true,
+      header: true,
+      complete: (results) => {
+        resolve(parseCsv(results['data']));
+      }
+    })
+  });
+};
 
 /** Helper class to handle loading training and test data. */
 export class BostonHousingDataset {
   constructor() {
-    this.dataset = null;
-    this.trainSize = 0;
-    this.testSize = 0;
-    this.trainBatchIndex = 0;
-    this.testBatchIndex = 0;
-
-    this.NUM_FEATURES = 12;
+    // Arrays to hold the data.
+    this.trainFeatures = null;
+    this.trainTarget = null;
+    this.testFeatures = null;
+    this.testTarget = null;
   }
 
   get numFeatures() {
-    return this.NUM_FEATURES;
+    // If numFetures is accessed before the data is loaded, raise an error.
+    if (this.trainFeatures == null) {
+      throw new Error('\'loadData()\' must be called before numFeatures')
+    }
+    return this.trainFeatures[0].length;
   }
 
   /** Loads training and test data. */
   async loadData() {
-    this.dataset = await Promise.all([
-      utils.loadCsv(TRAIN_DATA), utils.loadCsv(TRAIN_TARGET),
-      utils.loadCsv(TEST_DATA), utils.loadCsv(TEST_TARGET)
-    ]);
+    [this.trainFeatures, this.trainTarget, this.testFeatures, this.testTarget] =
+        await Promise.all([
+          loadCsv(TRAIN_FEATURES_FN), loadCsv(TRAIN_TARGET_FN),
+          loadCsv(TEST_FEATURES_FN), loadCsv(TEST_TARGET_FN)
+        ]);
 
-    let {dataset: trainDataset, vectorMeans, vectorStddevs} =
-        utils.normalizeDataset(this.dataset[0]);
-
-    this.dataset[0] = trainDataset;
-
-    let {dataset: testDataset} = utils.normalizeDataset(
-        this.dataset[2], false, vectorMeans, vectorStddevs);
-
-    this.dataset[2] = testDataset;
-
-    this.trainSize = this.dataset[0].length;
-    this.testSize = this.dataset[2].length;
-
-    utils.shuffle(this.dataset[0], this.dataset[1]);
-    utils.shuffle(this.dataset[2], this.dataset[3]);
-  }
-
-  getTrainData() {
-    const dataShape = [this.trainSize, this.NUM_FEATURES];
-    const targetShape = [this.trainSize, 1];
-
-    const trainData = Float32Array.from([].concat.apply([], this.dataset[0]));
-    const trainTarget = Float32Array.from([].concat.apply([], this.dataset[1]));
-
-    return {
-      data: tf.tensor2d(trainData, dataShape),
-      target: tf.tensor1d(trainTarget).reshape(targetShape)
-    };
-  }
-
-  getTestData() {
-    const dataShape = [this.testSize, this.NUM_FEATURES];
-    const targetShape = [this.testSize, 1];
-
-    const testData = Float32Array.from([].concat.apply([], this.dataset[2]));
-    const testTarget = Float32Array.from([].concat.apply([], this.dataset[3]));
-
-    return {
-      data: tf.tensor2d(testData, dataShape),
-      target: tf.tensor1d(testTarget).reshape(targetShape)
-    };
+    shuffle(this.trainFeatures, this.trainTarget);
+    shuffle(this.testFeatures, this.testTarget);
   }
 }
+
+/**
+ * Shuffles data and target (maintaining alignment) using Fisher-Yates
+ * algorithm.flab
+ */
+function shuffle(data, target) {
+  let counter = data.length;
+  let temp = 0;
+  let index = 0;
+  while (counter > 0) {
+    index = (Math.random() * counter) | 0;
+    counter--;
+    // data:
+    temp = data[counter];
+    data[counter] = data[index];
+    data[index] = temp;
+    // target:
+    temp = target[counter];
+    target[counter] = target[index];
+    target[index] = temp;
+  }
+};

@@ -30,11 +30,9 @@ import * as ui from './ui';
 /**
  * Creates a convolutional neural network (Convnet) for the MNIST data.
  *
- * @param {boolean} includeDropout Whether to include dropout layers in this
- *   model.
  * @returns {tf.Model} An instance of tf.Model.
  */
-function createConvModel(includeDropout) {
+function createConvModel() {
   // Create a sequential neural network model. tf.sequential provides an API
   // for creating "stacked" models where the output from one layer is used as
   // the input to the next layer.
@@ -72,18 +70,7 @@ function createConvModel(includeDropout) {
   // higher dimensional data to a final classification output layer.
   model.add(tf.layers.flatten({}));
 
-  // Dropout layer randomly zeros out a fraction of its input layer's
-  // activations during training. This mitigates overfitting.
-  if (includeDropout) {
-    model.add(tf.layers.dropout({rate: 0.25}));
-  }
-
   model.add(tf.layers.dense({units: 64, activation: 'relu'}));
-
-  // We add another dropout layer here to further mitigate overfitting.
-  if (includeDropout) {
-    model.add(tf.layers.dropout({rate: 0.5}));
-  }
 
   // Our last layer is a dense layer which has 10 output units, one for each
   // output class (i.e. 0, 1, 2, 3, 4, 5, 6, 7, 8, 9). Here the classes actually
@@ -107,20 +94,12 @@ function createConvModel(includeDropout) {
  *
  * This is for comparison with the convolutional network above.
  *
- * @param {boolean} includeDropout Whether to include dropout layers in this
- *   model.
  * @returns {tf.Model} An instance of tf.Model.
  */
-function createDenseModel(includeDropout) {
+function createDenseModel() {
   const model = tf.sequential();
   model.add(tf.layers.flatten({inputShape: [IMAGE_H, IMAGE_W, 1]}));
-  if (includeDropout) {
-    model.add(tf.layers.dropout({rate: 0.25}));
-  }
   model.add(tf.layers.dense({units: 42, activation: 'relu'}));
-  if (includeDropout) {
-    model.add(tf.layers.dropout({rate: 0.5}));
-  }
   model.add(tf.layers.dense({units: 10, activation: 'softmax'}));
   return model;
 }
@@ -269,14 +248,10 @@ async function showPredictions(model) {
 function createModel() {
   let model;
   const modelType = ui.getModelTypeId();
-  if (modelType === 'ConvNet with Dropout') {
-    model = createConvModel(true);
-  } else if (modelType === 'ConvNet without Dropout') {
-    model = createConvModel(false);
-  } else if (modelType === 'DenseNet with Dropout') {
-    model = createDenseModel(true);
-  } else if (modelType === 'DenseNet without Dropout') {
-    model = createDenseModel(false);
+  if (modelType === 'ConvNet') {
+    model = createConvModel();
+  } else if (modelType === 'DenseNet') {
+    model = createDenseModel();
   } else {
     throw new Error(`Invalid model type: ${modelType}`);
   }

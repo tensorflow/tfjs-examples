@@ -1,5 +1,9 @@
 # TensorFlow.js Example: Reinforcement Learning with Cart-Pole Simulation
 
+![Cart Pole Demo](./tfjs-cart-pole-demo.png)
+
+[See this example live!](https://storage.googleapis.com/tfjs-examples/cart-pole/dist/index.html)
+
 ## Overview
 
 This example illustrates how to use TensorFlow.js to perform simple

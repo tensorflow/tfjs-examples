@@ -10,7 +10,7 @@
   },
   "dependencies": {
     "@tensorflow/tfjs": "^0.13.0",
-    "vega-embed": "^3.0.0"
+    "plotly.js-dist": "^1.39.4"
   },
   "scripts": {
     "watch": "cross-env NODE_ENV=development parcel index.html --no-hmr --open",

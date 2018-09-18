@@ -15,23 +15,22 @@
  * =============================================================================
  */
 
-import embed from 'vega-embed';
+import Plotly from 'plotly.js-dist';
 
 const statusElement = document.getElementById('status');
 const messageElement = document.getElementById('message');
 const imagesElement = document.getElementById('images');
 
-export function isTraining() {
-  statusElement.innerText = 'Training...';
+export function logStatus(message) {
+  statusElement.innerText = message;
 }
+
 export function trainingLog(message) {
   messageElement.innerText = `${message}\n`;
   console.log(message);
 }
 
 export function showTestResults(batch, predictions, labels) {
-  statusElement.innerText = 'Testing...';
-
   const testExamples = batch.xs.shape[0];
   let totalCorrect = 0;
   for (let i = 0; i < testExamples; i++) {
@@ -62,43 +61,67 @@ export function showTestResults(batch, predictions, labels) {
 
 const lossLabelElement = document.getElementById('loss-label');
 const accuracyLabelElement = document.getElementById('accuracy-label');
-export function plotLosses(lossValues) {
-  embed(
-      '#lossCanvas', {
-        '$schema': 'https://vega.github.io/schema/vega-lite/v2.json',
-        'data': {'values': lossValues},
-        'mark': {'type': 'line'},
-        'width': 260,
-        'orient': 'vertical',
-        'encoding': {
-          'x': {'field': 'batch', 'type': 'ordinal'},
-          'y': {'field': 'loss', 'type': 'quantitative'},
-          'color': {'field': 'set', 'type': 'nominal', 'legend': null},
-        }
-      },
-      {width: 360});
-  lossLabelElement.innerText =
-      'last loss: ' + lossValues[lossValues.length - 1].loss.toFixed(2);
+
+const lossValues = {
+  train: {
+    x: [],
+    y: [],
+    name: 'train',
+    mode: 'lines',
+    line: {width: 1}
+  },
+  validation: {
+    x: [],
+    y: [],
+    name: 'validation',
+    mode: 'lines+markers',
+    line: {width: 3}
+  }
+};
+export function plotLoss(batch, loss, set) {
+  lossValues[set].x.push(batch);
+  lossValues[set].y.push(loss);
+  Plotly.newPlot('loss-canvas', [lossValues.train, lossValues.validation], {
+    width: 480,
+    xaxis: {title: 'batch #'},
+    yaxis: {title: 'loss'},
+    font: {size: 18}
+  });
+  lossLabelElement.innerText = `last loss: ${loss.toFixed(3)}`;
 }
 
-export function plotAccuracies(accuracyValues) {
-  embed(
-      '#accuracyCanvas', {
-        '$schema': 'https://vega.github.io/schema/vega-lite/v2.json',
-        'data': {'values': accuracyValues},
-        'width': 260,
-        'mark': {'type': 'line', 'legend': null},
-        'orient': 'vertical',
-        'encoding': {
-          'x': {'field': 'batch', 'type': 'ordinal'},
-          'y': {'field': 'accuracy', 'type': 'quantitative'},
-          'color': {'field': 'set', 'type': 'nominal', 'legend': null},
-        }
-      },
-      {'width': 360});
-  accuracyLabelElement.innerText = 'last accuracy: ' +
-      (accuracyValues[accuracyValues.length - 1].accuracy * 100).toFixed(2) +
-      '%';
+const accuracyValues = {
+  train: {
+    x: [],
+    y: [],
+    name: 'train',
+    mode: 'lines',
+    line: {width: 1}
+  },
+  validation: {
+    x: [],
+    y: [],
+    name: 'validation',
+    mode: 'lines+markers',
+    line: {width: 3}
+  }
+};
+export function plotAccuracy(batch, accuracy, set) {
+  accuracyValues[set].x.push(batch);
+  accuracyValues[set].y.push(accuracy);
+  Plotly.newPlot(
+      'accuracy-canvas',
+      [accuracyValues.train, accuracyValues.validation], {
+        width: 480,
+        xaxis: {title: 'batch #'},
+        yaxis: {
+          title: 'accuracy',
+          range: [0, 1]
+        },
+        font: {size: 18}
+      });
+  accuracyLabelElement.innerText =
+      `last accuracy: ${(accuracy * 100).toFixed(1)}%`;
 }
 
 export function draw(image, canvas) {
@@ -116,4 +139,22 @@ export function draw(image, canvas) {
     imageData.data[j + 3] = 255;
   }
   ctx.putImageData(imageData, 0, 0);
+}
+
+export function getModelTypeId() {
+  return document.getElementById('model-type').value;
+}
+
+export function getTrainEpochs() {
+  return Number.parseInt(document.getElementById('train-epochs').value);
+}
+
+export function setTrainButtonCallback(callback) {
+  const trainButton = document.getElementById('train');
+  const modelType = document.getElementById('model-type');
+  trainButton.addEventListener('click', () => {
+    trainButton.setAttribute('disabled', true);
+    modelType.setAttribute('disabled', true);
+    callback();
+  });
 }

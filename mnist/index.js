@@ -32,7 +32,7 @@ import * as ui from './ui';
  *
  * @returns {tf.Model} An instance of tf.Model.
  */
-function createConvModel({dropout}) {
+function createConvModel() {
   // Create a sequential neural network model. tf.sequential provides an API
   // for creating "stacked" models where the output from one layer is used as
   // the input to the next layer.
@@ -72,10 +72,6 @@ function createConvModel({dropout}) {
 
   model.add(tf.layers.dense({units: 64, activation: 'relu'}));
 
-  if (dropout) {
-    model.add(tf.layers.dropout({rate: 0.4}));
-  }
-
   // Our last layer is a dense layer which has 10 output units, one for each
   // output class (i.e. 0, 1, 2, 3, 4, 5, 6, 7, 8, 9). Here the classes actually
   // represent numbers, but it's the same idea if you had classes that
@@ -100,13 +96,10 @@ function createConvModel({dropout}) {
  *
  * @returns {tf.Model} An instance of tf.Model.
  */
-function createDenseModel({dropout}) {
+function createDenseModel() {
   const model = tf.sequential();
   model.add(tf.layers.flatten({inputShape: [IMAGE_H, IMAGE_W, 1]}));
   model.add(tf.layers.dense({units: 42, activation: 'relu'}));
-  if (dropout) {
-    model.add(tf.layers.dropout({rate: 0.4}));
-  }
   model.add(tf.layers.dense({units: 10, activation: 'softmax'}));
   return model;
 }
@@ -253,19 +246,16 @@ async function showPredictions(model) {
 }
 
 function createModel() {
+  let model;
   const modelType = ui.getModelTypeId();
-  switch (modelType) {
-    case 'ConvNet with Dropout':
-      return createConvModel({dropout: true});
-    case 'ConvNet without Dropout':
-      return createConvModel({dropout: false});
-    case 'DenseNet with Dropout':
-      return createDenseModel({dropout: true});
-    case 'DenseNet without Dropout':
-      return createDenseModel({dropout: false});
-    default:
-      throw new Error(`Invalid model type: ${modelType}`);
+  if (modelType === 'ConvNet') {
+    model = createConvModel();
+  } else if (modelType === 'DenseNet') {
+    model = createDenseModel();
+  } else {
+    throw new Error(`Invalid model type: ${modelType}`);
   }
+  return model;
 }
 
 let data;

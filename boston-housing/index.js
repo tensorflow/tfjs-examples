@@ -70,7 +70,7 @@ export function multiLayerPerceptronRegressionModel1Hidden() {
   model.add(tf.layers.dense({
     inputShape: [bostonData.numFeatures],
     units: 50,
-    // activation: 'sigmoid',
+    activation: 'sigmoid',
     kernelInitializer: 'leCunNormal'
   }));
   model.add(tf.layers.dense({units: 1}));

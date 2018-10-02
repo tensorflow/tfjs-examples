@@ -17,7 +17,7 @@
 
 import renderChart from 'vega-embed';
 
-import {linearRegressionModel, multiLayerPerceptronRegressionModel, run} from '.';
+import {linearRegressionModel, multiLayerPerceptronRegressionModel1Hidden, multiLayerPerceptronRegressionModel2Hidden, run} from '.';
 
 const statusElement = document.getElementById('status');
 export const updateStatus = (message) => {
@@ -31,7 +31,10 @@ export const updateBaselineStatus = (message) => {
 
 export const setup = async () => {
   const trainSimpleLinearRegression = document.getElementById('simple-mlr');
-  const trainNeuralNetworkLinearRegression = document.getElementById('nn-mlr');
+  const trainNeuralNetworkLinearRegression1Hidden =
+      document.getElementById('nn-mlr-1hidden');
+  const trainNeuralNetworkLinearRegression2Hidden =
+      document.getElementById('nn-mlr-2hidden');
 
   trainSimpleLinearRegression.addEventListener('click', async (e) => {
     const model = linearRegressionModel();
@@ -39,11 +42,19 @@ export const setup = async () => {
     await run(model);
   }, false);
 
-  trainNeuralNetworkLinearRegression.addEventListener('click', async (e) => {
-    const model = multiLayerPerceptronRegressionModel();
-    losses = [];
-    await run(model);
-  }, false);
+  trainNeuralNetworkLinearRegression1Hidden.addEventListener(
+      'click', async () => {
+        const model = multiLayerPerceptronRegressionModel1Hidden();
+        losses = [];
+        await run(model);
+      }, false);
+
+  trainNeuralNetworkLinearRegression2Hidden.addEventListener(
+      'click', async () => {
+        const model = multiLayerPerceptronRegressionModel2Hidden();
+        losses = [];
+        await run(model);
+      }, false);
 };
 
 let losses = [];

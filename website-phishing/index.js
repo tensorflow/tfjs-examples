@@ -22,7 +22,7 @@ import * as ui from './ui';
 import * as utils from './utils';
 
 // Some hyperparameters for model training.
-const NUM_EPOCHS = 400;
+const NUM_EPOCHS = 100;  // TODO(cais): Change it back to 400 or 300. DO NOT SUBMIT.
 const BATCH_SIZE = 350;
 
 const data = new WebsitePhishingDataset();
@@ -33,12 +33,18 @@ data.loadData().then(async () => {
 
   await ui.updateStatus('Building model...');
   const model = tf.sequential();
-  model.add(tf.layers.dense(
-      {inputShape: [data.numFeatures], units: 100, activation: 'sigmoid'}));
+  model.add(tf.layers.dense({
+    inputShape: [data.numFeatures],
+    units: 100,
+    activation: 'sigmoid'
+  }));
   model.add(tf.layers.dense({units: 100, activation: 'sigmoid'}));
   model.add(tf.layers.dense({units: 1, activation: 'sigmoid'}));
-  model.compile(
-      {optimizer: 'adam', loss: 'binaryCrossentropy', metrics: ['accuracy']});
+  model.compile({
+    optimizer: 'adam',
+    loss: 'binaryCrossentropy',
+    metrics: ['accuracy']
+  });
 
   let trainLoss;
   let valLoss;
@@ -61,12 +67,6 @@ data.loadData().then(async () => {
 
         await ui.plotData(epoch, trainLoss, valLoss);
         await ui.plotAccuracies(epoch, trainAcc, valAcc);
-
-        // tf.nextFrame makes the program wait until requestAnimationFrame()
-        // has completed. This helps mitigate blocking of UI thread
-        // and thus browser tab.
-        // TODO(manraj): Remove this line once next version of tfjs comes out.
-        await tf.nextFrame();
       }
     }
   });

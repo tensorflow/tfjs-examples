@@ -49,11 +49,13 @@ function falsePositiveRate(yTrue, yPred) {
   });
 }
 
-function drawROC(targets, probs) {
+function drawROC(targets, probs, epoch) {
   tf.tidy(() => {
-    const thresholds =
-        [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9,
-         0.92, 0.94, 0.96, 0.98, 1.0];
+    const thresholds = [
+      0.0, 0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45,
+      0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8, 0.85,
+      0.9, 0.92, 0.94, 0.96, 0.98, 1.0
+    ];
     const tprs = [];
     const fprs = [];
     for (const threshold of thresholds) {
@@ -63,13 +65,13 @@ function drawROC(targets, probs) {
       fprs.push(fpr);
       tprs.push(tpr);
     }
-    ui.plotROC(fprs, tprs);
+    ui.plotROC(fprs, tprs, epoch);
   });
 }
 
 // Some hyperparameters for model training.
-const NUM_EPOCHS = 100;  // TODO(cais): Change it back to 400 or 300. DO NOT SUBMIT.
-const BATCH_SIZE = 350;
+const epochs = 400;
+const batchSize = 350;
 
 const data = new WebsitePhishingDataset();
 data.loadData().then(async () => {
@@ -79,18 +81,12 @@ data.loadData().then(async () => {
 
   await ui.updateStatus('Building model...');
   const model = tf.sequential();
-  model.add(tf.layers.dense({
-    inputShape: [data.numFeatures],
-    units: 100,
-    activation: 'sigmoid'
-  }));
+  model.add(tf.layers.dense(
+      {inputShape: [data.numFeatures], units: 100, activation: 'sigmoid'}));
   model.add(tf.layers.dense({units: 100, activation: 'sigmoid'}));
   model.add(tf.layers.dense({units: 1, activation: 'sigmoid'}));
-  model.compile({
-    optimizer: 'adam',
-    loss: 'binaryCrossentropy',
-    metrics: ['accuracy']
-  });
+  model.compile(
+      {optimizer: 'adam', loss: 'binaryCrossentropy', metrics: ['accuracy']});
 
   let trainLoss;
   let valLoss;
@@ -99,12 +95,20 @@ data.loadData().then(async () => {
 
   await ui.updateStatus('Training starting...');
   await model.fit(trainData.data, trainData.target, {
-    batchSize: BATCH_SIZE,
-    epochs: NUM_EPOCHS,
+    batchSize,
+    epochs,
     validationSplit: 0.2,
     callbacks: {
+    onEpochBegin: async (epoch) => {
+        // Draw ROC every a few epochs.
+        if ((epoch + 1)% 100 === 0 ||
+            epoch === 0 || epoch === 2 || epoch === 4) {
+            const probs = model.predict(testData.data);
+            drawROC(testData.target, probs, epoch);
+        }
+      },
       onEpochEnd: async (epoch, logs) => {
-        await ui.updateStatus(`Epoch ${epoch + 1} of ${NUM_EPOCHS} completed.`);
+        await ui.updateStatus(`Epoch ${epoch + 1} of ${epochs} completed.`);
 
         trainLoss = logs.loss;
         valLoss = logs.val_loss;
@@ -113,40 +117,33 @@ data.loadData().then(async () => {
 
         await ui.plotData(epoch, trainLoss, valLoss);
         await ui.plotAccuracies(epoch, trainAcc, valAcc);
-
-        if ((epoch + 1) % 20 === 0) {
-          const probs = model.predict(testData.data);
-          console.log('probs:');  // DEBUG
-          probs.print();  // DEBUG
-          drawROC(testData.target, probs);
-        }
       }
     }
   });
 
   await ui.updateStatus('Running on test data...');
-  const result =
-      model.evaluate(testData.data, testData.target, {batchSize: BATCH_SIZE});
+  tf.tidy(() => {
+    const result =
+        model.evaluate(testData.data, testData.target, {batchSize: batchSize});
 
-  const testLoss = result[0].get();
-  const testAcc = result[1].get();
+    const testLoss = result[0].get();
+    const testAcc = result[1].get();
 
-  // TODO(cais): Guard against memory leak.
-  const probs = model.predict(testData.data);
-  const predictions = utils.binarize(probs).as1D();
+    const probs = model.predict(testData.data);
+    const predictions = utils.binarize(probs).as1D();
 
-  const precision = tf.metrics.precision(testData.target, predictions).get();
-  const recall = tf.metrics.recall(testData.target, predictions).get();
-  const fpr = falsePositiveRate(testData.target, predictions).get();
-
-  await ui.updateStatus(
-      `Final train-set loss: ${trainLoss.toFixed(4)} accuracy: ${
-          trainAcc.toFixed(4)}\n` +
-      `Final validation-set loss: ${valLoss.toFixed(4)} accuracy: ${
-          valAcc.toFixed(4)}\n` +
-      `Test-set loss: ${testLoss.toFixed(4)} accuracy: ${
-          testAcc.toFixed(4)}\n` +
-      `Precision: ${precision.toFixed(4)}\n` +
-      `Recall: ${recall.toFixed(4)}\n` +
-      `False positive rate (FPR): ${fpr.toFixed(4)}`);
+    const precision = tf.metrics.precision(testData.target, predictions).get();
+    const recall = tf.metrics.recall(testData.target, predictions).get();
+    const fpr = falsePositiveRate(testData.target, predictions).get();
+    ui.updateStatus(
+        `Final train-set loss: ${trainLoss.toFixed(4)} accuracy: ${
+            trainAcc.toFixed(4)}\n` +
+        `Final validation-set loss: ${valLoss.toFixed(4)} accuracy: ${
+            valAcc.toFixed(4)}\n` +
+        `Test-set loss: ${testLoss.toFixed(4)} accuracy: ${
+            testAcc.toFixed(4)}\n` +
+        `Precision: ${precision.toFixed(4)}\n` +
+        `Recall: ${recall.toFixed(4)}\n` +
+        `False positive rate (FPR): ${fpr.toFixed(4)}`);
+  });
 });

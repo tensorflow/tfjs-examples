@@ -169,8 +169,19 @@ export const normalizeDataset =
  * Binarizes a tensor based on threshold of 0.5.
  *
  * @param {tf.Tensor} y Tensor to be binarized.
+ * @param {number} Threshold (default: 0.5).
+ * @returns {tf.Tensor} Binarized tensor.
  */
-export const binarize = (y) => {
-  const condition = y.greater(tf.scalar(0.5));
-  return tf.where(condition, tf.onesLike(y), tf.zerosLike(y));
-};
+export function binarize(y, threshold) {
+  if (threshold == null) {
+    threshold = 0.5;
+  }
+  tf.util.assert(
+      threshold >= 0 && threshold <= 1,
+      `Expected threshold to be >=0 and <=1, but got ${threshold}`);
+
+  return tf.tidy(() => {
+    const condition = y.greater(tf.scalar(threshold));
+    return tf.where(condition, tf.onesLike(y), tf.zerosLike(y));
+  });
+}

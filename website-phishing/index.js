@@ -21,6 +21,52 @@ import {WebsitePhishingDataset} from './data';
 import * as ui from './ui';
 import * as utils from './utils';
 
+function falsePositives(yTrue, yPred) {
+  return tf.tidy(() => {
+    const one = tf.scalar(1);
+    const zero = tf.scalar(0);
+    return tf.logicalAnd(yTrue.equal(zero), yPred.equal(one))
+        .sum()
+        .cast('float32');
+  });
+}
+
+function trueNegatives(yTrue, yPred) {
+  return tf.tidy(() => {
+    const zero = tf.scalar(0);
+    return tf.logicalAnd(yTrue.equal(zero), yPred.equal(zero))
+        .sum()
+        .cast('float32');
+  });
+}
+
+// TODO(cais): Use tf.metrics.falsePositiveRate when available.
+function falsePositiveRate(yTrue, yPred) {
+  return tf.tidy(() => {
+    const fp = falsePositives(yTrue, yPred);
+    const tn = trueNegatives(yTrue, yPred);
+    return fp.div(fp.add(tn));
+  });
+}
+
+function drawROC(targets, probs) {
+  tf.tidy(() => {
+    const thresholds =
+        [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9,
+         0.92, 0.94, 0.96, 0.98, 1.0];
+    const tprs = [];
+    const fprs = [];
+    for (const threshold of thresholds) {
+      const threshPredictions = utils.binarize(probs, threshold).as1D();
+      const fpr = falsePositiveRate(targets, threshPredictions).get();
+      const tpr = tf.metrics.recall(targets, threshPredictions).get();
+      fprs.push(fpr);
+      tprs.push(tpr);
+    }
+    ui.plotROC(fprs, tprs);
+  });
+}
+
 // Some hyperparameters for model training.
 const NUM_EPOCHS = 100;  // TODO(cais): Change it back to 400 or 300. DO NOT SUBMIT.
 const BATCH_SIZE = 350;
@@ -67,6 +113,13 @@ data.loadData().then(async () => {
 
         await ui.plotData(epoch, trainLoss, valLoss);
         await ui.plotAccuracies(epoch, trainAcc, valAcc);
+
+        if ((epoch + 1) % 20 === 0) {
+          const probs = model.predict(testData.data);
+          console.log('probs:');  // DEBUG
+          probs.print();  // DEBUG
+          drawROC(testData.target, probs);
+        }
       }
     }
   });
@@ -78,11 +131,13 @@ data.loadData().then(async () => {
   const testLoss = result[0].get();
   const testAcc = result[1].get();
 
-  const predictions = utils.binarize(
-      model.predict(testData.data, {batchSize: BATCH_SIZE}).as1D());
+  // TODO(cais): Guard against memory leak.
+  const probs = model.predict(testData.data);
+  const predictions = utils.binarize(probs).as1D();
 
   const precision = tf.metrics.precision(testData.target, predictions).get();
   const recall = tf.metrics.recall(testData.target, predictions).get();
+  const fpr = falsePositiveRate(testData.target, predictions).get();
 
   await ui.updateStatus(
       `Final train-set loss: ${trainLoss.toFixed(4)} accuracy: ${
@@ -92,5 +147,6 @@ data.loadData().then(async () => {
       `Test-set loss: ${testLoss.toFixed(4)} accuracy: ${
           testAcc.toFixed(4)}\n` +
       `Precision: ${precision.toFixed(4)}\n` +
-      `Recall: ${recall.toFixed(4)}`);
+      `Recall: ${recall.toFixed(4)}\n` +
+      `False positive rate (FPR): ${fpr.toFixed(4)}`);
 });

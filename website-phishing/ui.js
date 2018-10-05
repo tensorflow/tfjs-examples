@@ -45,7 +45,7 @@ export const plotData =
 }
 
 const accuracies = [];
-export const plotAccuracies = async (epoch, trainAccuracy, valAccuracy) => {
+export async function plotAccuracies(epoch, trainAccuracy, valAccuracy) {
   accuracies.push(
       {'epoch': epoch, 'accuracy': trainAccuracy, 'split': 'Train Accuracy'});
   accuracies.push({
@@ -68,4 +68,25 @@ export const plotAccuracies = async (epoch, trainAccuracy, valAccuracy) => {
   };
 
   return renderChart('#plotAccuracy', spec, {actions: false});
+}
+
+export async function plotROC(fprs, tprs) {
+  const values = [];
+  for (let i = 0; i < fprs.length; ++i) {
+    values.push({fpr: fprs[i], tpr: tprs[i]});
+  }
+  console.log(values);  // DEBUG
+  const spec = {
+    '$schema': 'https://vega.github.io/schema/vega-lite/v2.json',
+    'width': 300,
+    'height': 300,
+    'data': {'values': values},
+    'mark': 'line',
+    'encoding': {
+      'x': {'field': 'fpr', 'type': 'quantitative'},
+      'y': {'field': 'tpr', 'type': 'quantitative'},
+      'color': {'field': 'split', 'type': 'nominal'}
+    }
+  };
+  return renderChart('#rocCurve', spec, {actions: false});
 }

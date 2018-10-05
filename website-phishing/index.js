@@ -59,6 +59,7 @@ function falsePositiveRate(yTrue, yPred) {
  *   the elements are >=0 and <= 1.
  * @param {number} epoch The epoch number where the `probs` values come
  *   from.
+ * @returns {number} Area under the curve (AUC).
  */
 function drawROC(targets, probs, epoch) {
   tf.tidy(() => {
@@ -69,14 +70,25 @@ function drawROC(targets, probs, epoch) {
     ];
     const tprs = [];  // True positive rates.
     const fprs = [];  // False positive rates.
-    for (const threshold of thresholds) {
+    let area = 0;
+    for (let i = 0; i < thresholds.length; ++i) {
+      const threshold = thresholds[i];
+
       const threshPredictions = utils.binarize(probs, threshold).as1D();
       const fpr = falsePositiveRate(targets, threshPredictions).get();
       const tpr = tf.metrics.recall(targets, threshPredictions).get();
       fprs.push(fpr);
       tprs.push(tpr);
+
+      // Accumulate to area for AUC calculation.
+      if (i > 0) {
+        area +=
+            (fprs[i] + fprs[i - 1]) * (thresholds[i] - thresholds[i - 1]) / 2;
+      }
     }
     ui.plotROC(fprs, tprs, epoch);
+    console.log('AUC =', area);  // DEBUG
+    return area;
   });
 }
 
@@ -103,6 +115,7 @@ data.loadData().then(async () => {
   let valLoss;
   let trainAcc;
   let valAcc;
+  let auc;
 
   await ui.updateStatus('Training starting...');
   await model.fit(trainData.data, trainData.target, {
@@ -115,7 +128,7 @@ data.loadData().then(async () => {
         if ((epoch + 1)% 100 === 0 ||
             epoch === 0 || epoch === 2 || epoch === 4) {
             const probs = model.predict(testData.data);
-            drawROC(testData.target, probs, epoch);
+            auc = drawROC(testData.target, probs, epoch);
         }
       },
       onEpochEnd: async (epoch, logs) => {
@@ -155,6 +168,7 @@ data.loadData().then(async () => {
             testAcc.toFixed(4)}\n` +
         `Precision: ${precision.toFixed(4)}\n` +
         `Recall: ${recall.toFixed(4)}\n` +
-        `False positive rate (FPR): ${fpr.toFixed(4)}`);
+        `False positive rate (FPR): ${fpr.toFixed(4)}\n` + 
+        `Area under the curve (AUC): ${auc}`);
   });
 });

@@ -49,6 +49,17 @@ function falsePositiveRate(yTrue, yPred) {
   });
 }
 
+/**
+ * Draw a ROC curve.
+ * 
+ * @param {tf.Tensor} targets The actual target labels, as a 1D Tensor
+ *   object consisting of only 0 and 1 values.
+ * @param {tf.Tensor} probs The probabilities output by a model, as a 1D
+ *   Tensor of the same shape as `tarets`. It is assumed that the values of
+ *   the elements are >=0 and <= 1.
+ * @param {number} epoch The epoch number where the `probs` values come
+ *   from.
+ */
 function drawROC(targets, probs, epoch) {
   tf.tidy(() => {
     const thresholds = [
@@ -56,8 +67,8 @@ function drawROC(targets, probs, epoch) {
       0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8, 0.85,
       0.9, 0.92, 0.94, 0.96, 0.98, 1.0
     ];
-    const tprs = [];
-    const fprs = [];
+    const tprs = [];  // True positive rates.
+    const fprs = [];  // False positive rates.
     for (const threshold of thresholds) {
       const threshPredictions = utils.binarize(probs, threshold).as1D();
       const fpr = falsePositiveRate(targets, threshPredictions).get();

@@ -71,6 +71,14 @@ export async function plotAccuracies(epoch, trainAccuracy, valAccuracy) {
 }
 
 const rocValues = [];
+
+/**
+ * Plot a ROC curve.
+ * @param {number[]} fprs False positive rates.
+ * @param {number[]} tprs True positive rates, must have the same length as
+ *   `fprs`.
+ * @param {nmber} epoch Epoch number.
+ */
 export async function plotROC(fprs, tprs, epoch) {
   for (let i = 0; i < fprs.length; ++i) {
     rocValues.push({

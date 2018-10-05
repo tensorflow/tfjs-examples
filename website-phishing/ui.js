@@ -80,6 +80,7 @@ const rocValues = [];
  * @param {nmber} epoch Epoch number.
  */
 export async function plotROC(fprs, tprs, epoch) {
+  epoch++;  // Convert zero-based to one-based.
   for (let i = 0; i < fprs.length; ++i) {
     rocValues.push({
       fpr: fprs[i],

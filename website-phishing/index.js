@@ -62,7 +62,7 @@ function falsePositiveRate(yTrue, yPred) {
  * @returns {number} Area under the curve (AUC).
  */
 function drawROC(targets, probs, epoch) {
-  tf.tidy(() => {
+  return tf.tidy(() => {
     const thresholds = [
       0.0, 0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45,
       0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8, 0.85,
@@ -82,12 +82,11 @@ function drawROC(targets, probs, epoch) {
 
       // Accumulate to area for AUC calculation.
       if (i > 0) {
-        area +=
-            (fprs[i] + fprs[i - 1]) * (thresholds[i] - thresholds[i - 1]) / 2;
+        area += (tprs[i] + tprs[i - 1]) * (fprs[i - 1] - fprs[i]) / 2;
       }
     }
     ui.plotROC(fprs, tprs, epoch);
-    console.log('AUC =', area);  // DEBUG
+    console.log('area:', area);  // DEBUG
     return area;
   });
 }

@@ -77,7 +77,7 @@ const rocValues = [];
  * @param {number[]} fprs False positive rates.
  * @param {number[]} tprs True positive rates, must have the same length as
  *   `fprs`.
- * @param {nmber} epoch Epoch number.
+ * @param {number} epoch Epoch number.
  */
 export async function plotROC(fprs, tprs, epoch) {
   epoch++;  // Convert zero-based to one-based.

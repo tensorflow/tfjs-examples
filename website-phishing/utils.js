@@ -169,7 +169,7 @@ export function normalizeDataset(
  * Binarizes a tensor based on threshold of 0.5.
  *
  * @param {tf.Tensor} y Tensor to be binarized.
- * @param {number} Threshold (default: 0.5).
+ * @param {number} threshold (default: 0.5).
  * @returns {tf.Tensor} Binarized tensor.
  */
 export function binarize(y, threshold) {

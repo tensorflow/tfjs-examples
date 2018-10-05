@@ -55,7 +55,7 @@ function falsePositiveRate(yTrue, yPred) {
  * @param {tf.Tensor} targets The actual target labels, as a 1D Tensor
  *   object consisting of only 0 and 1 values.
  * @param {tf.Tensor} probs The probabilities output by a model, as a 1D
- *   Tensor of the same shape as `tarets`. It is assumed that the values of
+ *   Tensor of the same shape as `targets`. It is assumed that the values of
  *   the elements are >=0 and <= 1.
  * @param {number} epoch The epoch number where the `probs` values come
  *   from.
@@ -86,7 +86,6 @@ function drawROC(targets, probs, epoch) {
       }
     }
     ui.plotROC(fprs, tprs, epoch);
-    console.log('area:', area);  // DEBUG
     return area;
   });
 }
@@ -168,6 +167,6 @@ data.loadData().then(async () => {
         `Precision: ${precision.toFixed(4)}\n` +
         `Recall: ${recall.toFixed(4)}\n` +
         `False positive rate (FPR): ${fpr.toFixed(4)}\n` + 
-        `Area under the curve (AUC): ${auc}`);
+        `Area under the curve (AUC): ${auc.toFixed(4)}`);
   });
 });

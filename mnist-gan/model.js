@@ -17,12 +17,7 @@
 
 const tf = require('@tensorflow/tfjs');
 
-const height = 32;
-const width = 32;
-const channels = 3;
-const latentDim = 32;
-
-function createGenerator() {
+function createGenerator(latentDim, channels) {
   // TODO(cais): Maybe use sequential.
   const gen = tf.sequential();
 
@@ -48,7 +43,7 @@ function createGenerator() {
   return gen;
 }
 
-function createDiscriminator() {
+function createDiscriminator(height, width, channels) {
   // TODO(cais): Maybe use sequential.
   const disc = tf.sequential();
 
@@ -65,13 +60,28 @@ function createDiscriminator() {
   disc.add(tf.layers.flatten());
   disc.add(tf.layers.dropout({rate: 0.4}));
   disc.add(tf.layers.dense({units: 1, activation: 'sigmoid'}));
+
+  // TODO(cais): clipValue?
+  const optimizer = tf.train.rmsprop(0.0008, 1e-8);
+  disc.compile({loss: 'binaryCrossentropy', optimizer});
   return disc;
 }
 
-const gen = createGenerator();  // DEBUG
-gen.summary();                  // DEBUG
+function createGAN(generator, discriminator, latentDim) {
+  discriminator.trainable = false;
 
-const disc = createDiscriminator();  // DEBUG
-disc.summary();                      // DEBUG
+  const ganInput = tf.input({shape: latentDim});
+  const ganOutput = discriminator.apply(generator.apply(ganInput));
+  const gan = tf.model({inputs: ganInput, outputs: ganOutput});
 
-// module.exports = model;
+  // TODO(cais): clipValue?
+  const optimizer = tf.train.rmsprop(0.0004, 1e-8);
+  gan.compile({loss: 'binaryCrossentropy', optimizer});
+  return gan;
+}
+
+module.exports = {
+  createGenerator,
+  createDiscriminator,
+  createGAN
+};

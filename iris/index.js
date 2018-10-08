@@ -22,6 +22,7 @@ import * as loader from './loader';
 import * as ui from './ui';
 
 // TODO(cais): Remove in favor of tf.confusionMatrix once it's available.
+//   https://github.com/tensorflow/tfjs/issues/771
 /**
  * Calcualte the confusion matrix.
  *
@@ -32,7 +33,9 @@ import * as ui from './ui';
  *   0-based integers for the categories. Must have the same shape as `labels`.
  * @param {number} numClasses Number of all classes, if not provided,
  *   will calculate from both `labels` and `predictions`.
- * @return {tf.Tensor} The confusion matrix as a 2D tf.Tensor.
+ * @return {tf.Tensor} The confusion matrix as a 2D tf.Tensor. The rows
+ *   correspond to the truth classes and the columns correspond to the
+ *   predicted classes.
  */
 function confusionMatrix(labels, predictions, numClasses) {
   tf.util.assert(

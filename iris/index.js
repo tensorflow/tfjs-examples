@@ -20,6 +20,7 @@ import * as tf from '@tensorflow/tfjs';
 import * as data from './data';
 import * as loader from './loader';
 import * as ui from './ui';
+import { timeFormatLocale } from 'vega';
 
 // TODO(cais): Remove in favor of tf.confusionMatrix once it's available.
 //   https://github.com/tensorflow/tfjs/issues/771
@@ -33,9 +34,9 @@ import * as ui from './ui';
  *   0-based integers for the categories. Must have the same shape as `labels`.
  * @param {number} numClasses Number of all classes, if not provided,
  *   will calculate from both `labels` and `predictions`.
- * @return {tf.Tensor} The confusion matrix as a 2D tf.Tensor. The rows
- *   correspond to the truth classes and the columns correspond to the
- *   predicted classes.
+ * @return {tf.Tensor} The confusion matrix as a 2D tf.Tensor. The value at row
+ *   `r` and column `c` is the number of times examples of actual class `r` were
+ *   predicted as class `c`.
  */
 function confusionMatrix(labels, predictions, numClasses) {
   tf.util.assert(
@@ -58,13 +59,15 @@ function confusionMatrix(labels, predictions, numClasses) {
     // If numClasses is not provided, determine it.
     const labelClasses = labels.max().get();
     const predictionClasses = predictions.max().get();
-    numClasses = 
-          (labelClasses > predictionClasses ? labelClasses : predictionClasses) + 1;
+    numClasses = (labelClasses > predictionClasses ?
+        labelClasses : predictionClasses) + 1;
   }
 
-  const oneHotLabels = tf.oneHot(labels, numClasses);
-  const oneHotPredictions = tf.oneHot(predictions, numClasses);
-  return oneHotLabels.transpose().matMul(oneHotPredictions);
+  return tf.tidy(() => {
+    const oneHotLabels = tf.oneHot(labels, numClasses);
+    const oneHotPredictions = tf.oneHot(predictions, numClasses);
+    return oneHotLabels.transpose().matMul(oneHotPredictions);
+  });
 }
 
 let model;

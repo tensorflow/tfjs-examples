@@ -103,7 +103,8 @@ const confusionMatrixCanvas = document.getElementById('confusion-matrix');
  * Render a confusion matrix.
  * 
  * @param {tf.Tensor} confusionMat Confusion matrix as a 2D tf.Tensor object.
- *   The rows of it are assumed to correspond to the truth classes.
+ *   The value at row `r` and column `c` is the number of times examples of
+ *   actual class `r` were predicted as class `c`.
  */
 export function drawConfusionMatrix(confusionMat) {
   const w = confusionMatrixCanvas.width;

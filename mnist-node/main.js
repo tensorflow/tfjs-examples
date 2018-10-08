@@ -18,7 +18,6 @@
 const tf = require('@tensorflow/tfjs');
 require('@tensorflow/tfjs-node');
 const argparse = require('argparse');
-const ProgressBar = require('progress');
 
 const data = require('./data');
 const model = require('./model');
@@ -29,7 +28,6 @@ async function run(epochs, batchSize, modelSavePath) {
   const {images: trainImages, labels: trainLabels} = data.getTrainData();
   model.summary();
 
-  let progressBar;
   let epochBeginTime;
   let millisPerStep;
   const validationSplit = 0.15;
@@ -40,32 +38,7 @@ async function run(epochs, batchSize, modelSavePath) {
   await model.fit(trainImages, trainLabels, {
     epochs,
     batchSize,
-    validationSplit,
-    callbacks: {
-      onEpochBegin: async (epoch) => {
-        progressBar = new ProgressBar(
-            ':bar: :eta', {total: numTrainBatchesPerEpoch, head: `>`});
-        console.log(`Epoch ${epoch + 1} / ${epochs}`);
-        epochBeginTime = tf.util.now();
-      },
-      onBatchEnd: async (batch, logs) => {
-        if (batch === numTrainBatchesPerEpoch - 1) {
-          millisPerStep =
-              (tf.util.now() - epochBeginTime) / numTrainExamplesPerEpoch;
-        }
-        progressBar.tick();
-        await tf.nextFrame();
-      },
-      onEpochEnd: async (epoch, logs) => {
-        console.log(
-            `Loss: ${logs.loss.toFixed(3)} (train), ` +
-            `${logs.val_loss.toFixed(3)} (val); ` +
-            `Accuracy: ${logs.acc.toFixed(3)} (train), ` +
-            `${logs.val_acc.toFixed(3)} (val) ` +
-            `(${millisPerStep.toFixed(2)} ms/step)`);
-        await tf.nextFrame();
-      }
-    }
+    validationSplit
   });
 
   const {images: testImages, labels: testLabels} = data.getTestData();
@@ -79,7 +52,7 @@ async function run(epochs, batchSize, modelSavePath) {
   if (modelSavePath != null) {
     await model.save(`file://${modelSavePath}`);
     console.log(`Saved model to path: ${modelSavePath}`);
-  }  
+  }
 }
 
 const parser = new argparse.ArgumentParser({

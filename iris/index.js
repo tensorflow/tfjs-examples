@@ -28,7 +28,7 @@ import * as ui from './ui';
  *
  * @param {tf.Tensor} labels The target labels, assumed to be 0-based integers
  *   for the categories. The shape is `[numExamples]`, where
- *   `numClasses` is the number of possible classes.
+ *   `numExamples` is the number of examples included.
  * @param {tf.Tensor} predictions The predicted probabilities, assumed to be
  *   0-based integers for the categories. Must have the same shape as `labels`.
  * @param {number} numClasses Number of all classes, if not provided,
@@ -49,6 +49,10 @@ function confusionMatrix(labels, predictions, numClasses) {
       predictions.rank === 1,
       `Expected the rank of predictions to be 1, ` +
           `but got ${predictions.rank}`);
+  tf.util.assert(
+      labels.shape[0] === predictions.shape[0],
+      `Mismatch in the number of examples: ` +
+      `${labels.shape[0]} vs. ${predictions.shape[0]}`);
 
   if (numClasses == null) {
     // If numClasses is not provided, determine it.

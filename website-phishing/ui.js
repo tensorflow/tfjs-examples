@@ -45,7 +45,7 @@ export const plotData =
 }
 
 const accuracies = [];
-export const plotAccuracies = async (epoch, trainAccuracy, valAccuracy) => {
+export async function plotAccuracies(epoch, trainAccuracy, valAccuracy) {
   accuracies.push(
       {'epoch': epoch, 'accuracy': trainAccuracy, 'split': 'Train Accuracy'});
   accuracies.push({
@@ -68,4 +68,38 @@ export const plotAccuracies = async (epoch, trainAccuracy, valAccuracy) => {
   };
 
   return renderChart('#plotAccuracy', spec, {actions: false});
+}
+
+const rocValues = [];
+
+/**
+ * Plot a ROC curve.
+ * @param {number[]} fprs False positive rates.
+ * @param {number[]} tprs True positive rates, must have the same length as
+ *   `fprs`.
+ * @param {number} epoch Epoch number.
+ */
+export async function plotROC(fprs, tprs, epoch) {
+  epoch++;  // Convert zero-based to one-based.
+  for (let i = 0; i < fprs.length; ++i) {
+    rocValues.push({
+      fpr: fprs[i],
+      tpr: tprs[i],
+      epoch: 'epoch ' +
+          (epoch < 10 ? `00${epoch}` : (epoch < 100 ? `0${epoch}` : `${epoch}`))
+    });
+  }
+  const spec = {
+    '$schema': 'https://vega.github.io/schema/vega-lite/v2.json',
+    'width': 300,
+    'height': 300,
+    'data': {'values': rocValues},
+    'mark': 'line',
+    'encoding': {
+      'x': {'field': 'fpr', 'type': 'quantitative'},
+      'y': {'field': 'tpr', 'type': 'quantitative'},
+      'color': {'field': 'epoch', 'type': 'nominal'}
+    }
+  };
+  return renderChart('#rocCurve', spec, {actions: false});
 }

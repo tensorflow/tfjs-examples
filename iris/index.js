@@ -56,11 +56,8 @@ function confusionMatrix(labels, predictions, numClasses) {
 
   if (numClasses == null) {
     // If numClasses is not provided, determine it.
-    console.log(labels.max());
-    labels.max().print();
     const labelClasses = labels.max().get();
     const predictionClasses = predictions.max().get();
-    console.log(labelClasses, predictionClasses);
     numClasses = 
           (labelClasses > predictionClasses ? labelClasses : predictionClasses) + 1;
   }

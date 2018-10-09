@@ -94,6 +94,7 @@ async function trainModel(xTrain, yTrain, xTest, yTest) {
   model.add(tf.layers.dense(
       {units: 10, activation: 'sigmoid', inputShape: [xTrain.shape[1]]}));
   model.add(tf.layers.dense({units: 3, activation: 'softmax'}));
+  model.summary();
 
   const optimizer = tf.train.adam(params.learningRate);
   model.compile({

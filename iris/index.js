@@ -20,7 +20,6 @@ import * as tf from '@tensorflow/tfjs';
 import * as data from './data';
 import * as loader from './loader';
 import * as ui from './ui';
-import { timeFormatLocale } from 'vega';
 
 // TODO(cais): Remove in favor of tf.confusionMatrix once it's available.
 //   https://github.com/tensorflow/tfjs/issues/771
@@ -95,6 +94,7 @@ async function trainModel(xTrain, yTrain, xTest, yTest) {
   model.add(tf.layers.dense(
       {units: 10, activation: 'sigmoid', inputShape: [xTrain.shape[1]]}));
   model.add(tf.layers.dense({units: 3, activation: 'softmax'}));
+  model.summary();
 
   const optimizer = tf.train.adam(params.learningRate);
   model.compile({

@@ -42,7 +42,8 @@ const targetTfjsVer = process.argv[2];
 const dirItems = fs.readdirSync(__dirname);
 for (const item of dirItems) {
   if (fs.lstatSync(item).isDirectory()) {
-    const packageJsonPath = path.join(__dirname, item, 'package.json');
+    const dirPath = path.join(__dirname, item);
+    const packageJsonPath = path.join(dirPath, 'package.json');
     if (fs.existsSync(packageJsonPath)) {
       const packageJson = JSON.parse(fs.readFileSync(packageJsonPath));
       const deps = packageJson['dependencies'];
@@ -61,7 +62,7 @@ for (const item of dirItems) {
           deps[tfjsTag] = targetVer;
           fs.writeFileSync(
               packageJsonPath, JSON.stringify(packageJson, null, 2) + '\n');
-          console.log(`item: ${oldVer} --> ${targetVer}`);
+          console.log(`${item}: ${oldVer} --> ${targetVer}`);
         }
       }
     }

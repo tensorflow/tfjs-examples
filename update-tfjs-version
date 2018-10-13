@@ -47,12 +47,13 @@ for (const item of dirItems) {
     if (fs.existsSync(packageJsonPath)) {
       const packageJson = JSON.parse(fs.readFileSync(packageJsonPath));
       const deps = packageJson['dependencies'];
-      const targetVer = `^${targetTfjsVer}`;
       if (deps[tfjsNodeTag] != null) {
         console.log(
             `*** Skipping example with dependency on tfjs-node: ${item}`);
         continue;
       }
+
+      const targetVer = `^${targetTfjsVer}`;
       if (deps[tfjsTag] != null) {
         if (deps[tfjsTag] === targetVer) {
           console.log(`${item}: Already at target version (${targetVer})`);

@@ -42,7 +42,6 @@ const targetTfjsVer = process.argv[2];
 const dirItems = fs.readdirSync(__dirname);
 for (const item of dirItems) {
   if (fs.lstatSync(item).isDirectory()) {
-
     const packageJsonPath = path.join(__dirname, item, 'package.json');
     if (fs.existsSync(packageJsonPath)) {
       const packageJson = JSON.parse(fs.readFileSync(packageJsonPath));

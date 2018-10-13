@@ -119,6 +119,8 @@ async function trainModel(xTrain, yTrain, xTest, yTest) {
     }
   });
 
+  model.layers[0].getWeights()[0].print();  // DEBUG
+
   ui.status('Model training complete.');
   return model;
 }

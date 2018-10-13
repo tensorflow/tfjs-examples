@@ -57,10 +57,11 @@ for (const item of dirItems) {
         if (deps[tfjsTag] === targetVer) {
           console.log(`${item}: Already at target version (${targetVer})`);
         } else {
+          const oldVer = deps[tfjsTag];
           deps[tfjsTag] = targetVer;
           fs.writeFileSync(
               packageJsonPath, JSON.stringify(packageJson, null, 2) + '\n');
-          console.log(`item: ${deps[tfjsTag]} --> ${targetTfjsVer}`);
+          console.log(`item: ${oldVer} --> ${targetVer}`);
         }
       }
     }

@@ -106,15 +106,14 @@ export function multiLayerPerceptronRegressionModel2Hidden() {
  * Describe the current linear weights for a human to read.
  *
  * @param {Array} kernel Array of floats of length 11.  One value per feature.
- * @returns {string} HTML to communicate the current weights
+ * @returns {List} List of objects, each with a string feature name, and value feature weight.
  */
-export function linearKernelToWeightsMsg(kernel) {
-  let outHTML = 'Weights for each feature:\n\n';
+export function linearKernelToWeights(kernel) {
+  const outList = [];
   for (let idx = 0; idx < kernel.length; idx++) {
-    outHTML +=
-        `${featureDescriptions[idx]}: <b>${kernel[idx].toFixed(4)}</b>\n`;
+    outList.push({description: featureDescriptions[idx], value: kernel[idx]});
   }
-  return outHTML;
+  return outList;
 }
 
 /**
@@ -145,8 +144,8 @@ export const run = async (model, weightsIllustration) => {
         await ui.plotData(epoch, trainLoss, valLoss);
         if (weightsIllustration) {
           const kernelAsArr = model.layers[0].kernel.val.dataSync();
-          const weightsMsg = linearKernelToWeightsMsg(kernelAsArr);
-          ui.updateWeightsStatus(weightsMsg);
+          const weightsList = linearKernelToWeights(kernelAsArr);
+          ui.updateWeights(weightsList);
         }
       }
     }

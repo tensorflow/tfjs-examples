@@ -29,8 +29,17 @@ export const updateBaselineStatus = (message) => {
   baselineStatusElement.value = message;
 };
 
-const weightsElement = document.getElementById('weights');
-export const updateWeightsStatus = (message) => {
+const weightsElement = document.getElementById('weightsTextArea');
+/**
+ * Updates the weights output area to include information about the weights
+ * learned in a simple linear model.
+ * @param {List} weightsList list of objects with 'value':number and 'description':string
+ */
+export const updateWeights = (weightsList) => {
+  let message = 'Weights are fun: \n\n';
+  for (let v of weightsList) {
+    message += `${v.description} : ${v.value.toFixed(4)}\n`
+  }
   weightsElement.value = message;
 };
 

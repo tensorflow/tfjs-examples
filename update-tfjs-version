@@ -1,0 +1,70 @@
+#!/usr/bin/env node
+/**
+ * @license
+ * Copyright 2018 Google LLC. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * =============================================================================
+ */
+
+/**
+ * Updates the @tensorflow/tfjs dependency to the specified version in all
+ * example package.json files.
+ *
+ * The examples that depend on @tensorflow/tfjs-node are currently not
+ * handled by this script.
+ *
+ * Usage example:
+ *   ./update-tfjs-version 0.13.2
+ */
+
+const fs = require('fs');
+const path = require('path');
+
+const tfjsTag = '@tensorflow/tfjs';
+const tfjsNodeTag = '@tensorflow/tfjs-node';
+
+if (process.argv.length !== 3) {
+  console.log('Usage: update-tfjs-version <TARGET_TFJS_VER>`');
+  process.exit(1);
+}
+const targetTfjsVer = process.argv[2];
+
+const dirItems = fs.readdirSync(__dirname);
+for (const item of dirItems) {
+  if (fs.lstatSync(item).isDirectory()) {
+    const dirPath = path.join(__dirname, item);
+    const packageJsonPath = path.join(dirPath, 'package.json');
+    if (fs.existsSync(packageJsonPath)) {
+      const packageJson = JSON.parse(fs.readFileSync(packageJsonPath));
+      const deps = packageJson['dependencies'];
+      if (deps[tfjsNodeTag] != null) {
+        console.log(
+            `*** Skipping example with dependency on tfjs-node: ${item}`);
+        continue;
+      }
+
+      const targetVer = `^${targetTfjsVer}`;
+      if (deps[tfjsTag] != null) {
+        if (deps[tfjsTag] === targetVer) {
+          console.log(`${item}: Already at target version (${targetVer})`);
+        } else {
+          const oldVer = deps[tfjsTag];
+          deps[tfjsTag] = targetVer;
+          fs.writeFileSync(
+              packageJsonPath, JSON.stringify(packageJson, null, 2) + '\n');
+          console.log(`${item}: ${oldVer} --> ${targetVer}`);
+        }
+      }
+    }
+  }
+}

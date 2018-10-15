@@ -29,6 +29,11 @@ export const updateBaselineStatus = (message) => {
   baselineStatusElement.value = message;
 };
 
+const weightsElement = document.getElementById('weights');
+export const updateWeightsStatus = (message) => {
+  weightsElement.value = message;
+};
+
 export const setup = async () => {
   const trainSimpleLinearRegression = document.getElementById('simple-mlr');
   const trainNeuralNetworkLinearRegression1Hidden =
@@ -39,21 +44,21 @@ export const setup = async () => {
   trainSimpleLinearRegression.addEventListener('click', async (e) => {
     const model = linearRegressionModel();
     losses = [];
-    await run(model);
+    await run(model, true);
   }, false);
 
   trainNeuralNetworkLinearRegression1Hidden.addEventListener(
       'click', async () => {
         const model = multiLayerPerceptronRegressionModel1Hidden();
         losses = [];
-        await run(model);
+        await run(model, false);
       }, false);
 
   trainNeuralNetworkLinearRegression2Hidden.addEventListener(
       'click', async () => {
         const model = multiLayerPerceptronRegressionModel2Hidden();
         losses = [];
-        await run(model);
+        await run(model, false);
       }, false);
 };
 

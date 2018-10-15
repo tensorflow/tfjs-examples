@@ -96,6 +96,19 @@ export class BostonHousingDataset {
   }
 }
 
+// 'Short names of each input feature in the data set.
+export const featureNames = [
+  'CRIM', 'ZN', 'INDUS', 'CHAS', 'NOX', 'RM', 'AGE', 'DIS', 'RAD', 'TAX',
+  'PTRATIO', 'LSTAT'
+];
+
+export const featureDescriptions = [
+  'Crime rate', 'Land zone size', 'Industry proportion', 'Next to river',
+  'Nitric oxide concentration', 'Number of rooms', 'Age of units',
+  'Distance to commute', 'Distance to highway', 'Tax rate',
+  'Pupil-teacher ratio', 'Drop-out rate'
+];
+
 /**
  * Shuffles data and target (maintaining alignment) using Fisher-Yates
  * algorithm.flab

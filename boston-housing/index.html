@@ -34,12 +34,19 @@ limitations under the License.
       text-align: center;
     }
 
+    .negativeWeight {
+      color: #cc0000;
+    }
+    .positiveWeight {
+      color: #00aa00;
+    }
+
     #plot {
       width: auto;
       height: auto;
     }
 
-    #weights {
+    #modelInspectionOutput {
       text-align: left;
     }
   </style>
@@ -58,7 +65,8 @@ limitations under the License.
     </div>
     <p></p>
     <div id="modelInspectionOutput">
-      <textarea rows="15" cols="60" readonly="true" id="weightsTextArea"></textarea>
+      <textarea rows="1" cols="60" readonly="true" id="inspectionHeadline"></textarea>
+      <table id="myTable"></table>
     </div>
   </div>
   <script src="index.js"></script>

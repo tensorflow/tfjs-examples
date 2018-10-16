@@ -103,10 +103,10 @@ export const featureNames = [
 ];
 
 export const featureDescriptions = [
-  'Crime rate', 'Land zone size', 'Industry proportion', 'Next to river',
-  'Nitric oxide concentration', 'Number of rooms', 'Age of units',
-  'Distance to commute', 'Distance to highway', 'Tax rate',
-  'Pupil-teacher ratio', 'Drop-out rate'
+  'Crime rate', 'Land zone size', 'Industrial proportion', 'Next to river',
+  'Nitric oxide concentration', 'Number of rooms per house', 'Age of housing',
+  'Distance to commute', 'Distance to highway', 'Tax rate', 'School class size',
+  'School drop-out rate'
 ];
 
 /**

@@ -17,7 +17,7 @@
 
 import * as tf from '@tensorflow/tfjs';
 
-import {BostonHousingDataset} from './data';
+import {BostonHousingDataset, featureDescriptions} from './data';
 import * as normalization from './normalization';
 import * as ui from './ui';
 
@@ -93,24 +93,41 @@ export function multiLayerPerceptronRegressionModel2Hidden() {
     activation: 'sigmoid',
     kernelInitializer: 'leCunNormal'
   }));
-  model.add(tf.layers.dense({
-    units: 50,
-    activation: 'sigmoid',
-    kernelInitializer: 'leCunNormal'
-  }));
+  model.add(tf.layers.dense(
+      {units: 50, activation: 'sigmoid', kernelInitializer: 'leCunNormal'}));
   model.add(tf.layers.dense({units: 1}));
 
   model.summary();
   return model;
 };
 
+
+/**
+ * Describe the current linear weights for a human to read.
+ *
+ * @param {Array} kernel Array of floats of length 12.  One value per feature.
+ * @returns {List} List of objects, each with a string feature name, and value feature weight.
+ */
+export function describeKerenelElements(kernel) {
+  tf.util.assert(
+      kernel.length == 12,
+      `kernel must be a array of length 12, got ${kernel.length}`);
+  const outList = [];
+  for (let idx = 0; idx < kernel.length; idx++) {
+    outList.push({description: featureDescriptions[idx], value: kernel[idx]});
+  }
+  return outList;
+}
+
 /**
  * Compiles `model` and trains it using the train data and runs model against
  * test data. Issues a callback to update the UI after each epcoh.
  *
  * @param {tf.Sequential} model Model to be trained.
+ * @param {boolean} weightsIllustration Whether to print info about the learned
+ *  weights.
  */
-export const run = async (model) => {
+export const run = async (model, weightsIllustration) => {
   await ui.updateStatus('Compiling model...');
   model.compile(
       {optimizer: tf.train.sgd(LEARNING_RATE), loss: 'meanSquaredError'});
@@ -128,6 +145,14 @@ export const run = async (model) => {
         trainLoss = logs.loss;
         valLoss = logs.val_loss;
         await ui.plotData(epoch, trainLoss, valLoss);
+        if (weightsIllustration) {
+          console.log('ping');
+          model.layers[0].kernel.val.data().then(kernelAsArr => {
+            console.log('inner function call');
+            const weightsList = describeKerenelElements(kernelAsArr);
+            ui.updateWeightDescription(weightsList);
+          });
+        }
       }
     }
   });

@@ -146,7 +146,7 @@ export const run = async (model, weightsIllustration) => {
         valLoss = logs.val_loss;
         await ui.plotData(epoch, trainLoss, valLoss);
         if (weightsIllustration) {
-          model.layers[0].kernel.val.data().then(kernelAsArr => {
+          model.layers[0].getWeights()[0].data().then(kernelAsArr => {
             const weightsList = describeKerenelElements(kernelAsArr);
             ui.updateWeightDescription(weightsList);
           });

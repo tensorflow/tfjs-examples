@@ -105,10 +105,13 @@ export function multiLayerPerceptronRegressionModel2Hidden() {
 /**
  * Describe the current linear weights for a human to read.
  *
- * @param {Array} kernel Array of floats of length 11.  One value per feature.
+ * @param {Array} kernel Array of floats of length 12.  One value per feature.
  * @returns {List} List of objects, each with a string feature name, and value feature weight.
  */
-export function linearKernelToWeights(kernel) {
+export function describeKerenelElements(kernel) {
+  tf.util.assert(
+      kernel.length == 12,
+      `kernel must be a array of length 12, got ${kernel.length}`);
   const outList = [];
   for (let idx = 0; idx < kernel.length; idx++) {
     outList.push({description: featureDescriptions[idx], value: kernel[idx]});
@@ -143,9 +146,12 @@ export const run = async (model, weightsIllustration) => {
         valLoss = logs.val_loss;
         await ui.plotData(epoch, trainLoss, valLoss);
         if (weightsIllustration) {
-          const kernelAsArr = model.layers[0].kernel.val.dataSync();
-          const weightsList = linearKernelToWeights(kernelAsArr);
-          ui.updateWeights(weightsList);
+          console.log('ping');
+          model.layers[0].kernel.val.data().then(kernelAsArr => {
+            console.log('inner function call');
+            const weightsList = describeKerenelElements(kernelAsArr);
+            ui.updateWeightDescription(weightsList);
+          });
         }
       }
     }

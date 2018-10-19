@@ -96,12 +96,6 @@ export class BostonHousingDataset {
   }
 }
 
-// 'Short names of each input feature in the data set.
-export const featureNames = [
-  'CRIM', 'ZN', 'INDUS', 'CHAS', 'NOX', 'RM', 'AGE', 'DIS', 'RAD', 'TAX',
-  'PTRATIO', 'LSTAT'
-];
-
 export const featureDescriptions = [
   'Crime rate', 'Land zone size', 'Industrial proportion', 'Next to river',
   'Nitric oxide concentration', 'Number of rooms per house', 'Age of housing',

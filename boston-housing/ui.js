@@ -36,7 +36,8 @@ const NUM_TOP_WEIGHTS_TO_DISPLAY = 5;
  * learned in a simple linear model.
  * @param {List} weightsList list of objects with 'value':number and 'description':string
  */
-export const updateWeights = (weightsList) => {
+export const updateWeightDescription = (weightsList) => {
+  console.log('ping');
   const inspectionHeadlineElement =
       document.getElementById('inspectionHeadline');
   inspectionHeadlineElement.value =

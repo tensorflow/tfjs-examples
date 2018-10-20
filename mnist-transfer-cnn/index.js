@@ -16,6 +16,8 @@
  */
 
 import * as tf from '@tensorflow/tfjs';
+import * as tfVis from '@tensorflow/tfjs-vis';
+
 import * as loader from './loader';
 import * as ui from './ui';
 import * as util from './util';
@@ -108,33 +110,36 @@ class MnistTransferCNNPredictor {
     await tf.nextFrame();
 
     console.log('Freezing feature layers of the model.');
-    for (let i = 0; i < 7; ++i) {
-      this.model.layers[i].trainable = false;
+    const freezeFeatureLayers = ui.checkFreezeFeatureLayers();
+    if (freezeFeatureLayers) {
+      for (let i = 0; i < 7; ++i) {
+        this.model.layers[i].trainable = false;
+      }
     }
     this.model.compile({
       loss: 'categoricalCrossentropy',
-      optimizer: 'Adam',
+      optimizer: tf.train.adam(0.01),
       metrics: ['acc'],
     });
 
     const batchSize = 128;
     const epochs = ui.getEpochs();
 
-    console.log('Retraining model.');
-    const beginMs = performance.now();
-    const history =
-        await this.model.fit(this.gte5TrainData.x, this.gte5TrainData.y, {
-          batchSize: batchSize,
-          epochs: epochs,
-          // TODO(cais): visualize validation results in frontend during
-          //   training. See b/73735367.
-          // validationData: [gte5TestXs, gte5TestYs],
-          callbacks: ui.getProgressBarCallbackConfig(epochs),
-        });
-    console.log(history.history);
-    console.log(
-        'DONE retraining model: elapsed time = ' +
-        (performance.now() - beginMs).toFixed(1) + ' ms');
+    await this.model.fit(this.gte5TrainData.x, this.gte5TrainData.y, {
+      batchSize: batchSize,
+      epochs: epochs,
+      validationData: [this.gte5TestData.x, this.gte5TestData.y],
+      callbacks: [
+        ui.getProgressBarCallbackConfig(epochs),
+        tfVis.show.fitCallbacks(
+            {
+              name: 'Feature layers ' + freezeFeatureLayers ? 'frozen' :
+                                                              'unfrozen',
+              tab: 'Transfer Learning'
+            },
+            ['val_loss', 'val_acc'])
+      ]
+    });
   }
 }
 
@@ -143,13 +148,16 @@ class MnistTransferCNNPredictor {
  * and retrain functions with the UI.
  */
 async function setupMnistTransferCNN() {
+  // Create a tfjs-vis visor, for visualization during training.
+  tfVis.visor();
+
   if (await loader.urlExists(HOSTED_URLS.model)) {
     ui.status('Model available: ' + HOSTED_URLS.model);
     const button = document.getElementById('load-pretrained-remote');
     button.addEventListener('click', async () => {
       const predictor = await new MnistTransferCNNPredictor().init(HOSTED_URLS);
       ui.prepUI(
-          x => predictor.predict(x), x => predictor.retrainModel(),
+          x => predictor.predict(x), () => predictor.retrainModel(),
           predictor.testExamples, predictor.imageSize);
     });
     button.style.display = 'inline-block';
@@ -161,13 +169,13 @@ async function setupMnistTransferCNN() {
     button.addEventListener('click', async () => {
       const predictor = await new MnistTransferCNNPredictor().init(LOCAL_URLS);
       ui.prepUI(
-          x => predictor.predict(x), x => predictor.retrainModel(),
+          x => predictor.predict(x), () => predictor.retrainModel(),
           predictor.testExamples, predictor.imageSize);
     });
     button.style.display = 'inline-block';
   }
 
-  ui.status('Standing by.');
+  ui.status('Standing by. Please load pretrained model first.');
 }
 
 setupMnistTransferCNN();

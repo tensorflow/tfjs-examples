@@ -76,14 +76,21 @@ limitations under the License.
   </div>
 
   <div class="retrain-div">
-      <button class="btn btn-primary" id="retrain"><span>Retrain</span></button>
-      <input class="input" id="epochs" value="5" style="width:3em"></input>
-      <span>epochs</span>
+      <div>
+          <button class="btn btn-primary" id="retrain" disabled="true"><span>Retrain</span></button>
+        <input type="checkbox" id="freeze-feature-layers" checked="true">
+        <span>freeze feature layers</span>
+        <input class="input" id="epochs" value="10" style="width:3em">
+        <span>epochs</span>
+      </div>
+      <div>
+
+      </div>
       <progress id="trainProg" value="0" max="100" style="width:35%"></progress>
-      <span id="status">Standing by.</span>
+      <span id="status"></span>
   </div>
 
-  <select id="test-image-select" class="form-control">
+  <select id="test-image-select" class="form-control" disabled="true">
     <option class="head">Select test example</option>
     <option value="5_1">5_1</option>
     <option value="5_2">5_2</option>

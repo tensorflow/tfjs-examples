@@ -37,7 +37,6 @@ const NUM_TOP_WEIGHTS_TO_DISPLAY = 5;
  * @param {List} weightsList list of objects with 'value':number and 'description':string
  */
 export const updateWeightDescription = (weightsList) => {
-  console.log('ping');
   const inspectionHeadlineElement =
       document.getElementById('inspectionHeadline');
   inspectionHeadlineElement.value =

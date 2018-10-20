@@ -44,6 +44,10 @@ class MnistTransferCNNPredictor {
   async init(urls) {
     this.urls = urls;
     this.model = await loader.loadHostedPretrainedModel(urls.model);
+
+    // Print model summary right after model is loaded.
+    this.model.summary();
+
     this.imageSize = this.model.layers[0].batchInputShape[1];
     this.numClasses = 5;
 
@@ -108,18 +112,41 @@ class MnistTransferCNNPredictor {
         'Please wait and do NOT click anything while the model retrains...',
         'blue');
 
-    const freezeFeatureLayers = ui.checkFreezeFeatureLayers();
-    if (freezeFeatureLayers) {
+    const trainingMode = ui.getTrainingMode();
+    if (trainingMode === 'freeze-feature-layers') {
       console.log('Freezing feature layers of the model.');
       for (let i = 0; i < 7; ++i) {
         this.model.layers[i].trainable = false;
       }
+    } else if (trainingMode === 'reinitialize-weights') {
+      // TODO(cais): Use tf.models.modelFromJSON() once it's available in the
+      //   public API.
+      const oldLayers = this.model.layers;
+      this.model = tf.sequential();
+      for (const layer of oldLayers) {
+        const layerType = layer.getClassName();
+        const layerTypeMap = {
+          'Activation': 'activation',
+          'Conv2D': 'conv2d',
+          'Dense': 'dense',
+          'Dropout': 'dropout',
+          'Flatten': 'flatten',
+          'MaxPooling2D': 'maxPooling2d'
+        };
+        const jsLayerType = layerTypeMap[layerType];
+        this.model.add(tf.layers[jsLayerType](layer.getConfig()));
+      }
+      this.model.summary();
     }
     this.model.compile({
       loss: 'categoricalCrossentropy',
       optimizer: tf.train.adam(0.01),
       metrics: ['acc'],
     });
+
+    // Print model summary again after compile(). You should see a number
+    // of the model's weights have become non-trainable.
+    this.model.summary();
 
     const batchSize = 128;
     const epochs = ui.getEpochs();
@@ -131,11 +158,7 @@ class MnistTransferCNNPredictor {
       callbacks: [
         ui.getProgressBarCallbackConfig(epochs),
         tfVis.show.fitCallbacks(
-            {
-              name: 'Feature layers: ' +
-                  (freezeFeatureLayers ? 'frozen' : 'not frozen'),
-              tab: 'Transfer Learning'
-            },
+            {name: trainingMode, tab: 'Transfer Learning'},
             ['val_loss', 'val_acc'])
       ]
     });

@@ -121,6 +121,6 @@ export function disableLoadModelButtons() {
   document.getElementById('load-pretrained-local').style.display = 'none';
 }
 
-export function checkFreezeFeatureLayers() {
-  return document.getElementById('freeze-feature-layers').checked;
+export function getTrainingMode() {
+  return document.getElementById('training-mode').value;
 }

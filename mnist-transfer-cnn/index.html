@@ -77,11 +77,17 @@ limitations under the License.
 
   <div class="retrain-div">
       <div>
+          <span>Training mode:</span>
+          <select id="training-mode" class="form-control">
+            <option value="freeze-feature-layers">Freeze feature layers</option>
+            <option value="no-freezing">Don't freeze feature layers</option>
+            <option value="reinitialize-weights">Renitialize weights</option>
+          </select>
+
+          <input class="input" id="epochs" value="10" style="width:3em">
+          <span>epochs</span>
+
           <button class="btn btn-primary" id="retrain" disabled="true"><span>Retrain</span></button>
-        <input type="checkbox" id="freeze-feature-layers" checked="true">
-        <span>freeze feature layers</span>
-        <input class="input" id="epochs" value="10" style="width:3em">
-        <span>epochs</span>
       </div>
       <div>
 

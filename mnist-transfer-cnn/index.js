@@ -108,9 +108,9 @@ class MnistTransferCNNPredictor {
         'Please wait and do NOT click anything while the model retrains...',
         'blue');
 
-    console.log('Freezing feature layers of the model.');
     const freezeFeatureLayers = ui.checkFreezeFeatureLayers();
     if (freezeFeatureLayers) {
+      console.log('Freezing feature layers of the model.');
       for (let i = 0; i < 7; ++i) {
         this.model.layers[i].trainable = false;
       }

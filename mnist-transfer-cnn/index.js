@@ -107,7 +107,6 @@ class MnistTransferCNNPredictor {
     ui.status(
         'Please wait and do NOT click anything while the model retrains...',
         'blue');
-    await tf.nextFrame();
 
     console.log('Freezing feature layers of the model.');
     const freezeFeatureLayers = ui.checkFreezeFeatureLayers();
@@ -134,7 +133,7 @@ class MnistTransferCNNPredictor {
         tfVis.show.fitCallbacks(
             {
               name: 'Feature layers: ' +
-                  (freezeFeatureLayers ? 'frozen' : 'unfrozen'),
+                  (freezeFeatureLayers ? 'frozen' : 'not frozen'),
               tab: 'Transfer Learning'
             },
             ['val_loss', 'val_acc'])

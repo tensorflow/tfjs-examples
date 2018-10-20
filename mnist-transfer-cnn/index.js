@@ -133,8 +133,8 @@ class MnistTransferCNNPredictor {
         ui.getProgressBarCallbackConfig(epochs),
         tfVis.show.fitCallbacks(
             {
-              name: 'Feature layers ' + freezeFeatureLayers ? 'frozen' :
-                                                              'unfrozen',
+              name: 'Feature layers: ' +
+                  (freezeFeatureLayers ? 'frozen' : 'unfrozen'),
               tab: 'Transfer Learning'
             },
             ['val_loss', 'val_acc'])

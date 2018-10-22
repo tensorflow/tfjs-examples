@@ -13,7 +13,7 @@ We have following features available in the dataset:
 5. `DOUBLE_SLASH_REDIRECTING`: Whether URL contains double slash redirecting or not. {-1, 1}
 6. `PREFIX_SUFFIX`: Whether URL contains prefix or suffix separated by "-". {-1, 1}
 7. `HAVING_SUB_DOMAIN`: Whether count of sub domains in URL is legitimate, suspicious or phishing. {-1, 0, 1}
-8. `SSLFINAL_STATE`: Whether URL use https and issuer is trused, use https but issuer is not trusted or no https. {-1, 0, 1}
+8. `SSLFINAL_STATE`: Whether URL use https and issuer is trusted, use https but issuer is not trusted or no https. {-1, 0, 1}
 9. `DOMAIN_REGISTERATION_LENGTH`: Whether domain expires in less than a year or not. {-1, 1}
 10. `FAVICON`: Whether favicon is loaded from external domain or not. {-1, 1}
 11. `PORT`: Whether port is of preferred status or not. {-1, 1}

@@ -32,7 +32,7 @@
     "yalc": "~1.0.0-pre.22"
   },
   "dependencies": {
-    "@tensorflow/tfjs-node": "^0.1.17",
+    "@tensorflow/tfjs-node": "^0.1.19",
     "baseball-pitchfx-types": "~0.0.4",
     "node-simple-timer": "~0.0.1",
     "socket.io": "~2.1.0",

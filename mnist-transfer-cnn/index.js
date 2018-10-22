@@ -91,7 +91,7 @@ class MnistTransferCNNPredictor {
       try {
         const image = util.textToImageArray(imageText, this.imageSize);
         const predictOut = this.model.predict(image);
-        const winner = predictOut.argMax();
+        const winner = predictOut.argMax(1);
 
         ui.setPredictResults(predictOut.dataSync(), winner.dataSync()[0] + 5);
       } catch (e) {

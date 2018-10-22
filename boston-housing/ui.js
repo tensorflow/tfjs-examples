@@ -17,7 +17,7 @@
 
 import renderChart from 'vega-embed';
 
-import {linearRegressionModel, multiLayerPerceptronRegressionModel, run} from '.';
+import {linearRegressionModel, multiLayerPerceptronRegressionModel1Hidden, multiLayerPerceptronRegressionModel2Hidden, run} from '.';
 
 const statusElement = document.getElementById('status');
 export const updateStatus = (message) => {
@@ -29,21 +29,66 @@ export const updateBaselineStatus = (message) => {
   baselineStatusElement.value = message;
 };
 
+// const weightsElement = document.getElementById('modelInspectionOutput');
+const NUM_TOP_WEIGHTS_TO_DISPLAY = 5;
+/**
+ * Updates the weights output area to include information about the weights
+ * learned in a simple linear model.
+ * @param {List} weightsList list of objects with 'value':number and 'description':string
+ */
+export const updateWeightDescription = (weightsList) => {
+  const inspectionHeadlineElement =
+      document.getElementById('inspectionHeadline');
+  inspectionHeadlineElement.value =
+      `Top ${NUM_TOP_WEIGHTS_TO_DISPLAY} weights by magnitude`;
+  // Sort weights objects by descending absolute value.
+  weightsList.sort((a, b) => Math.abs(b.value) - Math.abs(a.value));
+  var table = document.getElementById('myTable');
+  // Clear out table contents
+  table.innerHTML = '';
+  // Add new rows to table.
+  weightsList.forEach((weight, i) => {
+    if (i < NUM_TOP_WEIGHTS_TO_DISPLAY) {
+      let row = table.insertRow(-1);
+      let cell1 = row.insertCell(0);
+      let cell2 = row.insertCell(1);
+      if (weight.value < 0) {
+        cell2.setAttribute('class', 'negativeWeight');
+      } else {
+        cell2.setAttribute('class', 'positiveWeight');
+      }
+      cell1.innerHTML = weight.description;
+      cell2.innerHTML = weight.value.toFixed(4);
+    }
+  });
+};
+
 export const setup = async () => {
   const trainSimpleLinearRegression = document.getElementById('simple-mlr');
-  const trainNeuralNetworkLinearRegression = document.getElementById('nn-mlr');
+  const trainNeuralNetworkLinearRegression1Hidden =
+      document.getElementById('nn-mlr-1hidden');
+  const trainNeuralNetworkLinearRegression2Hidden =
+      document.getElementById('nn-mlr-2hidden');
 
   trainSimpleLinearRegression.addEventListener('click', async (e) => {
     const model = linearRegressionModel();
     losses = [];
-    await run(model);
+    await run(model, true);
   }, false);
 
-  trainNeuralNetworkLinearRegression.addEventListener('click', async (e) => {
-    const model = multiLayerPerceptronRegressionModel();
-    losses = [];
-    await run(model);
-  }, false);
+  trainNeuralNetworkLinearRegression1Hidden.addEventListener(
+      'click', async () => {
+        const model = multiLayerPerceptronRegressionModel1Hidden();
+        losses = [];
+        await run(model, false);
+      }, false);
+
+  trainNeuralNetworkLinearRegression2Hidden.addEventListener(
+      'click', async () => {
+        const model = multiLayerPerceptronRegressionModel2Hidden();
+        losses = [];
+        await run(model, false);
+      }, false);
 };
 
 let losses = [];

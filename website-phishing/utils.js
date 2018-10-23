@@ -14,18 +14,20 @@
  * limitations under the License.
  * =============================================================================
  */
-const Papa = require('papaparse');
+import * as tf from '@tensorflow/tfjs';
+import * as Papa from 'papaparse';
 
 const BASE_URL =
-    'https://storage.googleapis.com/tfjs-examples/multivariate-linear-regression/data/';
+    'https://gist.githubusercontent.com/ManrajGrover/6589d3fd3eb9a0719d2a83128741dfc1/raw/d0a86602a87bfe147c240e87e6a9641786cafc19/';
 
 /**
  *
  * @param {Array<Object>} data Downloaded data.
  *
- * @returns {Promise.Array<number[]>} Resolves to data with values parsed as floats.
+ * @returns {Promise.Array<number[]>} Resolves to data with values parsed as
+ *     floats.
  */
-const parseCsv = async (data) => {
+async function parseCsv (data) {
   return new Promise(resolve => {
     data = data.map((row) => {
       return Object.keys(row).sort().map(key => parseFloat(row[key]));
@@ -41,7 +43,7 @@ const parseCsv = async (data) => {
  *
  * @returns {Promise.Array<number[]>} Resolves to parsed csv data.
  */
-export const loadCsv = async (filename) => {
+export async function loadCsv(filename) {
   return new Promise(resolve => {
     const url = `${BASE_URL}${filename}.csv`;
 
@@ -59,7 +61,7 @@ export const loadCsv = async (filename) => {
 /**
  * Shuffles data and label using Fisher-Yates algorithm.
  */
-export const shuffle = (data, label) => {
+export async function shuffle(data, label) {
   let counter = data.length;
   let temp = 0;
   let index = 0;
@@ -84,7 +86,7 @@ export const shuffle = (data, label) => {
  *
  * @returns {number} The arithmetic mean.
  */
-const mean = (vector) => {
+function mean(vector) {
   let sum = 0;
   for (const x of vector) {
     sum += x;
@@ -99,7 +101,7 @@ const mean = (vector) => {
  *
  * @returns {number} The standard deviation.
  */
-const stddev = (vector) => {
+function stddev(vector) {
   let squareSum = 0;
   const vectorMean = mean(vector);
   for (const x of vector) {
@@ -132,8 +134,8 @@ const normalizeVector = (vector, vectorMean, vectorStddev) => {
  * @returns {Object} Contains normalized dataset, mean of each vector column,
  *                   standard deviation of each vector column.
  */
-export const normalizeDataset =
-    (dataset, isTrainData = true, vectorMeans = [], vectorStddevs = []) => {
+export function normalizeDataset(
+    dataset, isTrainData = true, vectorMeans = [], vectorStddevs = []) {
       const numFeatures = dataset[0].length;
       let vectorMean;
       let vectorStddev;
@@ -162,3 +164,24 @@ export const normalizeDataset =
 
       return {dataset, vectorMeans, vectorStddevs};
     };
+
+/**
+ * Binarizes a tensor based on threshold of 0.5.
+ *
+ * @param {tf.Tensor} y Tensor to be binarized.
+ * @param {number} threshold (default: 0.5).
+ * @returns {tf.Tensor} Binarized tensor.
+ */
+export function binarize(y, threshold) {
+  if (threshold == null) {
+    threshold = 0.5;
+  }
+  tf.util.assert(
+      threshold >= 0 && threshold <= 1,
+      `Expected threshold to be >=0 and <=1, but got ${threshold}`);
+
+  return tf.tidy(() => {
+    const condition = y.greater(tf.scalar(threshold));
+    return tf.where(condition, tf.onesLike(y), tf.zerosLike(y));
+  });
+}

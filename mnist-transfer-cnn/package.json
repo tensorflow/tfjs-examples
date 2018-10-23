@@ -9,12 +9,13 @@
     "node": ">=8.9.0"
   },
   "dependencies": {
-    "@tensorflow/tfjs": "^0.12.0",
+    "@tensorflow/tfjs": "^0.13.2",
     "vega-embed": "^3.0.0"
   },
   "scripts": {
     "watch": "./serve.sh",
     "build": "cross-env NODE_ENV=production parcel build index.html  --no-minify --public-url ./",
+    "link-local": "yalc link",
     "postinstall": "yarn upgrade --pattern @tensorflow"
   },
   "devDependencies": {
@@ -25,6 +26,7 @@
     "clang-format": "~1.2.2",
     "cross-env": "^5.1.6",
     "http-server": "~0.10.0",
-    "parcel-bundler": "~1.10.3"
+    "parcel-bundler": "~1.10.3",
+    "yalc": "~1.0.0-pre.22"
   }
 }

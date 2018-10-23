@@ -124,7 +124,6 @@ export class LSTMTextGenerator {
             t = t1;
             onTrainBatchEnd(
                 logs.loss, ++batchCount / totalBatches, examplesPerSec);
-            await tf.nextFrame();
           },
           onEpochEnd: async (epoch, logs) => {
             onTrainEpochEnd(logs.val_loss);

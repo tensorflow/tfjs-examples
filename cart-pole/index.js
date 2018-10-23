@@ -134,13 +134,10 @@ class PolicyNetwork {
 
         await maybeRenderDuringTraining(cartPoleSystem);
 
-        if (isDone || j >= maxStepsPerGame) {
-          if (isDone) {
-            // When the game ends before max step count is reached, a reward of
-            // 0 is given.
-            gameRewards.push(0);
-          }
-          onGameEnd(i + 1, numGames);
+        if (isDone) {
+          // When the game ends before max step count is reached, a reward of
+          // 0 is given.
+          gameRewards.push(0);
           break;
         } else {
           // As long as the game doesn't end, each step leads to a reward of 1.
@@ -149,6 +146,7 @@ class PolicyNetwork {
           gameRewards.push(1);
         }
       }
+      onGameEnd(i + 1, numGames);
       gameSteps.push(gameRewards.length);
       this.pushGradients(allGradients, gameGradients);
       allRewards.push(gameRewards);
@@ -186,7 +184,7 @@ class PolicyNetwork {
       this.currentActions_ = actions.dataSync();
       const labels =
           tf.sub(1, tf.tensor2d(this.currentActions_, actions.shape));
-      return tf.sigmoidCrossEntropyWithLogits(labels, logits).asScalar();
+      return tf.losses.sigmoidCrossEntropy(labels, logits).asScalar();
     });
     return tf.variableGrads(f);
   }

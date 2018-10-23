@@ -17,12 +17,16 @@ limitations under the License.
 
 <html>
   <head>
+    <title>MNIST in TensorFlow.js Layers API</title>
     <link rel="stylesheet" href="https://code.getmdl.io/1.3.0/material.cyan-teal.min.css" />
   </head>
   <body>
     <style>
       #content {
         padding: 15px;
+      }
+      body, input, select, button {
+        font-family: monospace;
       }
       canvas {
         width: 200px;
@@ -51,29 +55,52 @@ limitations under the License.
       }
       .canvases {
         display: inline-block;
-        width: 460px;
+      }
+      .hparam-label {
+        display: inline-block;
+        width: 250px;
       }
     </style>
 
     <div id="content">
       <h3>TensorFlow.js: Train MNIST with the Layers API</h3>
 
-      <div id="status">Loading data...</div>
+      <div>
+        <div>
+          <span class="hparam-label">Model Type:</span>
+          <select id="model-type">
+            <option>ConvNet</option>
+            <option>DenseNet</option>
+          </select>
+        </div>
+
+        <div>
+          <span class="hparam-label"># of training epochs:</span>
+          <input id="train-epochs" value="3">
+        </div>
+
+        <button id="train">Load Data and Train Model</button>
+      </div>
+
+      <div id="status"></div>
       <div id="message"></div>
 
       <div id="stats">
         <div class="canvases">
           <div class="label" id="loss-label"></div>
-          <div id="lossCanvas"></div>
+          <div id="loss-canvas"></div>
         </div>
         <div class="canvases">
           <div class="label" id="accuracy-label"></div>
-          <div id="accuracyCanvas"></div>
+          <div id="accuracy-canvas"></div>
         </div>
       </div>
 
       <div id="images"></div>
     </div>
+
+    <!-- TODO(cais): Decide. DO NOT SUBMIT. -->
+    <!-- <script src="https://cdn.plot.ly/plotly-latest.min.js"></script> -->
     <script src="index.js"></script>
   </body>
 </html>

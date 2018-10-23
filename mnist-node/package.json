@@ -9,9 +9,8 @@
     "node": ">=8.11.0"
   },
   "dependencies": {
-    "@tensorflow/tfjs": "^0.12.1",
-    "@tensorflow/tfjs-node": "^0.1.9",
-    "node-simple-timer": "^0.1.1"
+    "@tensorflow/tfjs-node": "^0.1.19",
+    "argparse": "^1.0.10"
   },
   "scripts": {
     "postinstall": "yarn upgrade --pattern @tensorflow"

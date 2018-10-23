@@ -6,17 +6,13 @@
         "esmodules": false,
         "targets": {
           "browsers": [
-            "> 1%",
-            "last 3 versions",
-            "ie >= 11",
-            "ios >= 10",
-            "android >= 4"
+            "> 3%"
           ]
         }
       }
     ]
   ],
   "plugins": [
-    "transform-runtime"
+    "@babel/plugin-transform-runtime"
   ]
 }

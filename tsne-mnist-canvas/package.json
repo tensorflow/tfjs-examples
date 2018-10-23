@@ -10,8 +10,8 @@
   },
   "dependencies": {
     "@tensorflow/tfjs": "^0.13.2",
-    "d3": "^5.2.0",
-    "@tensorflow/tfjs-tsne": "0.2.0"
+    "@tensorflow/tfjs-tsne": "0.2.0",
+    "d3": "^5.2.0"
   },
   "scripts": {
     "watch": "NODE_ENV=development parcel --no-hmr --open index.html ",
@@ -19,11 +19,12 @@
     "link-local": "yalc link"
   },
   "devDependencies": {
-    "babel-plugin-transform-runtime": "~6.23.0",
-    "babel-polyfill": "~6.26.0",
+    "@babel/core": "^7.0.0-0",
+    "@babel/plugin-transform-runtime": "^7.1.0",
     "babel-preset-env": "~1.6.1",
     "clang-format": "~1.2.2",
-    "parcel-bundler": "~1.6.2",
+    "cross-env": "^5.1.6",
+    "parcel-bundler": "~1.10.3",
     "yalc": "~1.0.0-pre.22"
   }
 }

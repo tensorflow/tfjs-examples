@@ -96,6 +96,13 @@ export class BostonHousingDataset {
   }
 }
 
+export const featureDescriptions = [
+  'Crime rate', 'Land zone size', 'Industrial proportion', 'Next to river',
+  'Nitric oxide concentration', 'Number of rooms per house', 'Age of housing',
+  'Distance to commute', 'Distance to highway', 'Tax rate', 'School class size',
+  'School drop-out rate'
+];
+
 /**
  * Shuffles data and target (maintaining alignment) using Fisher-Yates
  * algorithm.flab

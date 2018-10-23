@@ -30,6 +30,8 @@ export function prepUI(predict, retrain, testExamples, imageSize) {
   imageInput.value = util.imageVectorToText(testExamples['5_1'], imageSize);
   predict(imageInput.value);
   setRetrainFunction(retrain);
+  document.getElementById('retrain').disabled = false;
+  document.getElementById('test-image-select').disabled = false;
 }
 
 export function getImageInput() {
@@ -56,27 +58,36 @@ function setPredictFunction(predict, testExamples, imageSize) {
 
 function setRetrainFunction(retrain) {
   const retrainButton = document.getElementById('retrain');
-  retrainButton.addEventListener('click', async () => retrain());
+  retrainButton.addEventListener('click', async () => {
+    document.getElementById('retrain').disabled = true;
+    await retrain();
+  });
 }
 
 export function getProgressBarCallbackConfig(epochs) {
   // Custom callback for updating the progress bar at the end of epochs.
 
   const trainProg = document.getElementById('trainProg');
+  let beginMillis;
   const progressBarCallbackConfig = {
     onTrainBegin: async (logs) => {
+      beginMillis = tf.util.now();
       status(
           'Please wait and do NOT click anything while the model retrains...',
           'blue');
       trainProg.value = 0;
     },
     onTrainEnd: async (logs) => {
-      status('Done retraining ' + epochs + ' epochs. Standing by.', 'black');
+      status(
+          `Done retraining ${epochs} epochs (elapsed: ` +
+              `${(tf.util.now() - beginMillis).toFixed(1)} ms` +
+              `). Standing by.`,
+          'black');
     },
     onEpochEnd: async (epoch, logs) => {
       status(
-          'Please wait and do NOT click anything while the model retrains... ' +
-          '(Epoch ' + (epoch + 1) + ' of ' + epochs + ')');
+          `Please wait and do NOT click anything while the model ` +
+          `retrains... (Epoch ${epoch + 1} of ${epochs})`);
       trainProg.value = (epoch + 1) / epochs * 100;
     },
   };
@@ -108,4 +119,8 @@ export function setPredictResults(predictOut, winner) {
 export function disableLoadModelButtons() {
   document.getElementById('load-pretrained-remote').style.display = 'none';
   document.getElementById('load-pretrained-local').style.display = 'none';
+}
+
+export function getTrainingMode() {
+  return document.getElementById('training-mode').value;
 }

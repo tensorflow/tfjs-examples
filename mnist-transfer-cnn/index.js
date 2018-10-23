@@ -46,6 +46,7 @@ class MnistTransferCNNPredictor {
     this.model = await loader.loadHostedPretrainedModel(urls.model);
 
     // Print model summary right after model is loaded.
+    // TODO(cais): Use tfVis.show.modelSummary().
     this.model.summary();
 
     this.imageSize = this.model.layers[0].batchInputShape[1];
@@ -136,6 +137,7 @@ class MnistTransferCNNPredictor {
         const jsLayerType = layerTypeMap[layerType];
         this.model.add(tf.layers[jsLayerType](layer.getConfig()));
       }
+      // TODO(cais): Use tfVis.show.modelSummary().
       this.model.summary();
     }
     this.model.compile({

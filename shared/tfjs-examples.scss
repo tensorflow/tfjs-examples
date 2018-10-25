@@ -59,6 +59,10 @@ body {
 @media only screen and (min-device-width : 320px) and (max-device-width : 480px) {
   .with-cols {
     flex-direction: column;
+
+    &>* {
+    flex: auto;
+  }
   }
 
   .tfjs-example-container {
@@ -94,7 +98,7 @@ p.section-head {
   line-height: 1.2em;
   font-weight:500;
   margin-top: 2em;
-  margin-bottom: 0;
+  margin-bottom: 1em;
   border-left: 1px solid #EF6C00;
   padding-left: 24px;
   margin-left: -24px;
@@ -110,7 +114,7 @@ a {
 }
 
 button {
- @extend .mdc-button--outlined;
+ @extend .mdc-button--raised;
  padding: 8px 12px 8px 12px;
  font-size:100%;
 }
@@ -118,6 +122,11 @@ button {
 .btn-primary {
   @extend .mdc-button--raised;
   padding: 8px 12px 8px 12px;
+}
+
+.btn-secondary {
+ @extend .mdc-button--outlined;
+ padding: 8px 12px 8px 12px;
 }
 
 .desc-type {
@@ -148,4 +157,8 @@ button {
 
 .out-example {
   @extend .desc-example;
+}
+
+input {
+  font-size: 100%;
 }

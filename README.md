@@ -21,7 +21,7 @@ to another project.
     <th>Model visualization</th>
     <th>Python source / analog</th>
   <tr>
-    <td>[addition-rnn](./addition-rnn)</td>
+    <td><a href="./addition-rnn">addition-rnn</a></td>
     <td>Text</td>
     <td>Sequence-to-sequence</td>
     <td>RNN: SimpleRNN, GRU and LSTM</td>

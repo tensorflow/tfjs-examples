@@ -77,12 +77,13 @@ body {
 
 h1 {
   margin-top: 0;
-  @extend .mdc-typography--headline2;
+  @extend .mdc-typography--headline3;
+  font-weight: 300;
 }
 
 .subtitle {
   @extend .mdc-typography--headline6;
-  margin-top: -32px;
+  margin-top: -24px;
   font-weight: 400;
 }
 

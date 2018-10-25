@@ -30,10 +30,10 @@ to another project.
     <td>Layers</td>
     <td></td>
     <td>vega-lite: `fit()` monitoring</td>
-    <td>[keras addition_rnn](https://github.com/keras-team/keras/blob/master/examples/addition_rnn.py)</td>
+    <td><a href="https://github.com/keras-team/keras/blob/master/examples/addition_rnn.py">keras addition_rnn</a></td>
   </tr>
   <tr>
-    <td>[baseball-node](./baseball-node)</td>
+    <td><a href="./baseball-node">baseball-node</a></td>
     <td>Numeric</td>
     <td>Multiclass classification</td>
     <td>Multilayer perceptron</td>
@@ -45,7 +45,7 @@ to another project.
     <td></td>
   </tr>
   <tr>
-    <td>[boston-housing](./boston-housing)</td>
+    <td><a href="./boston-housing">boston-housing</a></td>
     <td>Numeric</td>
     <td>Regression</td>
     <td>Multilayer perceptron</td>
@@ -57,7 +57,7 @@ to another project.
     <td></td>
   </tr>
   <tr>
-    <td>[cart-pole](./cart-pole)</td>
+    <td><a href="./cart-pole">cart-pole</a></td>
     <td></td>
     <td>Reinforcement learning</td>
     <td>Policy gradient</td>
@@ -69,7 +69,7 @@ to another project.
     <td></td>
   </tr>
   <tr>
-    <td>[custom-layer](./custom-layer)</td>
+    <td><a href="./custom-layer">custom-layer</a></td>
     <td></td>
     <td>(Illustrates how to define and use a custom Layer subtype)</td>
     <td></td>
@@ -81,7 +81,7 @@ to another project.
     <td></td>
   </tr>
   <tr>
-    <td>[iris](./iris)</td>
+    <td><a href="./iris">iris</a></td>
     <td>Numeric</td>
     <td>Multiclass classification</td>
     <td>Multilayer perceptron</td>
@@ -93,7 +93,7 @@ to another project.
     <td></td>
   </tr>
   <tr>
-    <td>[lstm-text-generation](./lstm-text-generation)</td>
+    <td><a href="./lstm-text-generation">lstm-text-generation</a></td>
     <td>Text</td>
     <td>Sequent-to-prediction</td>
     <td>RNN: LSTM</td>
@@ -102,10 +102,10 @@ to another project.
     <td>Layers</td>
     <td>IndexedDB</td>
     <td>vega-lite: `fit()` monitoring</td>
-    <td>[keras lstm_text_generation](https://github.com/keras-team/keras/blob/master/examples/lstm_text_generation.py)</td>
+    <td><a href="https://github.com/keras-team/keras/blob/master/examples/lstm_text_generation.py">keras lstm_text_generation]</a></td>
   </tr>
   <tr>
-    <td>[mnist](./mnist)</td>
+    <td><a href="./mnist">mnist</a></td>
     <td>Image</td>
     <td>Multiclass classification</td>
     <td>Convolutional neural network</td>
@@ -114,10 +114,10 @@ to another project.
     <td>Layers</td>
     <td></td>
     <td>vega-lite: `fit()` monitoring</td>
-    <td>[keras mnist_cnn](https://github.com/keras-team/keras/blob/master/examples/mnist_cnn.py)</td>
+    <td><a href="https://github.com/keras-team/keras/blob/master/examples/mnist_cnn.py">keras mnist_cnn</a></td>
   </tr>
   <tr>
-    <td>[mnist-core](./mnist-core)</td>
+    <td><a href="./mnist-core">mnist-core</a></td>
     <td>Image</td>
     <td>Multiclass classification</td>
     <td>Convolutional neural network</td>
@@ -129,7 +129,7 @@ to another project.
     <td></td>
   </tr>
   <tr>
-    <td>[mnist-node](./mnist-node)</td>
+    <td><a href="./mnist-node">mnist-node</a></td>
     <td>Image</td>
     <td>Multiclass classification</td>
     <td>Convolutional neural network</td>
@@ -141,7 +141,7 @@ to another project.
     <td></td>
   </tr>
   <tr>
-    <td>[mnist-transfer-cnn](./mnist-transfer-cnn)</td>
+    <td><a href="./mnist-transfer-cnn">mnist-transfer-cnn</a></td>
     <td>Image</td>
     <td>Multiclass classification (transfer learning)</td>
     <td>Convolutional neural network</td>
@@ -149,11 +149,15 @@ to another project.
     <td>Browser</td>
     <td>Layers</td>
     <td>Loading pretrained model</td>
-    <td>[tfjs-vis](https://github.com/tensorflow/tfjs-vis)</td>
-    <td>[keras mnist_transfer_cnn](https://github.com/keras-team/keras/blob/master/examples/mnist_transfer_cnn.py)</td>
+    <td><a href="https://github.com/tensorflow/tfjs-vis">tfjs-vis</a></td>
+    <td>
+      <a href="https://github.com/keras-team/keras/blob/master/examples/mnist_transfer_cnn.py">
+        keras mnist_transfer_cnnn
+      </a>
+    </td>
   </tr>
   <tr>
-    <td>[mobilenet](./mobilenet)</td>
+    <td><a href="./mobilenet">mobilenet</a></td>
     <td>Image</td>
     <td>Multiclass classification</td>
     <td>Convolutional neural network</td>
@@ -162,10 +166,10 @@ to another project.
     <td>Layers</td>
     <td>Loading pretrained model</td>
     <td></td>
-    <td>[keras mobilenet](https://keras.io/applications/#mobilenet)</td>
+    <td><a href="https://keras.io/applications/#mobilenet">keras mobilenet application</a></td>
   </tr>
   <tr>
-    <td>[polynomial-regression](./polynomial-regression)</td>
+    <td><a href="./polinomial-regression">polinomial-regression</a></td>
     <td>Numeric</td>
     <td>Regression</td>
     <td>Shallow neural network</td>
@@ -177,7 +181,7 @@ to another project.
     <td></td>
   </tr>
   <tr>
-    <td>[polynomial-regression-core](./polynomial-regression-core)</td>
+    <td><a href="./polinomial-regression-core">polinomial-regression-core</a></td>
     <td>Numeric</td>
     <td>Regression</td>
     <td>Shallow neural network</td>
@@ -189,7 +193,7 @@ to another project.
     <td></td>
   </tr>
   <tr>
-    <td>[sentiment](./sentiment)</td>
+    <td><a href="./sentiment">sentiment</a></td>
     <td>Text</td>
     <td>Sequent-to-regression</td>
     <td>LSTM, 1D convnet</td>
@@ -198,10 +202,17 @@ to another project.
     <td>Layers</td>
     <td>Loading model converted from Keras</td>
     <td></td>
-    <td>[keras imdb_bidirectional_lstm](https://github.com/keras-team/keras/blob/master/examples/imdb_bidirectional_lstm.py), [keras imdb_cnn](https://github.com/keras-team/keras/blob/master/examples/imdb_cnn.py)</td>
+    <td>
+      <a href="https://github.com/keras-team/keras/blob/master/examples/imdb_bidirectional_lstm.py">
+        keras imdb_bidirectional_lstm
+      </a>
+      <a href="https://github.com/keras-team/keras/blob/master/examples/imdb_cnn.py">
+        keras imdb_cnn
+      </a>
+    </td>
   </tr>
   <tr>
-    <td>[translation](./translation)</td>
+    <td><a href="./translation">translation</a></td>
     <td>Text</td>
     <td>Sequence-to-sequence</td>
     <td>LSTM encoder and decoder</td>
@@ -210,10 +221,10 @@ to another project.
     <td>Layers</td>
     <td>Loading model converted from Keras</td>
     <td></td>
-    <td>[keras lstm_seq2seq](https://github.com/keras-team/keras/blob/master/examples/lstm_seq2seq.py)</td>
+    <td><a href="https://github.com/keras-team/keras/blob/master/examples/lstm_seq2seq.py">keras lstm_seq2seq</a></td>
   </tr>
   <tr>
-    <td>[tsne-mnist-canvas](./tsne-mnist-canvas)</td>
+    <td><a href="./tsne-mnist-canvas">tsne-mnist-canvas</a></td>
     <td></td>
     <td>Dimension reduction and data visualization</td>
     <td>tSNE</td>
@@ -225,7 +236,7 @@ to another project.
     <td></td>
   </tr>
   <tr>
-    <td>[webcam-transfer-learning](./webcam-transfer-learning)</td>
+    <td><a href="./webcam-transfer-learning">webcam-transfer-learning</a></td>
     <td>Image</td>
     <td>Multiclass classification (transfer learning)</td>
     <td>Convolutional neural network</td>
@@ -237,7 +248,7 @@ to another project.
     <td></td>
   </tr>
   <tr>
-    <td>[website-phishing](./website-phishing)</td>
+    <td><a href="./website-phishing">website-phishing</a></td>
     <td>Numeric</td>
     <td>Binary classification</td>
     <td>Multilayer perceptron</td>

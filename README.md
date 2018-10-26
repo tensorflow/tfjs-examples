@@ -29,8 +29,6 @@ to another project.
     <td>Browser</td>
     <td>Layers</td>
     <td></td>
-    <td>vega-lite: `fit()` monitoring</td>
-    <td><a href="https://github.com/keras-team/keras/blob/master/examples/addition_rnn.py">keras addition_rnn</a></td>
   </tr>
   <tr>
     <td><a href="./baseball-node">baseball-node</a></td>
@@ -41,8 +39,6 @@ to another project.
     <td>Node.js</td>
     <td>Node.js</td>
     <td>Layers</td>
-    <td></td>
-    <td></td>
     <td></td>
   </tr>
   <tr>
@@ -55,8 +51,6 @@ to another project.
     <td>Browser</td>
     <td>Layers</td>
     <td></td>
-    <td>vega-lite: `fit()` monitoring</td>
-    <td></td>
   </tr>
   <tr>
     <td><a href="./cart-pole">cart-pole</a></td>
@@ -68,8 +62,6 @@ to another project.
     <td>Browser</td>
     <td>Layers</td>
     <td>IndexedDB</td>
-    <td></td>
-    <td></td>
   </tr>
   <tr>
     <td><a href="./custom-layer">custom-layer</a></td>
@@ -80,8 +72,6 @@ to another project.
     <td></td>
     <td>Browser</td>
     <td>Layers</td>
-    <td></td>
-    <td></td>
     <td></td>
   </tr>
   <tr>

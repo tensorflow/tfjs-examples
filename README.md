@@ -11,6 +11,7 @@ to another project.
 <table>
   <tr>
     <th>Example name</th>
+    <th>Demo link</th>
     <th>Input data type</th>
     <th>Task type</th>
     <th>Model type</th>
@@ -18,10 +19,9 @@ to another project.
     <th>Inference</th>
     <th>API type</th>
     <th>Save-load operations</th>
-    <th>Model visualization</th>
-    <th>Python source / analog</th>
   <tr>
     <td><a href="./addition-rnn">addition-rnn</a></td>
+    <td><a href="https://storage.googleapis.com/tfjs-examples/addition-rnn/dist/index.html">Link</a></td>
     <td>Text</td>
     <td>Sequence-to-sequence</td>
     <td>RNN: SimpleRNN, GRU and LSTM</td>
@@ -34,6 +34,7 @@ to another project.
   </tr>
   <tr>
     <td><a href="./baseball-node">baseball-node</a></td>
+    <td></td>
     <td>Numeric</td>
     <td>Multiclass classification</td>
     <td>Multilayer perceptron</td>
@@ -46,6 +47,7 @@ to another project.
   </tr>
   <tr>
     <td><a href="./boston-housing">boston-housing</a></td>
+    <td><a href="https://storage.googleapis.com/tfjs-examples/boston-housing/dist/index.html">Link</a></td>
     <td>Numeric</td>
     <td>Regression</td>
     <td>Multilayer perceptron</td>
@@ -58,6 +60,7 @@ to another project.
   </tr>
   <tr>
     <td><a href="./cart-pole">cart-pole</a></td>
+    <td><a href="https://storage.googleapis.com/tfjs-examples/cart-pole/dist/index.html">Link</a></td>
     <td></td>
     <td>Reinforcement learning</td>
     <td>Policy gradient</td>
@@ -70,6 +73,7 @@ to another project.
   </tr>
   <tr>
     <td><a href="./custom-layer">custom-layer</a></td>
+    <td><a href="https://storage.googleapis.com/tfjs-examples/custom-layer/dist/index.html">Link</a></td>
     <td></td>
     <td>(Illustrates how to define and use a custom Layer subtype)</td>
     <td></td>
@@ -82,18 +86,18 @@ to another project.
   </tr>
   <tr>
     <td><a href="./iris">iris</a></td>
+    <td><a href="https://storage.googleapis.com/tfjs-examples/iris/dist/index.html">Link</a></td>
     <td>Numeric</td>
     <td>Multiclass classification</td>
     <td>Multilayer perceptron</td>
     <td>Browser</td>
     <td>Browser</td>
     <td>Layers</td>
-    <td>IndexedDB; Loading model converted from Kras</td>
-    <td>vega-lite: `fit()` monitoring</td>
     <td></td>
   </tr>
   <tr>
     <td><a href="./lstm-text-generation">lstm-text-generation</a></td>
+    <td><a href="https://storage.googleapis.com/tfjs-examples/lstm-text-generation/dist/index.html">🔗</a></td>
     <td>Text</td>
     <td>Sequent-to-prediction</td>
     <td>RNN: LSTM</td>
@@ -101,11 +105,10 @@ to another project.
     <td>Browser</td>
     <td>Layers</td>
     <td>IndexedDB</td>
-    <td>vega-lite: `fit()` monitoring</td>
-    <td><a href="https://github.com/keras-team/keras/blob/master/examples/lstm_text_generation.py">keras lstm_text_generation]</a></td>
   </tr>
   <tr>
     <td><a href="./mnist">mnist</a></td>
+    <td><a href="https://storage.googleapis.com/tfjs-examples/mnist/dist/index.html">Link</a></td>
     <td>Image</td>
     <td>Multiclass classification</td>
     <td>Convolutional neural network</td>
@@ -113,11 +116,10 @@ to another project.
     <td>Browser</td>
     <td>Layers</td>
     <td></td>
-    <td>vega-lite: `fit()` monitoring</td>
-    <td><a href="https://github.com/keras-team/keras/blob/master/examples/mnist_cnn.py">keras mnist_cnn</a></td>
   </tr>
   <tr>
     <td><a href="./mnist-core">mnist-core</a></td>
+    <td><a href="https://storage.googleapis.com/tfjs-examples/mnist-core/dist/index.html">Link</a></td>
     <td>Image</td>
     <td>Multiclass classification</td>
     <td>Convolutional neural network</td>
@@ -125,11 +127,10 @@ to another project.
     <td>Browser</td>
     <td>Core (Ops)</td>
     <td></td>
-    <td></td>
-    <td></td>
   </tr>
   <tr>
     <td><a href="./mnist-node">mnist-node</a></td>
+    <td></td>
     <td>Image</td>
     <td>Multiclass classification</td>
     <td>Convolutional neural network</td>
@@ -137,11 +138,10 @@ to another project.
     <td>Node.js</td>
     <td>Layers</td>
     <td>Saving to filesystem</td>
-    <td></td>
-    <td></td>
   </tr>
   <tr>
     <td><a href="./mnist-transfer-cnn">mnist-transfer-cnn</a></td>
+    <td><a href="https://storage.googleapis.com/tfjs-examples/mnist-transfer-cnn/dist/index.html">Link</a></td>
     <td>Image</td>
     <td>Multiclass classification (transfer learning)</td>
     <td>Convolutional neural network</td>
@@ -149,15 +149,10 @@ to another project.
     <td>Browser</td>
     <td>Layers</td>
     <td>Loading pretrained model</td>
-    <td><a href="https://github.com/tensorflow/tfjs-vis">tfjs-vis</a></td>
-    <td>
-      <a href="https://github.com/keras-team/keras/blob/master/examples/mnist_transfer_cnn.py">
-        keras mnist_transfer_cnnn
-      </a>
-    </td>
   </tr>
   <tr>
     <td><a href="./mobilenet">mobilenet</a></td>
+    <td><a href="https://storage.googleapis.com/tfjs-examples/mobilenet/dist/index.html">Link</a></td>
     <td>Image</td>
     <td>Multiclass classification</td>
     <td>Convolutional neural network</td>
@@ -165,11 +160,10 @@ to another project.
     <td>Browser</td>
     <td>Layers</td>
     <td>Loading pretrained model</td>
-    <td></td>
-    <td><a href="https://keras.io/applications/#mobilenet">keras mobilenet application</a></td>
   </tr>
   <tr>
     <td><a href="./polinomial-regression">polinomial-regression</a></td>
+    <td><a href="https://storage.googleapis.com/tfjs-examples/polynomial-regression/dist/index.html">Link</a></td>
     <td>Numeric</td>
     <td>Regression</td>
     <td>Shallow neural network</td>
@@ -177,11 +171,10 @@ to another project.
     <td>Browser</td>
     <td>Layers</td>
     <td></td>
-    <td></td>
-    <td></td>
   </tr>
   <tr>
     <td><a href="./polinomial-regression-core">polinomial-regression-core</a></td>
+    <td><a href="https://storage.googleapis.com/tfjs-examples/polynomial-regression-core/dist/index.html">Link</a></td>
     <td>Numeric</td>
     <td>Regression</td>
     <td>Shallow neural network</td>
@@ -189,30 +182,21 @@ to another project.
     <td>Browser</td>
     <td>Core (Ops)</td>
     <td></td>
-    <td></td>
-    <td></td>
   </tr>
   <tr>
     <td><a href="./sentiment">sentiment</a></td>
+    <td><a href="https://storage.googleapis.com/tfjs-examples/sentiment/dist/index.html">Link</a></td>
     <td>Text</td>
-    <td>Sequent-to-regression</td>
+    <td>Sequence-to-regression</td>
     <td>LSTM, 1D convnet</td>
     <td></td>
     <td>Browser</td>
     <td>Layers</td>
     <td>Loading model converted from Keras</td>
-    <td></td>
-    <td>
-      <a href="https://github.com/keras-team/keras/blob/master/examples/imdb_bidirectional_lstm.py">
-        keras imdb_bidirectional_lstm
-      </a>
-      <a href="https://github.com/keras-team/keras/blob/master/examples/imdb_cnn.py">
-        keras imdb_cnn
-      </a>
-    </td>
   </tr>
   <tr>
     <td><a href="./translation">translation</a></td>
+    <td><a href="https://storage.googleapis.com/tfjs-examples/translation/dist/index.html">Link</a></td>
     <td>Text</td>
     <td>Sequence-to-sequence</td>
     <td>LSTM encoder and decoder</td>
@@ -220,11 +204,10 @@ to another project.
     <td>Browser</td>
     <td>Layers</td>
     <td>Loading model converted from Keras</td>
-    <td></td>
-    <td><a href="https://github.com/keras-team/keras/blob/master/examples/lstm_seq2seq.py">keras lstm_seq2seq</a></td>
   </tr>
   <tr>
     <td><a href="./tsne-mnist-canvas">tsne-mnist-canvas</a></td>
+    <td></td>
     <td></td>
     <td>Dimension reduction and data visualization</td>
     <td>tSNE</td>
@@ -232,11 +215,10 @@ to another project.
     <td>Browser</td>
     <td>Core (Ops)</td>
     <td></td>
-    <td></td>
-    <td></td>
   </tr>
   <tr>
     <td><a href="./webcam-transfer-learning">webcam-transfer-learning</a></td>
+    <td><a href="https://storage.googleapis.com/tfjs-examples/webcam-transfer-learning/dist/index.html">Link</a></td>
     <td>Image</td>
     <td>Multiclass classification (transfer learning)</td>
     <td>Convolutional neural network</td>
@@ -244,19 +226,16 @@ to another project.
     <td>Browser</td>
     <td>Layers</td>
     <td>Loading pretrained model</td>
-    <td></td>
-    <td></td>
   </tr>
   <tr>
     <td><a href="./website-phishing">website-phishing</a></td>
+    <td></td>
     <td>Numeric</td>
     <td>Binary classification</td>
     <td>Multilayer perceptron</td>
     <td>Browser</td>
     <td>Browser</td>
     <td>Layers</td>
-    <td></td>
-    <td>vega-lite: `fit()` monitoring</td>
     <td></td>
   </tr>
 </table>

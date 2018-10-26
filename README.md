@@ -8,7 +8,7 @@ to another project.
 
 # Overview of Examples
 
-<table style="font-size: 85%;">
+<table>
   <tr>
     <th>Example name</th>
     <th>Demo link</th>

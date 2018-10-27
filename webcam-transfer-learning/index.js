@@ -31,7 +31,7 @@ const webcam = new Webcam(document.getElementById('webcam'));
 // The dataset object where we will store activations.
 const controllerDataset = new ControllerDataset(NUM_CLASSES);
 
-let mobilenetBase;
+let decapitatedMobilenet;
 let model;
 
 // Loads mobilenet and returns a model that returns the internal activation
@@ -51,7 +51,7 @@ async function loadDecapitatedMobilenet() {
 ui.setExampleHandler(label => {
   tf.tidy(() => {
     const img = webcam.capture();
-    controllerDataset.addExample(mobilenetBase.predict(img), label);
+    controllerDataset.addExample(decapitatedMobilenet.predict(img), label);
 
     // Draw the preview thumbnail.
     ui.drawThumb(img, label);
@@ -134,7 +134,7 @@ async function predict() {
 
       // Make a prediction through mobilenet, getting the internal activation of
       // the mobilenet model.
-      const activation = mobilenetBase.predict(img);
+      const activation = decapitatedMobilenet.predict(img);
 
       // Make a prediction through our newly-trained model using the activation
       // from mobilenet as input.
@@ -173,12 +173,12 @@ async function init() {
   } catch (e) {
     document.getElementById('no-webcam').style.display = 'block';
   }
-  mobilenetBase = await loadDecapitatedMobilenet();
+  decapitatedMobilenet = await loadDecapitatedMobilenet();
 
   // Warm up the model. This uploads weights to the GPU and compiles the WebGL
   // programs so the first time we collect data from the webcam it will be
   // quick.
-  tf.tidy(() => mobilenetBase.predict(webcam.capture()));
+  tf.tidy(() => decapitatedMobilenet.predict(webcam.capture()));
 
   ui.init();
 }

@@ -74,8 +74,10 @@ async function train() {
       // Flattens the input to a vector so we can use it in a dense layer. While
       // technically a layer, this only performs a reshape (and has no training
       // parameters).
-      tf.layers.flatten({inputShape: [7, 7, 256]}),
-      // Layer 1
+      tf.layers.flatten({
+        inputShape: decapitatedMobilenet.outputs[0].shape.slice(1)
+      }),
+      // Layer 1.
       tf.layers.dense({
         units: ui.getDenseUnits(),
         activation: 'relu',

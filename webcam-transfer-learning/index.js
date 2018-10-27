@@ -36,7 +36,7 @@ let model;
 
 // Loads mobilenet and returns a model that returns the internal activation
 // we'll use as input to our classifier model.
-async function loadMobilenet() {
+async function loadDecapitatedMobilenet() {
   const mobilenet = await tf.loadModel(
       'https://storage.googleapis.com/tfjs-models/tfjs/mobilenet_v1_0.25_224/model.json');
 
@@ -173,7 +173,7 @@ async function init() {
   } catch (e) {
     document.getElementById('no-webcam').style.display = 'block';
   }
-  mobilenetBase = await loadMobilenet();
+  mobilenetBase = await loadDecapitatedMobilenet();
 
   // Warm up the model. This uploads weights to the GPU and compiles the WebGL
   // programs so the first time we collect data from the webcam it will be

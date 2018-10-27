@@ -42,10 +42,6 @@ async function loadMobilenet() {
 
   // Return a model that outputs an internal activation.
   const layer = mobilenet.getLayer('conv_pw_13_relu');
-  console.log('outputs:');  // DEBUG
-  console.log(layer.outputs);
-  console.log('output:');  // DEBUG
-  console.log(layer.output);
   return tf.model({inputs: mobilenet.inputs, outputs: layer.output});
 }
 

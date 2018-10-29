@@ -9,7 +9,7 @@
     "node": ">=8.9.0"
   },
   "dependencies": {
-    "@tensorflow/tfjs": "^0.13.2",
+    "@tensorflow/tfjs": "^0.13.3",
     "@tensorflow/tfjs-tsne": "0.2.0",
     "d3": "^5.2.0"
   },

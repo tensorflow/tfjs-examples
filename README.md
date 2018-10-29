@@ -152,7 +152,7 @@ to another project.
     <td>Loading pretrained model</td>
   </tr>
   <tr>
-    <td><a href="./polinomial-regression">polinomial-regression</a></td>
+    <td><a href="./polynomial-regression">polynomial-regression</a></td>
     <td><a href="https://storage.googleapis.com/tfjs-examples/polynomial-regression/dist/index.html">🔗</a></td>
     <td>Numeric</td>
     <td>Regression</td>
@@ -163,7 +163,7 @@ to another project.
     <td></td>
   </tr>
   <tr>
-    <td><a href="./polinomial-regression-core">polinomial-regression-core</a></td>
+    <td><a href="./polynomial-regression-core">polynomial-regression-core</a></td>
     <td><a href="https://storage.googleapis.com/tfjs-examples/polynomial-regression-core/dist/index.html">🔗</a></td>
     <td>Numeric</td>
     <td>Regression</td>

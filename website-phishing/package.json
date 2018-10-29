@@ -9,7 +9,7 @@
     "node": ">=8.9.0"
   },
   "dependencies": {
-    "@tensorflow/tfjs": "^0.13.2",
+    "@tensorflow/tfjs": "^0.13.3",
     "papaparse": "^4.5.0",
     "vega-embed": "^3.18.1",
     "vega-lite": "^2.3.1"
@@ -19,11 +19,11 @@
     "build": "cross-env NODE_ENV=production parcel build index.html --no-minify --public-url ./"
   },
   "devDependencies": {
-    "babel-plugin-transform-runtime": "~6.23.0",
-    "babel-polyfill": "~6.26.0",
+    "@babel/core": "^7.0.0-0",
+    "@babel/plugin-transform-runtime": "^7.1.0",
     "babel-preset-env": "~1.6.1",
     "clang-format": "~1.2.2",
     "cross-env": "^5.1.6",
-    "parcel-bundler": "~1.8.1"
+    "parcel-bundler": "~1.10.3"
   }
 }

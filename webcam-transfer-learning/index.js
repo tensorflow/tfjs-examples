@@ -31,12 +31,12 @@ const webcam = new Webcam(document.getElementById('webcam'));
 // The dataset object where we will store activations.
 const controllerDataset = new ControllerDataset(NUM_CLASSES);
 
-let mobilenet;
+let decapitatedMobilenet;
 let model;
 
 // Loads mobilenet and returns a model that returns the internal activation
 // we'll use as input to our classifier model.
-async function loadMobilenet() {
+async function loadDecapitatedMobilenet() {
   const mobilenet = await tf.loadModel(
       'https://storage.googleapis.com/tfjs-models/tfjs/mobilenet_v1_0.25_224/model.json');
 
@@ -51,7 +51,7 @@ async function loadMobilenet() {
 ui.setExampleHandler(label => {
   tf.tidy(() => {
     const img = webcam.capture();
-    controllerDataset.addExample(mobilenet.predict(img), label);
+    controllerDataset.addExample(decapitatedMobilenet.predict(img), label);
 
     // Draw the preview thumbnail.
     ui.drawThumb(img, label);
@@ -74,8 +74,10 @@ async function train() {
       // Flattens the input to a vector so we can use it in a dense layer. While
       // technically a layer, this only performs a reshape (and has no training
       // parameters).
-      tf.layers.flatten({inputShape: [7, 7, 256]}),
-      // Layer 1
+      tf.layers.flatten({
+        inputShape: decapitatedMobilenet.outputs[0].shape.slice(1)
+      }),
+      // Layer 1.
       tf.layers.dense({
         units: ui.getDenseUnits(),
         activation: 'relu',
@@ -133,12 +135,12 @@ async function predict() {
       const img = webcam.capture();
 
       // Make a prediction through mobilenet, getting the internal activation of
-      // the mobilenet model.
-      const activation = mobilenet.predict(img);
+      // the mobilenet model, i.e., "embeddings" of the input images.
+      const embeddings = decapitatedMobilenet.predict(img);
 
-      // Make a prediction through our newly-trained model using the activation
+      // Make a prediction through our newly-trained model using the embeddings
       // from mobilenet as input.
-      const predictions = model.predict(activation);
+      const predictions = model.predict(embeddings);
 
       // Returns the index with the maximum probability. This number corresponds
       // to the class the model thinks is the most probable given the input.
@@ -173,12 +175,12 @@ async function init() {
   } catch (e) {
     document.getElementById('no-webcam').style.display = 'block';
   }
-  mobilenet = await loadMobilenet();
+  decapitatedMobilenet = await loadDecapitatedMobilenet();
 
   // Warm up the model. This uploads weights to the GPU and compiles the WebGL
   // programs so the first time we collect data from the webcam it will be
   // quick.
-  tf.tidy(() => mobilenet.predict(webcam.capture()));
+  tf.tidy(() => decapitatedMobilenet.predict(webcam.capture()));
 
   ui.init();
 }

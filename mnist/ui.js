@@ -16,7 +16,6 @@
  */
 
 import * as tfvis from '@tensorflow/tfjs-vis';
-import Plotly from 'plotly.js-dist';
 
 const statusElement = document.getElementById('status');
 const messageElement = document.getElementById('message');

@@ -728,7 +728,7 @@
     preact "^8.2.9"
     vega-embed "^3.18.2"
 
-"@tensorflow/tfjs@^0.13.2":
+"@tensorflow/tfjs@^0.13.3":
   version "0.13.3"
   resolved "https://registry.yarnpkg.com/@tensorflow/tfjs/-/tfjs-0.13.3.tgz#a44ce32ada34e464d8c596cee10695e0a0ebb5de"
   dependencies:

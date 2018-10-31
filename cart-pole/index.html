@@ -67,24 +67,39 @@ limitations under the License.
         <p>This example illustrates how to use TensorFlow.js to perform simple
           <a href="https://en.wikipedia.org/wiki/Reinforcement_learning">reinforcement learning</a> (RL).
           Specifically, it showcases an implementation of the policy-gradient method in TensorFlow.js.
-          This implementation is used to solve the classic cart-pole control problem, which was originally proposed in:
-          <ul>
-            <li>Barto, Sutton, and Anderson, <em>"Neuronlike Adaptive Elements That Can Solve
-                Difficult Learning Control Problems,"</em> IEEE Trans. Syst., Man, Cybern.,
-              Vol. SMC-13, pp. 834--846, Sept.--Oct. 1983
-            </li>
-            <li>
-              Sutton, <em>"Temporal Aspects of Credit Assignment in Reinforcement Learning"</em>,
-              Ph.D. Dissertation, Department of Computer and Information Science,
-              University of Massachusetts, Amherst, 1984.
-            </li>
-          </ul>
+          This implementation is used to solve the classic <a href="https://en.wikipedia.org/wiki/Inverted_pendulum">cart-pole
+            control problem.</a>
+        </p>
+
+        <p>
+          Through <span class='in-type'>self play</span> the agent will learn to balance
+          the pole for as many <span class=out-example>steps</span> as it can.
         </p>
       </section>
 
       <section>
         <p class='section-head'>Instructions</p>
         <p></p>
+        <ul>
+          <li>
+            Choose a hidden layer size and click "Create Model".
+          </li>
+          <li>
+            Select training parameters and then click "Train".
+          </li>
+          <li>
+            Note that while the model is training it periodically saves a copy of itself
+            to local browser storage, this mean you can refresh the page and continue training
+            from the last save point. If at any point you want to start training from scratch, click
+            "Delete stored Model".
+          </li>
+          <li>
+            Once the model has finished training you can click "Test" to see how many 'steps' the agent
+            can balance the pole for. You can also click 'Stop' to pause the training after the current iteration
+            ends if you want to test the model sooner.
+          </li>
+          <li>During training and testing a small simulation of the agent behaviour will be rendered.</li>
+        </ul>
       </section>
 
       <section>

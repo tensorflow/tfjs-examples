@@ -257,14 +257,17 @@ class AdditionRNNDemo {
   async train(iterations, batchSize, numTestExamples) {
     const lossValues = [[], []];
     const accuracyValues = [[], []];
-
     for (let i = 0; i < iterations; ++i) {
+      const beginMs = performance.now();
       const history = await this.model.fit(this.trainXs, this.trainYs, {
         epochs: 1,
         batchSize,
         validationData: [this.testXs, this.testYs],
         yieldEvery: 'epoch'
       });
+
+      const elapsedMs = performance.now() - beginMs;
+      const modelFitTime = elapsedMs / 1000;
 
       const trainLoss = history.history['loss'][0];
       const trainAccuracy = history.history['acc'][0];
@@ -277,7 +280,8 @@ class AdditionRNNDemo {
       accuracyValues[0].push({'x': i, 'y': trainAccuracy});
       accuracyValues[1].push({'x': i, 'y': valAccuracy});
 
-      document.getElementById('trainStatus').textContent = `Iteration ${i}: `;
+      document.getElementById('trainStatus').textContent = `Iteration ${i} of ${
+          iterations}: Model fit time ${modelFitTime.toFixed(6)} (seconds)`;
       const lossContainer = document.getElementById('lossChart');
       tfvis.render.linechart(
           {values: lossValues, series: ['train', 'validation']}, lossContainer,
@@ -326,7 +330,7 @@ class AdditionRNNDemo {
 
       const examplesDiv = document.getElementById('testExamples');
       const examplesContent = examples.map(
-          (example) =>
+          (example, i) =>
               `<div class="${
                   isCorrect[i] ? 'answer-correct' : 'answer-wrong'}">` +
               `${example}` +

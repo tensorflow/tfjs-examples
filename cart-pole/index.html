@@ -53,6 +53,13 @@ limitations under the License.
     button {
       max-width: 300px;
     }
+
+    .note {
+      font-size: 80%;
+      font-style: italic;
+      display: inline-block;
+      margin-left: 15px;
+    }
   </style>
 
   <body>
@@ -152,6 +159,7 @@ limitations under the License.
             <div class="input-div">
               <label class="input-label">Render during training:</label>
               <input type="checkbox" id="render-during-training" />
+              <span class="note">Uncheck me to speed up training.</span>
             </div>
 
             <div class="buttons-section">

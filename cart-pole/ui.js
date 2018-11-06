@@ -16,6 +16,7 @@
  */
 
 import * as tf from '@tensorflow/tfjs';
+import * as tfvis from '@tensorflow/tfjs-vis';
 import embed from 'vega-embed';
 
 import {CartPole} from './cart_pole';
@@ -45,6 +46,8 @@ const trainStatus = document.getElementById('train-status');
 const trainSpeed = document.getElementById('train-speed');
 const trainProgress = document.getElementById('train-progress');
 
+const stepsContainer = document.getElementById('steps-container');
+
 // Module-global instance of policy network.
 let policyNet;
 let stopRequested = false;
@@ -59,7 +62,7 @@ function logStatus(message) {
 }
 
 // Objects and functions to support display of cart pole status during training.
-let renderDuringTraining = false;
+let renderDuringTraining = true;
 export async function maybeRenderDuringTraining(cartPole) {
   if (renderDuringTraining) {
     renderCartPole(cartPole, cartPoleCanvas);
@@ -99,18 +102,12 @@ function onIterationEnd(iterationCount, totalIterations) {
 // Objects and function to support the plotting of game steps during training.
 let meanStepValues = [];
 function plotSteps() {
-  embed(
-      '#steps-canvas', {
-        '$schema': 'https://vega.github.io/schema/vega-lite/v2.json',
-        'data': {'values': meanStepValues},
-        'mark': 'line',
-        'encoding': {
-          'x': {'field': 'iteration', 'type': 'ordinal'},
-          'y': {'field': 'meanSteps', 'type': 'quantitative'},
-        },
-        'width': 300,
-      },
-      {});
+  tfvis.render.linechart({values: meanStepValues}, stepsContainer, {
+    xLabel: 'Training Iteration',
+    yLabel: 'Mean Steps Per Game',
+    width: 400,
+    height: 300,
+  });
 }
 
 function disableModelControls() {
@@ -163,8 +160,9 @@ function renderCartPole(cartPole, canvas) {
   for (const offsetX of [-1, 1]) {
     context.beginPath();
     context.lineWidth = 2;
-    context.arc(cartX - cartW / 4 * offsetX, railY + cartH / 2 + wheelRadius,
-                wheelRadius, 0, 2 * Math.PI);
+    context.arc(
+        cartX - cartW / 4 * offsetX, railY + cartH / 2 + wheelRadius,
+        wheelRadius, 0, 2 * Math.PI);
     context.stroke();
   }
 
@@ -223,8 +221,7 @@ async function updateUIControlState() {
     deleteStoredModelButton.disabled = true;
 
   } else {
-    storedModelStatusInput.value =
-        `Saved@${modelInfo.dateSaved.toISOString()}`;
+    storedModelStatusInput.value = `Saved@${modelInfo.dateSaved.toISOString()}`;
     deleteStoredModelButton.disabled = false;
     createModelButton.disabled = true;
   }
@@ -320,7 +317,7 @@ export async function setUpUI() {
           const stepsPerSecond = sum(gameSteps) / ((t1 - t0) / 1e3);
           t0 = t1;
           trainSpeed.textContent = `${stepsPerSecond.toFixed(1)} steps/s`
-          meanStepValues.push({iteration: i + 1, meanSteps: mean(gameSteps)});
+          meanStepValues.push({x: i + 1, y: mean(gameSteps)});
           console.log(`# of tensors: ${tf.memory().numTensors}`);
           plotSteps();
           onIterationEnd(i + 1, trainIterations);

@@ -16,83 +16,136 @@ limitations under the License.
 -->
 
 <!doctype html>
+
 <head>
-  <link rel="stylesheet" href="https://code.getmdl.io/1.3.0/material.cyan-teal.min.css" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="../shared/tfjs-examples.css" />
 </head>
 
 <style>
-  body {
-    font-family: "Roboto", "Helvetica", "Arial", sans-serif;
-    margin-top: 50px;
-    margin-left: 50px;
-  }
   .setting {
-    padding-bottom: 6px;
+    padding: 6px;
   }
+
+  #trainModel {
+    margin-top: 12px;
+  }
+
   .setting-label {
     display: inline-block;
     width: 12em;
   }
+
   .answer-correct {
     color: green;
   }
+
   .answer-wrong {
     color: red;
-  }
-  .canvases {
-    display: inline-block;
   }
 </style>
 
 <body>
-  <h1>TensorFlow.js: Addition RNN</h1>
-  <div>
+  <div class='tfjs-example-container centered-container'>
+    <section class='title-area'>
+      <h1>TensorFlow.js: Addition RNN</h1>
+      <p class='subtitle'>Train a model to learn addition by example</p>
+    </section>
+    <section>
+      <p class='section-head'>Description</p>
+      <p>
+        This example trains a <a href="https://en.wikipedia.org/wiki/Recurrent_neural_network">Recurrent Neural Network</a>
+        to do addition without explicitly defining the addition operator. Instead
+        we feed it examples of sums and let it learn from that.
+      </p>
+      <p>
+        Given a <span class='in-type'>string</span> like
+        <span class='in-example'>3 + 4</span>, it will learn to output
+        a <span class='out-type'>number</span>
+        like <span class=out-example>7</span>.
+      </p>
+      <p>
+        This example generates it's own training data programatically.
+      </p>
+    </section>
+
     <div>
-      <div class="setting">
-        <span class="setting-label">Digits:</span>
-        <input id="digits" value="2"></input>
+      <section>
+        <p class='section-head'>Instructions</p>
+        <p>
+          Click the "Train Model" to start the model training button. You can edit the
+          parameters used to train the model as well.
+        </p>
+      </section>
+
+      <div class="controls with-rows">
+        <div class="settings">
+          <div class="setting">
+            <span class="setting-label">Digits:</span>
+            <input id="digits" value="2"></input>
+          </div>
+          <div class="setting">
+            <span class="setting-label">Training Size:</span>
+            <input id="trainingSize" value="5000"></input>
+          </div>
+          <div class="setting">
+            <span class="setting-label">RNN Type:</span>
+            <select id="rnnType">
+              <option value="SimpleRNN">SimpleRNN</option>
+              <option value="GRU">GRU</option>
+              <option value="LSTM">LSTM</option>
+            </select>
+          </div>
+          <div class="setting">
+            <span class="setting-label">RNN Layers:</span>
+            <input id="rnnLayers" value="1"></input>
+          </div>
+          <div class="setting">
+            <span class="setting-label">RNN Hidden Layer Size:</span>
+            <input id="rnnLayerSize" value="128"></input>
+          </div>
+          <div class="setting">
+            <span class="setting-label">Batch Size:</span>
+            <input id="batchSize" value="128"></input>
+          </div>
+          <div class="setting">
+            <span class="setting-label">Train Iterations:</span>
+            <input id="trainIterations" value="100"></input>
+          </div>
+          <div class="setting">
+            <span class="setting-label"># of test examples:</span>
+            <input id="numTestExamples" value="20"></input>
+          </div>
+        </div>
+
+        <div>
+          <span>
+            <button class="btn-primary" id="trainModel">Train Model</button>
+          </span>
+        </div>
       </div>
-      <div class="setting">
-        <span class="setting-label">Training Size:</span>
-        <input id="trainingSize" value="5000"></input>
-      </div>
-      <div class="setting">
-        <span class="setting-label">RNN Type:</span>
-        <select id="rnnType">
-          <option value="SimpleRNN">SimpleRNN</option>
-          <option value="GRU">GRU</option>
-          <option value="LSTM">LSTM</option>
-        </select>
-      </div>
-      <div class="setting">
-        <span class="setting-label">RNN Layers:</span>
-        <input id="rnnLayers" value="1"></input>
-      </div>
-      <div class="setting">
-        <span class="setting-label">RNN Hidden Layer Size:</span>
-        <input id="rnnLayerSize" value="128"></input>
-      </div>
-      <div class="setting">
-        <span class="setting-label">Batch Size:</span>
-        <input id="batchSize" value="128"></input>
-      </div>
-      <div class="setting">
-        <span class="setting-label">Train Iterations:</span>
-        <input id="trainIterations" value="100"></input>
-      </div>
-      <div class="setting">
-        <span class="setting-label"># of test examples:</span>
-        <input id="numTestExamples" value="20"></input>
-      </div>
+
+
+      <section>
+        <p class='section-head'>Training Progress</p>
+        <p id="trainStatus"></p>
+        <div class='with-cols'>
+          <div id="lossChart"></div>
+          <div id="accuracyChart"></div>
+          <!-- <div id="examplesPerSecCanvas"></div> -->
+        </div>
+      </section>
+
+      <section>
+        <p class='section-head'>Test Examples</p>
+        <p id="testExamples"></p>
+      </section>
+
+
+
+
     </div>
-    <button id="trainModel">Train Model</button>
-    <div id="trainStatus"></div>
-    <div>
-      <div class="canvases" id="lossCanvas"></div>
-      <div class="canvases" id="accuracyCanvas"></div>
-      <div class="canvases" id="examplesPerSecCanvas"></div>
-    </div>
-    <div id="testExamples"></div>
   </div>
 
 </body>

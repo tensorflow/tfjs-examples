@@ -23,7 +23,7 @@
  */
 
 import * as tf from '@tensorflow/tfjs';
-import embed from 'vega-embed';
+import * as tfvis from '@tensorflow/tfjs-vis';
 
 class CharacterTable {
   /**
@@ -255,9 +255,8 @@ class AdditionRNNDemo {
   }
 
   async train(iterations, batchSize, numTestExamples) {
-    const lossValues = [];
-    const accuracyValues = [];
-    const examplesPerSecValues = [];
+    const lossValues = [[], []];
+    const accuracyValues = [[], []];
     for (let i = 0; i < iterations; ++i) {
       const beginMs = performance.now();
       const history = await this.model.fit(this.trainXs, this.trainYs, {
@@ -266,64 +265,42 @@ class AdditionRNNDemo {
         validationData: [this.testXs, this.testYs],
         yieldEvery: 'epoch'
       });
+
       const elapsedMs = performance.now() - beginMs;
-      const examplesPerSec = this.testXs.shape[0] / (elapsedMs / 1000);
+      const modelFitTime = elapsedMs / 1000;
+
       const trainLoss = history.history['loss'][0];
       const trainAccuracy = history.history['acc'][0];
       const valLoss = history.history['val_loss'][0];
       const valAccuracy = history.history['val_acc'][0];
-      document.getElementById('trainStatus').textContent =
-          `Iteration ${i}: train loss = ${trainLoss.toFixed(6)}; ` +
-          `train accuracy = ${trainAccuracy.toFixed(6)}; ` +
-          `validation loss = ${valLoss.toFixed(6)}; ` +
-          `validation accuracy = ${valAccuracy.toFixed(6)} ` +
-          `(${examplesPerSec.toFixed(1)} examples/s)`;
 
-      lossValues.push({'epoch': i, 'loss': trainLoss, 'set': 'train'});
-      lossValues.push({'epoch': i, 'loss': valLoss, 'set': 'validation'});
-      embed(
-          '#lossCanvas', {
-            '$schema': 'https://vega.github.io/schema/vega-lite/v2.json',
-            'data': {'values': lossValues},
-            'mark': 'line',
-            'encoding': {
-              'x': {'field': 'epoch', 'type': 'ordinal'},
-              'y': {'field': 'loss', 'type': 'quantitative'},
-              'color': {'field': 'set', 'type': 'nominal'},
-            },
-            'width': 400,
-          },
-          {});
-      accuracyValues.push(
-          {'epoch': i, 'accuracy': trainAccuracy, 'set': 'train'});
-      accuracyValues.push(
-          {'epoch': i, 'accuracy': valAccuracy, 'set': 'validation'});
-      embed(
-          '#accuracyCanvas', {
-            '$schema': 'https://vega.github.io/schema/vega-lite/v2.json',
-            'data': {'values': accuracyValues},
-            'mark': 'line',
-            'encoding': {
-              'x': {'field': 'epoch', 'type': 'ordinal'},
-              'y': {'field': 'accuracy', 'type': 'quantitative'},
-              'color': {'field': 'set', 'type': 'nominal'},
-            },
-            'width': 400,
-          },
-          {});
-      examplesPerSecValues.push({'epoch': i, 'examples/s': examplesPerSec});
-      embed(
-          '#examplesPerSecCanvas', {
-            '$schema': 'https://vega.github.io/schema/vega-lite/v2.json',
-            'data': {'values': examplesPerSecValues},
-            'mark': 'line',
-            'encoding': {
-              'x': {'field': 'epoch', 'type': 'ordinal'},
-              'y': {'field': 'examples/s', 'type': 'quantitative'},
-            },
-            'width': 400,
-          },
-          {});
+      lossValues[0].push({'x': i, 'y': trainLoss});
+      lossValues[1].push({'x': i, 'y': valLoss});
+
+      accuracyValues[0].push({'x': i, 'y': trainAccuracy});
+      accuracyValues[1].push({'x': i, 'y': valAccuracy});
+
+      document.getElementById('trainStatus').textContent = `Iteration ${i} of ${
+          iterations}: Model fit time ${modelFitTime.toFixed(6)} (seconds)`;
+      const lossContainer = document.getElementById('lossChart');
+      tfvis.render.linechart(
+          {values: lossValues, series: ['train', 'validation']}, lossContainer,
+          {
+            width: 420,
+            height: 300,
+            xLabel: 'epoch',
+            yLabel: 'loss',
+          });
+
+      const accuracyContainer = document.getElementById('accuracyChart');
+      tfvis.render.linechart(
+          {values: accuracyValues, series: ['train', 'validation']},
+          accuracyContainer, {
+            width: 420,
+            height: 300,
+            xLabel: 'epoch',
+            yLabel: 'accuracy',
+          });
 
       if (this.testXsForDisplay == null ||
           this.testXsForDisplay.shape[0] !== numTestExamples) {
@@ -352,15 +329,14 @@ class AdditionRNNDemo {
       });
 
       const examplesDiv = document.getElementById('testExamples');
-      while (examplesDiv.firstChild) {
-        examplesDiv.removeChild(examplesDiv.firstChild);
-      }
-      for (let i = 0; i < examples.length; ++i) {
-        const exampleDiv = document.createElement('div');
-        exampleDiv.textContent = examples[i];
-        exampleDiv.className = isCorrect[i] ? 'answer-correct' : 'answer-wrong';
-        examplesDiv.appendChild(exampleDiv);
-      }
+      const examplesContent = examples.map(
+          (example, i) =>
+              `<div class="${
+                  isCorrect[i] ? 'answer-correct' : 'answer-wrong'}">` +
+              `${example}` +
+              `</div>`);
+
+      examplesDiv.innerHTML = examplesContent.join('\n');
     }
   }
 }

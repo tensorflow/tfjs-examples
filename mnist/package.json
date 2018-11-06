@@ -10,7 +10,7 @@
   },
   "dependencies": {
     "@tensorflow/tfjs": "^0.13.3",
-    "plotly.js-dist": "^1.39.4"
+    "@tensorflow/tfjs-vis": "^0.2.0"
   },
   "scripts": {
     "watch": "cross-env NODE_ENV=development parcel index.html --no-hmr --open",

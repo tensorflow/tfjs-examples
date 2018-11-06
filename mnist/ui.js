@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import Plotly from 'plotly.js-dist';
+import * as tfvis from '@tensorflow/tfjs-vis';
 
 const statusElement = document.getElementById('status');
 const messageElement = document.getElementById('message');
@@ -32,7 +32,7 @@ export function trainingLog(message) {
 
 export function showTestResults(batch, predictions, labels) {
   const testExamples = batch.xs.shape[0];
-  let totalCorrect = 0;
+  imagesElement.innerHTML = '';
   for (let i = 0; i < testExamples; i++) {
     const image = batch.xs.slice([i, 0], [1, batch.xs.shape[1]]);
 
@@ -61,64 +61,33 @@ export function showTestResults(batch, predictions, labels) {
 
 const lossLabelElement = document.getElementById('loss-label');
 const accuracyLabelElement = document.getElementById('accuracy-label');
-
-const lossValues = {
-  train: {
-    x: [],
-    y: [],
-    name: 'train',
-    mode: 'lines',
-    line: {width: 1}
-  },
-  validation: {
-    x: [],
-    y: [],
-    name: 'validation',
-    mode: 'lines+markers',
-    line: {width: 3}
-  }
-};
+const lossValues = [[], []];
 export function plotLoss(batch, loss, set) {
-  lossValues[set].x.push(batch);
-  lossValues[set].y.push(loss);
-  Plotly.newPlot('loss-canvas', [lossValues.train, lossValues.validation], {
-    width: 480,
-    xaxis: {title: 'batch #'},
-    yaxis: {title: 'loss'},
-    font: {size: 18}
-  });
+  const series = set === 'train' ? 0 : 1;
+  lossValues[series].push({x: batch, y: loss});
+  const lossContainer = document.getElementById('loss-canvas');
+  tfvis.render.linechart(
+      {values: lossValues, series: ['train', 'validation']}, lossContainer, {
+        xLabel: 'Batch #',
+        yLabel: 'Loss',
+        width: 400,
+        height: 300,
+      });
   lossLabelElement.innerText = `last loss: ${loss.toFixed(3)}`;
 }
 
-const accuracyValues = {
-  train: {
-    x: [],
-    y: [],
-    name: 'train',
-    mode: 'lines',
-    line: {width: 1}
-  },
-  validation: {
-    x: [],
-    y: [],
-    name: 'validation',
-    mode: 'lines+markers',
-    line: {width: 3}
-  }
-};
+const accuracyValues = [[], []];
 export function plotAccuracy(batch, accuracy, set) {
-  accuracyValues[set].x.push(batch);
-  accuracyValues[set].y.push(accuracy);
-  Plotly.newPlot(
-      'accuracy-canvas',
-      [accuracyValues.train, accuracyValues.validation], {
-        width: 480,
-        xaxis: {title: 'batch #'},
-        yaxis: {
-          title: 'accuracy',
-          range: [0, 1]
-        },
-        font: {size: 18}
+  const accuracyContainer = document.getElementById('accuracy-canvas');
+  const series = set === 'train' ? 0 : 1;
+  accuracyValues[series].push({x: batch, y: accuracy});
+  tfvis.render.linechart(
+      {values: accuracyValues, series: ['train', 'validation']},
+      accuracyContainer, {
+        xLabel: 'Batch #',
+        yLabel: 'Loss',
+        width: 400,
+        height: 300,
       });
   accuracyLabelElement.innerText =
       `last accuracy: ${(accuracy * 100).toFixed(1)}%`;

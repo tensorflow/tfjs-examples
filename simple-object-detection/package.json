@@ -9,7 +9,7 @@
     "node": ">=8.9.0"
   },
   "dependencies": {
-    "@tensorflow/tfjs-node-gpu": "0.1.19",
+    "@tensorflow/tfjs-node": "0.1.19",
     "canvas": "2.0.1",
     "node-fetch": "2.2.1",
     "vega": "^4.3.0",

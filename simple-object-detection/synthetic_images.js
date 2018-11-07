@@ -63,12 +63,15 @@ class ObjectDetectionImageSynthesizer {
     this.canvas = canvas;
     tf = tensorFlow;
 
+    // Min and max of circles' radii.
     this.CIRCLE_RADIUS_MIN = 5;
     this.CIRCLE_RADIUS_MAX = 20;
+    // Min and max of rectangle side lengths.
     this.RECTANGLE_SIDE_MIN = 40;
     this.RECTANGLE_SIDE_MAX = 100;
-    this.SIDE_MIN = 50;
-    this.SIDE_MAX = 100;
+    // Min and max of triangle side lengths.
+    this.TRIANGLE_SIDE_MIN = 50;
+    this.TRIANGLE_SIDE_MAX = 100;
   }
 
   /**
@@ -90,6 +93,9 @@ class ObjectDetectionImageSynthesizer {
    *     [left, right, top, bottom], in the unit of pixels.
    */
   async generateExample(numCircles, numLines, triangleProbability = 0.5) {
+    // TODO(cais): Maybe make it so that the target object isn't always
+    //   drawn the last and hence on top of all the background objects.
+
     if (triangleProbability == null) {
       triangleProbability = 0.5;
     }
@@ -165,7 +171,7 @@ class ObjectDetectionImageSynthesizer {
       // The distance from the center of the triangle to any of the three
       // vertices.
       const side =
-          this.SIDE_MIN + (this.SIDE_MAX - this.SIDE_MIN) * Math.random();
+          this.TRIANGLE_SIDE_MIN + (this.TRIANGLE_SIDE_MAX - this.TRIANGLE_SIDE_MIN) * Math.random();
       const centerX = (w - side) * Math.random() + (side / 2);
       const centerY = (h - side) * Math.random() + (side / 2);
       const ctrToVertex = side / 2 / Math.cos(30 / 180 * Math.PI);

@@ -21,16 +21,17 @@ const synthesizer = require('./synthetic_images');
 const fetch = require('node-fetch');
 require('@tensorflow/tfjs-node');
 
+// For http/https model loading with tf.loadModel.
 global.fetch = fetch;
 
 // Name prefixes of layers that will be unfrozen during fine-tuning.
 const topLayerGroupNames = ['conv_pw_10', 'conv_pw_11'];
 
-// Name of the layer that will become the top layer of the decapitated base.
+// Name of the layer that will become the top layer of the truncated base.
 const topLayerName =
     `${topLayerGroupNames[topLayerGroupNames.length - 1]}_relu`;
 
-const classLossMultiplier = tf.scalar(1000);
+const classLossMultiplier = tf.scalar(500);
 
 /**
  * Custom loss function for object detection.
@@ -41,8 +42,15 @@ const classLossMultiplier = tf.scalar(1000);
  *   approximatey.
  * - bounding-box loss, computed as the meanSquaredError between the
  *   true and predicted bounding boxes.
- * @param {*} yTrue
- * @param {*} yPred
+ * @param {*} yTrue The true labels as a Tensor of shape [numExamples, 5]
+ *   and dtype float32.
+ *   The first column is assumed to be the 0-1 indicator for whether the
+ *   object is a triangle (0) or a rectangle (1).
+ *   The remaining columsn are assumed to be the bounding boxes (left, right,
+ *   top, and bottom, in that order).
+ * @param {*} yPred The predicted labels as a Tensor of the shape shape and
+ *   dtype as `yTrue`. The assumed format of the tensor is the same as that of
+ *   `yTrue` as well.
  */
 function customLossFunction(yTrue, yPred) {
   return tf.tidy(() => {
@@ -71,21 +79,21 @@ function customLossFunction(yTrue, yPred) {
 
 /**
  * Loads MobileNet and removes the top part.
- * 
+ *
  * Also gets handles to the layers that will be unfrozen during the fine-tuning
  * phase of the training.
  */
-async function loadDecapitatedMobilenet() {
+async function loadTruncatedMobilenet() {
   const mobilenet = await tf.loadModel(
       'https://storage.googleapis.com/tfjs-models/tfjs/mobilenet_v1_0.25_224/model.json');
 
   // Return a model that outputs an internal activation.
   const fineTuningLayers = [];
   const layer = mobilenet.getLayer(topLayerName);
-  const decapitatedBase =
+  const truncatedBase =
       tf.model({inputs: mobilenet.inputs, outputs: layer.output});
   // Freeze the model's layers.
-  for (const layer of decapitatedBase.layers) {
+  for (const layer of truncatedBase.layers) {
     layer.trainable = false;
     for (const groupName of topLayerGroupNames) {
       if (layer.name.indexOf(groupName) === 0) {
@@ -98,24 +106,37 @@ async function loadDecapitatedMobilenet() {
   tf.util.assert(
       fineTuningLayers.length > 1,
       `Did not find any layers that match the prefixes ${topLayerGroupNames}`);
-  return {decapitatedBase, fineTuningLayers};
+  return {truncatedBase, fineTuningLayers};
+}
+
+/**
+ * Build a new head (i.e., output sub-model) that will be connected to
+ * the top of the truncated base for object detection.
+ * 
+ * @param {tf.Shape} inputShape Input shape of the new model.
+ */
+function buildNewHead(inputShape) {
+  const newHead = tf.sequential();
+  newHead.add(tf.layers.flatten({inputShape}));
+  newHead.add(tf.layers.dense({units: 200, activation: 'relu'}));
+  newHead.add(tf.layers.dense({units: 5, kernelInitializer}));
+  return newHead;
 }
 
 /**
  * Builds object-detection model from MobileNet.
  */
 async function buildObjectDetectionModel() {
-  const {decapitatedBase, fineTuningLayers} = await loadDecapitatedMobilenet();
+  const {truncatedBase, fineTuningLayers} = await loadTruncatedMobilenet();
 
   // Build the new head model.
-  const newHead = tf.sequential();
-  newHead.add(tf.layers.flatten(
-      {inputShape: decapitatedBase.outputs[0].shape.slice(1)}));
-  newHead.add(tf.layers.dense(
-      {units: 200, activation: 'relu', kernelInitializer: 'leCunNormal'}));
-  newHead.add(tf.layers.dense({units: 5, kernelInitializer: 'leCunNormal'}));
-  const newOutput = newHead.apply(decapitatedBase.outputs[0]);
-  const model = tf.model({inputs: decapitatedBase.inputs, outputs: newOutput});
+  const newHead = buildNewHead(truncatedBase.outputs[0].shape.slice(1));
+
+  // Connect the new head model with the truncated base model.
+  const newOutput = newHead.apply(truncatedBase.outputs[0]);
+
+  // Construct the end-to-end model for object detection.
+  const model = tf.model({inputs: truncatedBase.inputs, outputs: newOutput});
 
   return {model, fineTuningLayers};
 }

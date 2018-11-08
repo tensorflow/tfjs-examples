@@ -23,7 +23,7 @@ const canvas = require('canvas');
 const tf = require('@tensorflow/tfjs');
 const synthesizer = require('./synthetic_images');
 const fetch = require('node-fetch');
-require('@tensorflow/tfjs-node-gpu');
+require('@tensorflow/tfjs-node');
 
 global.fetch = fetch;
 
@@ -206,7 +206,7 @@ async function buildObjectDetectionModel() {
   console.log('Phase 2 of 2: fine-tuning phase');
   await model.fit(images, targets, {
     epochs: args.fineTuningEpochs,
-    batchSize: arg.batchSize / 2,
+    batchSize: args.batchSize / 2,
     validationSplit: args.validationSplit
   });
 

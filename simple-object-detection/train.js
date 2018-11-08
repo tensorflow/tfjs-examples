@@ -102,7 +102,21 @@ async function loadDecapitatedMobilenet() {
   tf.util.assert(
       fineTuningLayers.length > 1,
       `Did not find any layers that match the prefixes ${topLayerGroupNames}`);
-  return {decapitatedBase, fineTuningLayers};
+  return {truncatedBase, fineTuningLayers};
+}
+
+/**
+ * Build a new head (i.e., output sub-model) that will be connected to
+ * the top of the truncated base for object detection.
+ *
+ * @param {tf.Shape} inputShape Input shape of the new model.
+ */
+function buildNewHead(inputShape) {
+  const newHead = tf.sequential();
+  newHead.add(tf.layers.flatten({inputShape}));
+  newHead.add(tf.layers.dense({units: 200, activation: 'relu'}));
+  newHead.add(tf.layers.dense({units: 5, kernelInitializer}));
+  return newHead;
 }
 
 /**
@@ -112,12 +126,7 @@ async function buildObjectDetectionModel() {
   const {decapitatedBase, fineTuningLayers} = await loadDecapitatedMobilenet();
 
   // Build the new head model.
-  const newHead = tf.sequential();
-  newHead.add(tf.layers.flatten(
-      {inputShape: decapitatedBase.outputs[0].shape.slice(1)}));
-  newHead.add(tf.layers.dense(
-      {units: 200, activation: 'relu', kernelInitializer: 'leCunNormal'}));
-  newHead.add(tf.layers.dense({units: 5, kernelInitializer: 'leCunNormal'}));
+  const newHead = buildNewHead(decapitatedBase.outputs[0].shape.slice(1));
   const newOutput = newHead.apply(decapitatedBase.outputs[0]);
   const model = tf.model({inputs: decapitatedBase.inputs, outputs: newOutput});
 

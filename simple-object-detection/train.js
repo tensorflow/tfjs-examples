@@ -31,7 +31,7 @@ const topLayerGroupNames = ['conv_pw_10', 'conv_pw_11'];
 const topLayerName =
     `${topLayerGroupNames[topLayerGroupNames.length - 1]}_relu`;
 
-const classLossMultiplier = tf.scalar(500);
+const classLossMultiplier = tf.scalar(100);
 
 /**
  * Custom loss function for object detection.
@@ -112,7 +112,7 @@ async function loadTruncatedMobilenet() {
 /**
  * Build a new head (i.e., output sub-model) that will be connected to
  * the top of the truncated base for object detection.
- * 
+ *
  * @param {tf.Shape} inputShape Input shape of the new model.
  */
 function buildNewHead(inputShape) {

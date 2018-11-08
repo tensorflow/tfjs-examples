@@ -110,6 +110,7 @@ async function loadTruncatedBase() {
  * the top of the truncated base for object detection.
  *
  * @param {tf.Shape} inputShape Input shape of the new model.
+ * @returns {tf.Model} The new head model.
  */
 function buildNewHead(inputShape) {
   const newHead = tf.sequential();
@@ -121,6 +122,10 @@ function buildNewHead(inputShape) {
 
 /**
  * Builds object-detection model from MobileNet.
+ *
+ * @returns {[tf.Model, tf.layers.Layer[]]}
+ *   1. The newly-built model for simple object detection.
+ *   2. The layers that can be unfrozen during fine-tuning.
  */
 async function buildObjectDetectionModel() {
   const {truncatedBase, fineTuningLayers} = await loadTruncatedBase();

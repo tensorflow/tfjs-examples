@@ -23,7 +23,7 @@ const canvas = require('canvas');
 const tf = require('@tensorflow/tfjs');
 const synthesizer = require('./synthetic_images');
 const fetch = require('node-fetch');
-require('@tensorflow/tfjs-node');
+require('@tensorflow/tfjs-node-gpu');
 
 global.fetch = fetch;
 
@@ -36,7 +36,10 @@ const topLayerGroupNames = ['conv_pw_9', 'conv_pw_10', 'conv_pw_11'];
 const topLayerName =
     `${topLayerGroupNames[topLayerGroupNames.length - 1]}_relu`;
 
-const labelMultiplier = tf.tensor1d([CANVAS_SIZE, 1, 1, 1, 1]);
+// Used to scale the first column (0-1 shape indicator) of `yTrue`
+// in order to ensure balanced contributions to the final loss value
+// from shape and bounding-box predictions.
+const LABEL_MULTIPLIER = tf.tensor1d([CANVAS_SIZE, 1, 1, 1, 1]);
 
 /**
  * Custom loss function for object detection.
@@ -47,21 +50,32 @@ const labelMultiplier = tf.tensor1d([CANVAS_SIZE, 1, 1, 1, 1]);
  *   approximatey.
  * - bounding-box loss, computed as the meanSquaredError between the
  *   true and predicted bounding boxes.
- * @param {tf.Tensor} yTrue True labels.
- * @param {tf.Tensor} yPred Predicted labels.
+ * @param {tf.Tensor} yTrue True labels. Shape: [batchSize, 5].
+ *   The first column is a 0-1 indicator for whether the shape is a triangle
+ *   (0) or a rectangle (1). The remaining for columns are the bounding boxes
+ *   for the target shape: [left, right, top, bottom], in unit of pixels.
+ *   The bounding box values are in the range [0, CANVAS_SIZE).
+ * @param {tf.Tensor} yPred Predicted labels. Shape: the same as `yTrue`.
  * @return {tf.Tensor} Loss scalar.
  */
 function customLossFunction(yTrue, yPred) {
   return tf.tidy(() => {
-    return tf.metrics.meanSquaredError(yTrue.mul(labelMultiplier), yPred);
+    // Scale the the first column (0-1 shape indicator) of `yTrue` in order
+    // to ensure balanced contributions to the final loss value
+    // from shape and bounding-box predictions.
+    return tf.metrics.meanSquaredError(yTrue.mul(LABEL_MULTIPLIER), yPred);
   });
 }
 
 /**
- * Loads MobileNet and removes the top part.
+ * Loads MobileNet, removes the top part, and freeze all the layers.
+ * 
+ * The top removal and layer freezing are preparation for transfer learning.
  *
  * Also gets handles to the layers that will be unfrozen during the fine-tuning
  * phase of the training.
+ * 
+ * @return {tf.Model} The truncated MobileNet, with all layers frozen.
  */
 async function loadTruncatedBase() {
   const mobilenet = await tf.loadModel(
@@ -100,6 +114,11 @@ function buildNewHead(inputShape) {
   const newHead = tf.sequential();
   newHead.add(tf.layers.flatten({inputShape}));
   newHead.add(tf.layers.dense({units: 200, activation: 'relu'}));
+  // Five output units:
+  //   - The first is a shape indictor: predicts whether the target
+  //     shape is a triangle or a rectangle.
+  //   - The remaining four units are for bounding-box prediction:
+  //     [left, right, top, bottom] in the unit of pixels.
   newHead.add(tf.layers.dense({units: 5}));
   return newHead;
 }
@@ -132,7 +151,7 @@ async function buildObjectDetectionModel() {
       '--numExamples',
       {type: 'int', defaultValue: 2000, help: 'Number of training exapmles'});
   parser.addArgument('--validationSplit', {
-    type: 'int',
+    type: 'float',
     defaultValue: 0.15,
     help: 'Validation split to be used during training'
   });
@@ -154,7 +173,7 @@ async function buildObjectDetectionModel() {
   });
   const args = parser.parseArgs();
 
-  // Traininng related settings.
+  // Training related settings.
   const modelSaveURL = 'file://./dist/object_detection_model';
 
   const tBegin = tf.util.now();

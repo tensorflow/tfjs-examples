@@ -1,0 +1,148 @@
+/**
+ * @license
+ * Copyright 2018 Google LLC. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * =============================================================================
+ */
+
+import * as tf from '@tensorflow/tfjs';
+import {ObjectDetectionImageSynthesizer} from './synthetic_images';
+
+const canvas = document.getElementById('data-canvas');
+const status = document.getElementById('status');
+const testModel = document.getElementById('test');
+const loadHostedModel = document.getElementById('load-hosted-model');
+const inferenceTimeMs = document.getElementById('inference-time-ms');
+const trueObjectClass = document.getElementById('true-object-class');
+const predictedObjectClass = document.getElementById('predicted-object-class');
+
+const TRUE_BOUNDING_BOX_LINE_WIDTH = 2;
+const TRUE_BOUNDING_BOX_STYLE = 'rgb(255,0,0)';
+const PREDICT_BOUNDING_BOX_LINE_WIDTH = 2;
+const PREDICT_BOUNDING_BOX_STYLE = 'rgb(0,0,255)';
+
+function drawBoundingBox(canvas, trueBoundingBox, predictBoundingBox) {
+  tf.util.assert(
+      trueBoundingBox != null && trueBoundingBox.length === 4,
+      `Expected boundingBoxArray to have length 4, ` +
+          `but got ${trueBoundingBox} instead`);
+  tf.util.assert(
+      predictBoundingBox != null && predictBoundingBox.length === 4,
+      `Expected boundingBoxArray to have length 4, ` +
+          `but got ${trueBoundingBox} instead`);
+
+  let left = trueBoundingBox[0];
+  let right = trueBoundingBox[1];
+  let top = trueBoundingBox[2];
+  let bottom = trueBoundingBox[3];
+
+  const ctx = canvas.getContext('2d');
+  ctx.beginPath();
+  ctx.strokeStyle = TRUE_BOUNDING_BOX_STYLE;
+  ctx.lineWidth = TRUE_BOUNDING_BOX_LINE_WIDTH;
+  ctx.moveTo(left, top);
+  ctx.lineTo(right, top);
+  ctx.lineTo(right, bottom);
+  ctx.lineTo(left, bottom);
+  ctx.lineTo(left, top);
+  ctx.stroke();
+
+  ctx.font = '15px Arial';
+  ctx.fillStyle = TRUE_BOUNDING_BOX_STYLE;
+  ctx.fillText('true', left, top);
+
+  left = predictBoundingBox[0];
+  right = predictBoundingBox[1];
+  top = predictBoundingBox[2];
+  bottom = predictBoundingBox[3];
+
+  ctx.beginPath();
+  ctx.strokeStyle = PREDICT_BOUNDING_BOX_STYLE;
+  ctx.lineWidth = PREDICT_BOUNDING_BOX_LINE_WIDTH;
+  ctx.moveTo(left, top);
+  ctx.lineTo(right, top);
+  ctx.lineTo(right, bottom);
+  ctx.lineTo(left, bottom);
+  ctx.lineTo(left, top);
+  ctx.stroke();
+
+  ctx.font = '15px Arial';
+  ctx.fillStyle = PREDICT_BOUNDING_BOX_STYLE;
+  ctx.fillText('predicted', left, bottom);
+}
+
+async function runAndVisualizeInference(model) {
+  const synth = new ObjectDetectionImageSynthesizer(canvas, tf);
+  const {images, targets} = await synth.generateExampleBatch(1, 10, 10);
+
+  const boundingBoxArray = Array.from(targets.dataSync()).slice(1);      
+  const t0 = tf.util.now();
+  const modelOut = await model.predict(images).data();
+  inferenceTimeMs.textContent = `${(tf.util.now() - t0).toFixed(1)}`;
+  drawBoundingBox(canvas, boundingBoxArray, modelOut.slice(1));
+  const trueClassName = 
+      (await targets.data())[0] > 0 ? 'rectangle' : 'triangle';
+  trueObjectClass.textContent = trueClassName;
+  const predictClassName = (modelOut[0] > canvas.width  / 2) ? 'rectangle' : 'triangle';
+  predictedObjectClass.textContent = predictClassName;
+  if (predictClassName === trueClassName) {
+    predictedObjectClass.classList.remove('shape-class-wrong');
+    predictedObjectClass.classList.add('shape-class-correct');
+  } else {
+    predictedObjectClass.classList.remove('shape-class-correct');
+    predictedObjectClass.classList.add('shape-class-wrong');
+  }
+  tf.dispose([images, targets]);
+}
+
+async function init() {
+  const LOCAL_MODEL_PATH = 'object_detection_model/model.json';
+  const HOSTED_MODEL_PATH =
+      'https://storage.googleapis.com/tfjs-examples/simple-object-detection/dist/object_detection_model/model.json';
+
+  // Attempt to load locally-saved model. If it fails, activate the
+  // "Load hosted model" button.
+  let model;
+  try {
+    model = await tf.loadModel(LOCAL_MODEL_PATH);
+    model.summary();
+    testModel.disabled = false;
+    status.textContent = 'Loaded locally-saved model! Now click "Test Model".';
+    runAndVisualizeInference(model);
+  } catch (err) {
+    status.textContent = 'Failed to load locally-saved model. ' +
+        'Please click "Lost Hosted Model"';        
+    loadHostedModel.disabled = false;
+  }
+
+  loadHostedModel.addEventListener('click', async () => {
+    try {
+      status.textContent =
+          `Loading hosted model from ${HOSTED_MODEL_PATH} ...`;
+      model = await tf.loadModel(HOSTED_MODEL_PATH);
+      model.summary();
+      loadHostedModel.disabled = true;
+      testModel.disabled = false;
+      status.textContent =
+          `Loaded hosted model successfully. Now click "Test Model".`;
+      runAndVisualizeInference(model);
+    } catch (err) {
+      status.textContent =
+          `Failed to load hosted model from ${HOSTED_MODEL_PATH}`;
+    }
+  });
+
+  testModel.addEventListener('click', () => runAndVisualizeInference(model));
+}
+
+init();

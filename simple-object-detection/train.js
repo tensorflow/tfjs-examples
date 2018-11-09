@@ -23,7 +23,7 @@ const canvas = require('canvas');
 const tf = require('@tensorflow/tfjs');
 const synthesizer = require('./synthetic_images');
 const fetch = require('node-fetch');
-require('@tensorflow/tfjs-node');
+require('@tensorflow/tfjs-node-gpu');
 
 global.fetch = fetch;
 
@@ -173,7 +173,6 @@ async function buildObjectDetectionModel() {
   });
   const args = parser.parseArgs();
 
-  // Training related settings.
   const modelSaveURL = 'file://./dist/object_detection_model';
 
   const tBegin = tf.util.now();

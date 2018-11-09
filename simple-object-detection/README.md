@@ -39,7 +39,10 @@ For example, the hosted model is trained with the 10000 examples, using
 the command line:
 
 ```sh
-yarn train --numExamples 10000
+yarn train \
+    --numExamples 20000 \
+    --initialTransferEpochs 100 \
+    --fineTuningEpochs 200
 ```
 
 See `train.js` for other adjustable parameters.

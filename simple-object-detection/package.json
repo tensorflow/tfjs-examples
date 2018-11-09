@@ -1,5 +1,5 @@
 {
-  "name": "tfjs-examples-simple-object-detection",
+  "name": "tfjs-examples-addition-rnn",
   "version": "0.1.0",
   "description": "",
   "main": "index.js",
@@ -9,7 +9,7 @@
     "node": ">=8.9.0"
   },
   "dependencies": {
-    "@tensorflow/tfjs-node": "0.1.19",
+    "@tensorflow/tfjs-node-gpu": "0.1.19",
     "argparse": "^1.0.10",
     "canvas": "2.0.1",
     "node-fetch": "2.2.1"

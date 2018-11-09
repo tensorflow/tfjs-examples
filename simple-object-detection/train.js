@@ -23,9 +23,11 @@ const canvas = require('canvas');
 const tf = require('@tensorflow/tfjs');
 const synthesizer = require('./synthetic_images');
 const fetch = require('node-fetch');
-require('@tensorflow/tfjs-node');
+require('@tensorflow/tfjs-node-gpu');
 
 global.fetch = fetch;
+
+const CANVAS_SIZE = 224;  // Matches the input size of MobileNet.
 
 // Name prefixes of layers that will be unfrozen during fine-tuning.
 const topLayerGroupNames = ['conv_pw_9', 'conv_pw_10', 'conv_pw_11'];
@@ -34,7 +36,7 @@ const topLayerGroupNames = ['conv_pw_9', 'conv_pw_10', 'conv_pw_11'];
 const topLayerName =
     `${topLayerGroupNames[topLayerGroupNames.length - 1]}_relu`;
 
-const classLossMultiplier = tf.scalar(100);
+const labelMultiplier = tf.tensor1d([CANVAS_SIZE, 1, 1, 1, 1]);
 
 /**
  * Custom loss function for object detection.
@@ -45,31 +47,13 @@ const classLossMultiplier = tf.scalar(100);
  *   approximatey.
  * - bounding-box loss, computed as the meanSquaredError between the
  *   true and predicted bounding boxes.
- * @param {*} yTrue
- * @param {*} yPred
+ * @param {tf.Tensor} yTrue True labels.
+ * @param {tf.Tensor} yPred Predicted labels.
+ * @return {tf.Tensor} Loss scalar.
  */
 function customLossFunction(yTrue, yPred) {
   return tf.tidy(() => {
-    const batchSize = yTrue.shape[0];
-    const boundingBoxDims = yTrue.shape[1] - 1;
-
-    // Extract the shape-class portions of `yTrue` and `yPred`.
-    const classTrue = yTrue.slice([0, 0], [batchSize, 1]);
-    const classPred = tf.sigmoid(yPred.slice([0, 0], [batchSize, 1]));
-    const classLoss =
-        tf.metrics.binaryCrossentropy(classTrue, classPred).mean();
-
-    // Extract the bounding-box portions of `yTrue` and `yPred`.
-    const boundingBoxTrue = yTrue.slice([0, 1], [batchSize, boundingBoxDims]);
-    const boundingBoxPred = yPred.slice([0, 1], [batchSize, boundingBoxDims]);
-    const boundingBoxLoss =
-        tf.metrics.meanSquaredError(boundingBoxTrue, boundingBoxPred);
-
-    // Add the two losses to get the total loss. Note that `classLoss` is
-    // scaled by a factor to match bounding-box loss in scale approximately.
-    const totalLoss =
-        classLoss.mulStrict(classLossMultiplier).add(boundingBoxLoss);
-    return totalLoss;
+    return tf.metrics.meanSquaredError(yTrue.mul(labelMultiplier), yPred);
   });
 }
 
@@ -140,7 +124,6 @@ async function buildObjectDetectionModel() {
 
 (async function main() {
   // Data-related settings.
-  const canvasSize = 224;  // Matches the input size of MobileNet.
   const numCircles = 10;
   const numLines = 10;
 
@@ -176,7 +159,7 @@ async function buildObjectDetectionModel() {
 
   const tBegin = tf.util.now();
   console.log(`Generating ${args.numExamples} training examples...`);
-  const synthDataCanvas = canvas.createCanvas(canvasSize, canvasSize);
+  const synthDataCanvas = canvas.createCanvas(CANVAS_SIZE, CANVAS_SIZE);
   const synth =
       new synthesizer.ObjectDetectionImageSynthesizer(synthDataCanvas, tf);
   const {images, targets} =

@@ -89,19 +89,31 @@ function drawBoundingBox(canvas, trueBoundingBox, predictBoundingBox) {
   ctx.fillText('predicted', left, bottom);
 }
 
+/**
+ * Synthesize an input image, run inference on it and visualize the resutls.
+ * 
+ * @param {tf.Model} model Model to be used for inference.
+ */
 async function runAndVisualizeInference(model) {
+  // Synthesize an input image and show it in the canvas.
   const synth = new ObjectDetectionImageSynthesizer(canvas, tf);
   const {images, targets} = await synth.generateExampleBatch(1, 10, 10);
 
   const boundingBoxArray = Array.from(targets.dataSync()).slice(1);      
   const t0 = tf.util.now();
+  // Runs inference with the model.
   const modelOut = await model.predict(images).data();
   inferenceTimeMs.textContent = `${(tf.util.now() - t0).toFixed(1)}`;
+
+  // Visualize the true and predicted bounding boxes.
   drawBoundingBox(canvas, boundingBoxArray, modelOut.slice(1));
+
+  // Display the true and predict object classes.
   const trueClassName = 
       (await targets.data())[0] > 0 ? 'rectangle' : 'triangle';
   trueObjectClass.textContent = trueClassName;
-  const predictClassName = (modelOut[0] > canvas.width  / 2) ? 'rectangle' : 'triangle';
+  const predictClassName =
+    (modelOut[0] > canvas.width  / 2) ? 'rectangle' : 'triangle';
   predictedObjectClass.textContent = predictClassName;
   if (predictClassName === trueClassName) {
     predictedObjectClass.classList.remove('shape-class-wrong');
@@ -110,6 +122,8 @@ async function runAndVisualizeInference(model) {
     predictedObjectClass.classList.remove('shape-class-correct');
     predictedObjectClass.classList.add('shape-class-wrong');
   }
+
+  // Tensor memory cleanup.
   tf.dispose([images, targets]);
 }
 

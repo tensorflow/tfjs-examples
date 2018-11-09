@@ -23,7 +23,7 @@ const canvas = require('canvas');
 const tf = require('@tensorflow/tfjs');
 const synthesizer = require('./synthetic_images');
 const fetch = require('node-fetch');
-require('@tensorflow/tfjs-node-gpu');
+require('@tensorflow/tfjs-node');
 
 global.fetch = fetch;
 

@@ -18,7 +18,7 @@ First, train the model using Node.js:
 
 ```sh
 yarn
-yarn train 
+yarn train
 ```
 
 Then, run the model in the browser:
@@ -26,6 +26,23 @@ Then, run the model in the browser:
 ```sh
 yarn watch
 ```
+
+## Adjusting training parameters from the "yarn train" command line
+
+The `yarn train` command stores all training examples in memory. Hence,
+it is possible for the process to run out of memory and crash if there
+are too many training examples generated. In the meantime, having a large
+number of training examples benefits the accuracy of the model after
+training. The default number of examples is 2000. You can adjust the number
+of examples by using the `--numExamples` flag of the `yarn train` command.
+For example, the hosted model is trained with the 10000 examples, using
+the command line:
+
+```sh
+yarn train --numExamples 10000
+```
+
+See `train.js` for other adjustable parameters.
 
 ### Using CUDA GPU for Training
 

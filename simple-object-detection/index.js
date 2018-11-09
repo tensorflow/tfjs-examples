@@ -15,6 +15,14 @@
  * =============================================================================
  */
 
+/**
+ * This file runs inference on a pretrained simple object detection model.
+ *
+ * The model is defined and trained with `train.js`.
+ * The data used for model training and model inference are synthesized
+ * programmatically. See `synthetic_images.js` for details.
+ */
+
 import * as tf from '@tensorflow/tfjs';
 import {ObjectDetectionImageSynthesizer} from './synthetic_images';
 

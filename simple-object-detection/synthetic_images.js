@@ -147,6 +147,8 @@ class ObjectDetectionImageSynthesizer {
           (this.TRIANGLE_SIDE_MAX - this.TRIANGLE_SIDE_MIN) * Math.random();
       const centerX = (this.w - side) * Math.random() + (side / 2);
       const centerY = (this.h - side) * Math.random() + (side / 2);
+      // Rotate the equilateral triangle by a random angle uniformly
+      // distributed between 0 and degrees.
       const angle = Math.PI / 3 * 2 * Math.random();  // 0 - 120 degrees.
       boundingBox = this.drawTriangle(ctx, centerX, centerY, side, angle);
     }
@@ -200,9 +202,6 @@ class ObjectDetectionImageSynthesizer {
     const ctrToVertex = side / 2 / Math.cos(30 / 180 * Math.PI);
     ctx.fillStyle = generateRandomColorStyle();
     ctx.beginPath();
-
-    // Rotate the equilateral triangle by a random angle uniformly distributed
-    // between 0 and degrees.
 
     const alpha1 = angle + Math.PI / 2;
     const x1 = centerX + Math.cos(alpha1) * ctrToVertex;

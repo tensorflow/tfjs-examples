@@ -708,10 +708,10 @@
   version "0.8.3"
   resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-layers/-/tfjs-layers-0.8.3.tgz#b3995e668afecf37a1382deeea57e40eee6519b4"
 
-"@tensorflow/tfjs-node-gpu@0.1.19":
+"@tensorflow/tfjs-node@0.1.19":
   version "0.1.19"
-  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-node-gpu/-/tfjs-node-gpu-0.1.19.tgz#98225e849ea11e5f4bef3dc32de4720b74501627"
-  integrity sha512-9cqqMEDwVUrRQHWYFK+QPY5mEt7B/r454zJqy+TO5l4SdrWm4wo5gNRsUDDaomDv05MjOKRgL9zJ2dyRbc9AuQ==
+  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-node/-/tfjs-node-0.1.19.tgz#649ab515f4d9a333e96e9c8600a04caf06d1e446"
+  integrity sha512-iQwUu52H1fZjlwNHB3C0nqIhhfGoHz9o7pu9PTxkcFSAuKRqI4quvt96uT2GS089w+FLFyGwABi2hBjXDsYMJw==
   dependencies:
     "@tensorflow/tfjs" "^0.13.2"
     adm-zip "^0.4.11"

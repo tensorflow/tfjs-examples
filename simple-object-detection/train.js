@@ -23,7 +23,7 @@ const canvas = require('canvas');
 const tf = require('@tensorflow/tfjs');
 const synthesizer = require('./synthetic_images');
 const fetch = require('node-fetch');
-require('@tensorflow/tfjs-node-gpu');
+require('@tensorflow/tfjs-node');
 
 global.fetch = fetch;
 
@@ -205,6 +205,9 @@ async function buildObjectDetectionModel() {
   model.summary();
 
   // Do fine-tuning.
+  // The batch size is reduced to avoid CPU/GPU OOM. This has
+  // to do with the unfreezing of the fine-tuning layers above,
+  // which leads to higher memory consumption during backpropagation.
   console.log('Phase 2 of 2: fine-tuning phase');
   await model.fit(images, targets, {
     epochs: args.fineTuningEpochs,

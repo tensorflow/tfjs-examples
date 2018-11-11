@@ -10,7 +10,7 @@
   },
   "dependencies": {
     "@tensorflow/tfjs": "^0.13.3",
-    "@tensorflow/tfjs-vis": "0.2.0",
+    "@tensorflow/tfjs-vis": "0.3.0",
     "vega-embed": "^3.0.0"
   },
   "scripts": {

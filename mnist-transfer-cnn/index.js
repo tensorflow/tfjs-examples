@@ -153,15 +153,20 @@ class MnistTransferCNNPredictor {
     const batchSize = 128;
     const epochs = ui.getEpochs();
 
+    const visContainer = {name: 'Model Accuracy', tab: 'Training'};
+
     await this.model.fit(this.gte5TrainData.x, this.gte5TrainData.y, {
       batchSize: batchSize,
       epochs: epochs,
       validationData: [this.gte5TestData.x, this.gte5TestData.y],
       callbacks: [
         ui.getProgressBarCallbackConfig(epochs),
-        tfVis.show.fitCallbacks(
-            {name: trainingMode, tab: 'Transfer Learning'},
-            ['val_loss', 'val_acc'])
+        tfVis.show.fitCallbacks(visContainer, ['val_loss', 'val_acc'], {
+          name: trainingMode,
+          tab: 'Transfer Learning',
+          zoomToFit: true,
+          zoomToFitAccuracy: true
+        }),
       ]
     });
   }

@@ -160,7 +160,7 @@ class MnistTransferCNNPredictor {
       callbacks: [
         ui.getProgressBarCallbackConfig(epochs),
         tfVis.show.fitCallbacks({
-          name: 'mnist-transfer-cnn', tab: 'Training'
+          name: trainingMode, tab: 'Transfer Learning'
         }, ['val_loss', 'val_acc'], {
           name: trainingMode,
           tab: 'Transfer Learning',

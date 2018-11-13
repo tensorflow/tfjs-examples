@@ -31,12 +31,12 @@ const webcam = new Webcam(document.getElementById('webcam'));
 // The dataset object where we will store activations.
 const controllerDataset = new ControllerDataset(NUM_CLASSES);
 
-let decapitatedMobilenet;
+let truncatedMobileNet;
 let model;
 
 // Loads mobilenet and returns a model that returns the internal activation
 // we'll use as input to our classifier model.
-async function loadDecapitatedMobilenet() {
+async function loadTruncatedMobileNet() {
   const mobilenet = await tf.loadModel(
       'https://storage.googleapis.com/tfjs-models/tfjs/mobilenet_v1_0.25_224/model.json');
 
@@ -51,7 +51,7 @@ async function loadDecapitatedMobilenet() {
 ui.setExampleHandler(label => {
   tf.tidy(() => {
     const img = webcam.capture();
-    controllerDataset.addExample(decapitatedMobilenet.predict(img), label);
+    controllerDataset.addExample(truncatedMobileNet.predict(img), label);
 
     // Draw the preview thumbnail.
     ui.drawThumb(img, label);
@@ -75,7 +75,7 @@ async function train() {
       // technically a layer, this only performs a reshape (and has no training
       // parameters).
       tf.layers.flatten({
-        inputShape: decapitatedMobilenet.outputs[0].shape.slice(1)
+        inputShape: truncatedMobileNet.outputs[0].shape.slice(1)
       }),
       // Layer 1.
       tf.layers.dense({
@@ -136,7 +136,7 @@ async function predict() {
 
       // Make a prediction through mobilenet, getting the internal activation of
       // the mobilenet model, i.e., "embeddings" of the input images.
-      const embeddings = decapitatedMobilenet.predict(img);
+      const embeddings = truncatedMobileNet.predict(img);
 
       // Make a prediction through our newly-trained model using the embeddings
       // from mobilenet as input.
@@ -175,12 +175,12 @@ async function init() {
   } catch (e) {
     document.getElementById('no-webcam').style.display = 'block';
   }
-  decapitatedMobilenet = await loadDecapitatedMobilenet();
+  truncatedMobileNet = await loadTruncatedMobileNet();
 
   // Warm up the model. This uploads weights to the GPU and compiles the WebGL
   // programs so the first time we collect data from the webcam it will be
   // quick.
-  tf.tidy(() => decapitatedMobilenet.predict(webcam.capture()));
+  tf.tidy(() => truncatedMobileNet.predict(webcam.capture()));
 
   ui.init();
 }

@@ -192,7 +192,7 @@ class ObjectDetectionImageSynthesizer {
   /**
    * Draw a rectangle.
    *
-   * A rectangle is a target objects in the simple object detection task here.
+   * A rectangle is a target object in the simple object detection task here.
    * Therefore, its bounding box is returned.
    *
    * @param {} ctx  Canvas context.
@@ -216,7 +216,7 @@ class ObjectDetectionImageSynthesizer {
   /**
    * Draw an equilateral triangle.
    *
-   * A triangle are a target objects in the simple object detection task here.
+   * A triangle are a target object in the simple object detection task here.
    * Therefore, its bounding box is returned.
    *
    * @param {} ctx  Canvas context.

@@ -185,7 +185,7 @@ to another project.
     <td>Loading model converted from Keras</td>
   </tr>
   <tr>
-    <td><a href="./simple-object-detection">mnist-core</a></td>
+    <td><a href="./simple-object-detection">simple-object-detection</a></td>
     <td></td>
     <td>Image</td>
     <td>Object detection</td>

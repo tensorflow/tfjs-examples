@@ -17,58 +17,58 @@ limitations under the License.
 
 <!doctype html>
 <head>
-  <link rel="stylesheet" href="https://code.getmdl.io/1.3.0/material.cyan-teal.min.css" />
   <link rel="stylesheet" href="../shared/tfjs-examples.css" />
   <link rel="stylesheet" href="./style.css" />
 </head>
 
-<style>
-  body {
-    font-family: "Roboto", "Helvetica", "Arial", sans-serif;
-    margin-top: 50px;
-    margin-left: 50px;
-  }
-  .setting {
-    padding-bottom: 6px;
-  }
-  .setting-label {
-    display: inline-block;
-    width: 12em;
-  }
-  .answer-correct {
-    color: green;
-  }
-  .answer-wrong {
-    color: red;
-  }
-  .canvases {
-    display: inline-block;
-  }
-</style>
-
 <body>
-  <h1>TensorFlow.js: Simple Object Detection</h1>
+  <div class="tfjs-example-container centered-container">
+    <section class='title-area'>
+      <h1>TensorFlow.js: Simple Object Detection</h1>
+      <p class='subtitle'>Train a model to learn classify and localize triangles and rectangles</p>
+    </section>
 
-  <div id="status">Loading model...</div>
-  <button id="load-hosted-model" disabled="true">Load Hosted model</button>
-  <button id="test" disabled="true">Test model</button>
+    <p class='section-head'>Description</p>
+      <p>
+        This example page shows inference with a pretrained object-detection model
+        that can classify and localize target shapes in a simple synthesized scene.
+        The training happens in tfjs-node (see
+        <a href="https://github.com/tensorflow/tfjs-examples/blob/master/simple-object-detection/train.js">
+        train.js
+        </a>
+        in the source folder).
+      </p>
+      <p>
+        The target objects are triangles and rectangles.
+        The background objects are line segments and circles.
+        Each inference with the model generates the bounding box of the target
+        object (show as the blue box), which can be compared with the true
+        bounding box (show as the red box). In addition, the inference output
+        contains the class of the shape (triangle vs. rectangle).
+      </p>
+    </p>
 
-  <div>
-    <canvas id="data-canvas" width="224" height="224"></canvas>
-  </div>
+    <div id="status">Loading model...</div>
+    <button id="load-hosted-model" disabled="true">Load Hosted model</button>
+    <button id="test" disabled="true">Test model</button>
 
-  <div>
     <div>
-      <span>Inference time (ms):</span>
-      <span id="inference-time-ms"></span>
+      <canvas id="data-canvas" width="224" height="224"></canvas>
     </div>
+
     <div>
-      <span>True object class:</span>
-      <span class="shape-class" id="true-object-class"></span>
-    </div>
-    <div>
-      <span>Predicted object class:</span>
-      <span class="shape-class" id="predicted-object-class"></span>
+      <div>
+        <span>Inference time (ms):</span>
+        <span id="inference-time-ms"></span>
+      </div>
+      <div>
+        <span>True object class:</span>
+        <span class="shape-class" id="true-object-class"></span>
+      </div>
+      <div>
+        <span>Predicted object class:</span>
+        <span class="shape-class" id="predicted-object-class"></span>
+      </div>
     </div>
   </div>
 </body>

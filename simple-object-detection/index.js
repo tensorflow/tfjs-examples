@@ -39,7 +39,7 @@ const TRUE_BOUNDING_BOX_STYLE = 'rgb(255,0,0)';
 const PREDICT_BOUNDING_BOX_LINE_WIDTH = 2;
 const PREDICT_BOUNDING_BOX_STYLE = 'rgb(0,0,255)';
 
-function drawBoundingBox(canvas, trueBoundingBox, predictBoundingBox) {
+function drawBoundingBoxes(canvas, trueBoundingBox, predictBoundingBox) {
   tf.util.assert(
       trueBoundingBox != null && trueBoundingBox.length === 4,
       `Expected boundingBoxArray to have length 4, ` +
@@ -90,14 +90,19 @@ function drawBoundingBox(canvas, trueBoundingBox, predictBoundingBox) {
 }
 
 /**
- * Synthesize an input image, run inference on it and visualize the resutls.
+ * Synthesize an input image, run inference on it and visualize the results.
  * 
  * @param {tf.Model} model Model to be used for inference.
  */
 async function runAndVisualizeInference(model) {
   // Synthesize an input image and show it in the canvas.
   const synth = new ObjectDetectionImageSynthesizer(canvas, tf);
-  const {images, targets} = await synth.generateExampleBatch(1, 10, 10);
+
+  const numExamples = 1;
+  const numCircles = 10;
+  const numLineSegments = 10;
+  const {images, targets} = await synth.generateExampleBatch(
+      numExamples, numCircles, numLineSegments);
 
   const boundingBoxArray = Array.from(targets.dataSync()).slice(1);      
   const t0 = tf.util.now();
@@ -106,15 +111,23 @@ async function runAndVisualizeInference(model) {
   inferenceTimeMs.textContent = `${(tf.util.now() - t0).toFixed(1)}`;
 
   // Visualize the true and predicted bounding boxes.
-  drawBoundingBox(canvas, boundingBoxArray, modelOut.slice(1));
+  drawBoundingBoxes(canvas, boundingBoxArray, modelOut.slice(1));
 
   // Display the true and predict object classes.
   const trueClassName = 
       (await targets.data())[0] > 0 ? 'rectangle' : 'triangle';
   trueObjectClass.textContent = trueClassName;
+
+  // The model predicts a number to indicate the predicted class
+  // of the object. It is trained to predict 0 for triangle and
+  // 224 (canvas.width) for rectangel. This is how the model combines
+  // the class loss with the bounding-box loss to form a single loss
+  // value. Therefore, at inference time, we threshold the number
+  // by half of 224 (canvas.width).
   const predictClassName =
     (modelOut[0] > canvas.width  / 2) ? 'rectangle' : 'triangle';
   predictedObjectClass.textContent = predictClassName;
+
   if (predictClassName === trueClassName) {
     predictedObjectClass.classList.remove('shape-class-wrong');
     predictedObjectClass.classList.add('shape-class-correct');
@@ -143,7 +156,7 @@ async function init() {
     runAndVisualizeInference(model);
   } catch (err) {
     status.textContent = 'Failed to load locally-saved model. ' +
-        'Please click "Lost Hosted Model"';        
+        'Please click "Load Hosted Model"';
     loadHostedModel.disabled = false;
   }
 

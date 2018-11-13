@@ -189,6 +189,21 @@ class ObjectDetectionImageSynthesizer {
     ctx.stroke();
   }
 
+  /**
+   * Draw a rectangle.
+   *
+   * A rectangle is a target objects in the simple object detection task here.
+   * Therefore, its bounding box is returned.
+   *
+   * @param {} ctx  Canvas context.
+   * @param {number} centerX Center x-coordinate of the triangle.
+   * @param {number} centerY Center y-coordinate of the triangle.
+   * @param {number} w Width of the rectangle.
+   * @param {number} h Height of the rectangle.
+   * @param {number} angle Angle that the triangle is rotated for, in radians.
+   * @returns {[number, number, number, number]} Bounding box of the rectangle:
+   *   [left, right, top bottom].
+   */
   drawRectangle(ctx, centerX, centerY, w, h) {
     ctx.moveTo(centerX - w / 2, centerY - h / 2);
     ctx.lineTo(centerX + w / 2, centerY - h / 2);
@@ -198,6 +213,20 @@ class ObjectDetectionImageSynthesizer {
     return [centerX - w / 2, centerX + w / 2, centerY - h / 2, centerY + h / 2];
   }
 
+  /**
+   * Draw an equilateral triangle.
+   *
+   * A triangle are a target objects in the simple object detection task here.
+   * Therefore, its bounding box is returned.
+   *
+   * @param {} ctx  Canvas context.
+   * @param {number} centerX Center x-coordinate of the triangle.
+   * @param {number} centerY Center y-coordinate of the triangle.
+   * @param {number} side Length of the side.
+   * @param {number} angle Angle that the triangle is rotated for, in radians.
+   * @returns {[number, number, number, number]} Bounding the triangle, with
+   *   the rotation taken into account: [left, right, top bottom].
+   */
   drawTriangle(ctx, centerX, centerY, side, angle) {
     const ctrToVertex = side / 2 / Math.cos(30 / 180 * Math.PI);
     ctx.fillStyle = generateRandomColorStyle();

@@ -163,7 +163,6 @@ class MnistTransferCNNPredictor {
           name: trainingMode, tab: 'Transfer Learning'
         }, ['val_loss', 'val_acc'], {
           name: trainingMode,
-          tab: 'Transfer Learning',
           zoomToFit: true,
           zoomToFitAccuracy: true
         }),

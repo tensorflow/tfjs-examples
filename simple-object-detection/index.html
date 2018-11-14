@@ -25,22 +25,23 @@ limitations under the License.
   <div class="tfjs-example-container centered-container">
     <section class='title-area'>
       <h1>TensorFlow.js: Simple Object Detection</h1>
-      <p class='subtitle'>Train a model to learn classify and localize triangles and rectangles</p>
+      <p class='subtitle'>Train a model to classify and localize triangles and rectangles</p>
     </section>
 
     <p class='section-head'>Description</p>
       <p>
         This example page shows inference with a pretrained object-detection model
-        that can classify and localize target shapes in a simple synthesized scene.
-        The training happens in tfjs-node (see
+        that can classify and localize (i.e., give the position of) target shapes
+        in simple synthesized scenes. The training happens in tfjs-node (see
         <a href="https://github.com/tensorflow/tfjs-examples/blob/master/simple-object-detection/train.js">
         train.js
         </a>
         in the source folder).
       </p>
       <p>
-        The target objects are triangles and rectangles.
-        The background objects are line segments and circles.
+        The target objects that we want to detect are triangles and rectangles,
+        in the background are line segments and circles that the model should ignore.
+        Each synthetic scene contains only one target object.
         Each inference with the model generates the bounding box of the target
         object (show as the blue box), which can be compared with the true
         bounding box (show as the red box). In addition, the inference output

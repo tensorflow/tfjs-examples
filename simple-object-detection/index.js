@@ -91,7 +91,7 @@ function drawBoundingBoxes(canvas, trueBoundingBox, predictBoundingBox) {
 
 /**
  * Synthesize an input image, run inference on it and visualize the results.
- * 
+ *
  * @param {tf.Model} model Model to be used for inference.
  */
 async function runAndVisualizeInference(model) {
@@ -104,7 +104,7 @@ async function runAndVisualizeInference(model) {
   const {images, targets} = await synth.generateExampleBatch(
       numExamples, numCircles, numLineSegments);
 
-  const boundingBoxArray = Array.from(targets.dataSync()).slice(1);      
+  const boundingBoxArray = Array.from(targets.dataSync()).slice(1);
   const t0 = tf.util.now();
   // Runs inference with the model.
   const modelOut = await model.predict(images).data();
@@ -114,7 +114,7 @@ async function runAndVisualizeInference(model) {
   drawBoundingBoxes(canvas, boundingBoxArray, modelOut.slice(1));
 
   // Display the true and predict object classes.
-  const trueClassName = 
+  const trueClassName =
       (await targets.data())[0] > 0 ? 'rectangle' : 'triangle';
   trueObjectClass.textContent = trueClassName;
 
@@ -124,8 +124,9 @@ async function runAndVisualizeInference(model) {
   // the class loss with the bounding-box loss to form a single loss
   // value. Therefore, at inference time, we threshold the number
   // by half of 224 (canvas.width).
+  const shapeClassificationThreshold = canvas.width  / 2;
   const predictClassName =
-    (modelOut[0] > canvas.width  / 2) ? 'rectangle' : 'triangle';
+    (modelOut[0] > shapeClassificationThreshold) ? 'rectangle' : 'triangle';
   predictedObjectClass.textContent = predictClassName;
 
   if (predictClassName === trueClassName) {

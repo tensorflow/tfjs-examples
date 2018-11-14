@@ -711,10 +711,10 @@
   resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-layers/-/tfjs-layers-0.8.4.tgz#e4786b2886565bd92c29d6c9444a5dac2266ffed"
   integrity sha512-iKWoWlKxu7yvB09KZnbIUZArICnbTHRE7TC1VnGypqS5s/6Y66/MRYLAJYMZ9ArXp4ijUbJKt92aoXYzvwEV7g==
 
-"@tensorflow/tfjs-node-gpu@0.1.20":
+"@tensorflow/tfjs-node@0.1.20":
   version "0.1.20"
-  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-node-gpu/-/tfjs-node-gpu-0.1.20.tgz#3e2caf7038c5ec9b883a5c65d6251f7cfe43bef4"
-  integrity sha512-kYT2kpJwSopjrSlD1M0LI+eVOGdcZJvzwfxDEks0lUZEr5LlOiHSQ5Uu5O819BvcIqdIiAHX9nKtjC6HOqzk0Q==
+  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-node/-/tfjs-node-0.1.20.tgz#df9a023c568943a9fa262916ffd0649998cb718a"
+  integrity sha512-pa/mRWzqUrO+8Q0RbZvIy1uS1+kMZT83VLusGylDBB7qX2Hs2zjk0K2NpmjBocKY+2VRlGBQe8jik3A6E4UTbQ==
   dependencies:
     "@tensorflow/tfjs" "~0.13.4"
     adm-zip "^0.4.11"

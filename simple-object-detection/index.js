@@ -104,7 +104,8 @@ async function runAndVisualizeInference(model) {
   const {images, targets} = await synth.generateExampleBatch(
       numExamples, numCircles, numLineSegments);
 
-  const boundingBoxArray = Array.from(targets.dataSync()).slice(1);
+  const targetsArray = await targets.data();
+  const boundingBoxArray = Array.from(targetsArray).slice(1);
   const t0 = tf.util.now();
   // Runs inference with the model.
   const modelOut = await model.predict(images).data();
@@ -114,8 +115,7 @@ async function runAndVisualizeInference(model) {
   drawBoundingBoxes(canvas, boundingBoxArray, modelOut.slice(1));
 
   // Display the true and predict object classes.
-  const trueClassName =
-      (await targets.data())[0] > 0 ? 'rectangle' : 'triangle';
+  const trueClassName = targetsArray[0] > 0 ? 'rectangle' : 'triangle';
   trueObjectClass.textContent = trueClassName;
 
   // The model predicts a number to indicate the predicted class

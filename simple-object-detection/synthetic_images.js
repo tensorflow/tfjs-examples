@@ -155,12 +155,12 @@ class ObjectDetectionImageSynthesizer {
     ctx.fill();
 
     // Draw circles (2nd half).
-    for (let i = 0; i < numCircles / 2; ++i) {
+    for (let i = numCircles / 2; i < numCircles; ++i) {
       this.drawCircle(ctx);
     }
 
     // Draw lines segments (2nd half).
-    for (let i = 0; i < numLines / 2; ++i) {
+    for (let i = numLines / 2; i < numLines; ++i) {
       this.drawLineSegment(ctx);
     }
 

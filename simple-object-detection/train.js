@@ -23,6 +23,14 @@ const canvas = require('canvas');
 const tf = require('@tensorflow/tfjs');
 const synthesizer = require('./synthetic_images');
 const fetch = require('node-fetch');
+
+// To train the model using CUDA/CuDNN,
+//   1) Make sure you have a CUDA-enabled GPU on your system.
+//   2) Install the necessary NVIDIA driver, CUDA toolkit and CuDNN library.
+//   3) Change the "@tensorflow/tfjs-node" dependency to
+//      "@tensorflow/tfjs-node-gpu" in package.json.
+//   4) Change the following line to:
+//      require('@tensorflow/tfjs-node-gpu');
 require('@tensorflow/tfjs-node');
 
 global.fetch = fetch;
@@ -69,12 +77,12 @@ function customLossFunction(yTrue, yPred) {
 
 /**
  * Loads MobileNet, removes the top part, and freeze all the layers.
- * 
+ *
  * The top removal and layer freezing are preparation for transfer learning.
  *
  * Also gets handles to the layers that will be unfrozen during the fine-tuning
  * phase of the training.
- * 
+ *
  * @return {tf.Model} The truncated MobileNet, with all layers frozen.
  */
 async function loadTruncatedBase() {

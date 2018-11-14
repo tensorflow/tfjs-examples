@@ -108,13 +108,13 @@ class ObjectDetectionImageSynthesizer {
     const ctx = this.canvas.getContext('2d');
     ctx.clearRect(0, 0, this.w, this.h);  // Clear canvas.
 
-    // Draw circles.
-    for (let i = 0; i < numCircles; ++i) {
+    // Draw circles (1st half).
+    for (let i = 0; i < numCircles / 2; ++i) {
       this.drawCircle(ctx);
     }
 
-    // Draw lines segments.
-    for (let i = 0; i < numLines; ++i) {
+    // Draw lines segments (1st half).
+    for (let i = 0; i < numLines / 2; ++i) {
       this.drawLineSegment(ctx);
     }
 
@@ -153,6 +153,16 @@ class ObjectDetectionImageSynthesizer {
       boundingBox = this.drawTriangle(ctx, centerX, centerY, side, angle);
     }
     ctx.fill();
+
+    // Draw circles (2nd half).
+    for (let i = numCircles / 2; i < numCircles; ++i) {
+      this.drawCircle(ctx);
+    }
+
+    // Draw lines segments (2nd half).
+    for (let i = numLines / 2; i < numLines; ++i) {
+      this.drawLineSegment(ctx);
+    }
 
     return tf.tidy(() => {
       const imageTensor = tf.fromPixels(this.canvas);

@@ -18,7 +18,7 @@
 /**
  * Module for synthesizing images to be used for training and testing the
  * simple object-detection model.
- * 
+ *
  * This module is written in a way that can be used in both the Node.js-based
  * training pipeline (train.js) and the browser-based testing environment
  * (index.js).
@@ -72,6 +72,10 @@ class ObjectDetectionImageSynthesizer {
     // Min and max of triangle side lengths.
     this.TRIANGLE_SIDE_MIN = 50;
     this.TRIANGLE_SIDE_MAX = 100;
+
+    // Canvas dimensions.
+    this.w = this.canvas.width;
+    this.h = this.canvas.height;
   }
 
   /**
@@ -93,9 +97,6 @@ class ObjectDetectionImageSynthesizer {
    *     [left, right, top, bottom], in the unit of pixels.
    */
   async generateExample(numCircles, numLines, triangleProbability = 0.5) {
-    // TODO(cais): Maybe make it so that the target object isn't always
-    //   drawn the last and hence on top of all the background objects.
-
     if (triangleProbability == null) {
       triangleProbability = 0.5;
     }
@@ -104,38 +105,17 @@ class ObjectDetectionImageSynthesizer {
         `triangleProbability must be a number >= 0 and <= 1, but got ` +
             `${triangleProbability}`);
 
-    // Canvas dimensions.
-    const w = this.canvas.width;
-    const h = this.canvas.height;
-
     const ctx = this.canvas.getContext('2d');
-    ctx.clearRect(0, 0, w, h);  // Clear canvas.
+    ctx.clearRect(0, 0, this.w, this.h);  // Clear canvas.
 
     // Draw circles.
     for (let i = 0; i < numCircles; ++i) {
-      const centerX = w * Math.random();
-      const centerY = h * Math.random();
-      const radius = this.CIRCLE_RADIUS_MIN +
-          (this.CIRCLE_RADIUS_MAX - this.CIRCLE_RADIUS_MIN) * Math.random();
-
-      ctx.fillStyle = generateRandomColorStyle();
-      ctx.beginPath();
-      ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
-      ctx.fill();
+      this.drawCircle(ctx);
     }
 
     // Draw lines segments.
     for (let i = 0; i < numLines; ++i) {
-      const x0 = Math.random() * w;
-      const y0 = Math.random() * h;
-      const x1 = Math.random() * w;
-      const y1 = Math.random() * h;
-
-      ctx.strokeStyle = generateRandomColorStyle();
-      ctx.beginPath();
-      ctx.moveTo(x0, y0);
-      ctx.lineTo(x1, y1);
-      ctx.stroke();
+      this.drawLineSegment(ctx);
     }
 
     // Draw the target object: a rectangle or an equilateral triangle.
@@ -155,50 +135,22 @@ class ObjectDetectionImageSynthesizer {
       const rectangleH =
           Math.random() * (this.RECTANGLE_SIDE_MAX - this.RECTANGLE_SIDE_MIN) +
           this.RECTANGLE_SIDE_MIN;
-      const centerX = (w - rectangleW) * Math.random() + (rectangleW / 2);
-      const centerY = (h - rectangleH) * Math.random() + (rectangleH / 2);
-      ctx.moveTo(centerX - rectangleW / 2, centerY - rectangleH / 2);
-      ctx.lineTo(centerX + rectangleW / 2, centerY - rectangleH / 2);
-      ctx.lineTo(centerX + rectangleW / 2, centerY + rectangleH / 2);
-      ctx.lineTo(centerX - rectangleW / 2, centerY + rectangleH / 2);
-
-      boundingBox = [
-        centerX - rectangleW / 2, centerX + rectangleW / 2,
-        centerY - rectangleH / 2, centerY + rectangleH / 2
-      ]
+      const centerX = (this.w - rectangleW) * Math.random() + (rectangleW / 2);
+      const centerY = (this.h - rectangleH) * Math.random() + (rectangleH / 2);
+      boundingBox =
+          this.drawRectangle(ctx, centerX, centerY, rectangleH, rectangleW);
     } else {
       // Draw an equilateral triangle, rotated by a random angle.
       // The distance from the center of the triangle to any of the three
       // vertices.
-      const side =
-          this.TRIANGLE_SIDE_MIN + (this.TRIANGLE_SIDE_MAX - this.TRIANGLE_SIDE_MIN) * Math.random();
-      const centerX = (w - side) * Math.random() + (side / 2);
-      const centerY = (h - side) * Math.random() + (side / 2);
-      const ctrToVertex = side / 2 / Math.cos(30 / 180 * Math.PI);
-      ctx.fillStyle = generateRandomColorStyle();
-      ctx.beginPath();
-
-      // Rotate the equilateral triangle by a random angle uniformly distributed
-      // between 0 and degrees.
+      const side = this.TRIANGLE_SIDE_MIN +
+          (this.TRIANGLE_SIDE_MAX - this.TRIANGLE_SIDE_MIN) * Math.random();
+      const centerX = (this.w - side) * Math.random() + (side / 2);
+      const centerY = (this.h - side) * Math.random() + (side / 2);
+      // Rotate the equilateral triangle by a random angle uniformly
+      // distributed between 0 and degrees.
       const angle = Math.PI / 3 * 2 * Math.random();  // 0 - 120 degrees.
-      const alpha1 = angle + Math.PI / 2;
-      const x1 = centerX + Math.cos(alpha1) * ctrToVertex;
-      const y1 = centerY + Math.sin(alpha1) * ctrToVertex;
-      const alpha2 = alpha1 + Math.PI / 3 * 2;
-      const x2 = centerX + Math.cos(alpha2) * ctrToVertex;
-      const y2 = centerY + Math.sin(alpha2) * ctrToVertex;
-      const alpha3 = alpha2 + Math.PI / 3 * 2;
-      const x3 = centerX + Math.cos(alpha3) * ctrToVertex;
-      const y3 = centerY + Math.sin(alpha3) * ctrToVertex;
-
-      ctx.moveTo(x1, y1);
-      ctx.lineTo(x2, y2);
-      ctx.lineTo(x3, y3);
-
-      const xs = [x1, x2, x3];
-      const ys = [y1, y2, y3];
-      boundingBox =
-          [Math.min(...xs), Math.max(...xs), Math.min(...ys), Math.max(...ys)];
+      boundingBox = this.drawTriangle(ctx, centerX, centerY, side, angle);
     }
     ctx.fill();
 
@@ -209,6 +161,94 @@ class ObjectDetectionImageSynthesizer {
           tf.tensor1d([shapeClassIndicator].concat(boundingBox));
       return {image: imageTensor, target: targetTensor};
     });
+  }
+
+  drawCircle(ctx, centerX, centerY, radius) {
+    centerX = centerX == null ? this.w * Math.random() : centerX;
+    centerY = centerY == null ? this.h * Math.random() : centerY;
+    radius = radius == null ? this.CIRCLE_RADIUS_MIN +
+            (this.CIRCLE_RADIUS_MAX - this.CIRCLE_RADIUS_MIN) * Math.random() :
+                              radius;
+
+    ctx.fillStyle = generateRandomColorStyle();
+    ctx.beginPath();
+    ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  drawLineSegment(ctx, x0, y0, x1, y1) {
+    x0 = x0 == null ? Math.random() * this.w : x0;
+    y0 = y0 == null ? Math.random() * this.h : y0;
+    x1 = x1 == null ? Math.random() * this.w : x1;
+    y1 = y1 == null ? Math.random() * this.h : y1;
+
+    ctx.strokeStyle = generateRandomColorStyle();
+    ctx.beginPath();
+    ctx.moveTo(x0, y0);
+    ctx.lineTo(x1, y1);
+    ctx.stroke();
+  }
+
+  /**
+   * Draw a rectangle.
+   *
+   * A rectangle is a target object in the simple object detection task here.
+   * Therefore, its bounding box is returned.
+   *
+   * @param {} ctx  Canvas context.
+   * @param {number} centerX Center x-coordinate of the triangle.
+   * @param {number} centerY Center y-coordinate of the triangle.
+   * @param {number} w Width of the rectangle.
+   * @param {number} h Height of the rectangle.
+   * @param {number} angle Angle that the triangle is rotated for, in radians.
+   * @returns {[number, number, number, number]} Bounding box of the rectangle:
+   *   [left, right, top bottom].
+   */
+  drawRectangle(ctx, centerX, centerY, w, h) {
+    ctx.moveTo(centerX - w / 2, centerY - h / 2);
+    ctx.lineTo(centerX + w / 2, centerY - h / 2);
+    ctx.lineTo(centerX + w / 2, centerY + h / 2);
+    ctx.lineTo(centerX - w / 2, centerY + h / 2);
+
+    return [centerX - w / 2, centerX + w / 2, centerY - h / 2, centerY + h / 2];
+  }
+
+  /**
+   * Draw an equilateral triangle.
+   *
+   * A triangle are a target object in the simple object detection task here.
+   * Therefore, its bounding box is returned.
+   *
+   * @param {} ctx  Canvas context.
+   * @param {number} centerX Center x-coordinate of the triangle.
+   * @param {number} centerY Center y-coordinate of the triangle.
+   * @param {number} side Length of the side.
+   * @param {number} angle Angle that the triangle is rotated for, in radians.
+   * @returns {[number, number, number, number]} Bounding the triangle, with
+   *   the rotation taken into account: [left, right, top bottom].
+   */
+  drawTriangle(ctx, centerX, centerY, side, angle) {
+    const ctrToVertex = side / 2 / Math.cos(30 / 180 * Math.PI);
+    ctx.fillStyle = generateRandomColorStyle();
+    ctx.beginPath();
+
+    const alpha1 = angle + Math.PI / 2;
+    const x1 = centerX + Math.cos(alpha1) * ctrToVertex;
+    const y1 = centerY + Math.sin(alpha1) * ctrToVertex;
+    const alpha2 = alpha1 + Math.PI / 3 * 2;
+    const x2 = centerX + Math.cos(alpha2) * ctrToVertex;
+    const y2 = centerY + Math.sin(alpha2) * ctrToVertex;
+    const alpha3 = alpha2 + Math.PI / 3 * 2;
+    const x3 = centerX + Math.cos(alpha3) * ctrToVertex;
+    const y3 = centerY + Math.sin(alpha3) * ctrToVertex;
+
+    ctx.moveTo(x1, y1);
+    ctx.lineTo(x2, y2);
+    ctx.lineTo(x3, y3);
+
+    const xs = [x1, x2, x3];
+    const ys = [y1, y2, y3];
+    return [Math.min(...xs), Math.max(...xs), Math.min(...ys), Math.max(...ys)];
   }
 
   /**

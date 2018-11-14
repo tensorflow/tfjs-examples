@@ -1,0 +1,77 @@
+<!--
+Copyright 2018 Google LLC. All Rights Reserved.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+==============================================================================
+-->
+
+<!doctype html>
+<head>
+  <link rel="stylesheet" href="../shared/tfjs-examples.css" />
+  <link rel="stylesheet" href="./style.css" />
+</head>
+
+<body>
+  <div class="tfjs-example-container centered-container">
+    <section class='title-area'>
+      <h1>TensorFlow.js: Simple Object Detection</h1>
+      <p class='subtitle'>Train a model to classify and localize triangles and rectangles</p>
+    </section>
+
+    <p class='section-head'>Description</p>
+      <p>
+        This example page shows inference with a pretrained object-detection model
+        that can classify and localize (i.e., give the position of) target shapes
+        in simple synthesized scenes. The training happens in tfjs-node (see
+        <a href="https://github.com/tensorflow/tfjs-examples/blob/master/simple-object-detection/train.js">
+        train.js
+        </a>
+        in the source folder).
+      </p>
+      <p>
+        The target objects that we want to detect are triangles and rectangles,
+        in the background are line segments and circles that the model should ignore.
+        Each synthetic scene contains only one target object.
+        Each inference by the model generates the bounding box of the target
+        object (show as the blue box), which can be compared with the true
+        bounding box (show as the red box). In addition, the inference output
+        contains the class of the shape (triangle vs. rectangle).
+      </p>
+    </p>
+
+    <div id="status">Loading model...</div>
+    <button id="load-hosted-model" disabled="true">Load Hosted model</button>
+    <button id="test" disabled="true">Test model</button>
+
+    <div>
+      <canvas id="data-canvas" width="224" height="224"></canvas>
+    </div>
+
+    <div>
+      <div>
+        <span>Inference time (ms):</span>
+        <span id="inference-time-ms"></span>
+      </div>
+      <div>
+        <span>True object class:</span>
+        <span class="shape-class" id="true-object-class"></span>
+      </div>
+      <div>
+        <span>Predicted object class:</span>
+        <span class="shape-class" id="predicted-object-class"></span>
+      </div>
+    </div>
+  </div>
+</body>
+
+<script src="index.js"></script>

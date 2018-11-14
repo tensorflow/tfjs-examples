@@ -173,7 +173,6 @@ async function buildObjectDetectionModel() {
   });
   const args = parser.parseArgs();
 
-  // Training related settings.
   const modelSaveURL = 'file://./dist/object_detection_model';
 
   const tBegin = tf.util.now();

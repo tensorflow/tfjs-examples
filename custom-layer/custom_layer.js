@@ -23,7 +23,7 @@ import * as tf from '@tensorflow/tfjs';
  * separated into different channels, meaning that there are twice as many
  * output channels as input channels.
  *
- * Implementing a custom `Layer` in general invovles specifying a `call`
+ * Implementing a custom `Layer` in general involves specifying a `call`
  * function, and possibly also a `computeOutputShape` and `build` function. This
  * layer does not need a custom `build` function because it does not store any
  * variables.

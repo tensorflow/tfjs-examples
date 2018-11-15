@@ -9,7 +9,8 @@
     "node": ">=8.9.0"
   },
   "dependencies": {
-    "@tensorflow/tfjs": "^0.13.3",
+    "@tensorflow/tfjs": "^0.13.5",
+    "@tensorflow/tfjs-data": "file:../../tfjs-data/tensorflow-tfjs-data-v0.0.1.tgz",
     "papaparse": "^4.5.0",
     "vega-embed": "^3.18.1",
     "vega-lite": "^2.3.1"
@@ -26,6 +27,7 @@
     "clang-format": "~1.2.2",
     "cross-env": "^5.1.6",
     "parcel-bundler": "~1.10.3",
+    "typescript": "^3.1.6",
     "yalc": "~1.0.0-pre.22"
   }
 }

@@ -17,34 +17,71 @@
 
 import * as tf from '@tensorflow/tfjs';
 
-import {BostonHousingDataset, featureDescriptions} from './data';
-import * as normalization from './normalization';
+import {
+  BostonHousingDataset,
+  featureDescriptions
+} from './data';
+// TODO(kangyi, soergel): Remove this once we have a public statistics API.
+import {
+  computeDatasetStatistics,
+} from './stats';
 import * as ui from './ui';
 
 // Some hyperparameters for model training.
-const NUM_EPOCHS = 200;
+const NUM_EPOCHS = 250;
+
 const BATCH_SIZE = 40;
+
 const LEARNING_RATE = 0.01;
 
-const bostonData = new BostonHousingDataset();
-const tensors = {};
-
-// Convert loaded data into tensors and creates normalized versions of the
-// features.
-export const arraysToTensors = () => {
-  tensors.rawTrainFeatures = tf.tensor2d(bostonData.trainFeatures);
-  tensors.trainTarget = tf.tensor2d(bostonData.trainTarget);
-  tensors.rawTestFeatures = tf.tensor2d(bostonData.testFeatures);
-  tensors.testTarget = tf.tensor2d(bostonData.testTarget);
-  // Normalize mean and standard deviation of data.
-  let {dataMean, dataStd} =
-      normalization.determineMeanAndStddev(tensors.rawTrainFeatures);
-
-  tensors.trainFeatures = normalization.normalizeTensor(
-      tensors.rawTrainFeatures, dataMean, dataStd);
-  tensors.testFeatures =
-      normalization.normalizeTensor(tensors.rawTestFeatures, dataMean, dataStd);
+const preparedData = {
+  trainData: null,
+  validationData: null,
+  testData: null
 };
+
+let bostonData;
+
+// Converts loaded data into tensors and creates normalized versions of the
+// features.
+export async function loadDataAndNormalize() {
+  // TODO(kangyizhang): Statistics should be generated from trainDataset
+  // directly. Update following codes after
+  // https://github.com/tensorflow/tfjs-data/issues/32 is resolved.
+
+  // Gets mean and standard deviation of data.
+  // row[0] is feature data.
+  const featureStats = await computeDatasetStatistics(
+    bostonData.trainDataset.map((row) => row[0]));
+
+  // Normalizes data.
+  preparedData.trainData =
+    bostonData.trainDataset
+    .map(row => normalizeFeatures(row, featureStats))
+    .batch(BATCH_SIZE);
+  preparedData.validationData =
+    bostonData.validationDataset
+    .map(row => normalizeFeatures(row, featureStats))
+    .batch(BATCH_SIZE);
+  preparedData.testData =
+    bostonData.testDataset
+    .map(row => normalizeFeatures(row, featureStats))
+    .batch(BATCH_SIZE);
+}
+
+/**
+ * Normalizes features with statistics and returns a new object.
+ */
+// TODO(kangyizhang, bileschi): Replace these with preprocessing layers once
+// they are available.
+function normalizeFeatures(row, featureStats) {
+  const features = row[0];
+  const normalizedFeatures = [];
+  features.forEach(
+    (value, index) => normalizedFeatures.push(
+      (value - featureStats[index].mean) / featureStats[index].stddev));
+  return [normalizedFeatures, row[1]];
+}
 
 /**
  * Builds and returns Linear Regression Model.
@@ -53,9 +90,11 @@ export const arraysToTensors = () => {
  */
 export function linearRegressionModel() {
   const model = tf.sequential();
-  model.add(tf.layers.dense({inputShape: [bostonData.numFeatures], units: 1}));
+  model.add(tf.layers.dense({
+    inputShape: [bostonData.numFeatures],
+    units: 1
+  }));
 
-  model.summary();
   return model;
 };
 
@@ -73,7 +112,9 @@ export function multiLayerPerceptronRegressionModel1Hidden() {
     activation: 'sigmoid',
     kernelInitializer: 'leCunNormal'
   }));
-  model.add(tf.layers.dense({units: 1}));
+  model.add(tf.layers.dense({
+    units: 1
+  }));
 
   model.summary();
   return model;
@@ -93,9 +134,14 @@ export function multiLayerPerceptronRegressionModel2Hidden() {
     activation: 'sigmoid',
     kernelInitializer: 'leCunNormal'
   }));
-  model.add(tf.layers.dense(
-      {units: 50, activation: 'sigmoid', kernelInitializer: 'leCunNormal'}));
-  model.add(tf.layers.dense({units: 1}));
+  model.add(tf.layers.dense({
+    units: 50,
+    activation: 'sigmoid',
+    kernelInitializer: 'leCunNormal'
+  }));
+  model.add(tf.layers.dense({
+    units: 1
+  }));
 
   model.summary();
   return model;
@@ -110,11 +156,14 @@ export function multiLayerPerceptronRegressionModel2Hidden() {
  */
 export function describeKerenelElements(kernel) {
   tf.util.assert(
-      kernel.length == 12,
-      `kernel must be a array of length 12, got ${kernel.length}`);
+    kernel.length == 12,
+    `kernel must be a array of length 12, got ${kernel.length}`);
   const outList = [];
   for (let idx = 0; idx < kernel.length; idx++) {
-    outList.push({description: featureDescriptions[idx], value: kernel[idx]});
+    outList.push({
+      description: featureDescriptions[idx],
+      value: kernel[idx]
+    });
   }
   return outList;
 }
@@ -129,16 +178,20 @@ export function describeKerenelElements(kernel) {
  */
 export const run = async (model, weightsIllustration) => {
   await ui.updateStatus('Compiling model...');
-  model.compile(
-      {optimizer: tf.train.sgd(LEARNING_RATE), loss: 'meanSquaredError'});
+  model.compile({
+    optimizer: tf.train.sgd(LEARNING_RATE),
+    loss: 'meanSquaredError'
+  });
 
   let trainLoss;
   let valLoss;
+
   await ui.updateStatus('Starting training process...');
-  await model.fit(tensors.trainFeatures, tensors.trainTarget, {
-    batchSize: BATCH_SIZE,
+
+  // Fit the model using the prepared Dataset.
+  await model.fitDataset(preparedData.trainData, {
     epochs: NUM_EPOCHS,
-    validationSplit: 0.2,
+    validationData: preparedData.validationData,
     callbacks: {
       onEpochEnd: async (epoch, logs) => {
         await ui.updateStatus(`Epoch ${epoch + 1} of ${NUM_EPOCHS} completed.`);
@@ -156,32 +209,45 @@ export const run = async (model, weightsIllustration) => {
   });
 
   await ui.updateStatus('Running on test data...');
-  const result = model.evaluate(
-      tensors.testFeatures, tensors.testTarget, {batchSize: BATCH_SIZE});
+  const result =
+    (await model.evaluateDataset(preparedData.testData, {}));
   const testLoss = result.dataSync()[0];
   await ui.updateStatus(
-      `Final train-set loss: ${trainLoss.toFixed(4)}\n` +
-      `Final validation-set loss: ${valLoss.toFixed(4)}\n` +
-      `Test-set loss: ${testLoss.toFixed(4)}`);
+    `Final train-set loss: ${trainLoss.toFixed(4)}\n` +
+    `Final validation-set loss: ${valLoss.toFixed(4)}\n` +
+    `Test-set loss: ${testLoss.toFixed(4)}`);
 };
 
-export const computeBaseline = () => {
-  const avgPrice = tf.mean(tensors.trainTarget);
-  console.log(`Average price: ${avgPrice.dataSync()}`);
-  const baseline = tf.mean(tf.pow(tf.sub(tensors.testTarget, avgPrice), 2));
-  console.log(`Baseline loss: ${baseline.dataSync()}`);
-  const baselineMsg = `Baseline loss (meanSquaredError) is ${
-      baseline.dataSync()[0].toFixed(2)}`;
+export const computeBaseline = async () => {
+  // TODO(kangyizhang): Remove this once statistics support nested object.
+  // row[1] is target data.
+  const targetStats = await computeDatasetStatistics(
+    bostonData.trainDataset.map((row) => row[1]));
+  const trainMean = targetStats[0].mean;
+  let testSquareError = 0;
+  let testCount = 0;
+
+  await bostonData.testDataset.forEach((row) => {
+    testSquareError += Math.pow(row[1] - trainMean, 2);
+    testCount++;
+  });
+
+  if (testCount === 0) {
+    throw new Error('No test data found!');
+  }
+  const baseline = testSquareError / testCount;
+  const baselineMsg =
+    `Baseline loss (meanSquaredError) is ${baseline.toFixed(2)}`;
   ui.updateBaselineStatus(baselineMsg);
 };
 
 document.addEventListener('DOMContentLoaded', async () => {
-  await bostonData.loadData();
+  bostonData = await BostonHousingDataset.create();
   ui.updateStatus('Data loaded, converting to tensors');
-  arraysToTensors();
+  await loadDataAndNormalize();
   ui.updateStatus(
-      'Data is now available as tensors.\n' +
-      'Click a train button to begin.');
+    'Data is now available as tensors.\n' +
+    'Click a train button to begin.');
   ui.updateBaselineStatus('Estimating baseline loss');
   computeBaseline();
   await ui.setup();

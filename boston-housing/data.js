@@ -15,84 +15,75 @@
  * =============================================================================
  */
 
-const Papa = require('papaparse');
-
+import * as tfd from '@tensorflow/tfjs-data';
 
 // Boston Housing data constants:
 const BASE_URL =
-    'https://storage.googleapis.com/tfjs-examples/multivariate-linear-regression/data/';
+  'https://storage.googleapis.com/tfjs-examples/multivariate-linear-regression/data/';
 
-const TRAIN_FEATURES_FN = 'train-data.csv';
-const TRAIN_TARGET_FN = 'train-target.csv';
-const TEST_FEATURES_FN = 'test-data.csv';
-const TEST_TARGET_FN = 'test-target.csv';
-
-/**
- * Given CSV data returns an array of arrays of numbers.
- *
- * @param {Array<Object>} data Downloaded data.
- *
- * @returns {Promise.Array<number[]>} Resolves to data with values parsed as floats.
- */
-const parseCsv = async (data) => {
-  return new Promise(resolve => {
-    data = data.map((row) => {
-      return Object.keys(row).map(key => parseFloat(row[key]));
-    });
-    resolve(data);
-  });
-};
-
-/**
- * Downloads and returns the csv.
- *
- * @param {string} filename Name of file to be loaded.
- *
- * @returns {Promise.Array<number[]>} Resolves to parsed csv data.
- */
-export const loadCsv = async (filename) => {
-  return new Promise(resolve => {
-    const url = `${BASE_URL}${filename}`;
-
-    console.log(`  * Downloading data from: ${url}`);
-    Papa.parse(url, {
-      download: true,
-      header: true,
-      complete: (results) => {
-        resolve(parseCsv(results['data']));
-      }
-    })
-  });
-};
+const TRAIN_FILENAME = 'boston-housing-train.csv';
+const VALIDATION_FILENAME = 'boston-housing-validation.csv';
+const TEST_FILENAME = 'boston-housing-test.csv';
 
 /** Helper class to handle loading training and test data. */
 export class BostonHousingDataset {
   constructor() {
-    // Arrays to hold the data.
-    this.trainFeatures = null;
-    this.trainTarget = null;
-    this.testFeatures = null;
-    this.testTarget = null;
+    this.trainDataset = null;
+    this.validationDataset = null;
+    this.testDataset = null;
+    this.numFeatures = null;
   }
 
-  get numFeatures() {
-    // If numFetures is accessed before the data is loaded, raise an error.
-    if (this.trainFeatures == null) {
-      throw new Error('\'loadData()\' must be called before numFeatures')
-    }
-    return this.trainFeatures[0].length;
+  static async create() {
+    const result = new BostonHousingDataset();
+    await result.loadData();
+    return result;
   }
 
   /** Loads training and test data. */
   async loadData() {
-    [this.trainFeatures, this.trainTarget, this.testFeatures, this.testTarget] =
-        await Promise.all([
-          loadCsv(TRAIN_FEATURES_FN), loadCsv(TRAIN_TARGET_FN),
-          loadCsv(TEST_FEATURES_FN), loadCsv(TEST_TARGET_FN)
-        ]);
+    console.log('* Downloading data *');
 
-    shuffle(this.trainFeatures, this.trainTarget);
-    shuffle(this.testFeatures, this.testTarget);
+    const trainData = await this.prepareDataset(`${BASE_URL}${TRAIN_FILENAME}`);
+    // Sets number of features so it can be used in the model. Need to exclude
+    // the column of label.
+    this.trainDataset = trainData.dataset;
+    this.numFeatures = trainData.numFeatures;
+    this.validationDataset =
+      (await this.prepareDataset(`${BASE_URL}${VALIDATION_FILENAME}`))
+      .dataset;
+    this.testDataset =
+      (await this.prepareDataset(`${BASE_URL}${TEST_FILENAME}`)).dataset;
+  }
+
+  /**
+   * Prepare dataset from provided url.
+   */
+  async prepareDataset(url) {
+    // We want to predict the column "medv", which represents a median value of
+    // a home (in $1000s), so we mark it as a label.
+    const csvDataset = tfd.csv(url, {
+      columnConfigs: {
+        medv: {
+          isLabel: true
+        }
+      }
+    });
+
+    // Convert rows from object form (keyed by column name) to array form.
+    const convertedDataset =
+      csvDataset.map(([rawFeatures, rawLabel]) => {
+        const convertedFeatures = Object.values(rawFeatures);
+        const convertedLabel = Object.values(rawLabel);
+        return [convertedFeatures, convertedLabel];
+      });
+
+    return {
+      dataset: convertedDataset.shuffle(100),
+      // Number of features is the number of column names minus one for the
+      // label column.
+      numFeatures: (await csvDataset.columnNames()).length - 1
+    };
   }
 }
 
@@ -102,25 +93,3 @@ export const featureDescriptions = [
   'Distance to commute', 'Distance to highway', 'Tax rate', 'School class size',
   'School drop-out rate'
 ];
-
-/**
- * Shuffles data and target (maintaining alignment) using Fisher-Yates
- * algorithm.flab
- */
-function shuffle(data, target) {
-  let counter = data.length;
-  let temp = 0;
-  let index = 0;
-  while (counter > 0) {
-    index = (Math.random() * counter) | 0;
-    counter--;
-    // data:
-    temp = data[counter];
-    data[counter] = data[index];
-    data[index] = temp;
-    // target:
-    temp = target[counter];
-    target[counter] = target[index];
-    target[index] = temp;
-  }
-};

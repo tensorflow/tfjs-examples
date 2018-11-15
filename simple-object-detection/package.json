@@ -1,5 +1,5 @@
 {
-  "name": "tfjs-examples-mnist-transfer-cnn",
+  "name": "tfjs-examples-simple-object-detection",
   "version": "0.1.0",
   "description": "",
   "main": "index.js",
@@ -9,15 +9,17 @@
     "node": ">=8.9.0"
   },
   "dependencies": {
-    "@tensorflow/tfjs": "^0.13.3",
-    "@tensorflow/tfjs-vis": "0.3.0",
-    "vega-embed": "^3.0.0"
+    "@tensorflow/tfjs-node": "0.1.20",
+    "argparse": "^1.0.10",
+    "canvas": "2.0.1",
+    "node-fetch": "2.2.1"
   },
   "scripts": {
-    "watch": "./serve.sh",
-    "build": "cross-env NODE_ENV=production parcel build index.html  --no-minify --public-url ./",
+    "watch": "cross-env NODE_ENV=development parcel index.html --no-hmr --open",
+    "build": "cross-env NODE_ENV=production parcel build index.html --no-minify --public-url ./",
     "link-local": "yalc link",
-    "postinstall": "yarn upgrade --pattern @tensorflow"
+    "postinstall": "yarn upgrade --pattern @tensorflow",
+    "train": "node train.js"
   },
   "devDependencies": {
     "babel-core": "^6.26.3",
@@ -26,7 +28,6 @@
     "babel-preset-env": "~1.6.1",
     "clang-format": "~1.2.2",
     "cross-env": "^5.1.6",
-    "http-server": "~0.10.0",
     "parcel-bundler": "~1.10.3",
     "yalc": "~1.0.0-pre.22"
   }

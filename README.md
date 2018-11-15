@@ -185,6 +185,17 @@ to another project.
     <td>Loading model converted from Keras</td>
   </tr>
   <tr>
+    <td><a href="./simple-object-detection">simple-object-detection</a></td>
+    <td></td>
+    <td>Image</td>
+    <td>Object detection</td>
+    <td>Convolutional neural network (transfer learning)</td>
+    <td>Node.js</td>
+    <td>Browser</td>
+    <td>Layers</td>
+    <td></td>
+  </tr>
+  <tr>
     <td><a href="./translation">translation</a></td>
     <td><a href="https://storage.googleapis.com/tfjs-examples/translation/dist/index.html">🔗</a></td>
     <td>Text</td>

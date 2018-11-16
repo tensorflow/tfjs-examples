@@ -28,11 +28,15 @@ const channels = 3;
 const latentDim = 32;
 
 async function run(iterations, batchSize, modelSavePath) {
-  const generator = model.createGenerator(latentDim, channels);
-  generator.summary();  // DEBUG
+  await data.loadData();
+  const {images: xTrain, labels: yTrain} = data.getTrainData();
+  console.log(xTrain.shape);
+  // console.log(xTrain.dtype);
+  // console.log(yTrain.shape);  // DEBUG
+  // console.log(yTrain.dtype);  // DEBUG  // TODO(cais): Clean up.
 
+  const generator = model.createGenerator(latentDim, channels);
   const discriminator = model.createDiscriminator(height, width, channels);
-  discriminator.summary();  // DEBUG
 
   const gan = model.createGAN(generator, discriminator, latentDim);
   gan.summary();  // DEBUG
@@ -42,6 +46,7 @@ async function run(iterations, batchSize, modelSavePath) {
     let randomLatentVectors = tf.randomNormal([batchSize, latentDim]);
     console.log(randomLatentVectors.shape);  // DEBUG
     const generatedImages = generator.predict(randomLatentVectors);
+    console.log('generate images shape:', generatedImages.shape);  // DEBUG
 
     const stop = start + batchSize;
     // TODO(cais): Use real cifar10 images.
@@ -67,7 +72,7 @@ async function run(iterations, batchSize, modelSavePath) {
     const ganHistory = await gan.fit(randomLatentVectors, misleadingTargets, {
       epochs: 1, batchSize, verbose: 0
     });
-    const ganLoss = ganHistory.ganHistory.loss[0];
+    const ganLoss = ganHistory.history.loss[0];
     console.log(ganLoss);  // DEBUG
   }
 }

@@ -19,7 +19,7 @@ const tf = require('@tensorflow/tfjs');
 require('@tensorflow/tfjs-node');
 const argparse = require('argparse');
 
-const data = require('./data');
+const data = require('./cifar10_data');
 const model = require('./model');
 
 const height = 32;
@@ -28,9 +28,13 @@ const channels = 3;
 const latentDim = 32;
 
 async function run(iterations, batchSize, modelSavePath) {
-  await data.loadData();
-  const {images: xTrain, labels: yTrain} = data.getTrainData();
-  console.log(xTrain.shape);
+  console.log(data);
+
+  const {x: xTrain, y: yTrain} = await data.loadCifar10Data();
+
+  console.log(xTrain.shape);  // DEBUG
+  console.log(yTrain.shape);  // DEBUG
+  process.exit(1);  // DEBUG
   // console.log(xTrain.dtype);
   // console.log(yTrain.shape);  // DEBUG
   // console.log(yTrain.dtype);  // DEBUG  // TODO(cais): Clean up.

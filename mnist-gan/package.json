@@ -12,9 +12,8 @@
     "@tensorflow/tfjs-node": "^0.1.20",
     "argparse": "^1.0.10",
     "jimp": "^0.5.6",
-    "jpickle": "^0.4.1",
-    "pickle": "^0.2.0",
-    "progress": "^2.0.0"
+    "progress": "^2.0.0",
+    "targz": "1.0.1"
   },
   "scripts": {
     "postinstall": "yarn upgrade --pattern @tensorflow"

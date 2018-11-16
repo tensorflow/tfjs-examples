@@ -16,12 +16,17 @@
  */
 
 const fs = require('fs');
+const https = require('https');
+const os = require('os');
 const path = require('path');
+const targz = require('targz');
 const util = require('util');
-const jimp = require('jimp');
 
 const tf = require('@tensorflow/tfjs');
 require('@tensorflow/tfjs-node');
+
+const CIFAR10_BINARY_DATA_URL =
+    'https://www.cs.toronto.edu/~kriz/cifar-10-binary.tar.gz';
 
 const readFile = util.promisify(fs.readFile);
 
@@ -29,6 +34,48 @@ const IMAGE_H = 32;
 const IMAGE_W = 32;
 const IMAGE_CHANNELS = 3;
 const IMAGE_BYTES = (1 + IMAGE_H * IMAGE_W * IMAGE_CHANNELS);
+
+// Downloads a test file only once and returns the buffer for the file.
+async function maybeDownloadAndExtract(downloadURL) {
+  return new Promise((resolve, reject) => {
+    const baseName = path.basename(downloadURL);
+    const baseNameNoExt = baseName.slice(0, baseName.indexOf('.'));
+    const destDir = path.join(os.tmpdir(), baseNameNoExt);
+    if (fs.existsSync(destDir) && fs.readdirSync(destDir).length > 0) {
+      resolve(path.join(destDir, fs.readdirSync(destDir)[0]));
+      return;
+    }
+
+    const tarGzDestPath = path.join(os.tmpdir(), baseName);
+    const tarGzFile = fs.createWriteStream(tarGzDestPath);
+    https.get(downloadURL, async response => {
+      console.log(`* Downloading from: ${downloadURL} --> ${tarGzDestPath}`);
+      const stream = response.pipe(tarGzFile);
+
+      stream.on('finish', () => {
+        // Extract the tar ball.
+        console.log(`* Extracting tar ball: ${tarGzDestPath} --> ${destDir}`);
+        targz.decompress({src: tarGzDestPath, dest: destDir}, function(err) {
+          if (err) {
+            reject(err);
+            return;
+          } else {
+            console.log(fs.readdirSync(destDir));
+            // Remove the temporary downloaded .tar.gz file.
+            fs.unlinkSync(tarGzDestPath);
+            resolve(path.join(destDir, fs.readdirSync(destDir)[0]));
+            return;
+          }
+        });
+      });
+
+      stream.on('error', err => {
+        reject(err);
+        return;
+      });
+    });
+  });
+}
 
 async function readDataBatch(filePath) {
   const buffer = await readFile(filePath);
@@ -59,13 +106,15 @@ async function readDataBatch(filePath) {
   });
 }
 
-async function readCifar10Data(baseDir) {
+async function loadCifar10Data() {
+  const dataDir = await maybeDownloadAndExtract(CIFAR10_BINARY_DATA_URL);
+
   const numBatches = 5;
   const xs = [];
   const ys = [];
   for (let b = 0; b < numBatches; ++b) {
-    const filePath = path.join(baseDir, `data_batch_${b + 1}.bin`);
-    console.log(`Loading data from ${filePath}...`);
+    const filePath = path.join(dataDir, `data_batch_${b + 1}.bin`);
+    console.log(`* Reading data from file: ${filePath} ...`);
     const {x: batchX, y: batchY} = await readDataBatch(filePath);
     xs.push(batchX);
     ys.push(batchY);
@@ -76,9 +125,4 @@ async function readCifar10Data(baseDir) {
   return {x, y};
 }
 
-(async function() {
-  const dirPath = '/home/cais/Downloads/cifar-10-batches-bin';
-  const {x, y} = await readCifar10Data(dirPath);
-  console.log(x.shape);
-  console.log(y.shape);
-})();
+module.exports = {loadCifar10Data};

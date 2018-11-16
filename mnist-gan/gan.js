@@ -176,7 +176,7 @@ async function run() {
 
     for (let index = 0; index < numBatches; ++index) {
       const imageBatch = xTrain.slice(index * batchSize, batchSize);
-      const labelBatch = yTrain.slice(index * batchSize, batchSize);
+      const labelBatch = yTrain.slice(index * batchSize, batchSize).asType('float32');
 
       const noise = tf.randomUniform([imageBatch.shape[0], latentSize], -1, 1);
       const sampledLabels =

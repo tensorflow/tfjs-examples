@@ -10,7 +10,7 @@
   },
   "dependencies": {
     "@tensorflow/tfjs": "^0.13.3",
-    "vega-embed": "^3.0.0"
+    "@tensorflow/tfjs-vis": "^0.2.0"
   },
   "scripts": {
     "build": "cross-env NODE_ENV=production parcel build index.html --no-minify --public-url ./",

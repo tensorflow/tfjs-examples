@@ -1,0 +1,14 @@
+{
+  "name": "shared",
+  "description": "Resources shared by multiple examples",
+  "version": "0.0.1",
+  "license": "Apache-2.0",
+  "private": true,
+  "scripts": {
+    "watch": "node-sass --watch tfjs-examples.scss tfjs-examples.css",
+    "build-css": "node-sass tfjs-examples.scss tfjs-examples.css"
+  },
+  "dependencies": {
+    "node-sass": "^4.9.4"
+  }
+}

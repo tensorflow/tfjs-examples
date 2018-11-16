@@ -159,9 +159,13 @@ class MnistTransferCNNPredictor {
       validationData: [this.gte5TestData.x, this.gte5TestData.y],
       callbacks: [
         ui.getProgressBarCallbackConfig(epochs),
-        tfVis.show.fitCallbacks(
-            {name: trainingMode, tab: 'Transfer Learning'},
-            ['val_loss', 'val_acc'])
+        tfVis.show.fitCallbacks({
+          name: trainingMode, tab: 'Transfer Learning'
+        }, ['val_loss', 'val_acc'], {
+          name: trainingMode,
+          zoomToFit: true,
+          zoomToFitAccuracy: true
+        }),
       ]
     });
   }

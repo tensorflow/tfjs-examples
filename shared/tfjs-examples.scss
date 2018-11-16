@@ -1,0 +1,165 @@
+// <!--
+// Copyright 2018 Google LLC. All Rights Reserved.
+
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+
+// http://www.apache.org/licenses/LICENSE-2.0
+
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+// ==============================================================================
+// -->
+
+@import './material-components-web';
+
+
+//
+// Layout
+//
+
+body {
+  margin: 0;
+  --mdc-theme-primary: #F16528;
+  --mdc-theme-secondary: #FDBC35;
+}
+
+.tfjs-example-container {
+  @extend .mdc-typography;
+  padding: 60px;
+  display: flex;
+  flex-direction: column;
+
+  &.centered-container {
+    margin: 0 auto;
+    max-width: 960px;
+  }
+}
+
+// A block element where each child is a row
+.with-rows {
+  display: flex;
+  flex-direction: column;
+}
+
+// A block element where each child is a column
+.with-cols {
+  display: flex;
+  flex-direction: row;
+
+  &>* {
+    flex: 1 1 0;
+  }
+}
+
+@media only screen and (min-device-width : 320px) and (max-device-width : 480px) {
+  .with-cols {
+    flex-direction: column;
+
+    &>* {
+    flex: auto;
+  }
+  }
+
+  .tfjs-example-container {
+    padding: 20px;
+  }
+}
+
+
+//
+// Typography / Element styles
+//
+
+h1 {
+  margin-top: 0;
+  @extend .mdc-typography--headline3;
+  font-weight: 300;
+}
+
+.subtitle {
+  @extend .mdc-typography--headline6;
+  margin-top: -24px;
+  font-weight: 400;
+}
+
+p {
+  max-width: 960px;
+  line-height: 1.6em;
+}
+
+p.section-head {
+  font-variant: small-caps;
+  text-transform: uppercase;
+  letter-spacing: 0.17em;
+  line-height: 1.2em;
+  font-weight:500;
+  margin-top: 2em;
+  margin-bottom: 1em;
+  border-left: 1px solid #EF6C00;
+  padding-left: 24px;
+  margin-left: -24px;
+  color: #818181;
+}
+
+a {
+  color: #3c3c3c;
+  border-bottom: 1px dotted #818181;
+  display: inline-block;
+  text-decoration: none;
+  line-height: 1.2em;
+}
+
+button {
+ @extend .mdc-button--raised;
+ padding: 8px 12px 8px 12px;
+ font-size:100%;
+}
+
+.btn-primary {
+  @extend .mdc-button--raised;
+  padding: 8px 12px 8px 12px;
+}
+
+.btn-secondary {
+ @extend .mdc-button--outlined;
+ padding: 8px 12px 8px 12px;
+}
+
+.desc-type {
+  font-family: Roboto Mono, monospace;
+  display: inline-block;
+  padding: 0px 6px 0px 6px;
+  border-radius: 4px;
+  border: 1px solid #f0f0f0;
+  background-color: #E8EAF6
+}
+
+.desc-example {
+  @extend .desc-type;
+  background-color: #E8EAF6
+}
+
+.in-type {
+  @extend .desc-type;
+}
+
+.in-example {
+  @extend .desc-example;
+}
+
+.out-type {
+  @extend .desc-type;
+}
+
+.out-example {
+  @extend .desc-example;
+}
+
+input {
+  font-size: 100%;
+}

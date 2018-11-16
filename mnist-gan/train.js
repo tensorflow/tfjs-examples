@@ -16,7 +16,7 @@
  */
 
 const tf = require('@tensorflow/tfjs');
-require('@tensorflow/tfjs-node');
+require('@tensorflow/tfjs-node-gpu');
 const argparse = require('argparse');
 
 const data = require('./cifar10_data');
@@ -27,57 +27,72 @@ const width = 32;
 const channels = 3;
 const latentDim = 32;
 
+
+
 async function run(iterations, batchSize, modelSavePath) {
-  console.log(data);
+  let {x: xTrain, y: yTrain} = await data.loadCifar10Data();
+  yTrainData = await yTrain.data();
+  console.log(yTrainData);
+  const filteredExampleIndices = [];
+  yTrainData.forEach((y, i) => {
+    if (y === 6) {
+      filteredExampleIndices.push(i);
+    }
+  });
+  tf.util.shuffle(filteredExampleIndices);
+  console.log(filteredExampleIndices.length);  // DEBUG
 
-  const {x: xTrain, y: yTrain} = await data.loadCifar10Data();
+  xTrain = xTrain.gather(filteredExampleIndices).div(255);
 
+  // TODO(cais): Select only frog images.
   console.log(xTrain.shape);  // DEBUG
-  console.log(yTrain.shape);  // DEBUG
-  process.exit(1);  // DEBUG
-  // console.log(xTrain.dtype);
-  // console.log(yTrain.shape);  // DEBUG
-  // console.log(yTrain.dtype);  // DEBUG  // TODO(cais): Clean up.
+  tf.dispose(yTrain);
 
   const generator = model.createGenerator(latentDim, channels);
   const discriminator = model.createDiscriminator(height, width, channels);
 
   const gan = model.createGAN(generator, discriminator, latentDim);
-  gan.summary();  // DEBUG
 
   let start = 0;
-  for (let i = 0; i < 1; ++i) {  // TODO(cais): Use iterations.
+  for (let i = 0; i < iterations; ++i) {  // TODO(cais): Use iterations.
     let randomLatentVectors = tf.randomNormal([batchSize, latentDim]);
-    console.log(randomLatentVectors.shape);  // DEBUG
     const generatedImages = generator.predict(randomLatentVectors);
-    console.log('generate images shape:', generatedImages.shape);  // DEBUG
+    // console.log('generate images shape:', generatedImages.shape);  // DEBUG
 
-    const stop = start + batchSize;
     // TODO(cais): Use real cifar10 images.
-    const realImages = tf.randomNormal([batchSize, height, width, channels]);
+    if (start + batchSize >= xTrain.shape[0]) {
+      start = 0;
+    }
+    const realImages = xTrain.slice(start, batchSize);
+    start += batchSize;
     const combinedImages = tf.concat([generatedImages, realImages], 0);
-    const labels =
+    let labels =
         tf.concat([tf.ones([batchSize, 1]), tf.zeros([batchSize, 1])], 0);
-    labels.add(tf.randomNormal(labels.shape).mul(0.05));
+    // TODO(cais): Use tidy!
+    labels = labels.add(tf.randomUniform(labels.shape).mul(0.05));
 
-    console.log(combinedImages.shape);  // DEBUG
-    console.log(labels.shape);          // DEBUG
+    // console.log('combinedImges.shape:', combinedImages.shape);  // DEBUG
+    // console.log('labels.shape:', labels.shape);          // DEBUG
 
     // discriminator.getWeights()[0].print();  // DEBUG
     const discHistory = await discriminator.fit(combinedImages, labels, {
       epochs: 1, batchSize, verbose: 0
     });
     const discLoss = discHistory.history.loss[0];
-    console.log(discLoss);  // DEBUG
+
     // discriminator.getWeights()[0].print();  // DEBUG
 
+    // TODO(cais): Memory clean up, by creating another const?
     randomLatentVectors = tf.randomNormal([batchSize, latentDim]);
     const misleadingTargets = tf.zeros([batchSize, 1]);
     const ganHistory = await gan.fit(randomLatentVectors, misleadingTargets, {
       epochs: 1, batchSize, verbose: 0
     });
-    const ganLoss = ganHistory.history.loss[0];
-    console.log(ganLoss);  // DEBUG
+    const aLoss = ganHistory.history.loss[0];
+    console.log(
+        `Iteration ${i}/${iterations}: ` +
+        `disLoss=${discLoss}, ganLoss=${aLoss}`);
+    tf.dispose([randomLatentVectors, generatedImages, realImages, combinedImages]);
   }
 }
 
@@ -90,7 +105,7 @@ parser.addArgument('--iterations', {
 });
 parser.addArgument('--batch_size', {
   type: 'int',
-  defaultValue: 20,
+  defaultValue: 20,  // TODO(cais): Determine: DO NOT SUBMIT.
   help: 'Batch size to be used during model training.'
 })
 parser.addArgument('--model_save_path', {

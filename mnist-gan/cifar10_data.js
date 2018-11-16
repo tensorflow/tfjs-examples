@@ -23,7 +23,6 @@ const targz = require('targz');
 const util = require('util');
 
 const tf = require('@tensorflow/tfjs');
-require('@tensorflow/tfjs-node');
 
 const CIFAR10_BINARY_DATA_URL =
     'https://www.cs.toronto.edu/~kriz/cifar-10-binary.tar.gz';
@@ -119,6 +118,7 @@ async function loadCifar10Data() {
     xs.push(batchX);
     ys.push(batchY);
   }
+  // TODO(cais): Shuffle? DO NOT SUBMIT.
   const x = tf.concat(xs, 0);
   const y = tf.concat(ys, 0);
   tf.dispose([xs, ys]);

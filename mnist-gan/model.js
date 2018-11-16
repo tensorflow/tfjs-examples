@@ -64,6 +64,8 @@ function createDiscriminator(height, width, channels) {
   // TODO(cais): clipValue?
   const optimizer = tf.train.rmsprop(0.0008, 1e-8);
   disc.compile({loss: 'binaryCrossentropy', optimizer});
+  console.log('Discriminator model summary:');
+  disc.summary();
   return disc;
 }
 
@@ -77,6 +79,8 @@ function createGAN(generator, discriminator, latentDim) {
   // TODO(cais): clipValue?
   const optimizer = tf.train.rmsprop(0.0004, 1e-8);
   gan.compile({loss: 'binaryCrossentropy', optimizer});
+  console.log('GAN model summary:');
+  gan.summary();
   return gan;
 }
 

@@ -118,24 +118,28 @@ async function start(numPoints = 10000, tsneIter, knnIter, perplexity) {
 }
 
 function initControls() {
-  $('#start').prop('disabled', false);
+  const startBtn = document.getElementById('start');
+  startBtn.disabled = false;
 
-  $('#start').click(() => {
-    const numPoints =
-        parseInt($('input:radio[name=\'numPoints\']:checked').val(), 10);
-    const perplexity = parseInt($('#perplexity-input').val(), 10);
-    const tsneIter = parseInt($('#tsne-input').val(), 10);
-    const knnIter = parseInt($('#knn-input').val(), 10);
+  startBtn.addEventListener('click', () => {
+    const numPoints = parseInt(
+        document.querySelector('input[name=\'numPoints\']:checked').value, 10);
+
+    const perplexity =
+        parseInt(document.getElementById('perplexity-input').value, 10);
+    const tsneIter = parseInt(document.getElementById('tsne-input').value, 10);
+    const knnIter = parseInt(document.getElementById('knn-input').value, 10);
 
     start(numPoints, tsneIter, knnIter, perplexity);
+    startBtn.innerText = 'Restart TSNE';
+  })
 
-    $('#start').text('Restart TSNE');
-  });
-
-  $('input[type=range]').on('input', (e) => {
-    const newVal = e.target.value;
-    $(e.target).prev().text(newVal);
-  });
+  // Update the labels when the sliders change.
+  document.querySelectorAll('input[type=range]')
+      .forEach(
+          (rangeEl) => rangeEl.addEventListener(
+              'input',
+              () => rangeEl.previousElementSibling.innerText = rangeEl.value));
 }
 
 loadData().then(() => {

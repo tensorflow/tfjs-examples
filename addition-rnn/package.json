@@ -9,8 +9,8 @@
     "node": ">=8.9.0"
   },
   "dependencies": {
-    "@tensorflow/tfjs": "^0.13.0",
-    "vega-embed": "^3.0.0"
+    "@tensorflow/tfjs": "^0.13.3",
+    "@tensorflow/tfjs-vis": "^0.2.0"
   },
   "scripts": {
     "watch": "cross-env NODE_ENV=development parcel index.html --no-hmr --open",
@@ -19,12 +19,13 @@
     "postinstall": "yarn upgrade --pattern @tensorflow"
   },
   "devDependencies": {
+    "babel-core": "^6.26.3",
     "babel-plugin-transform-runtime": "~6.23.0",
     "babel-polyfill": "~6.26.0",
     "babel-preset-env": "~1.6.1",
     "clang-format": "~1.2.2",
     "cross-env": "^5.1.6",
-    "parcel-bundler": "~1.8.1",
+    "parcel-bundler": "~1.10.3",
     "yalc": "~1.0.0-pre.22"
   }
 }

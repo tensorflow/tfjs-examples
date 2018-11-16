@@ -97,6 +97,43 @@ export function getManualInputData() {
   ];
 }
 
+const confusionMatrixCanvas = document.getElementById('confusion-matrix');
+
+/**
+ * Render a confusion matrix.
+ * 
+ * @param {tf.Tensor} confusionMat Confusion matrix as a 2D tf.Tensor object.
+ *   The value at row `r` and column `c` is the number of times examples of
+ *   actual class `r` were predicted as class `c`.
+ */
+export function drawConfusionMatrix(confusionMat) {
+  const w = confusionMatrixCanvas.width;
+  const h = confusionMatrixCanvas.height;
+  const ctx = confusionMatrixCanvas.getContext('2d');
+  ctx.clearRect(0, 0, w, h);
+  const n = confusionMat.shape[0];
+  const rawConfusion = confusionMat.dataSync();
+  const normalizedConfusion =
+      confusionMat.div(confusionMat.sum(-1).expandDims(0)).dataSync();
+  for (let i = 0; i < n; ++i) {
+    for (let j = 0; j < n; ++j) {
+      const rgbValue = Math.round(255 * (1 - normalizedConfusion[i * n + j]));
+      ctx.fillStyle = `rgb(${rgbValue}, ${rgbValue}, ${rgbValue})`;
+      ctx.fillRect(w / n * j, h / n * i, w / n, h / n);
+      ctx.stroke();
+      ctx.strokeStyle = '#808080';
+      ctx.rect(w / n * j, h / n * i, w / n, h / n);
+      ctx.stroke();
+      ctx.font = '18px Arial';
+      ctx.fillStyle = '#ff00ff';
+      ctx.fillText(
+          `${rawConfusion[i * n + j]}`,
+          w / n * (j + 0.45), h / n * (i + 0.66));
+      ctx.stroke();
+    }
+  }
+}
+
 export function setManualInputWinnerMessage(message) {
   const winnerElement = document.getElementById('winner');
   winnerElement.textContent = message;

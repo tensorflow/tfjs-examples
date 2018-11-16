@@ -16,91 +16,118 @@ limitations under the License.
 -->
 
 <html>
-  <head>
-    <title>MNIST in TensorFlow.js Layers API</title>
-    <link rel="stylesheet" href="https://code.getmdl.io/1.3.0/material.cyan-teal.min.css" />
-  </head>
-  <body>
-    <style>
-      #content {
-        padding: 15px;
-      }
-      body, input, select, button {
-        font-family: monospace;
-      }
-      canvas {
-        width: 200px;
-      }
-      .prediction-canvas{
-        width: 100px;
-      }
-      .pred {
-        font-size: 20px;
-        line-height: 25px;
-        width: 100px;
-      }
-      .pred-correct {
-        background-color: #00cf00;
-      }
-      .pred-incorrect {
-        background-color: red;
-      }
-      .pred-container {
-        display: inline-block;
-        width: 100px;
-        margin: 10px;
-      }
-      #lossCanvas > div, #accuracyCanvas > div {
-        display: none;
-      }
-      .canvases {
-        display: inline-block;
-      }
-      .hparam-label {
-        display: inline-block;
-        width: 250px;
-      }
-    </style>
 
-    <div id="content">
-      <h3>TensorFlow.js: Train MNIST with the Layers API</h3>
+<head>
+  <title>MNIST in TensorFlow.js Layers API</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="../shared/tfjs-examples.css" />
 
+  <style>
+    #train {
+      margin-top: 10px;
+    }
+
+    label {
+      display: inline-block;
+      width: 250px;
+      padding: 6px 0 6px 0;
+    }
+
+    .canvases {
+      display: inline-block;
+    }
+
+    .prediction-canvas {
+      width: 100px;
+    }
+
+    .pred {
+      font-size: 20px;
+      line-height: 25px;
+      width: 100px;
+    }
+
+    .pred-correct {
+      background-color: #00cf00;
+    }
+
+    .pred-incorrect {
+      background-color: red;
+    }
+
+    .pred-container {
+      display: inline-block;
+      width: 100px;
+      margin: 10px;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="tfjs-example-container">
+    <section class='title-area'>
+      <h1>TensorFlow.js: Digit Recognizer with Layers</h1>
+      <p class='subtitle'>Train a model to recognize handwritten digits from the MNIST database using the tf.layers
+        api.
+      </p>
+    </section>
+
+    <section>
+      <p class='section-head'>Description</p>
+      <p>
+        This examples lets you train a handwritten digit recognizer using either a Convolutional Neural Network
+        (also known as a ConvNet or CNN) or a Fully Connected Neural Network (also known as a DenseNet).
+      </p>
+      <p>The MNIST dataset is used as training data.</p>
+    </section>
+
+    <section>
+      <p class='section-head'>Training Parameters</p>
       <div>
-        <div>
-          <span class="hparam-label">Model Type:</span>
-          <select id="model-type">
-            <option>ConvNet</option>
-            <option>DenseNet</option>
-          </select>
-        </div>
-
-        <div>
-          <span class="hparam-label"># of training epochs:</span>
-          <input id="train-epochs" value="3">
-        </div>
-
-        <button id="train">Load Data and Train Model</button>
+        <label>Model Type:</label>
+        <select id="model-type">
+          <option>ConvNet</option>
+          <option>DenseNet</option>
+        </select>
       </div>
 
-      <div id="status"></div>
-      <div id="message"></div>
+      <div>
+        <label># of training epochs:</label>
+        <input id="train-epochs" value="3">
+      </div>
+
+      <button id="train">Load Data and Train Model</button>
+    </section>
+
+    <section>
+      <p class='section-head'>Training Progress</p>
+      <p id="status"></p>
+      <p id="message"></p>
 
       <div id="stats">
         <div class="canvases">
-          <div class="label" id="loss-label"></div>
+          <label id="loss-label"></label>
           <div id="loss-canvas"></div>
         </div>
         <div class="canvases">
-          <div class="label" id="accuracy-label"></div>
+          <label id="accuracy-label"></label>
           <div id="accuracy-canvas"></div>
         </div>
       </div>
+    </section>
 
+    <section>
+      <p class='section-head'>Inference Examples</p>
       <div id="images"></div>
-    </div>
+    </section>
 
-    <!-- TODO(cais): Decide. DO NOT SUBMIT. -->
-    <!-- <script src="https://cdn.plot.ly/plotly-latest.min.js"></script> -->
-    <script src="index.js"></script>
-  </body>
+
+  </div>
+
+  <!-- TODO(cais): Decide. DO NOT SUBMIT. -->
+  <!-- <script src="https://cdn.plot.ly/plotly-latest.min.js"></script> -->
+  <script src="index.js"></script>
+</body>
+
 </html>

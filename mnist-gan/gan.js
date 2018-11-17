@@ -145,7 +145,7 @@ async function run() {
   const latent = tf.input({shape: [latentSize]});
   const imageClass = tf.input({shape: [1]});
 
-  // Get a fake image
+  // Get a fake image.
   let fake = generator.apply([latent, imageClass]);
   let aux;
 
@@ -162,50 +162,66 @@ async function run() {
 
   await data.loadData();
   let {images: xTrain, labels: yTrain} = data.getTrainData();
-  console.log(xTrain.shape);
-  console.log(yTrain.shape);  // DEBUG
   yTrain = tf.expandDims(yTrain.argMax(-1), -1);
 
-  const numTrain = xTrain.shape[0];
-
+  const softOne = tf.scalar(0.95);
   for (let epoch = 0; epoch < epochs; ++epoch) {
-    console.log(`Epoch ${epoch + 1} / ${epochs}`);  // DEBUG
-
-    const numBatches = Math.floor(xTrain.shape[0] / batchSize);
-    // TODO(cais): Use floor.
+    const numBatches = Math.ceil(xTrain.shape[0] / batchSize);
 
     for (let index = 0; index < numBatches; ++index) {
-      const imageBatch = xTrain.slice(index * batchSize, batchSize);
-      const labelBatch = yTrain.slice(index * batchSize, batchSize).asType('float32');
+      const actualBatchSize = (index + 1) * batchSize >= xTrain.shape[0] ?
+          (xTrain.shape[0] - index * batchSize) :
+          batchSize;
+      const imageBatch = xTrain.slice(index * batchSize, actualBatchSize);
+      const labelBatch =
+          yTrain.slice(index * batchSize, actualBatchSize).asType('float32');
 
-      const noise = tf.randomUniform([imageBatch.shape[0], latentSize], -1, 1);
-      const sampledLabels =
-          tf.randomUniform([imageBatch.shape[0], 1], 0, NUM_CLASSES, 'int32').asType('float32');
-      // TODO(cais): Add sampledLabels.
+      let noise = tf.randomUniform([actualBatchSize, latentSize], -1, 1);
+      let sampledLabels =
+          tf.randomUniform([actualBatchSize, 1], 0, NUM_CLASSES, 'int32')
+              .asType('float32');
 
       const generatedImages = generator.predict([noise, sampledLabels]);
 
       const x = tf.concat([imageBatch, generatedImages], 0);
-    //   console.log(x.shape);  // DEBUG
+      tf.dispose([imageBatch, generatedImages]);
+      const y = tf.tidy(() => tf.concat([
+        tf.ones([actualBatchSize, 1]).mul(softOne),
+        tf.zeros([actualBatchSize, 1])
+      ]));
 
-      const softOne = 0.95;
-      const y = tf.concat([
-          tf.zeros([imageBatch.shape[0], 1]),
-          tf.ones([imageBatch.shape[0], 1]).mul(softOne)]);
-    //   console.log(y.shape);
-      
-      console.log(labelBatch.shape);  // DEBUG
-      console.log(sampledLabels.shape);  // DEBUG
       const auxY = tf.concat([labelBatch, sampledLabels], 0);
-      console.log(auxY.shape);
-      
-      const hist = await discriminator.fit(x, [y, auxY], {batchSize, epochs: 1, verbose: 0});
-      console.log(hist.history);  // DEBUG
-      process.exit(1);
+
+      const dHist = await discriminator.fit(
+          x, [y, auxY], {batchSize: actualBatchSize, epochs: 1, verbose: 0});
+      const dLoss = dHist.history.loss[0];
+      tf.dispose([x, y, auxY]);
+
+      // Make new noise. We generate 2 * actualBatchSize here, so that we have
+      // the generator optimizer over an identical number of images
+      // as the discriminator.
+      tf.dispose([noise, sampledLabels]);
+      noise = tf.randomUniform([2 * actualBatchSize, latentSize], -1, 1);
+      sampledLabels =
+          tf.randomUniform([2 * actualBatchSize, 1], 0, NUM_CLASSES, 'int32')
+              .asType('float32');
+
+      // We want to train the generator to trick the discriminator.
+      // For the generator, we want all the {fake, not-fake} labels to say
+      // not-fake.
+      const trick = tf.ones([2 * actualBatchSize, 1]).mul(softOne);
+
+      const gHist = await combined.fit(
+          [noise, sampledLabels], [trick, sampledLabels],
+          {epochs: 1, batchSize: noise.shape[0], verbose: 0});
+      const gLoss = gHist.history.loss[0];
+      console.log(
+          `Epoch ${epoch + 1} batch ${index + 1}: ` +
+          `dLoss = ${dLoss.toFixed(6)}; gLoss = ${gLoss.toFixed(6)}`);
+
+      tf.dispose([noise, trick]);
     }
   }
 }
 
 run();
-
-// // Test code: TODO(cais): Remove.

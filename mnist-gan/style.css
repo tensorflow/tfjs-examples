@@ -1,0 +1,16 @@
+canvas {
+    outline: orange 2px solid;
+    margin: 10px;
+}
+
+.shape-class {
+    font-weight: bold;  
+}
+
+.shape-class-correct {
+    color: green;
+}
+
+.shape-class-wrong {
+    color: red;
+}

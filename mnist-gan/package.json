@@ -9,16 +9,23 @@
     "node": ">=8.11.0"
   },
   "dependencies": {
-    "@tensorflow/tfjs-node-gpu": "^0.1.20",
+    "@tensorflow/tfjs-node-gpu": "^0.1.21",
     "argparse": "^1.0.10",
-    "jimp": "^0.5.6",
     "progress": "^2.0.0",
     "targz": "1.0.1"
   },
   "scripts": {
-    "postinstall": "yarn upgrade --pattern @tensorflow"
+    "postinstall": "yarn upgrade --pattern @tensorflow",
+    "watch": "cross-env NODE_ENV=development parcel index.html --no-hmr --open"
   },
   "devDependencies": {
-    "clang-format": "~1.2.2"
+    "babel-core": "^6.26.3",
+    "babel-plugin-transform-runtime": "~6.23.0",
+    "babel-polyfill": "~6.26.0",
+    "babel-preset-env": "~1.6.1",
+    "clang-format": "~1.2.2",
+    "cross-env": "^5.1.6",
+    "parcel-bundler": "~1.10.3",
+    "yalc": "~1.0.0-pre.22"
   }
 }

@@ -15,6 +15,9 @@
  * =============================================================================
  */
 
+const fs = require('fs');
+const path = require('path');
+
 const tf = require('@tensorflow/tfjs');
 require('@tensorflow/tfjs-node-gpu');
 
@@ -109,6 +112,11 @@ function buildDiscriminator() {
   cnn.add(tf.layers.leakyReLU({alpha: 0.2}));
   cnn.add(tf.layers.dropout({rate: 0.3}));
 
+  cnn.add(tf.layers.conv2d(
+    {filters: 256, kernelSize: 3, padding: 'same', strides: 1}));
+  cnn.add(tf.layers.leakyReLU({alpha: 0.2}));
+  cnn.add(tf.layers.dropout({rate: 0.3}));
+
   cnn.add(tf.layers.flatten());
 
   const image = tf.input({shape: [28, 28, 1]});
@@ -129,6 +137,12 @@ async function run() {
 
   const learningRate = 0.0002;
   const adamBeta1 = 0.5;
+
+  const savePath = './dist/generator';
+  if (!fs.existsSync(path.dirname(savePath))) {
+    fs.mkdirSync(path.dirname(savePath));
+  }
+  const saveURL = `file://${savePath}`;
 
   // Build the discriminator.
   const discriminator = buildDiscriminator();
@@ -209,7 +223,8 @@ async function run() {
       // We want to train the generator to trick the discriminator.
       // For the generator, we want all the {fake, not-fake} labels to say
       // not-fake.
-      const trick = tf.ones([2 * actualBatchSize, 1]).mul(softOne);
+      const trick =
+          tf.tidy(() => tf.ones([2 * actualBatchSize, 1]).mul(softOne));
 
       const gHist = await combined.fit(
           [noise, sampledLabels], [trick, sampledLabels],
@@ -218,9 +233,11 @@ async function run() {
       console.log(
           `Epoch ${epoch + 1} batch ${index + 1}: ` +
           `dLoss = ${dLoss.toFixed(6)}; gLoss = ${gLoss.toFixed(6)}`);
-
       tf.dispose([noise, trick]);
     }
+
+    await generator.save(saveURL);
+    console.log(`Saved generator model to: ${saveURL}\n`);
   }
 }
 

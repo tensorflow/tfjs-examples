@@ -108,7 +108,7 @@ function buildDiscriminator() {
   cnn.add(tf.layers.dropout({rate: 0.3}));
 
   cnn.add(tf.layers.conv2d(
-      {filters: 128, kernelSize: 3, padding: 'same', strides: 1}));
+      {filters: 128, kernelSize: 3, padding: 'same', strides: 2}));
   cnn.add(tf.layers.leakyReLU({alpha: 0.2}));
   cnn.add(tf.layers.dropout({rate: 0.3}));
 
@@ -206,8 +206,10 @@ async function run() {
 
       const auxY = tf.concat([labelBatch, sampledLabels], 0);
 
+      // console.log('---- Calling discriminator.fit(): ----');  // DEBUG
+      // console.log(`actualBatchSize = ${actualBatchSize}`);  // DEBUG
       const dHist = await discriminator.fit(
-          x, [y, auxY], {batchSize: actualBatchSize, epochs: 1, verbose: 0});
+          x, [y, auxY], {batchSize: x.shape[0], epochs: 1, verbose: 0});
       const dLoss = dHist.history.loss[0];
       tf.dispose([x, y, auxY]);
 
@@ -226,6 +228,7 @@ async function run() {
       const trick =
           tf.tidy(() => tf.ones([2 * actualBatchSize, 1]).mul(softOne));
 
+      // console.log('---- Calling combined.fit() ----'); 
       const gHist = await combined.fit(
           [noise, sampledLabels], [trick, sampledLabels],
           {epochs: 1, batchSize: noise.shape[0], verbose: 0});

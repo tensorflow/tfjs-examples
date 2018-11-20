@@ -25,15 +25,18 @@ import {SaveableLSTMTextGenerator} from './index';
 // TODO(cais): Support user-supplied text data.
 const TEXT_DATA_URLS = {
   'nietzsche': {
-    url:'https://storage.googleapis.com/tfjs-examples/lstm-text-generation/data/nietzsche.txt',
+    url:
+        'https://storage.googleapis.com/tfjs-examples/lstm-text-generation/data/nietzsche.txt',
     needle: 'Nietzsche'
   },
   'julesverne': {
-    url: 'https://storage.googleapis.com/tfjs-examples/lstm-text-generation/data/t1.verne.txt',
+    url:
+        'https://storage.googleapis.com/tfjs-examples/lstm-text-generation/data/t1.verne.txt',
     needle: 'Jules Verne'
   },
   'shakespeare': {
-    url: 'https://storage.googleapis.com/tfjs-examples/lstm-text-generation/data/t8.shakespeare.txt',
+    url:
+        'https://storage.googleapis.com/tfjs-examples/lstm-text-generation/data/t8.shakespeare.txt',
     needle: 'Shakespeare'
   },
   'tfjs-code': {
@@ -167,13 +170,14 @@ export function setUpUI() {
   async function refreshLocalModelStatus() {
     const modelInfo = await textGenerator.checkStoredModelStatus();
     if (modelInfo == null) {
-      modelAvailableInfo.value =
+      modelAvailableInfo.innerText =
           `No locally saved model for "${textGenerator.modelIdentifier()}".`;
       createOrLoadModelButton.textContent = 'Create model';
       deleteModelButton.disabled = true;
       enableModelParameterControls();
     } else {
-      modelAvailableInfo.value = `Saved @ ${modelInfo.dateSaved.toISOString()}`;
+      modelAvailableInfo.innerText =
+          `Saved @ ${modelInfo.dateSaved.toISOString()}`;
       createOrLoadModelButton.textContent = 'Load model';
       deleteModelButton.disabled = false;
       disableModelParameterControls();
@@ -283,7 +287,7 @@ export function setUpUI() {
 
   function hashCode(str) {
     let hash = 5381, i = str.length;
-    while(i)  {
+    while (i) {
       hash = (hash * 33) ^ str.charCodeAt(--i);
     }
     return hash >>> 0;
@@ -309,7 +313,7 @@ export function setUpUI() {
     loadTextDataButton.disabled = true;
     let dataIdentifier = textDataSelect.value;
     const url = TEXT_DATA_URLS[dataIdentifier].url;
-    if( testText.value.length === 0) {
+    if (testText.value.length === 0) {
       try {
         logStatus(`Loading text data from URL: ${url} ...`);
         const response = await fetch(url);

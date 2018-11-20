@@ -163,6 +163,17 @@ to another project.
     <td></td>
   </tr>
   <tr>
+    <td><a href="./polynomial-regression-node">polynomial-regression-node</a></td>
+    <td></td>
+    <td>Numeric</td>
+    <td>Regression</td>
+    <td>Shallow neural network</td>
+    <td>Node.js</td>
+    <td>Node.js</td>
+    <td>Layers</td>
+    <td></td>
+  </tr>
+  <tr>
     <td><a href="./polynomial-regression-core">polynomial-regression-core</a></td>
     <td><a href="https://storage.googleapis.com/tfjs-examples/polynomial-regression-core/dist/index.html">🔗</a></td>
     <td>Numeric</td>

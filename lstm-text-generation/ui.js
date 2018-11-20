@@ -17,7 +17,7 @@
  */
 
 import * as tf from '@tensorflow/tfjs';
-import embed from 'vega-embed';
+import * as tfvis from '@tensorflow/tfjs-vis';
 
 import {TextData} from './data';
 import {SaveableLSTMTextGenerator} from './index';
@@ -85,14 +85,15 @@ function logStatus(message) {
   appStatus.textContent = message;
 }
 
-let lossValues;
-let batchCount;
+let batchLossValues;
+let epochLossValues;
 
 /**
  * A function to call when a training process starts.
  */
 export function onTrainBegin() {
-  lossValues = [];
+  batchLossValues = [];
+  epochLossValues = [];
   logStatus('Starting model training...');
 }
 
@@ -105,35 +106,27 @@ export function onTrainBegin() {
  * @param {number} examplesPerSec The training speed in the batch, in examples
  *   per second.
  */
-export function onTrainBatchEnd(loss, progress, examplesPerSec) {
-  batchCount = lossValues.length + 1;
-  lossValues.push({'batch': batchCount, 'loss': loss, 'split': 'training'});
-  plotLossValues();
+export function onTrainBatchEnd(logs, progress, examplesPerSec) {
   logStatus(
       `Model training: ${(progress * 1e2).toFixed(1)}% complete... ` +
       `(${examplesPerSec.toFixed(0)} examples/s)`);
+  batchLossValues.push(logs);
+  const container = document.getElementById('batch-loss-canvas');
+  tfvis.show.history(container, batchLossValues, ['loss'], {
+    height: 300,
+    zoomToFit: true,
+    xLabel: 'Batch',
+  });
 }
 
-export function onTrainEpochEnd(validationLoss) {
-  lossValues.push(
-      {'batch': batchCount, 'loss': validationLoss, 'split': 'validation'});
-  plotLossValues();
-}
-
-function plotLossValues() {
-  embed(
-      '#loss-canvas', {
-        '$schema': 'https://vega.github.io/schema/vega-lite/v2.json',
-        'data': {'values': lossValues},
-        'mark': 'line',
-        'encoding': {
-          'x': {'field': 'batch', 'type': 'ordinal'},
-          'y': {'field': 'loss', 'type': 'quantitative'},
-          'color': {'field': 'split', 'type': 'nominal'}
-        },
-        'width': 300,
-      },
-      {});
+export function onTrainEpochEnd(logs) {
+  epochLossValues.push(logs);
+  const container = document.getElementById('epoch-loss-canvas');
+  tfvis.show.history(container, epochLossValues, ['loss', 'val_loss'], {
+    height: 300,
+    zoomToFit: true,
+    xLabel: 'Epoch',
+  });
 }
 
 /**

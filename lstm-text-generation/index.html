@@ -18,50 +18,19 @@ limitations under the License.
 <!doctype html>
 
 <head>
-  <!-- <link rel="stylesheet" href="https://code.getmdl.io/1.3.0/material.cyan-teal.min.css" /> -->
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="stylesheet" href="../shared/tfjs-examples.css" />
 </head>
 
 <style>
-  /* body {
-    font-family: "Roboto", "Helvetica", "Arial", sans-serif;
-    margin-top: 50px;
-    margin-left: 50px;
-    width: 80%;
-  } */
-
-  .canvases {
-    display: inline-block;
-  }
-
   .monospace {
-    /* font-family: monospace; */
+    font-family: monospace;
   }
 
   .input-title {
     display: inline-block;
-    width: 20em;
-  }
-
-  .vertical-sections {
-    border: 1px solid #AAA;
-    padding: 6px;
-    margin: 6px;
-  }
-
-  .box {
-    padding: 6px;
-    margin: 6px;
-    margin-left: 20px;
-    /* border: 1px solid #AAA; */
-  }
-
-  .horizontal-sections {
-    display: inline-block;
-    padding-right: 20px;
-    vertical-align: top;
+    width: 12em;
   }
 
   select {
@@ -135,33 +104,34 @@ limitations under the License.
   <section>
     <p class='section-head'>Model Training</p>
 
-    <div class="horizontal-sections">
+    <div class="with-cols">
       <div>
-        <span class="input-title">Examples per epoch:</span>
-        <input id="examples-per-epoch" value="2048"></input>
+        <div>
+          <span class="input-title">Examples per epoch:</span>
+          <input id="examples-per-epoch" value="2048"></input>
+        </div>
+        <div>
+          <span class="input-title">Batch size:</span>
+          <input id="batch-size" value="128"></input>
+        </div>
+        <div>
+          <span class="input-title">Epochs:</span>
+          <input id="epochs" value="5"></input>
+        </div>
+        <div>
+          <span class="input-title">Validation spilt:</span>
+          <input id="validation-split" value="0.0625"></input>
+        </div>
+        <div>
+          <span class="input-title">Learning rate:</span>
+          <input id="learning-rate" value="1e-2"></input>
+        </div>
+        <div>
+          <button id="train-model" disabled="true">Train model</button>
+        </div>
       </div>
-      <div>
-        <span class="input-title">Batch size:</span>
-        <input id="batch-size" value="128"></input>
-      </div>
-      <div>
-        <span class="input-title">Epochs:</span>
-        <input id="epochs" value="5"></input>
-      </div>
-      <div>
-        <span class="input-title">Validation spilt:</span>
-        <input id="validation-split" value="0.0625"></input>
-      </div>
-      <div>
-        <span class="input-title">Learning rate:</span>
-        <input id="learning-rate" value="1e-2"></input>
-      </div>
-      <div>
-        <button id="train-model" disabled="true">Train model</button>
-      </div>
-      <div class="horizontal-sections">
-        <div class="canvases" id="loss-canvas"></div>
-      </div>
+      <div class="canvases" id="batch-loss-canvas"></div>
+      <div class="canvases" id="epoch-loss-canvas"></div>
     </div>
   </section>
 
@@ -170,11 +140,11 @@ limitations under the License.
 
     <p><em>What is seed text?</em></p>
 
-    <div class="monospace">
-      <span class="input-title">Length of generated text (in characters):</span>
+    <div>
+      <span class="input-title">Length of generated text:</span>
       <input id="generate-length" value="200"></input>
     </div>
-    <div class="monospace">
+    <div>
       <span class="input-title">Generation temperature:</span>
       <input id="temperature" value="0.75"></input>
     </div>

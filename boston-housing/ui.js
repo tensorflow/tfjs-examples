@@ -18,13 +18,8 @@
 import {linearRegressionModel, multiLayerPerceptronRegressionModel1Hidden, multiLayerPerceptronRegressionModel2Hidden, run} from '.';
 
 const statusElement = document.getElementById('status');
-export function updateStatus(message, name) {
-  if (name) {
-    let statElement = document.querySelector(`#${name} .status`);
-    statElement.innerText = message;
-  } else {
-    statusElement.innerText = message;
-  }
+export function updateStatus(message) {
+  statusElement.innerText = message;
 };
 
 const baselineStatusElement = document.getElementById('baselineStatus');
@@ -32,7 +27,11 @@ export function updateBaselineStatus(message) {
   baselineStatusElement.innerText = message;
 };
 
-// const weightsElement = document.getElementById('modelInspectionOutput');
+export function updateModelStatus(message, modelName) {
+  const statElement = document.querySelector(`#${modelName} .status`);
+  statElement.innerText = message;
+};
+
 const NUM_TOP_WEIGHTS_TO_DISPLAY = 5;
 /**
  * Updates the weights output area to include information about the weights

@@ -129,22 +129,22 @@ export function describeKerenelElements(kernel) {
  * @param {boolean} weightsIllustration Whether to print info about the learned
  *  weights.
  */
-export async function run(model, name, weightsIllustration) {
+export async function run(model, modelName, weightsIllustration) {
   model.compile(
       {optimizer: tf.train.sgd(LEARNING_RATE), loss: 'meanSquaredError'});
 
   let trainLogs = [];
-  const container = document.querySelector(`#${name} .chart`);
+  const container = document.querySelector(`#${modelName} .chart`);
 
-  // await ui.updateStatus('Starting training process...');
+  ui.updateStatus('Starting training process...');
   await model.fit(tensors.trainFeatures, tensors.trainTarget, {
     batchSize: BATCH_SIZE,
     epochs: NUM_EPOCHS,
     validationSplit: 0.2,
     callbacks: {
       onEpochEnd: async (epoch, logs) => {
-        await ui.updateStatus(
-            `Epoch ${epoch + 1} of ${NUM_EPOCHS} completed.`, name);
+        await ui.updateModelStatus(
+            `Epoch ${epoch + 1} of ${NUM_EPOCHS} completed.`, modelName);
         trainLogs.push(logs);
         tfvis.show.history(container, trainLogs, ['loss', 'val_loss'])
 
@@ -158,18 +158,18 @@ export async function run(model, name, weightsIllustration) {
     }
   });
 
-  await ui.updateStatus('Running on test data...');
+  ui.updateStatus('Running on test data...');
   const result = model.evaluate(
       tensors.testFeatures, tensors.testTarget, {batchSize: BATCH_SIZE});
   const testLoss = result.dataSync()[0];
 
   const trainLoss = trainLogs[trainLogs.length - 1].loss;
   const valLoss = trainLogs[trainLogs.length - 1].val_loss;
-  await ui.updateStatus(
+  await ui.updateModelStatus(
       `Final train-set loss: ${trainLoss.toFixed(4)}\n` +
           `Final validation-set loss: ${valLoss.toFixed(4)}\n` +
           `Test-set loss: ${testLoss.toFixed(4)}`,
-      name);
+      modelName);
 };
 
 export function computeBaseline() {

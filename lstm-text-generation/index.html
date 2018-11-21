@@ -61,7 +61,8 @@ limitations under the License.
     <p class='section-head'>Description</p>
     <p>
       This example allows you to train a model to generate text in the style of some existing source text.
-      <em>we should say something about this being a character vs word model or something.</em>
+      The model is designed to predict the <em>next character</em> in a text given some preceding string of characters.
+      Doing this repetedly builds up a text, charachter by character.
     </p>
   </section>
 
@@ -103,9 +104,17 @@ limitations under the License.
 
   <section>
     <p class='section-head'>Model Training</p>
-
+    <p>
+      It can take a while to generate an effective model. Try increasing the number of <em>epochs</em> to improve the
+      results, we have found that about <strong>50-100 epochs</strong> or so are needed to start generating reasonable
+      text.
+    </p>
     <div class="with-cols">
       <div>
+        <div>
+          <span class="input-title">Number of Epochs:</span>
+          <input id="epochs" value="5"></input>
+        </div>
         <div>
           <span class="input-title">Examples per epoch:</span>
           <input id="examples-per-epoch" value="2048"></input>
@@ -113,10 +122,6 @@ limitations under the License.
         <div>
           <span class="input-title">Batch size:</span>
           <input id="batch-size" value="128"></input>
-        </div>
-        <div>
-          <span class="input-title">Epochs:</span>
-          <input id="epochs" value="5"></input>
         </div>
         <div>
           <span class="input-title">Validation spilt:</span>
@@ -136,26 +141,39 @@ limitations under the License.
   </section>
 
   <section>
-    <p class='section-head'>Text Generation</p>
+    <p class='section-head'>Text Generation Parameters</p>
+    <p>
+      To generate text the model needs to have some number of preceding characters from which it continues,
+      we call these characters the <em>seed text</em>. You can type one in, or we will extract a random substring from
+      the input text to be the seed text. Note that the seed text must be at least 40 charachters long.
+    </p>
+    <p>
+      For example when using the TensorFlow.js source code as source data
 
-    <p><em>What is seed text?</em></p>
+    </p>
 
     <div>
       <span class="input-title">Length of generated text:</span>
       <input id="generate-length" value="200"></input>
     </div>
+
     <div>
       <span class="input-title">Generation temperature:</span>
       <input id="temperature" value="0.75"></input>
     </div>
+
     <div>
       <button id="generate-text" disabled="true">Generate text</button>
       <span id="text-generation-status"></span>
     </div>
+
     <div>
       <span class="input-title">Seed text:</span>
       <textarea class="monospace" id="seed-text" value="" rows="4"></textarea>
     </div>
+
+    <p class='section-head'>Model Output</p>
+
     <div>
       <span class="input-title">Generated text:</span>
       <textarea class="monospace" id="generated-text" readonly="true" value="" rows="10"></textarea>

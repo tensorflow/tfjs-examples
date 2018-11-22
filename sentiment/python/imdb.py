@@ -251,7 +251,7 @@ if __name__ == '__main__':
   parser.add_argument(
       '--artifacts_dir',
       type=str,
-      default='/tmp/mnist.keras',
+      default='/tmp/imdb.keras',
       help='Local path for saving the TensorFlow.js artifacts.')
 
   FLAGS, _ = parser.parse_known_args()

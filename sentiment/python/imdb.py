@@ -78,9 +78,9 @@ def get_imdb_data(vocabulary_size, max_len):
     max_len: Cut text after this number of words.
 
   Returns:
-    x_train: An int array of shape `(num_exapmles, max_len)`: index-encoded
+    x_train: An int array of shape `(num_examples, max_len)`: index-encoded
       sentences.
-    y_train: An int array of shape `(num_exapmles,)`: labels for the sentences.
+    y_train: An int array of shape `(num_examples,)`: labels for the sentences.
     x_test: Same as `x_train`, but for test.
     y_test: Same as `y_train`, but for test.
   """
@@ -107,9 +107,9 @@ def train_model(model_type,
     model_type: Type of the model to train, as a `str`.
     vocabulary_size: Vocabulary size.
     embedding_size: Embedding dimensions.
-    x_train: An int array of shape `(num_exapmles, max_len)`: index-encoded
+    x_train: An int array of shape `(num_examples, max_len)`: index-encoded
       sentences.
-    y_train: An int array of shape `(num_exapmles,)`: labels for the sentences.
+    y_train: An int array of shape `(num_examples,)`: labels for the sentences.
     x_test: Same as `x_train`, but for test.
     y_test: Same as `y_train`, but for test.
     epochs: Number of epochs to train the model for.

@@ -208,7 +208,7 @@ def main():
   print('\nSaved model metadata at: %s' % metadata_json_path)
 
   tfjs.converters.save_keras_model(model, FLAGS.artifacts_dir)
-  print('\nSaved model artifcats in directory: %s' % FLAGS.artifacts_dir)
+  print('\nSaved model artifacts in directory: %s' % FLAGS.artifacts_dir)
 
 
 if __name__ == '__main__':

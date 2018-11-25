@@ -8571,3 +8571,9 @@ button {
 
 input {
   font-size: 100%; }
+
+code {
+  padding: 2px;
+  border: 1px solid #dedede;
+  border-radius: 4px;
+  font-size: 110%; }

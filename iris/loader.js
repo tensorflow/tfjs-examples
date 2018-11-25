@@ -56,11 +56,11 @@ export async function saveModelLocally(model) {
   const saveResult = await model.save(LOCAL_MODEL_URL);
 }
 
-export async function loadModelLocally(model) {
+export async function loadModelLocally() {
   return await tf.loadModel(LOCAL_MODEL_URL);
 }
 
-export async function removeModelLocally(model) {
+export async function removeModelLocally() {
   return await tf.io.removeModel(LOCAL_MODEL_URL);
 }
 
@@ -76,9 +76,8 @@ export async function updateLocalModelStatus() {
 
   const modelsInfo = await tf.io.listModels();
   if (LOCAL_MODEL_URL in modelsInfo) {
-    localModelStatus.textContent =
-        'Found locally-stored model saved at ' +
-        modelsInfo[LOCAL_MODEL_URL].dateSaved;
+    localModelStatus.textContent = 'Found locally-stored model saved at ' +
+        modelsInfo[LOCAL_MODEL_URL].dateSaved.toDateString();
     localLoadButton.disabled = false;
     localRemoveButton.disabled = false;
   } else {

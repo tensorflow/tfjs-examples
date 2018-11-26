@@ -207,12 +207,12 @@ function buildDiscriminator() {
  * @param {number} latentSize Size of the latent space (z-space).
  * @param {tf.Model} generator The generator of the ACGAN.
  * @param {tf.Model} discriminator The discriminator of the ACGAN.
- * @returns The loss values from the one-step training as tf.Scalars.
+ * @returns The loss values from the one-step training as numbers.
  */
-function trainDiscriminatorOneStep(
+async function trainDiscriminatorOneStep(
     xTrain, yTrain, batchStart, batchSize, latentSize, generator,
     discriminator) {
-  return tf.tidy(() => {
+  const [x, y, auxY] = tf.tidy(() => {
     const imageBatch = xTrain.slice(batchStart, batchSize);
     const labelBatch = yTrain.slice(batchStart, batchSize).asType('float32');
 
@@ -229,9 +229,12 @@ function trainDiscriminatorOneStep(
             [tf.ones([batchSize, 1]).mul(softOne), tf.zeros([batchSize, 1])]));
 
     const auxY = tf.concat([labelBatch, sampledLabels], 0);
-
-    return discriminator.trainOnBatch(x, [y, auxY]);
+    return [x, y, auxY];
   });
+
+  const losses = await discriminator.trainOnBatch(x, [y, auxY]);
+  tf.dispose([x, y, auxY]);
+  return losses;
 }
 
 // "Soft" one used for training the combined ACGAN model.
@@ -246,9 +249,10 @@ const softOne = tf.scalar(0.95);
  * @param {number} latentSize Size of the latent space (z-space).
  * @param {tf.Model} combined The instance of tf.Model that combines
  *   the generator and the discriminator.
+ * @returns The loss values from the combined model as numbers.
  */
-function trainCombinedModelOneStep(batchSize, latentSize, combined) {
-  return tf.tidy(() => {
+async function trainCombinedModelOneStep(batchSize, latentSize, combined) {
+  const [noise, sampledLabels, trick] = tf.tidy(() => {
     // Make new noise.
     const noise = tf.randomUniform([batchSize, latentSize], -1, 1);
     const sampledLabels =
@@ -259,10 +263,13 @@ function trainCombinedModelOneStep(batchSize, latentSize, combined) {
     // For the generator, we want all the {fake, not-fake} labels to say
     // not-fake.
     const trick = tf.tidy(() => tf.ones([batchSize, 1]).mul(softOne));
-
-    return combined.trainOnBatch(
-        [noise, sampledLabels], [trick, sampledLabels]);
+    return [noise, sampledLabels, trick];
   });
+
+  const losses =
+      combined.trainOnBatch([noise, sampledLabels], [trick, sampledLabels]);
+  tf.dispose([noise, sampledLabels, trick]);
+  return losses;
 }
 
 async function run() {
@@ -348,21 +355,20 @@ async function run() {
           (xTrain.shape[0] - batch * args.batchSize) :
           args.batchSize;
 
-      const dLoss = trainDiscriminatorOneStep(
+      const dLoss = await trainDiscriminatorOneStep(
           xTrain, yTrain, batch * args.batchSize, actualBatchSize,
           args.latentSize, generator, discriminator);
 
       // Here we use 2 * actualBatchSize here, so that we have
       // the generator optimizer over an identical number of images
       // as the discriminator.
-      const gLoss = trainCombinedModelOneStep(
+      const gLoss = await trainCombinedModelOneStep(
           2 * actualBatchSize, args.latentSize, combined);
 
       console.log(
           `epoch ${epoch + 1}/${args.epochs} batch ${batch + 1}/${
               numBatches}: ` +
-          `dLoss = ${((await dLoss[0].data())[0]).toFixed(6)}, ` +
-          `gLoss = ${((await gLoss[0].data())[0]).toFixed(6)}`);
+          `dLoss = ${dLoss[0].toFixed(6)}, gLoss = ${gLoss[0].toFixed(6)}`);
       tf.dispose([dLoss, gLoss]);
 
       // Assert on no memory leak.

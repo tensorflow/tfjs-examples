@@ -73,14 +73,11 @@ function buildGenerator(latentSize) {
   // This will be out label.
   const imageClass = tf.input({shape: [1]});
 
-  const cls =
-      tf.layers.flatten().apply(tf.layers
-                                    .embedding({
-                                      inputDim: NUM_CLASSES,
-                                      outputDim: latentSize,
-                                      embeddingsInitializer: 'glorotNormal'
-                                    })
-                                    .apply(imageClass));
+  const cls = tf.layers.embedding({
+    inputDim: NUM_CLASSES,
+    outputDim: latentSize,
+    embeddingsInitializer: 'glorotNormal'
+  }).apply(imageClass);
 
   // Hadamard product between z-space and a class conditional embedding.
   const h = tf.layers.multiply().apply([latent, cls]);

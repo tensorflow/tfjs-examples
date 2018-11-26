@@ -179,13 +179,13 @@ async function run() {
   for (let epoch = 0; epoch < epochs; ++epoch) {
     const numBatches = Math.ceil(xTrain.shape[0] / batchSize);
 
-    for (let index = 0; index < numBatches; ++index) {
-      const actualBatchSize = (index + 1) * batchSize >= xTrain.shape[0] ?
-          (xTrain.shape[0] - index * batchSize) :
+    for (let batch = 0; batch < numBatches; ++batch) {
+      const actualBatchSize = (batch + 1) * batchSize >= xTrain.shape[0] ?
+          (xTrain.shape[0] - batch * batchSize) :
           batchSize;
-      const imageBatch = xTrain.slice(index * batchSize, actualBatchSize);
+      const imageBatch = xTrain.slice(batch * batchSize, actualBatchSize);
       const labelBatch =
-          yTrain.slice(index * batchSize, actualBatchSize).asType('float32');
+          yTrain.slice(batch * batchSize, actualBatchSize).asType('float32');
 
       let noise = tf.randomUniform([actualBatchSize, latentSize], -1, 1);
       let sampledLabels =
@@ -203,11 +203,7 @@ async function run() {
 
       const auxY = tf.concat([labelBatch, sampledLabels], 0);
 
-      // console.log('---- Calling discriminator.fit(): ----');  // DEBUG
-      // console.log(`actualBatchSize = ${actualBatchSize}`);  // DEBUG
-      const dHist = await discriminator.fit(
-          x, [y, auxY], {batchSize: x.shape[0], epochs: 1, verbose: 0});
-      const dLoss = dHist.history.loss[0];
+      const dLoss = await discriminator.trainOnBatch(x, [y, auxY]);
       tf.dispose([x, y, auxY]);
 
       // Make new noise. We generate 2 * actualBatchSize here, so that we have
@@ -225,15 +221,13 @@ async function run() {
       const trick =
           tf.tidy(() => tf.ones([2 * actualBatchSize, 1]).mul(softOne));
 
-      // console.log('---- Calling combined.fit() ----'); 
-      const gHist = await combined.fit(
-          [noise, sampledLabels], [trick, sampledLabels],
-          {epochs: 1, batchSize: noise.shape[0], verbose: 0});
-      const gLoss = gHist.history.loss[0];
+      const gLoss = await combined.trainOnBatch(
+          [noise, sampledLabels], [trick, sampledLabels]);
       console.log(
-          `Epoch ${epoch + 1} batch ${index + 1}: ` +
-          `dLoss = ${dLoss.toFixed(6)}; gLoss = ${gLoss.toFixed(6)}`);
-      tf.dispose([noise, trick]);
+          `Epoch ${epoch + 1}/${epochs} Batch ${batch + 1}/${numBatches}: ` +
+          `dLoss = ${dLoss[0].get().toFixed(6)}, ` +
+          `gLoss = ${gLoss[0].get().toFixed(6)}`);
+      tf.dispose([noise, trick, dLoss, gLoss]);
     }
 
     await generator.save(saveURL);

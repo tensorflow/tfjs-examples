@@ -9,7 +9,8 @@
     "node": ">=8.9.0"
   },
   "dependencies": {
-    "@tensorflow/tfjs": "^0.13.3"
+    "@tensorflow/tfjs": "^0.13.3",
+    "@tensorflow/tfjs-vis": "^0.3.0"
   },
   "scripts": {
     "watch": "cross-env NODE_ENV=development parcel index.html --no-hmr --open",

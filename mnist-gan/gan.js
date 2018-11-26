@@ -182,6 +182,89 @@ function buildDiscriminator() {
   return tf.model({inputs: image, outputs: [fake, aux]});
 }
 
+/**
+ * Train the discriminator for one step.
+ *
+ * In this step, only the weights of the discriminator are updated.
+ *
+ * The following steps are involved:
+ *
+ *   - Slice the training features and to get batch of real data.
+ *   - Generate a random latent-space vector and a random label vector.
+ *   - Feed the random latent-space vector and label vector to the
+ *     generator and let it generate a batch of generated (i.e., fake) images.
+ *   - Concatenate the real data and fake data; train the discriminator on
+ *     the concatenated data for one step.
+ *   - Obtain and return the loss values.
+ *
+ * @param {tf.Tensor} xTrain A tensor that contains the features of all the
+ *   training examples.
+ * @param {tf.Tensor} yTrain A tensor that contains the labels of all the
+ *   training examples.
+ * @param {number} batchStart Starting index of the batch.
+ * @param {number} batchSize Size of the batch to draw from `xTrain` and
+ *   `yTrain`.
+ * @param {number} latentSize Size of the latent space (z-space).
+ * @param {tf.Model} generator The generator of the ACGAN.
+ * @param {tf.Model} discriminator The discriminator of the ACGAN.
+ * @returns The loss values from the one-step training as tf.Scalars.
+ */
+function trainDiscriminatorOneStep(
+    xTrain, yTrain, batchStart, batchSize, latentSize, generator,
+    discriminator) {
+  return tf.tidy(() => {
+    const imageBatch = xTrain.slice(batchStart, batchSize);
+    const labelBatch = yTrain.slice(batchStart, batchSize).asType('float32');
+
+    let noise = tf.randomUniform([batchSize, latentSize], -1, 1);
+    let sampledLabels =
+        tf.randomUniform([batchSize, 1], 0, NUM_CLASSES, 'int32')
+            .asType('float32');
+
+    const generatedImages = generator.predict([noise, sampledLabels]);
+
+    const x = tf.concat([imageBatch, generatedImages], 0);
+    const y = tf.tidy(
+        () => tf.concat(
+            [tf.ones([batchSize, 1]).mul(softOne), tf.zeros([batchSize, 1])]));
+
+    const auxY = tf.concat([labelBatch, sampledLabels], 0);
+
+    return discriminator.trainOnBatch(x, [y, auxY]);
+  });
+}
+
+// "Soft" one used for training the combined ACGAN model.
+const softOne = tf.scalar(0.95);
+
+/**
+ * Train the combined ACGAN for one step.
+ *
+ * In this step, only the weights of the generator are updated.
+ *
+ * @param {number} batchSize Size of the fake-image batch to generate.
+ * @param {number} latentSize Size of the latent space (z-space).
+ * @param {tf.Model} combined The instance of tf.Model that combines
+ *   the generator and the discriminator.
+ */
+function trainCombinedModelOneStep(batchSize, latentSize, combined) {
+  return tf.tidy(() => {
+    // Make new noise.
+    const noise = tf.randomUniform([batchSize, latentSize], -1, 1);
+    const sampledLabels =
+        tf.randomUniform([batchSize, 1], 0, NUM_CLASSES, 'int32')
+            .asType('float32');
+
+    // We want to train the generator to trick the discriminator.
+    // For the generator, we want all the {fake, not-fake} labels to say
+    // not-fake.
+    const trick = tf.tidy(() => tf.ones([batchSize, 1]).mul(softOne));
+
+    return combined.trainOnBatch(
+        [noise, sampledLabels], [trick, sampledLabels]);
+  });
+}
+
 async function run() {
   const parser = new argparse.ArgumentParser({
     description: 'TensorFlowj.js: MNIST ACGAN trainer example.',
@@ -254,7 +337,7 @@ async function run() {
   let {images: xTrain, labels: yTrain} = data.getTrainData();
   yTrain = tf.expandDims(yTrain.argMax(-1), -1);
 
-  const softOne = tf.scalar(0.95);
+  let numTensors;
   for (let epoch = 0; epoch < args.epochs; ++epoch) {
     const tBatchBegin = tf.util.now();
 
@@ -264,52 +347,32 @@ async function run() {
       const actualBatchSize = (batch + 1) * args.batchSize >= xTrain.shape[0] ?
           (xTrain.shape[0] - batch * args.batchSize) :
           args.batchSize;
-      const imageBatch = xTrain.slice(batch * args.batchSize, actualBatchSize);
-      const labelBatch = yTrain.slice(batch * args.batchSize, actualBatchSize)
-                             .asType('float32');
 
-      let noise = tf.randomUniform([actualBatchSize, args.latentSize], -1, 1);
-      let sampledLabels =
-          tf.randomUniform([actualBatchSize, 1], 0, NUM_CLASSES, 'int32')
-              .asType('float32');
+      const dLoss = trainDiscriminatorOneStep(
+          xTrain, yTrain, batch * args.batchSize, actualBatchSize,
+          args.latentSize, generator, discriminator);
 
-      const generatedImages = generator.predict([noise, sampledLabels]);
-
-      const x = tf.concat([imageBatch, generatedImages], 0);
-      tf.dispose([imageBatch, generatedImages]);
-      const y = tf.tidy(() => tf.concat([
-        tf.ones([actualBatchSize, 1]).mul(softOne),
-        tf.zeros([actualBatchSize, 1])
-      ]));
-
-      const auxY = tf.concat([labelBatch, sampledLabels], 0);
-
-      const dLoss = await discriminator.trainOnBatch(x, [y, auxY]);
-      tf.dispose([x, y, auxY]);
-
-      // Make new noise. We generate 2 * actualBatchSize here, so that we have
+      // Here we use 2 * actualBatchSize here, so that we have
       // the generator optimizer over an identical number of images
       // as the discriminator.
-      tf.dispose([noise, sampledLabels]);
-      noise = tf.randomUniform([2 * actualBatchSize, args.latentSize], -1, 1);
-      sampledLabels =
-          tf.randomUniform([2 * actualBatchSize, 1], 0, NUM_CLASSES, 'int32')
-              .asType('float32');
+      const gLoss = trainCombinedModelOneStep(
+          2 * actualBatchSize, args.latentSize, combined);
 
-      // We want to train the generator to trick the discriminator.
-      // For the generator, we want all the {fake, not-fake} labels to say
-      // not-fake.
-      const trick =
-          tf.tidy(() => tf.ones([2 * actualBatchSize, 1]).mul(softOne));
-
-      const gLoss = await combined.trainOnBatch(
-          [noise, sampledLabels], [trick, sampledLabels]);
       console.log(
           `epoch ${epoch + 1}/${args.epochs} batch ${batch + 1}/${
               numBatches}: ` +
-          `dLoss = ${dLoss[0].get().toFixed(6)}, ` +
-          `gLoss = ${gLoss[0].get().toFixed(6)}`);
-      tf.dispose([noise, trick, dLoss, gLoss]);
+          `dLoss = ${((await dLoss[0].data())[0]).toFixed(6)}, ` +
+          `gLoss = ${((await gLoss[0].data())[0]).toFixed(6)}`);
+      tf.dispose([dLoss, gLoss]);
+
+      // Assert on no memory leak.
+      if (numTensors == null) {
+        numTensors = tf.memory().numTensors;
+      } else {
+        tf.util.assert(
+            tf.memory().numTensors === numTensors,
+            `Leaked ${tf.memory().numTensors - numTensors} tensors`);
+      }
     }
 
     await generator.save(saveURL);

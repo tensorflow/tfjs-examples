@@ -10,9 +10,7 @@
   },
   "dependencies": {
     "@tensorflow/tfjs-node-gpu": "^0.1.21",
-    "argparse": "^1.0.10",
-    "progress": "^2.0.0",
-    "targz": "1.0.1"
+    "argparse": "^1.0.10"
   },
   "scripts": {
     "postinstall": "yarn upgrade --pattern @tensorflow",

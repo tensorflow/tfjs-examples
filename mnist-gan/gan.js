@@ -200,15 +200,20 @@ async function run() {
     defaultValue: 100,
     help: 'Size of the latent space (z-space).'
   });
+  parser.addArgument(
+      '--learningRate',
+      {type: 'float', defaultValue: 0.0002, help: 'Learning rate.'});
+  parser.addArgument('--adamBeta1', {
+    type: 'float',
+    defaultValue: 0.5,
+    help: 'Beta1 parameter of the ADAM optimizer.'
+  });
   parser.addArgument('--generatorSavePath', {
     type: 'string',
     defaultValue: './dist/generator',
     help: 'Path to which the generator model will be saved after every epoch.'
   });
   const args = parser.parseArgs();
-
-  const learningRate = 0.0002;
-  const adamBeta1 = 0.5;
 
   if (!fs.existsSync(path.dirname(args.generatorSavePath))) {
     fs.mkdirSync(path.dirname(args.generatorSavePath));
@@ -218,7 +223,7 @@ async function run() {
   // Build the discriminator.
   const discriminator = buildDiscriminator();
   discriminator.compile({
-    optimizer: tf.train.adam(learningRate, adamBeta1),
+    optimizer: tf.train.adam(args.learningRate, args.adamBeta1),
     loss: ['binaryCrossentropy', 'sparseCategoricalCrossentropy']
   });
   discriminator.summary();
@@ -240,7 +245,7 @@ async function run() {
   const combined =
       tf.model({inputs: [latent, imageClass], outputs: [fake, aux]});
   combined.compile({
-    optimizer: tf.train.adam(learningRate, adamBeta1),
+    optimizer: tf.train.adam(args.learningRate, args.adamBeta1),
     loss: ['binaryCrossentropy', 'sparseCategoricalCrossentropy']
   });
   combined.summary();

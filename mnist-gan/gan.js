@@ -15,27 +15,60 @@
  * =============================================================================
  */
 
+/**
+ * Train an Auxiliary Classifier Generative Adversarial Network (ACGAN) on the
+ * MNIST dataset.
+ *
+ * For background of ACGAN, see
+ * - Augustus Odena, Christopher Olah, Jonathon Shlens (2017) "Conditional
+ *   image synthesis with auxiliary classifier GANs"
+ *   https://arxiv.org/abs/1610.09585
+ *
+ * You should use tfjs-node-gpu to train the model on a GPU, as the convolution
+ * -heavy operations run much more slowly on a CPU.
+ */
+
 const fs = require('fs');
 const path = require('path');
 
+const argparse = require('argparse');
 const tf = require('@tensorflow/tfjs');
 require('@tensorflow/tfjs-node-gpu');
 
 const data = require('./data');
 
+// Number of classes in the MNIST dataset.
 const NUM_CLASSES = 10;
+// MNIST image size.
+const IMAGE_SIZE = 28;
 
+/**
+ * Build the generator part of ACGAN.
+ *
+ * The generator of ACGAN takes two inputs:
+ *
+ *   1. A random latent-space vector (the latent space is often referred to
+ *      as "z-space" in GAN literature).
+ *   2. A label for the desired image category (0, 1, ..., 9).
+ *
+ * It generates one output: the generated (i.e., fake) image.
+ *
+ * @param {number} latentSize Size of the latent space.
+ * @returns {tf.Model} The generator model.
+ */
 function buildGenerator(latentSize) {
+  tf.util.assert(
+      latentSize > 0 && Number.isInteger(latentSize),
+      `Expected latent-space size to be a positive integer, but ` +
+          `got ${latentSize}.`);
+
   const cnn = tf.sequential();
 
-  cnn.add(tf.layers.dense({
-    units: 3 * 3 * 384,  // TODO(cais): DO NOT hardcode.
-    inputShape: [latentSize],
-    activation: 'relu'
-  }));
+  cnn.add(tf.layers.dense(
+      {units: 3 * 3 * 384, inputShape: [latentSize], activation: 'relu'}));
   cnn.add(tf.layers.reshape({targetShape: [3, 3, 384]}));
 
-  // Upsample to [7, 7, ...]
+  // Upsample from [3, 3, ...] to [7, 7, ...].
   cnn.add(tf.layers.conv2dTranspose({
     filters: 192,
     kernelSize: 5,
@@ -46,7 +79,7 @@ function buildGenerator(latentSize) {
   }));
   cnn.add(tf.layers.batchNormalization());
 
-  // Upsample to [14, 14, ...]
+  // Upsample to [14, 14, ...].
   cnn.add(tf.layers.conv2dTranspose({
     filters: 96,
     kernelSize: 5,
@@ -57,7 +90,7 @@ function buildGenerator(latentSize) {
   }));
   cnn.add(tf.layers.batchNormalization());
 
-  // Upsample to [28, 28, ...]
+  // Upsample to [28, 28, ...].
   cnn.add(tf.layers.conv2dTranspose({
     filters: 1,
     kernelSize: 5,
@@ -70,14 +103,19 @@ function buildGenerator(latentSize) {
   // This is the z space commonly referred to in GAN papers.
   const latent = tf.input({shape: [latentSize]});
 
-  // This will be out label.
+  // The desired label of the generated image, an integer in the interval
+  // [0, NUM_CLASSES).
   const imageClass = tf.input({shape: [1]});
 
-  const cls = tf.layers.embedding({
-    inputDim: NUM_CLASSES,
-    outputDim: latentSize,
-    embeddingsInitializer: 'glorotNormal'
-  }).apply(imageClass);
+  // The desired label is converted to a vector of length `latentSize`
+  // through embedding lookup.
+  const cls = tf.layers
+                  .embedding({
+                    inputDim: NUM_CLASSES,
+                    outputDim: latentSize,
+                    embeddingsInitializer: 'glorotNormal'
+                  })
+                  .apply(imageClass);
 
   // Hadamard product between z-space and a class conditional embedding.
   const h = tf.layers.multiply().apply([latent, cls]);
@@ -86,6 +124,23 @@ function buildGenerator(latentSize) {
   return tf.model({inputs: [latent, imageClass], outputs: fakeImage});
 }
 
+/**
+ * Build the discriminator part of ACGAN.
+ *
+ * The discriminator model of ACGAN takes the input: an image of
+ * MNIST format, of shape [batchSize, 28, 28, 1].
+ *
+ * It gives two outputs:
+ *
+ *   1. A sigmoid probability score between 0 and 1, for whether the
+ *      discriminator judges the input image to be real (close to 1)
+ *      or fake (closer to 0).
+ *   2. Softmax probability scores for the 10 MNIST digit categories,
+ *      which is the discriminator's 10-class classification result
+ *      for the input image.
+ *
+ * @returns {tf.Model} The discriminator model.
+ */
 function buildDiscriminator() {
   const cnn = tf.sequential();
 
@@ -94,7 +149,7 @@ function buildDiscriminator() {
     kernelSize: 3,
     padding: 'same',
     strides: 2,
-    inputShape: [28, 28, 1]  // TODO(cais): Do not hard code.
+    inputShape: [IMAGE_SIZE, IMAGE_SIZE, 1]
   }));
   cnn.add(tf.layers.leakyReLU({alpha: 0.2}));
   cnn.add(tf.layers.dropout({rate: 0.3}));
@@ -110,13 +165,13 @@ function buildDiscriminator() {
   cnn.add(tf.layers.dropout({rate: 0.3}));
 
   cnn.add(tf.layers.conv2d(
-    {filters: 256, kernelSize: 3, padding: 'same', strides: 1}));
+      {filters: 256, kernelSize: 3, padding: 'same', strides: 1}));
   cnn.add(tf.layers.leakyReLU({alpha: 0.2}));
   cnn.add(tf.layers.dropout({rate: 0.3}));
 
   cnn.add(tf.layers.flatten());
 
-  const image = tf.input({shape: [28, 28, 1]});
+  const image = tf.input({shape: [IMAGE_SIZE, IMAGE_SIZE, 1]});
   const features = cnn.apply(image);
 
   const fake =
@@ -128,18 +183,37 @@ function buildDiscriminator() {
 }
 
 async function run() {
-  const epochs = 100;
-  const batchSize = 100;
-  const latentSize = 100;
+  const parser = new argparse.ArgumentParser({
+    description: 'TensorFlowj.js: MNIST ACGAN trainer example.',
+    addHelp: true
+  });
+  parser.addArgument(
+      '--epochs',
+      {type: 'int', defaultValue: 100, help: 'Number of training epochs.'});
+  parser.addArgument('--batchSize', {
+    type: 'int',
+    defaultValue: 100,
+    help: 'Batch size to be used during training.'
+  });
+  parser.addArgument('--latentSize', {
+    type: 'int',
+    defaultValue: 100,
+    help: 'Size of the latent space (z-space).'
+  });
+  parser.addArgument('--generatorSavePath', {
+    type: 'string',
+    defaultValue: './dist/generator',
+    help: 'Path to which the generator model will be saved after every epoch.'
+  });
+  const args = parser.parseArgs();
 
   const learningRate = 0.0002;
   const adamBeta1 = 0.5;
 
-  const savePath = './dist/generator';
-  if (!fs.existsSync(path.dirname(savePath))) {
-    fs.mkdirSync(path.dirname(savePath));
+  if (!fs.existsSync(path.dirname(args.generatorSavePath))) {
+    fs.mkdirSync(path.dirname(args.generatorSavePath));
   }
-  const saveURL = `file://${savePath}`;
+  const saveURL = `file://${args.generatorSavePath}`;
 
   // Build the discriminator.
   const discriminator = buildDiscriminator();
@@ -150,10 +224,10 @@ async function run() {
   discriminator.summary();
 
   // Build the generator.
-  const generator = buildGenerator(latentSize);
+  const generator = buildGenerator(args.latentSize);
   generator.summary();
 
-  const latent = tf.input({shape: [latentSize]});
+  const latent = tf.input({shape: [args.latentSize]});
   const imageClass = tf.input({shape: [1]});
 
   // Get a fake image.
@@ -176,18 +250,20 @@ async function run() {
   yTrain = tf.expandDims(yTrain.argMax(-1), -1);
 
   const softOne = tf.scalar(0.95);
-  for (let epoch = 0; epoch < epochs; ++epoch) {
-    const numBatches = Math.ceil(xTrain.shape[0] / batchSize);
+  for (let epoch = 0; epoch < args.epochs; ++epoch) {
+    const tBatchBegin = tf.util.now();
+
+    const numBatches = Math.ceil(xTrain.shape[0] / args.batchSize);
 
     for (let batch = 0; batch < numBatches; ++batch) {
-      const actualBatchSize = (batch + 1) * batchSize >= xTrain.shape[0] ?
-          (xTrain.shape[0] - batch * batchSize) :
-          batchSize;
-      const imageBatch = xTrain.slice(batch * batchSize, actualBatchSize);
-      const labelBatch =
-          yTrain.slice(batch * batchSize, actualBatchSize).asType('float32');
+      const actualBatchSize = (batch + 1) * args.batchSize >= xTrain.shape[0] ?
+          (xTrain.shape[0] - batch * args.batchSize) :
+          args.batchSize;
+      const imageBatch = xTrain.slice(batch * args.batchSize, actualBatchSize);
+      const labelBatch = yTrain.slice(batch * args.batchSize, actualBatchSize)
+                             .asType('float32');
 
-      let noise = tf.randomUniform([actualBatchSize, latentSize], -1, 1);
+      let noise = tf.randomUniform([actualBatchSize, args.latentSize], -1, 1);
       let sampledLabels =
           tf.randomUniform([actualBatchSize, 1], 0, NUM_CLASSES, 'int32')
               .asType('float32');
@@ -210,7 +286,7 @@ async function run() {
       // the generator optimizer over an identical number of images
       // as the discriminator.
       tf.dispose([noise, sampledLabels]);
-      noise = tf.randomUniform([2 * actualBatchSize, latentSize], -1, 1);
+      noise = tf.randomUniform([2 * actualBatchSize, args.latentSize], -1, 1);
       sampledLabels =
           tf.randomUniform([2 * actualBatchSize, 1], 0, NUM_CLASSES, 'int32')
               .asType('float32');
@@ -224,13 +300,17 @@ async function run() {
       const gLoss = await combined.trainOnBatch(
           [noise, sampledLabels], [trick, sampledLabels]);
       console.log(
-          `Epoch ${epoch + 1}/${epochs} Batch ${batch + 1}/${numBatches}: ` +
+          `epoch ${epoch + 1}/${args.epochs} batch ${batch + 1}/${
+              numBatches}: ` +
           `dLoss = ${dLoss[0].get().toFixed(6)}, ` +
           `gLoss = ${gLoss[0].get().toFixed(6)}`);
       tf.dispose([noise, trick, dLoss, gLoss]);
     }
 
     await generator.save(saveURL);
+    console.log(
+        `epoch ${epoch + 1} elapsed time: ` +
+        `${((tf.util.now() - tBatchBegin) / 1e3).toFixed(1)} s`);
     console.log(`Saved generator model to: ${saveURL}\n`);
   }
 }

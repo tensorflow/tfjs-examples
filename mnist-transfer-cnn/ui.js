@@ -78,6 +78,8 @@ export function getProgressBarCallbackConfig(epochs) {
       trainProg.value = 0;
     },
     onTrainEnd: async (logs) => {
+      // allow retraining again
+      document.getElementById('retrain').disabled = false;
       status(
           `Done retraining ${epochs} epochs (elapsed: ` +
               `${(tf.util.now() - beginMillis).toFixed(1)} ms` +

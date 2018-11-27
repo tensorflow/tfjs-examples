@@ -89,11 +89,16 @@ limitations under the License.
       <p class='section-head'>Description</p>
       <p>
         This example demonstrates 're-training' of a pre-trained model in the browser. The model was initially
-        training-mode in python and converted to TensorFlow.js format. The model can then be further trained using data
-        from the browser. In this case the extra training data is <em>... complete this...</em>
+        training-mode in Python and converted to TensorFlow.js format. The model can then be further trained using data
+        from the browser. Re-training an already trained network is called transfer learning.
       </p>
-
-
+      <p>
+        In this case the pretrained model has been trained on a subset of the MNIST data: only digits 0 - 4. The
+        data we'll use for transfer learning in the browser consists of the digits 5 - 9. This example shows that the
+        first several layers of a pretrained model can be used as feature extractors on new data during transfer
+        learning
+        and thus result in faster training on the new data.
+      </p>
     </section>
 
     <section>
@@ -113,10 +118,17 @@ limitations under the License.
       <p>
         When retraining the model 3 different approaches are available.
         <ul>
-          <li><strong>Freeze feature layers:</strong> This will ...</li>
-          <li><strong>Don't freeze feature layers:</strong> This will ...</li>
+          <li>
+            <strong>Freeze feature layers:</strong> This is the most typical transfer learning procedure, we
+            freeze the first seven layers of the base model and only allow the final
+            5 layers to be trained on the new data.
+          </li>
+          <li><strong>Don't freeze feature layers:</strong> Choose this option to compare with the default option. A
+            few things to pay attention to include longer model convergence time and more larger shifts in weights (and
+            thus loss values) as the model trains.
+          </li>
           <li><strong>Reinitialize weights:</strong> This will reset all the weights, effectively training the model
-            from scratch <em>this doesn't seem to be true from looking at the training perf</em></li>
+            from scratch.
         </ul>
       </p>
 
@@ -147,7 +159,9 @@ limitations under the License.
     <section>
       <p class="section-head">Test Model</p>
       <p>
-        <em>Explain the ui here/text area</em>
+        Below is an "ASCII" bit map of some test examples from the digits in the new data set for transfer learning:
+        digits 5 through 9. The numbers are the grayscale integer values from the image. You can edit the values below
+        to see the effect of editing pixel values on the classification probabilities output by the model below.
       </p>
 
       <select id="test-image-select" class="form-control" disabled="true">

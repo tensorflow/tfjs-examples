@@ -18,10 +18,17 @@ limitations under the License.
 <!doctype html>
 
 <head>
-  <link rel="stylesheet" href="https://code.getmdl.io/1.3.0/material.cyan-teal.min.css" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="../shared/tfjs-examples.css" />
+
 </head>
 
 <style>
+  .tfjs-example-container {
+    width: calc(100vw - 600px);
+  }
+
   .input-div {
     padding: 5px;
     font-family: monospace;
@@ -33,10 +40,13 @@ limitations under the License.
   }
 
   .predict-table {
-    font-family: monospace;
     table-layout: fixed;
     border-collapse: collapse;
     border: 1px solid black;
+  }
+
+  .predict-table td {
+    padding: 5px;
   }
 
   td {
@@ -52,127 +62,179 @@ limitations under the License.
   .output-div {
     padding: 5px;
     padding-top: 20px;
-    font-family: monospace;
     font-weight: bold;
   }
 
-  .retrain-div {
-    padding: 5px;
-    padding-top: 20px;
-    padding-bottom: 30px;
-    font-family: monospace;
-    font-weight: bold;
+  #trainProg {
+    margin-top: 20px;
+    display: inline-block;
   }
 
   #image-input {
     font-family: monospace;
     position: relative;
     width: 100%;
-  }
-
-  body {
-    margin-top: 25px;
-    margin-left: 25px;
+    margin-top: 10px;
+    min-width: 800px;
   }
 </style>
 
 <body>
-  <h1>TensorFlow.js Layers: MNIST CNN Transfer Learning Demo</h1>
+  <div class="tfjs-example-container">
+    <section class='title-area'>
+      <h1>MNIST CNN Transfer Learning</h1>
+    </section>
 
-  <div class="create-model">
-    <button id="load-pretrained-remote" style="display:none">Load hosted pretrained model</button>
-    <button id="load-pretrained-local" style="display:none">Load local pretrained model</button>
-  </div>
+    <section>
+      <p class='section-head'>Description</p>
+      <p>
+        This example demonstrates 're-training' of a pre-trained model in the browser. The model was initially
+        training-mode in Python and converted to TensorFlow.js format. The model can then be further trained using data
+        from the browser. Re-training an already trained network is called transfer learning.
+      </p>
+      <p>
+        In this case the pretrained model has been trained on a subset of the MNIST data: only digits 0 - 4. The
+        data we'll use for transfer learning in the browser consists of the digits 5 - 9. This example shows that the
+        first several layers of a pretrained model can be used as feature extractors on new data during transfer
+        learning
+        and thus result in faster training on the new data.
+      </p>
+    </section>
 
-  <div class="retrain-div">
-    <div>
-      <span>Training mode:</span>
-      <select id="training-mode" class="form-control">
-        <option value="freeze-feature-layers">Freeze feature layers</option>
-        <option value="no-freezing">Don't freeze feature layers</option>
-        <option value="reinitialize-weights">Reinitialize weights</option>
+    <section>
+      <p class='section-head'>Status</p>
+      <span id="status"></span>
+    </section>
+
+
+    <section>
+      <p class='section-head'>Load Model</p>
+      <div class="create-model">
+        <button id="load-pretrained-remote" style="display:none">Load hosted pretrained model</button>
+        <button id="load-pretrained-local" style="display:none">Load local pretrained model</button>
+      </div>
+
+      <p class='section-head'>Retrain Model</p>
+      <p>
+        When retraining the model 3 different approaches are available.
+        <ul>
+          <li>
+            <strong>Freeze feature layers:</strong> This is the most typical transfer learning procedure, we
+            freeze the first seven layers of the base model and only allow the final
+            5 layers to be trained on the new data.
+          </li>
+          <li><strong>Don't freeze feature layers:</strong> Choose this option to compare with the default option. A
+            few things to pay attention to include longer model convergence time and more larger shifts in weights (and
+            thus loss values) as the model trains.
+          </li>
+          <li><strong>Reinitialize weights:</strong> This will reset all the weights, effectively training the model
+            from scratch.
+        </ul>
+      </p>
+
+      <div class="retrain-div">
+        <div>
+          <span>Training mode:</span>
+          <select id="training-mode" class="form-control">
+            <option value="freeze-feature-layers">Freeze feature layers</option>
+            <option value="no-freezing">Don't freeze feature layers</option>
+            <option value="reinitialize-weights">Reinitialize weights</option>
+          </select>
+          <br>
+          <label>Epochs</label>
+          <input class="input" id="epochs" value="10" style="width:3em">
+
+          <br><br>
+
+          <button class="btn btn-primary" id="retrain" disabled="true"><span>Retrain</span></button>
+        </div>
+        <div>
+
+        </div>
+        <progress id="trainProg" value="0" max="100" style="width:35%"></progress>
+      </div>
+    </section>
+
+
+    <section>
+      <p class="section-head">Test Model</p>
+      <p>
+        Below is an "ASCII" bit map of some test examples from the digits in the new data set for transfer learning:
+        digits 5 through 9. The numbers are the grayscale integer values from the image. You can edit the values below
+        to see the effect of editing pixel values on the classification probabilities output by the model below.
+      </p>
+
+      <select id="test-image-select" class="form-control" disabled="true">
+        <option class="head">Select test example</option>
+        <option value="5_1">5_1</option>
+        <option value="5_2">5_2</option>
+        <option value="5_3">5_3</option>
+        <option value="5_4">5_4</option>
+        <option value="5_5">5_5</option>
+        <option value="5_6">5_6</option>
+        <option value="5_7">5_7</option>
+        <option value="5_8">5_8</option>
+        <option value="5_9">5_9</option>
+        <option value="5_10">5_10</option>
+        <option value="6_1">6_1</option>
+        <option value="6_2">6_2</option>
+        <option value="6_3">6_3</option>
+        <option value="6_4">6_4</option>
+        <option value="6_5">6_5</option>
+        <option value="6_6">6_6</option>
+        <option value="6_7">6_7</option>
+        <option value="6_8">6_8</option>
+        <option value="6_9">6_9</option>
+        <option value="6_10">6_10</option>
+        <option value="7_1">7_1</option>
+        <option value="7_2">7_2</option>
+        <option value="7_3">7_3</option>
+        <option value="7_4">7_4</option>
+        <option value="7_5">7_5</option>
+        <option value="7_6">7_6</option>
+        <option value="7_7">7_7</option>
+        <option value="7_8">7_8</option>
+        <option value="7_9">7_9</option>
+        <option value="7_10">7_10</option>
+        <option value="8_1">8_1</option>
+        <option value="8_2">8_2</option>
+        <option value="8_3">8_3</option>
+        <option value="8_4">8_4</option>
+        <option value="8_5">8_5</option>
+        <option value="8_6">8_6</option>
+        <option value="8_7">8_7</option>
+        <option value="8_8">8_8</option>
+        <option value="8_9">8_9</option>
+        <option value="8_10">8_10</option>
+        <option value="9_1">9_1</option>
+        <option value="9_2">9_2</option>
+        <option value="9_3">9_3</option>
+        <option value="9_4">9_4</option>
+        <option value="9_5">9_5</option>
+        <option value="9_6">9_6</option>
+        <option value="9_7">9_7</option>
+        <option value="9_8">9_8</option>
+        <option value="9_9">9_9</option>
+        <option value="9_10">9_10</option>
       </select>
 
-      <input class="input" id="epochs" value="10" style="width:3em">
-      <span>epochs</span>
+      <textarea id="image-input" rows="28"></textarea>
 
-      <button class="btn btn-primary" id="retrain" disabled="true"><span>Retrain</span></button>
-    </div>
-    <div>
+      <p class="section-head">Model Output</p>
+      <div class="predict-div">
+        <table class="predict-table">
+          <tr id="predict-header">
+          </tr>
+          <tr id="predict-values">
+          </tr>
+        </table>
+      </div>
 
-    </div>
-    <progress id="trainProg" value="0" max="100" style="width:35%"></progress>
-    <span id="status"></span>
-  </div>
-
-  <select id="test-image-select" class="form-control" disabled="true">
-    <option class="head">Select test example</option>
-    <option value="5_1">5_1</option>
-    <option value="5_2">5_2</option>
-    <option value="5_3">5_3</option>
-    <option value="5_4">5_4</option>
-    <option value="5_5">5_5</option>
-    <option value="5_6">5_6</option>
-    <option value="5_7">5_7</option>
-    <option value="5_8">5_8</option>
-    <option value="5_9">5_9</option>
-    <option value="5_10">5_10</option>
-    <option value="6_1">6_1</option>
-    <option value="6_2">6_2</option>
-    <option value="6_3">6_3</option>
-    <option value="6_4">6_4</option>
-    <option value="6_5">6_5</option>
-    <option value="6_6">6_6</option>
-    <option value="6_7">6_7</option>
-    <option value="6_8">6_8</option>
-    <option value="6_9">6_9</option>
-    <option value="6_10">6_10</option>
-    <option value="7_1">7_1</option>
-    <option value="7_2">7_2</option>
-    <option value="7_3">7_3</option>
-    <option value="7_4">7_4</option>
-    <option value="7_5">7_5</option>
-    <option value="7_6">7_6</option>
-    <option value="7_7">7_7</option>
-    <option value="7_8">7_8</option>
-    <option value="7_9">7_9</option>
-    <option value="7_10">7_10</option>
-    <option value="8_1">8_1</option>
-    <option value="8_2">8_2</option>
-    <option value="8_3">8_3</option>
-    <option value="8_4">8_4</option>
-    <option value="8_5">8_5</option>
-    <option value="8_6">8_6</option>
-    <option value="8_7">8_7</option>
-    <option value="8_8">8_8</option>
-    <option value="8_9">8_9</option>
-    <option value="8_10">8_10</option>
-    <option value="9_1">9_1</option>
-    <option value="9_2">9_2</option>
-    <option value="9_3">9_3</option>
-    <option value="9_4">9_4</option>
-    <option value="9_5">9_5</option>
-    <option value="9_6">9_6</option>
-    <option value="9_7">9_7</option>
-    <option value="9_8">9_8</option>
-    <option value="9_9">9_9</option>
-    <option value="9_10">9_10</option>
-  </select>
-
-  <textarea id="image-input" rows="28"></textarea>
-
-  <div class="predict-div">
-    <table class="predict-table">
-      <tr id="predict-header">
-      </tr>
-      <tr id="predict-values">
-      </tr>
-    </table>
-  </div>
-
-  <div class="output-div">
-    <span class="output-label">Output class: </span>
-    <span id="winner"></input>
+      <div class="output-div">
+        <span class="output-label">Output class: </span>
+        <span id="winner"></input>
+      </div>
+    </section>
   </div>
 
   <script src="index.js"></script>

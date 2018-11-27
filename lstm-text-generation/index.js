@@ -122,11 +122,10 @@ export class LSTMTextGenerator {
             const t1 = new Date().getTime();
             const examplesPerSec = batchSize / ((t1 - t) / 1e3);
             t = t1;
-            onTrainBatchEnd(
-                logs.loss, ++batchCount / totalBatches, examplesPerSec);
+            onTrainBatchEnd(logs, ++batchCount / totalBatches, examplesPerSec);
           },
           onEpochEnd: async (epoch, logs) => {
-            onTrainEpochEnd(logs.val_loss);
+            onTrainEpochEnd(logs);
           },
         }
       });

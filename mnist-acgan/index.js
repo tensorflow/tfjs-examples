@@ -25,7 +25,7 @@ import * as tf from '@tensorflow/tfjs';
 import {loadMnistData, sampleFromMnistData} from './web-data';
 
 const status = document.getElementById('status');
-// const loadHostedModel = document.getElementById('load-hosted-model');
+const loadHostedModel = document.getElementById('load-hosted-model');
 const testModel = document.getElementById('test');
 const zSpaceSpan = document.getElementById('z-space-span');
 const fakeImagesSpan = document.getElementById('fake-images-span');
@@ -90,13 +90,14 @@ async function generateAndVisualizeImages(generator) {
     // The output has pixel values in the [-1, 1] interval. Normalize it
     // to the unit inerval ([0, 1]).
     const t0 = tf.util.now();
-    const generateImages =
+    const generatedImages =
         generator.predict([latentVectors, sampledLabels]).add(1).div(2);
+    generatedImages.dataSync();  // For accurate timing benchmark.
     const elapsed = tf.util.now() - t0;
     fakeImagesSpan.textContent =
         `Fake images (generation took ${elapsed.toFixed(2)} ms)`;
     // Concatenate the images horizontally into a single image.
-    return tf.concat(tf.unstack(generateImages), 1);
+    return tf.concat(tf.unstack(generatedImages), 1);
   });
 
   await tf.toPixels(combinedFakes, fakeCanvas);
@@ -139,6 +140,19 @@ function createSliders(generator) {
   zSpaceSpan.textContent = `z-space vector (${latentDims} dimensions)`;
 }
 
+async function showGeneratorInitially(generator) {
+  generator.summary();
+
+  // Create slider for the z-space (latent vectors).
+  createSliders(generator);
+
+  generateLatentVector(true);
+  await generateAndVisualizeImages(generator);
+  await drawReals();
+
+  testModel.disabled = false;
+}
+
 async function init() {
   // Load MNIST data for display in webpage.
   status.textContent = 'Loading MNIST data...';
@@ -146,8 +160,10 @@ async function init() {
 
   const LOCAL_MEATADATA_PATH = 'generator/acgan-metadata.json';
   const LOCAL_MODEL_PATH = 'generator/model.json';
-  // TODO(cais): Add URL to hosted model and logic for loading it.
-  // const HOSTED_MODEL_PATH = '';
+
+  // Hosted, pre-trained generator model.
+  const HOSTED_MODEL_URL =
+      'https://storage.googleapis.com/tfjs-examples/mnist-acgan/dist/generator/model.json';
 
   // Attempt to load locally-saved model. If it fails, activate the
   // "Load hosted model" button.
@@ -160,12 +176,8 @@ async function init() {
     status.textContent = `Loading model from ${LOCAL_MODEL_PATH}...`;
     model = await tf.loadModel(
         tf.io.browserHTTPRequest(LOCAL_MODEL_PATH, {cache: 'no-cache'}));
-    model.summary();
+    await showGeneratorInitially(model);
 
-    // Create slider for the z-space (latent vectors).
-    createSliders(model);
-
-    testModel.disabled = false;
     if (metadata.completed) {
       status.textContent =
           `Training of ACGAN in Node.js (${metadata.totalEpochs} epochs) ` +
@@ -177,39 +189,34 @@ async function init() {
     status.textContent +=
         'Loaded locally-saved model! Now click "Generate" or ' +
         'adjust the z-space sliders.';
-
-    generateLatentVector(true);
-    generateAndVisualizeImages(model);
-    drawReals();
   } catch (err) {
+    console.error(err);
     status.textContent =
         'Failed to load locally-saved model and/or metadata. ' +
         'Please click "Load Hosted Model"';
-    // TODO(cais): Add logic for loading hosted generator model.
-    // loadHostedModel.disabled = false;
+    loadHostedModel.disabled = false;
   }
 
-  // TODO(cais): Add logic for loading hosted generator model.
-  // loadHostedModel.addEventListener('click', async () => {
-  //   try {
-  //     status.textContent =
-  //         `Loading hosted model from ${HOSTED_MODEL_PATH} ...`;
-  //     model = await tf.loadModel(HOSTED_MODEL_PATH);
-  //     model.summary();
-  //     loadHostedModel.disabled = true;
-  //     testModel.disabled = false;
-  //     status.textContent =
-  //         `Loaded hosted model successfully. Now click "Test Model".`;
-  //     runAndVisualizeInference(model);
-  //   } catch (err) {
-  //     status.textContent =
-  //         `Failed to load hosted model from ${HOSTED_MODEL_PATH}`;
-  //   }
-  // });
+  loadHostedModel.addEventListener('click', async () => {
+    try {
+      status.textContent = `Loading hosted model from ${HOSTED_MODEL_URL} ...`;
+      model = await tf.loadModel(HOSTED_MODEL_URL);
+      loadHostedModel.disabled = true;
 
-  testModel.addEventListener('click', () => {
+      await showGeneratorInitially(model);
+      status.textContent =
+          `Succesfully loaded hosted model from ${HOSTED_MODEL_URL}. ` +
+          `Now click "Generate" or adjust the z-space sliders.`;
+    } catch (err) {
+      console.error(err);
+      status.textContent =
+          `Failed to load hosted model from ${HOSTED_MODEL_URL}`;
+    }
+  });
+
+  testModel.addEventListener('click', async () => {
     generateLatentVector(false);
-    generateAndVisualizeImages(model);
+    await generateAndVisualizeImages(model);
     drawReals();
   });
 }

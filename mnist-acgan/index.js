@@ -84,7 +84,7 @@ async function init() {
       status.textContent = `Training of ACGAN in Node.js is ongoing (epoch ` +
           `${metadata.currentEpoch + 1}/${metadata.totalEpochs}). `;
     }
-    status.textContent += 'Loaded locally-saved model! Now click "Test Model".'
+    status.textContent += 'Loaded locally-saved model! Now click "Generate".'
 
     generateAndVisualizeImages(model);
   } catch (err) {

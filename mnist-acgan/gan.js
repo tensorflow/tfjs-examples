@@ -60,11 +60,11 @@ const path = require('path');
 
 const argparse = require('argparse');
 const tf = require('@tensorflow/tfjs');
-// require('@tensorflow/tfjs-node');
+require('@tensorflow/tfjs-node');
 
 // Uncomment me to train the model on GPU.
 // Requires: CUDA-enabled GPU, installs of CUDA toolkit and CuDNN.
-require('@tensorflow/tfjs-node-gpu');
+// require('@tensorflow/tfjs-node-gpu');
 
 const data = require('./data');
 

@@ -15,62 +15,35 @@
  * =============================================================================
  */
 
-import renderChart from 'vega-embed';
+import * as tfvis from '@tensorflow/tfjs-vis';
 
 const statusElement = document.getElementById('status');
-export const updateStatus = (message) => {
-  statusElement.value = message;
+export function updateStatus(message) {
+  statusElement.innerText = message;
 };
 
-const losses = [];
-export const plotData =
-    async (epoch, trainLoss, valLoss) => {
-  losses.push({'epoch': epoch, 'loss': trainLoss, 'split': 'Train Loss'});
-  losses.push({'epoch': epoch, 'loss': valLoss, 'split': 'Validation Loss'});
-
-  const spec = {
-    '$schema': 'https://vega.github.io/schema/vega-lite/v2.json',
-    'width': 300,
-    'height': 300,
-    'data': {'values': losses},
-    'mark': 'line',
-    'encoding': {
-      'x': {'field': 'epoch', 'type': 'quantitative'},
-      'y': {'field': 'loss', 'type': 'quantitative'},
-      'color': {'field': 'split', 'type': 'nominal'}
-    }
-  };
-
-  return renderChart('#plotLoss', spec, {actions: false});
+export async function plotLosses(trainLogs) {
+  return tfvis.show.history(
+      document.getElementById('plotLoss'), trainLogs, ['loss', 'val_loss'], {
+        width: 450,
+        height: 320,
+        xLabel: 'Epoch',
+        yLabel: 'Loss',
+      });
 }
 
-const accuracies = [];
-export async function plotAccuracies(epoch, trainAccuracy, valAccuracy) {
-  accuracies.push(
-      {'epoch': epoch, 'accuracy': trainAccuracy, 'split': 'Train Accuracy'});
-  accuracies.push({
-    'epoch': epoch,
-    'accuracy': valAccuracy,
-    'split': 'Validation Accuracy'
-  });
-
-  const spec = {
-    '$schema': 'https://vega.github.io/schema/vega-lite/v2.json',
-    'width': 300,
-    'height': 300,
-    'data': {'values': accuracies},
-    'mark': 'line',
-    'encoding': {
-      'x': {'field': 'epoch', 'type': 'quantitative'},
-      'y': {'field': 'accuracy', 'type': 'quantitative'},
-      'color': {'field': 'split', 'type': 'nominal'}
-    }
-  };
-
-  return renderChart('#plotAccuracy', spec, {actions: false});
+export async function plotAccuracies(trainLogs) {
+  tfvis.show.history(
+      document.getElementById('plotAccuracy'), trainLogs, ['acc', 'val_acc'], {
+        width: 450,
+        height: 320,
+        xLabel: 'Epoch',
+        yLabel: 'Accuracy',
+      });
 }
 
 const rocValues = [];
+const rocSeries = [];
 
 /**
  * Plot a ROC curve.
@@ -81,25 +54,27 @@ const rocValues = [];
  */
 export async function plotROC(fprs, tprs, epoch) {
   epoch++;  // Convert zero-based to one-based.
-  for (let i = 0; i < fprs.length; ++i) {
-    rocValues.push({
-      fpr: fprs[i],
-      tpr: tprs[i],
-      epoch: 'epoch ' +
-          (epoch < 10 ? `00${epoch}` : (epoch < 100 ? `0${epoch}` : `${epoch}`))
+
+  // Store the series name in the list of series
+  const seriesName = 'epoch ' +
+      (epoch < 10 ? `00${epoch}` : (epoch < 100 ? `0${epoch}` : `${epoch}`))
+  rocSeries.push(seriesName);
+
+  const newSeries = [];
+  for (let i = 0; i < fprs.length; i++) {
+    newSeries.push({
+      x: fprs[i],
+      y: tprs[i],
     });
   }
-  const spec = {
-    '$schema': 'https://vega.github.io/schema/vega-lite/v2.json',
-    'width': 300,
-    'height': 300,
-    'data': {'values': rocValues},
-    'mark': 'line',
-    'encoding': {
-      'x': {'field': 'fpr', 'type': 'quantitative'},
-      'y': {'field': 'tpr', 'type': 'quantitative'},
-      'color': {'field': 'epoch', 'type': 'nominal'}
-    }
-  };
-  return renderChart('#rocCurve', spec, {actions: false});
+  rocValues.push(newSeries);
+
+  return tfvis.render.linechart(
+      {values: rocValues, series: rocSeries},
+      document.getElementById('rocCurve'),
+      {
+        width: 450,
+        height: 320,
+      },
+  );
 }

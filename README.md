@@ -193,7 +193,7 @@ to another project.
     <td>Node.js</td>
     <td>Browser</td>
     <td>Layers</td>
-    <td></td>
+    <td>Save a trained model from tfjs-node and load it in the browser</td>
   </tr>
   <tr>
     <td><a href="./translation">translation</a></td>

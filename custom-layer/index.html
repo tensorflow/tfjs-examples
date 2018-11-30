@@ -18,7 +18,9 @@ limitations under the License.
 <html>
 
 <head>
-  <link rel="stylesheet" href="https://code.getmdl.io/1.3.0/material.cyan-teal.min.css" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="../shared/tfjs-examples.css" />
 </head>
 
 <body>
@@ -37,13 +39,33 @@ limitations under the License.
   </style>
 
   <div id="content">
-    <h3>TensorFlow.js: Working with Custom Layers</h3>
-    <h4>Illustrates the application of a custom layer.</h4>
 
-    <img id="cat" src="cat.jpg" />
-    <div id="output_image_1"></div>
-    <div id="output_image_2"></div>
 
+  </div>
+  <div class='tfjs-example-container centered-container'>
+    <section class='title-area'>
+      <h1>TensorFlow.js: Working with Custom Layers</h1>
+      <p class='subtitle'>Demonstrates the application of a custom layer.</p>
+    </section>
+
+    <section>
+      <p class='section-head'>Description</p>
+      <p>
+        This example demonstrates how to write a custom layer for tfjs-layers.
+        We build a custom activation layer called 'Antirectifier' which outputs two
+        channels for each input, one with just the positive signal, and one with just
+        the negative signal. The example shows exercises the <code>call</code> and
+        <code>computeOutputShape</code> overides of the <code>Layer</code>.
+      </p>
+    </section>
+
+    <section>
+      <p class='section-head'>Input</p>
+      <img id="cat" src="cat.jpg" />
+      <p class='section-head'>Output</p>
+      <div id="output_image_1"></div>
+      <div id="output_image_2"></div>
+    </section>
   </div>
   <script src="index.js"></script>
 </body>

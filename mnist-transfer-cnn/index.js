@@ -46,8 +46,9 @@ class MnistTransferCNNPredictor {
     this.model = await loader.loadHostedPretrainedModel(urls.model);
 
     // Print model summary right after model is loaded.
-    // TODO(cais): Use tfVis.show.modelSummary().
     this.model.summary();
+    tfVis.show.modelSummary(
+        {name: 'Model Summary', tab: 'Model Info'}, this.model);
 
     this.imageSize = this.model.layers[0].batchInputShape[1];
     this.numClasses = 5;
@@ -153,18 +154,18 @@ class MnistTransferCNNPredictor {
     const batchSize = 128;
     const epochs = ui.getEpochs();
 
+    const surfaceInfo = {name: trainingMode, tab: 'Transfer Learning'};
     await this.model.fit(this.gte5TrainData.x, this.gte5TrainData.y, {
       batchSize: batchSize,
       epochs: epochs,
       validationData: [this.gte5TestData.x, this.gte5TestData.y],
       callbacks: [
         ui.getProgressBarCallbackConfig(epochs),
-        tfVis.show.fitCallbacks({
-          name: trainingMode, tab: 'Transfer Learning'
-        }, ['val_loss', 'val_acc'], {
-          name: trainingMode,
+        tfVis.show.fitCallbacks(surfaceInfo, ['val_loss', 'val_acc'], {
           zoomToFit: true,
-          zoomToFitAccuracy: true
+          zoomToFitAccuracy: true,
+          height: 200,
+          callbacks: ['onEpochEnd'],
         }),
       ]
     });
@@ -176,9 +177,6 @@ class MnistTransferCNNPredictor {
  * and retrain functions with the UI.
  */
 async function setupMnistTransferCNN() {
-  // Create a tfjs-vis visor, for visualization during training.
-  tfVis.visor();
-
   if (await loader.urlExists(HOSTED_URLS.model)) {
     ui.status('Model available: ' + HOSTED_URLS.model);
     const button = document.getElementById('load-pretrained-remote');

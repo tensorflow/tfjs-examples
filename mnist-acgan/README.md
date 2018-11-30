@@ -10,6 +10,10 @@ For background of ACGAN, see:
    image synthesis with auxiliary classifier GANs"
    https://arxiv.org/abs/1610.09585
 
+The training script in this example ([gan.js](./gan.js) is based on the Keras
+example at:
+  - https://github.com/keras-team/keras/blob/master/examples/mnist_acgan.py
+
 This example of TensorFlow.js runs simultaneously in two different environments:
  - Training in the Node.js environment. During the long-running training process,
    a checkpoint of the generator will be saved to the disk at the end of every

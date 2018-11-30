@@ -50,6 +50,9 @@
  * - Augustus Odena, Christopher Olah, Jonathon Shlens. (2017) "Conditional
  *   image synthesis with auxiliary classifier GANs"
  *   https://arxiv.org/abs/1610.09585
+ * 
+ * The implementation is based on:
+ *   https://github.com/keras-team/keras/blob/master/examples/mnist_acgan.py
  */
 
 const fs = require('fs');

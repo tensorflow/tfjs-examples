@@ -1,6 +1,6 @@
 # TensorFlow.js Example: ACGAN on the MNIST Dataset
 
-## What is this example about.
+## What this example is about
 
 This example trains an Auxiliary Classifier Generative Adversarial Network
 (ACGAN) on the MNIST dataset.

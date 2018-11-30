@@ -25,36 +25,53 @@ limitations under the License.
   <div class="tfjs-example-container centered-container">
     <section class='title-area'>
       <h1>TensorFlow.js: Generative Adversarial Network</h1>
-      <p class='subtitle'>Train a model to classify and localize triangles and rectangles</p>
+      <p class='subtitle'>Demonstrates the generator part of the ACGAN in the browser.</p>
     </section>
 
     <p class='section-head'>Description</p>
       <p>
-        This example page shows inference with a pretrained object-detection model
-        that can classify and localize (i.e., give the position of) target shapes
-        in simple synthesized scenes. The training happens in tfjs-node (see
-        <a href="https://github.com/tensorflow/tfjs-examples/blob/master/simple-object-detection/train.js">
-        train.js
-        </a>
-        in the source folder).
+        This is the web demo part of the dual-environment TensorFlow.js example
+        of
+        <a href="https://arxiv.org/abs/1610.09585" target="_blank">Auxiliary Classifier Generative Adversarial Network (ACGAN)</a>.
       </p>
       <p>
-        The target objects that we want to detect are triangles and rectangles,
-        in the background are line segments and circles that the model should ignore.
-        Each synthetic scene contains only one target object.
-        Each inference by the model generates the bounding box of the target
-        object (show as the blue box), which can be compared with the true
-        bounding box (show as the red box). In addition, the inference output
-        contains the class of the shape (triangle vs. rectangle).
+        The training process is in gan.js, which runs in Node.js using tfjs-node
+        or tfjs-node-gpu.
+      </p>
+      <p>
+        The ACGAN is a type of
+        <a href="https://en.wikipedia.org/wiki/Generative_adversarial_network" target="_blank">GAN</a>.
+        It consists of
+          <ul>
+            <li>
+              A <strong>disriminator</strong>, which is trained to distinguish a "counterfeit" MNIST image
+              from a real MNIST image. In addition, the disciminator part of ACGAN is also trained
+              to classify an MNIST image into the ten digit categories.
+            </li>
+            <li>
+              A <strong>generator</strong>, which is trained to generate realistic-looking MNIST images
+              and "fool" the discriminator. The generator takes two inputs:
+              <ol>
+                <li>
+                  A fixed-length latent vector, which can be viewed as a "random primer" for the fake
+                  generation process.
+                </li>
+                <li>
+                  An integer in the interval [0, 10), which indicates the desired digit category.
+                </li>
+              </ol>
+              Using these two inputs, it outputs a fake MNIST image.
+            </li>
+          </ul>
       </p>
     </p>
 
     <div id="status">Loading model...</div>
     <button id="load-hosted-model" disabled="true">Load Hosted model</button>
-    <button id="test" disabled="true">Test model</button>
+    <button id="test" disabled="true">Generate fake MNIST images</button>
 
     <div>
-      <canvas id="data-canvas" width="280" height="280"></canvas>
+      <canvas id="data-canvas" width="280" height="28"></canvas>
     </div>
 
     <div>

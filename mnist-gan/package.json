@@ -9,11 +9,13 @@
     "node": ">=8.11.0"
   },
   "dependencies": {
+    "@tensorflow/tfjs-node": "^0.1.21",
     "@tensorflow/tfjs-node-gpu": "^0.1.21",
     "argparse": "^1.0.10"
   },
   "scripts": {
     "postinstall": "yarn upgrade --pattern @tensorflow",
+    "train": "node gan.js",
     "watch": "cross-env NODE_ENV=development parcel index.html --no-hmr --open"
   },
   "devDependencies": {

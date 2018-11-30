@@ -19,13 +19,37 @@
  * Train an Auxiliary Classifier Generative Adversarial Network (ACGAN) on the
  * MNIST dataset.
  *
- * For background of ACGAN, see
- * - Augustus Odena, Christopher Olah, Jonathon Shlens (2017) "Conditional
+ * This example of TensorFlow.js runs simultaneously in two different
+ * environments:
+ *   - Training in the Node.js environment. During the long-running training
+ * process, a checkpoint of the generator will be saved to the disk at the end
+ * of every epoch.
+ *   - Demonstration of generation in the browser. The demo webpage will load
+ *     the checkpoints saved from the training process and use it to generate
+ *     fake MNIST images in the browser.
+ *
+ * To start the training:
+ *
+ * ```sh
+ * yarn
+ * yarn train
+ * ```
+ *
+ * To start the demo in the browser, do in a separate terminal:
+ *
+ * ```sh
+ * yarn
+ * yarn watch
+ * ```
+ *
+ * It is recommended to use tfjs-node-gpu to train the model on a CUDA-enabled
+ * GPU, as the convolution heavy operations run several times faster a GPU than
+ * on the CPU with tfjs-node.
+ *
+ * For background of ACGAN, see:
+ * - Augustus Odena, Christopher Olah, Jonathon Shlens. (2017) "Conditional
  *   image synthesis with auxiliary classifier GANs"
  *   https://arxiv.org/abs/1610.09585
- *
- * You should use tfjs-node-gpu to train the model on a GPU, as the convolution
- * -heavy operations run much more slowly on a CPU.
  */
 
 const fs = require('fs');
@@ -33,12 +57,14 @@ const path = require('path');
 
 const argparse = require('argparse');
 const tf = require('@tensorflow/tfjs');
+// require('@tensorflow/tfjs-node');
 require('@tensorflow/tfjs-node-gpu');
 
 const data = require('./data');
 
 // Number of classes in the MNIST dataset.
 const NUM_CLASSES = 10;
+
 // MNIST image size.
 const IMAGE_SIZE = 28;
 
@@ -182,10 +208,15 @@ function buildDiscriminator() {
   return tf.model({inputs: image, outputs: [fake, aux]});
 }
 
+// "Soft" one used for training the combined ACGAN model.
+// This is an important trick in training GANs.
+const softOne = tf.scalar(0.95);
+
 /**
  * Train the discriminator for one step.
  *
- * In this step, only the weights of the discriminator are updated.
+ * In this step, only the weights of the discriminator are updated. The
+ * generator is not involved.
  *
  * The following steps are involved:
  *
@@ -212,6 +243,8 @@ function buildDiscriminator() {
 async function trainDiscriminatorOneStep(
     xTrain, yTrain, batchStart, batchSize, latentSize, generator,
     discriminator) {
+  // TODO(cais): Remove tidy() once the current memory leak issue in tfjs-node
+  //   and tfjs-node-gpu is fixed.
   const [x, y, auxY] = tf.tidy(() => {
     const imageBatch = xTrain.slice(batchStart, batchSize);
     const labelBatch = yTrain.slice(batchStart, batchSize).asType('float32');
@@ -221,7 +254,8 @@ async function trainDiscriminatorOneStep(
         tf.randomUniform([batchSize, 1], 0, NUM_CLASSES, 'int32')
             .asType('float32');
 
-    const generatedImages = generator.predict([noise, sampledLabels]);
+    const generatedImages =
+        generator.predict([noise, sampledLabels], {batchSize: batchSize});
 
     const x = tf.concat([imageBatch, generatedImages], 0);
     const y = tf.tidy(
@@ -237,9 +271,6 @@ async function trainDiscriminatorOneStep(
   return losses;
 }
 
-// "Soft" one used for training the combined ACGAN model.
-const softOne = tf.scalar(0.95);
-
 /**
  * Train the combined ACGAN for one step.
  *
@@ -252,6 +283,8 @@ const softOne = tf.scalar(0.95);
  * @returns The loss values from the combined model as numbers.
  */
 async function trainCombinedModelOneStep(batchSize, latentSize, combined) {
+  // TODO(cais): Remove tidy() once the current memory leak issue in tfjs-node
+  //   and tfjs-node-gpu is fixed.
   const [noise, sampledLabels, trick] = tf.tidy(() => {
     // Make new noise.
     const noise = tf.randomUniform([batchSize, latentSize], -1, 1);
@@ -309,6 +342,7 @@ async function run() {
     fs.mkdirSync(path.dirname(args.generatorSavePath));
   }
   const saveURL = `file://${args.generatorSavePath}`;
+  const metadataPath = path.join(args.generatorSavePath, 'acgan-metadata.json');
 
   // Build the discriminator.
   const discriminator = buildDiscriminator();
@@ -344,8 +378,17 @@ async function run() {
   let {images: xTrain, labels: yTrain} = data.getTrainData();
   yTrain = tf.expandDims(yTrain.argMax(-1), -1);
 
+  // Save the generator model once before starting the training.
+  await generator.save(saveURL);
+
   let numTensors;
   for (let epoch = 0; epoch < args.epochs; ++epoch) {
+    // Write some metadata to disk at the beginning of every epoch.
+    fs.writeFileSync(
+        metadataPath,
+        JSON.stringify(
+            {totalEpochs: args.epochs, currentEpoch: epoch, completed: false}));
+
     const tBatchBegin = tf.util.now();
 
     const numBatches = Math.ceil(xTrain.shape[0] / args.batchSize);
@@ -372,6 +415,8 @@ async function run() {
       tf.dispose([dLoss, gLoss]);
 
       // Assert on no memory leak.
+      // TODO(cais): Remove this check once the current memory leak in
+      //   tfjs-node and tfjs-node-gpu is fixed.
       if (numTensors == null) {
         numTensors = tf.memory().numTensors;
       } else {
@@ -387,6 +432,17 @@ async function run() {
         `${((tf.util.now() - tBatchBegin) / 1e3).toFixed(1)} s`);
     console.log(`Saved generator model to: ${saveURL}\n`);
   }
+
+  // Write metadata to disk to indicate
+  // the end of the training.
+  fs.writeFileSync(
+      metadataPath,
+      JSON.stringify({totalEpochs: args.epochs, completed: true}));
 }
 
 run();
+
+module.exports = {
+  buildDiscriminator,
+  buildGenerator
+};

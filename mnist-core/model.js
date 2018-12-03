@@ -44,7 +44,9 @@ const fullyConnectedBias = tf.variable(tf.zeros([LABELS_SIZE]));
 
 // Loss function
 function loss(labels, ys) {
-  return tf.losses.softmaxCrossEntropy(labels, ys).mean();
+  const out =
+      tf.losses.softmaxCrossEntropy(labels.asType(ys.dtype), ys).mean();
+  return out;
 }
 
 // Our actual model

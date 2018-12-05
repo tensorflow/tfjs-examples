@@ -279,6 +279,6 @@ can be used for deployment.
 ## Contributing
 
 If you want to contribute an example, please reach out to us on
-[Github issues](https://github.com/tensorflow/tfjs-examples/issues)
+[Github issues](https://github.com/tensorflow/tfjs/issues)
 before sending us a pull request as we are trying to keep this set of examples
 small and highly curated.

@@ -186,7 +186,7 @@ to another project.
   </tr>
   <tr>
     <td><a href="./simple-object-detection">simple-object-detection</a></td>
-    <td></td>
+    <td><a href="https://storage.googleapis.com/tfjs-examples/simple-object-detection/dist/index.html">🔗</a></td>
     <td>Image</td>
     <td>Object detection</td>
     <td>Convolutional neural network (transfer learning)</td>

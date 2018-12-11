@@ -15,12 +15,7 @@
  * =============================================================================
  */
 
-import {
-  linearRegressionModel,
-  multiLayerPerceptronRegressionModel1Hidden,
-  multiLayerPerceptronRegressionModel2Hidden,
-  run
-} from '.';
+import {linearRegressionModel, multiLayerPerceptronRegressionModel1Hidden, multiLayerPerceptronRegressionModel2Hidden, run} from '.';
 
 const statusElement = document.getElementById('status');
 export function updateStatus(message) {
@@ -46,9 +41,9 @@ const NUM_TOP_WEIGHTS_TO_DISPLAY = 5;
  */
 export function updateWeightDescription(weightsList) {
   const inspectionHeadlineElement =
-    document.getElementById('inspectionHeadline');
+      document.getElementById('inspectionHeadline');
   inspectionHeadlineElement.innerText =
-    `Top ${NUM_TOP_WEIGHTS_TO_DISPLAY} weights by magnitude`;
+      `Top ${NUM_TOP_WEIGHTS_TO_DISPLAY} weights by magnitude`;
   // Sort weights objects by descending absolute value.
   weightsList.sort((a, b) => Math.abs(b.value) - Math.abs(a.value));
   var table = document.getElementById('myTable');
@@ -74,9 +69,9 @@ export function updateWeightDescription(weightsList) {
 export async function setup() {
   const trainSimpleLinearRegression = document.getElementById('simple-mlr');
   const trainNeuralNetworkLinearRegression1Hidden =
-    document.getElementById('nn-mlr-1hidden');
+      document.getElementById('nn-mlr-1hidden');
   const trainNeuralNetworkLinearRegression2Hidden =
-    document.getElementById('nn-mlr-2hidden');
+      document.getElementById('nn-mlr-2hidden');
 
   trainSimpleLinearRegression.addEventListener('click', async (e) => {
     const model = linearRegressionModel();
@@ -84,14 +79,14 @@ export async function setup() {
   }, false);
 
   trainNeuralNetworkLinearRegression1Hidden.addEventListener(
-    'click', async () => {
-      const model = multiLayerPerceptronRegressionModel1Hidden();
-      await run(model, 'oneHidden', false);
-    }, false);
+      'click', async () => {
+        const model = multiLayerPerceptronRegressionModel1Hidden();
+        await run(model, 'oneHidden', false);
+      }, false);
 
   trainNeuralNetworkLinearRegression2Hidden.addEventListener(
-    'click', async () => {
-      const model = multiLayerPerceptronRegressionModel2Hidden();
-      await run(model, 'twoHidden', false);
-    }, false);
+      'click', async () => {
+        const model = multiLayerPerceptronRegressionModel2Hidden();
+        await run(model, 'twoHidden', false);
+      }, false);
 };

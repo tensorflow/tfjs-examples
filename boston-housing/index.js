@@ -18,18 +18,13 @@
 import * as tf from '@tensorflow/tfjs';
 import * as tfvis from '@tensorflow/tfjs-vis';
 
-import {
-  BostonHousingDataset,
-  featureDescriptions
-} from './data';
+import {BostonHousingDataset, featureDescriptions} from './data';
 // TODO(kangyi, soergel): Remove this once we have a public statistics API.
-import {
-  computeDatasetStatistics,
-} from './stats';
+import {computeDatasetStatistics} from './stats';
 import * as ui from './ui';
 
 // Some hyperparameters for model training.
-const NUM_EPOCHS = 10;
+const NUM_EPOCHS = 200;
 
 const BATCH_SIZE = 40;
 
@@ -43,7 +38,7 @@ const preparedData = {
 
 let bostonData;
 
-// Converts loaded data into tensors and creates normalized versions of the
+// Convert loaded data into tensors and creates normalized versions of the
 // features.
 export async function loadDataAndNormalize() {
   // TODO(kangyizhang): Statistics should be generated from trainDataset
@@ -91,10 +86,7 @@ function normalizeFeatures(row, featureStats) {
  */
 export function linearRegressionModel() {
   const model = tf.sequential();
-  model.add(tf.layers.dense({
-    inputShape: [bostonData.numFeatures],
-    units: 1
-  }));
+  model.add(tf.layers.dense({inputShape: [bostonData.numFeatures], units: 1}));
 
   return model;
 };
@@ -113,9 +105,7 @@ export function multiLayerPerceptronRegressionModel1Hidden() {
     activation: 'sigmoid',
     kernelInitializer: 'leCunNormal'
   }));
-  model.add(tf.layers.dense({
-    units: 1
-  }));
+  model.add(tf.layers.dense({units: 1}));
 
   model.summary();
   return model;
@@ -201,7 +191,6 @@ export async function run(model, modelName, weightsIllustration) {
           loss: logs.loss,
           val_loss: logs.val_loss
         });
-        // trainLogs.push(logs);
         tfvis.show.history(container, trainLogs, ['loss', 'val_loss']);
 
         if (weightsIllustration) {

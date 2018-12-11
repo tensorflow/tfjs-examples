@@ -148,14 +148,11 @@ export function multiLayerPerceptronRegressionModel2Hidden() {
  */
 export function describeKerenelElements(kernel) {
   tf.util.assert(
-    kernel.length == 12,
-    `kernel must be a array of length 12, got ${kernel.length}`);
+      kernel.length == 12,
+      `kernel must be a array of length 12, got ${kernel.length}`);
   const outList = [];
   for (let idx = 0; idx < kernel.length; idx++) {
-    outList.push({
-      description: featureDescriptions[idx],
-      value: kernel[idx]
-    });
+    outList.push({description: featureDescriptions[idx], value: kernel[idx]});
   }
   return outList;
 }
@@ -169,10 +166,8 @@ export function describeKerenelElements(kernel) {
  *  weights.
  */
 export async function run(model, modelName, weightsIllustration) {
-  model.compile({
-    optimizer: tf.train.sgd(LEARNING_RATE),
-    loss: 'meanSquaredError'
-  });
+  model.compile(
+    {optimizer: tf.train.sgd(LEARNING_RATE), loss: 'meanSquaredError'});
 
   let trainLogs = [];
   const container = document.querySelector(`#${modelName} .chart`);
@@ -248,8 +243,8 @@ document.addEventListener('DOMContentLoaded', async () => {
   ui.updateStatus('Data loaded, converting to tensors');
   await loadDataAndNormalize();
   ui.updateStatus(
-    'Data is now available as tensors.\n' +
-    'Click a train button to begin.');
+      'Data is now available as tensors.\n' +
+      'Click a train button to begin.');
   // TODO Explain what baseline loss is. How it is being computed in this
   // Instance
   ui.updateBaselineStatus('Estimating baseline loss');

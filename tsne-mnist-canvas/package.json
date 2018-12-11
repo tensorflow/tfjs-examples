@@ -14,7 +14,7 @@
     "d3": "^5.2.0"
   },
   "scripts": {
-    "watch": "NODE_ENV=development parcel --no-hmr --open index.html ",
+    "watch": "NODE_ENV=development parcel index.html --no-hmr --open  ",
     "build": "NODE_ENV=production parcel build index.html --no-minify --public-url ./",
     "link-local": "yalc link"
   },

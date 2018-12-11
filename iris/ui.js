@@ -15,8 +15,6 @@
  * =============================================================================
  */
 
-import embed from 'vega-embed';
-
 import {IRIS_CLASSES, IRIS_NUM_CLASSES} from './data';
 
 /**
@@ -27,62 +25,6 @@ export function clearEvaluateTable() {
   while (tableBody.children.length > 1) {
     tableBody.removeChild(tableBody.children[1]);
   }
-}
-
-/**
- * Plot new loss values.
- *
- * @param lossValues An `Array` of data to append to.
- * @param epoch Training epoch number.
- * @param newTrainLoss The new training loss, as a single `Number`.
- * @param newValidationLoss The new validation loss, as a single `Number`.
- */
-export function plotLosses(lossValues, epoch, newTrainLoss, newValidationLoss) {
-  lossValues.push({'epoch': epoch, 'loss': newTrainLoss, 'set': 'train'});
-  lossValues.push(
-      {'epoch': epoch, 'loss': newValidationLoss, 'set': 'validation'});
-  embed(
-      '#lossCanvas', {
-        '$schema': 'https://vega.github.io/schema/vega-lite/v2.json',
-        'data': {'values': lossValues},
-        'mark': 'line',
-        'encoding': {
-          'x': {'field': 'epoch', 'type': 'ordinal'},
-          'y': {'field': 'loss', 'type': 'quantitative'},
-          'color': {'field': 'set', 'type': 'nominal'},
-        },
-        'width': 500,
-      },
-      {});
-}
-
-/**
- * Plot new accuracy values.
- *
- * @param lossValues An `Array` of data to append to.
- * @param epoch Training epoch number.
- * @param newTrainLoss The new training accuracy, as a single `Number`.
- * @param newValidationLoss The new validation accuracy, as a single `Number`.
- */
-export function plotAccuracies(
-    accuracyValues, epoch, newTrainAccuracy, newValidationAccuracy) {
-  accuracyValues.push(
-      {'epoch': epoch, 'accuracy': newTrainAccuracy, 'set': 'train'});
-  accuracyValues.push(
-      {'epoch': epoch, 'accuracy': newValidationAccuracy, 'set': 'validation'});
-  embed(
-      '#accuracyCanvas', {
-        '$schema': 'https://vega.github.io/schema/vega-lite/v2.json',
-        'data': {'values': accuracyValues},
-        'mark': 'line',
-        'encoding': {
-          'x': {'field': 'epoch', 'type': 'ordinal'},
-          'y': {'field': 'accuracy', 'type': 'quantitative'},
-          'color': {'field': 'set', 'type': 'nominal'},
-        },
-        'width': 500,
-      },
-      {});
 }
 
 /**
@@ -101,7 +43,7 @@ const confusionMatrixCanvas = document.getElementById('confusion-matrix');
 
 /**
  * Render a confusion matrix.
- * 
+ *
  * @param {tf.Tensor} confusionMat Confusion matrix as a 2D tf.Tensor object.
  *   The value at row `r` and column `c` is the number of times examples of
  *   actual class `r` were predicted as class `c`.
@@ -127,8 +69,7 @@ export function drawConfusionMatrix(confusionMat) {
       ctx.font = '18px Arial';
       ctx.fillStyle = '#ff00ff';
       ctx.fillText(
-          `${rawConfusion[i * n + j]}`,
-          w / n * (j + 0.45), h / n * (i + 0.66));
+          `${rawConfusion[i * n + j]}`, w / n * (j + 0.45), h / n * (i + 0.66));
       ctx.stroke();
     }
   }

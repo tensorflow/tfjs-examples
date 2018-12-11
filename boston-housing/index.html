@@ -18,22 +18,11 @@ limitations under the License.
 <html>
 
 <head>
-  <link rel="stylesheet" href="https://code.getmdl.io/1.3.0/material.cyan-teal.min.css" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="../shared/tfjs-examples.css" />
+
   <style>
-    textarea {
-      border: none;
-      resize: none;
-      font-size: 20px;
-      text-align: center;
-    }
-
-    .container {
-      width: 80%;
-      margin-left: auto;
-      margin-right: auto;
-      text-align: center;
-    }
-
     .negativeWeight {
       color: #cc0000;
     }
@@ -42,82 +31,82 @@ limitations under the License.
       color: #00aa00;
     }
 
-    #plot {
-      width: auto;
-      height: auto;
+    #buttons {
+      margin-top: 20px;
+      padding: 5px;
     }
 
-    #modelInspectionOutput {
-      text-align: left;
+    #oneHidden {
+      border-left: 1px solid #ededed;
+      border-right: 1px solid #ededed;
+    }
+
+    #linear,
+    #oneHidden,
+    #twoHidden {
+      padding: 5px;
     }
   </style>
-  <script src="tf-data.js"></script>
-  <script>
-    const csvUrl =
-      'https://storage.googleapis.com/tfjs-examples/multivariate-linear-regression/data/boston-housing-train.csv';
-
-
-    // We want to predict the column "medv", which represents a median value of a
-    // home (in $1000s), so we mark it as a label.
-    const csvDataset = tf.data.csv(
-      csvUrl, {
-        columnConfigs: {
-          medv: {
-            isLabel: true
-          }
-        }
-      });
-  </script>
-
-  <!-- <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs/dist/tf.js"> </script>
-
-
-  <script>
-    // Notice there is no 'import' statement. 'tf' is available on the index-page
-    // because of the script tag above.
-
-    // Define a model for linear regression.
-    const model = tf.sequential();
-    model.add(tf.layers.dense({
-      units: 1,
-      inputShape: [1]
-    }));
-
-    // Prepare the model for training: Specify the loss and the optimizer.
-    model.compile({
-      loss: 'meanSquaredError',
-      optimizer: 'sgd'
-    });
-
-    // Generate some synthetic data for training.
-    const xs = tf.tensor2d([1, 2, 3, 4], [4, 1]);
-    const ys = tf.tensor2d([1, 3, 5, 7], [4, 1]);
-
-    // Train the model using the data.
-    model.fit(xs, ys).then(() => {
-      // Use the model to do inference on a data point the model hasn't seen before:
-      // Open the browser devtools to see the output
-      model.predict(tf.tensor2d([5], [1, 1])).print();
-    });
-  </script> -->
 </head>
 
 <body>
-  <div class="container">
-    <h3>Multivariate Regression</h3>
-    <div id="plot"></div>
-    <textarea rows="3" cols="60" readonly="true" id="status">Loading data...</textarea>
-    <textarea rows="3" cols="60" readonly="true" id="baselineStatus">Baseline not computed...</textarea>
-    <div id="buttons">
-      <button id="simple-mlr">Train Linear Regressor</button>
-      <button id="nn-mlr-1hidden">Train Neural Network Regressor (1 hidden layer)</button>
-      <button id="nn-mlr-2hidden">Train Neural Network Regressor (2 hidden layers)</button>
-    </div>
-    <p></p>
-    <div id="modelInspectionOutput">
-      <textarea rows="1" cols="60" readonly="true" id="inspectionHeadline"></textarea>
-      <table id="myTable"></table>
-    </div>
+  <div class='tfjs-example-container centered-container'>
+    <section class='title-area'>
+      <h1>Multivariate Regression</h1>
+      <p class='subtitle'>Compare different models for housing price prediction.</p>
+    </section>
+
+    <section>
+      <p class='section-head'>Description</p>
+      <p>
+        This example shows you how to perform regression with more than one input feature using the
+        <a href="https://www.cs.toronto.edu/~delve/data/boston/bostonDetail.html">Boston Housing Dataset</a>,
+        which is a famous dataset derived from information collected by the U.S. Census Service concerning housing
+        in the area of Boston Massachusetts.
+      </p>
+      <p>
+        It allows you to compare the perfomance of 3 different models for predicting the house prices. When training
+        the linear model, it will also display the largest 5 weights (by absolute value) of the model and
+        the feature associated with each of those weights.
+      </p>
+    </section>
+
+    <section>
+      <p class='section-head'>Status</p>
+      <p id="status">Loading data...</p>
+      <p id="baselineStatus">Baseline not computed...</p>
+    </section>
+
+    <section>
+      <p class='section-head'>Training Progress</p>
+      <div class="with-cols">
+        <div id="linear">
+          <div class="chart"></div>
+          <div class="status"></div>
+          <div id="modelInspectionOutput">
+            <p id="inspectionHeadline"></p>
+            <table id="myTable"></table>
+          </div>
+        </div>
+        <div id="oneHidden">
+          <div class="chart"></div>
+          <div class="status"></div>
+        </div>
+        <div id="twoHidden">
+          <div class="chart"></div>
+          <div class="status"></div>
+        </div>
+      </div>
+
+      <div id="buttons">
+        <div class="with-cols">
+          <button id="simple-mlr">Train Linear Regressor</button>
+          <button id="nn-mlr-1hidden">Train Neural Network Regressor (1 hidden layer)</button>
+          <button id="nn-mlr-2hidden">Train Neural Network Regressor (2 hidden layers)</button>
+        </div>
+      </div>
+
+    </section>
   </div>
   <script src="index.js"></script>
 </body>

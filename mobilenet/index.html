@@ -18,37 +18,23 @@ limitations under the License.
 <!doctype html>
 
 <head>
-  <link rel="stylesheet" href="https://code.getmdl.io/1.3.0/material.cyan-teal.min.css" />
+  <title>TensorFlow.js: Using a pretrained MobileNet</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="../shared/tfjs-examples.css" />
 </head>
 
 <style>
-  body {
-    margin: 20px;
-  }
-  .input-div {
-    padding: 5px;
-    font-family: monospace;
-  }
-  a {
-    color: blue;
-  }
-
-  p {
-    width: 500px;
-  }
-
-  #status {
-    margin-top: 30px;
-    font-size: 20px;
-  }
   .pred-container {
     margin-bottom: 20px;
   }
+
   .pred-container > div {
     display: inline-block;
     margin-right: 20px;
     vertical-align: top;
   }
+
   .row {
     display: table-row;
   }
@@ -56,27 +42,47 @@ limitations under the License.
     display: table-cell;
     padding-right: 20px;
   }
+
+  #file-container {
+    margin-bottom: 20px;
+  }
 </style>
 
 <body>
-  <h3>TensorFlow.js: Using a pretrained MobileNet</h3>
+  <div class="tfjs-example-container">
+    <section class='title-area'>
+      <h1>TensorFlow.js: Using a pretrained MobileNet</h1>
+    </section>
 
-  <p>
-    This demo uses the pretrained MobileNet_25_224 model from Keras which you can find
-    <a href="https://github.com/fchollet/deep-learning-models/releases/download/v0.6/mobilenet_2_5_224_tf.h5">here</a>.
+    <section>
+      <p class='section-head'>Description</p>
+      <p>
+        This demo uses the pretrained MobileNet_25_224 model from Keras which you can find
+        <a href="https://github.com/fchollet/deep-learning-models/releases/download/v0.6/mobilenet_2_5_224_tf.h5">here</a>.
 
-    It is not trained to recognize human faces. For best performance, upload images of objects
-    like piano, coffee mugs, bottles, etc.
-  </p>
+        It is not trained to recognize human faces. For best performance, upload images of objects
+        like piano, coffee mugs, bottles, etc. You can see all the objects types it has been trained to recognize in <a
+          href="https://github.com/tensorflow/tfjs-examples/blob/master/mobilenet/imagenet_classes.js">imagenet_classes.js</a>.
+      </p>
+    </section>
 
-  <div id="file-container" style="display: none">
-    Upload an image: <input type="file" id="files" name="files[]" multiple />
+    <section>
+      <p class='section-head'>Status</p>
+      <div id="status"></div>
+    </section>
+
+    <section>
+      <p class='section-head'>Model Output</p>
+
+      <div id="file-container" style="display: none">
+        Upload an image: <input type="file" id="files" name="files[]" multiple />
+      </div>
+
+      <div id="predictions"></div>
+
+      <img style="display: none" id="cat" src="cat.jpg" width=224 height=224 />
+    </section>
+
+    <script src="index.js"></script>
   </div>
-
-  <div id="status"></div>
-
-  <div id="predictions"></div>
-
-  <img style="display: none" id="cat" src="cat.jpg" width=224 height=224/>
 </body>
-<script src="index.js"></script>

@@ -16,36 +16,72 @@ limitations under the License.
 -->
 
 <html>
-  <head>
-    <link rel="stylesheet" href="https://code.getmdl.io/1.3.0/material.cyan-teal.min.css" />
-  </head>
-  <body>
-    <h3>TensorFlow.js: Train MNIST with the Core API</h3>
-    <p>Open your browser console</p>
-    <style>
-      canvas {
-        width: 100px;
-      }
-      .pred {
-        font-size: 30px;
-        width: 100px;
-      }
-      .pred-correct {
-        background-color: #00cf00;
-      }
-      .pred-incorrect {
-        background-color: red;
-      }
-      .pred-container {
-        display: inline-block;
-        width: 100px;
-        margin: 10px;
-      }
-    </style>
 
-    <div id="status">Loading data...</div>
-    <div id="message"></div>
-    <div id="images"></div>
+<head>
+  <title>TensorFlow.js: Train MNIST with the Core API</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="../shared/tfjs-examples.css" />
+
+  <style>
+    .tfjs-example-container {
+      width: calc(100vw - 600px);
+    }
+
+    canvas {
+      width: 100px;
+    }
+
+    .pred {
+      font-size: 30px;
+      width: 100px;
+    }
+
+    .pred-correct {
+      background-color: #00cf00;
+    }
+
+    .pred-incorrect {
+      background-color: red;
+    }
+
+    .pred-container {
+      display: inline-block;
+      width: 100px;
+      margin: 10px;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="tfjs-example-container">
+    <section class='title-area'>
+      <h1>TensorFlow.js: Train MNIST with the Core API</h1>
+    </section>
+
+    <section>
+      <p class='section-head'>Description</p>
+      <p>
+        This examples demonstrates training a handwritten digit recognizer using a Convolutional Neural Network
+        implemented with TensorFlow.js' lower level API.
+      </p>
+      <p>The MNIST dataset is used as training data.</p>
+    </section>
+
+    <section>
+      <p class='section-head'>Status</p>
+      <div id="status">Loading data...</div>
+      <div id="message"></div>
+    </section>
+
+    <section>
+      <p class='section-head'>Test Samples</p>
+      <div id="images"></div>
+    </section>
+
     <script src="index.js"></script>
-  </body>
+  </div>
+
+</body>
+
 </html>

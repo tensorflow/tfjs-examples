@@ -246,7 +246,7 @@ async function fitAndRender() {
     +cubicCoeffElement.value, +quadCoeffElement.value,
     +linearCoeffElement.value, +constCoeffElement.value
   ];
-  console.log('Truth coefficients: ' + JSON.stringify(coeffs));
+  console.log('True coefficients: ' + JSON.stringify(coeffs));
   let xyData = generateXYData(canvas, coeffs);
   drawXYData(canvas, xyData);
   const fitOutputs = await fitModel(xyData, epochs, learningRate);

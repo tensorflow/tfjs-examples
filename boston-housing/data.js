@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import * as tfd from '@tensorflow/tfjs-data';
+import * as tf from '@tensorflow/tfjs';
 
 // Boston Housing data constants:
 const BASE_URL =
@@ -62,7 +62,7 @@ export class BostonHousingDataset {
   async prepareDataset(url) {
     // We want to predict the column "medv", which represents a median value of
     // a home (in $1000s), so we mark it as a label.
-    const csvDataset = tfd.csv(url, {
+    const csvDataset = tf.data.csv(url, {
       columnConfigs: {
         medv: {
           isLabel: true

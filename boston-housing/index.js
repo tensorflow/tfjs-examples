@@ -184,7 +184,7 @@ export async function run(model, modelName, weightsIllustration) {
           `Epoch ${epoch + 1} of ${NUM_EPOCHS} completed.`, modelName);
         // TODO(kangyizhang): Update this once
         // https://github.com/tensorflow/tfjs/issues/984 is fixed.
-          trainLogs.push({
+        trainLogs.push({
           loss: logs.loss,
           val_loss: logs.val_loss
         });

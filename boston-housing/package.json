@@ -10,7 +10,7 @@
   },
   "dependencies": {
     "@tensorflow/tfjs": "^0.13.5",
-    "@tensorflow/tfjs-data": "file:../../tfjs-data/tensorflow-tfjs-data-v0.0.1.tgz",
+    "@tensorflow/tfjs-data": "0.0.1",
     "papaparse": "^4.5.0",
     "vega-embed": "^3.18.1",
     "vega-lite": "^2.3.1"

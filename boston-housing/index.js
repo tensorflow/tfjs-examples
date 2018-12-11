@@ -28,7 +28,7 @@ import {
 import * as ui from './ui';
 
 // Some hyperparameters for model training.
-const NUM_EPOCHS = 250;
+const NUM_EPOCHS = 200;
 
 const BATCH_SIZE = 40;
 

@@ -182,7 +182,9 @@ export async function run(model, modelName, weightsIllustration) {
       onEpochEnd: async (epoch, logs) => {
         await ui.updateModelStatus(
           `Epoch ${epoch + 1} of ${NUM_EPOCHS} completed.`, modelName);
-        trainLogs.push({
+        // TODO(kangyizhang): Update this once
+        // https://github.com/tensorflow/tfjs/issues/984 is fixed.
+          trainLogs.push({
           loss: logs.loss,
           val_loss: logs.val_loss
         });

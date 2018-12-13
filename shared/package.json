@@ -10,8 +10,5 @@
   },
   "dependencies": {
     "node-sass": "^4.9.4"
-  },
-  "devDependencies": {
-    "sass": "^1.15.2"
   }
 }

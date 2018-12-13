@@ -16,8 +16,12 @@
  */
 
 /**
- * This file loads checkpoints saved from gan.js during the trainig of an ACGAN
- * and demonstrates the generated fake MNIST images.
+ * This file loads a pre-trained generator part of an ACGAN and demonstrates
+ * the generation of fake MNIST images.
+ * 
+ * The pre-trained generator model may come from either of the two sources:
+ *   1. Running the traning script `gan.js` in the same folder.
+ *   2. A hosted model, via HTTPS requests.
  */
 
 import * as tf from '@tensorflow/tfjs';
@@ -28,7 +32,8 @@ import {loadMnistData, sampleFromMnistData} from './web-data';
 const status = document.getElementById('status');
 const loadHostedModel = document.getElementById('load-hosted-model');
 const testModel = document.getElementById('test');
-const zSpaceSpan = document.getElementById('z-space-span');
+const zSpaceToggleButton = document.getElementById('toggle-sliders');
+const slidersContainer = document.getElementById('sliders-container');
 const fakeImagesSpan = document.getElementById('fake-images-span');
 const fakeCanvas = document.getElementById('fake-canvas');
 const realCanvas = document.getElementById('real-canvas');
@@ -120,8 +125,7 @@ let latentSliders;
  */
 function createSliders(generator) {
   const latentDims = generator.inputs[0].shape[1];
-  latentSliders = [];
-  const slidersContainer = document.getElementById('sliders-container');
+  latentSliders = [];  
   for (let i = 0; i < latentDims; ++i) {
     const slider = document.createElement('input');
     slider.setAttribute('type', 'range');
@@ -136,7 +140,9 @@ function createSliders(generator) {
     slidersContainer.appendChild(slider);
     latentSliders.push(slider);
   }
-  zSpaceSpan.textContent = `z-space vector (${latentDims} dimensions)`;
+  slidersContainer.style.display = 'none';
+  zSpaceToggleButton.disabled = false;
+  zSpaceToggleButton.textContent = `Show z-vector sliders (${latentDims} dimensions)`;
 }
 
 async function showGeneratorInitially(generator) {
@@ -217,6 +223,18 @@ async function init() {
     generateLatentVector(false);
     await generateAndVisualizeImages(model);
     drawReals();
+  });
+
+  zSpaceToggleButton.addEventListener('click', () => {
+    if (slidersContainer.style.display === 'none') {
+      slidersContainer.style.display = 'block';
+      zSpaceToggleButton.textContent =
+          zSpaceToggleButton.textContent.replace('Show ', 'Hide ');
+    } else {
+      slidersContainer.style.display = 'none';
+      zSpaceToggleButton.textContent =
+          zSpaceToggleButton.textContent.replace('Hide ', 'Show ');
+    }
   });
 }
 

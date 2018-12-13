@@ -108,10 +108,10 @@ to another project.
     <td></td>
   </tr>
   <tr>
-    <td><a href="./mnist">mnist-acgan</a></td>
+    <td><a href="./mnist-acgan">mnist-acgan</a></td>
     <td></td>
     <td>Image</td>
-    <td>Adversarial (GAN)</td>
+    <td>Generative Adversarial Network (GAN)</td>
     <td>Convolutional neural network; GAN</td>
     <td>Node.js</td>
     <td>Browser</td>

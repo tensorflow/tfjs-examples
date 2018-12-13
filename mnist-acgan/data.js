@@ -15,6 +15,9 @@
  * =============================================================================
  */
 
+// TODO(cais): Remove this file and use the tf.data.* version of MNIST data
+//   when it is available.
+
 const tf = require('@tensorflow/tfjs');
 const assert = require('assert');
 const fs = require('fs');
@@ -40,8 +43,8 @@ const LABEL_HEADER_BYTES = 8;
 const LABEL_RECORD_BYTE = 1;
 const LABEL_FLAT_SIZE = 10;
 
-// Downloads a test file only once and returns the buffer for the file.
-async function fetchOnceAndSaveToDiskWithBuffer(filename) {
+// Downloads MNIST data files.
+function fetchOnceAndSaveToDiskWithBuffer(filename) {
   return new Promise(resolve => {
     const url = `${BASE_URL}${filename}.gz`;
     if (fs.existsSync(filename)) {
@@ -62,7 +65,8 @@ async function fetchOnceAndSaveToDiskWithBuffer(filename) {
 
 function loadHeaderValues(buffer, headerLength) {
   const headerValues = [];
-  for (let i = 0; i < headerLength / 4; i++) {
+  const headerNumInt32s = headerLength / 4;
+  for (let i = 0; i < headerNumInt32s; i++) {
     // Header data is stored in-order (aka big-endian)
     headerValues[i] = buffer.readUInt32BE(i * 4);
   }
@@ -125,7 +129,6 @@ class MnistDataset {
     this.dataset = null;
     this.trainSize = 0;
     this.testSize = 0;
-    this.trainBatchIndex = 0;
     this.testBatchIndex = 0;
   }
 

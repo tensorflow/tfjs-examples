@@ -36,7 +36,12 @@ limitations under the License.
       </p>
       <p>
         The training process is in gan.js, which runs in Node.js using tfjs-node
-        or tfjs-node-gpu.
+        or tfjs-node-gpu. In this web page, we load the generator part of a pre-trained
+        GAN to generate MNIST images. How real those generated MNIST images look depends
+        on how well the model has been trained. After 5 epochs of training, you should
+        start seeing reasonable images. After 15 epochs, the images should be good.
+        Close-to-perfect images (ones that are hard to discern from the real ones)
+        appear toward the end of the default 100 epochs of training.
       </p>
       <p>
         The ACGAN is a type of

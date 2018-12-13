@@ -22,6 +22,7 @@
 
 import * as tf from '@tensorflow/tfjs';
 
+// Load dataset just for comparison with the fake (generated images).
 import {loadMnistData, sampleFromMnistData} from './web-data';
 
 const status = document.getElementById('status');
@@ -39,17 +40,15 @@ const realCanvas = document.getElementById('real-canvas');
  *   vector (0.5 for every dimension).
  */
 function generateLatentVector(fixedLatent) {
-  return tf.tidy(() => {
-    const latentDims = latentSliders.length;
+  const latentDims = latentSliders.length;
 
-    // Generate random latent vector (a.k.a, z-space vector).
-    const latentValues = [];
-    for (let i = 0; i < latentDims; ++i) {
-      const latentValue = fixedLatent === true ? 0.5 : Math.random();
-      latentValues.push(latentValue);
-      latentSliders[i].value = latentValue;
-    }
-  });
+  // Generate random latent vector (a.k.a, z-space vector).
+  const latentValues = [];
+  for (let i = 0; i < latentDims; ++i) {
+    const latentValue = fixedLatent === true ? 0.5 : Math.random();
+    latentValues.push(latentValue);
+    latentSliders[i].value = latentValue;
+  }
 }
 
 /**

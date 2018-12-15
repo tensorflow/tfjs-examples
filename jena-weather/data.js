@@ -53,9 +53,7 @@ export class JenaWeatherData {
     const csvData = await (await fetch(JENA_WEATHER_CSV_PATH)).text();
     
     // Parse CSV file.
-    console.log(csvData.length);  // DEBUG
     const csvLines = csvData.split('\n');
-    console.log(csvLines.length);  // DEBUG
 
     // Parser header.
     const columnNames = csvLines[0].split(',');
@@ -63,14 +61,12 @@ export class JenaWeatherData {
       columnNames[i] = columnNames[i].slice(1, columnNames[i].length - 1);
     }
 
-    console.log(columnNames);  // DEBUG
     this.dateTimeCol = columnNames.indexOf('Date Time');
     tf.util.assert(
         this.dateTimeCol === 0, 
         `Unexpected date-time column index from ${JENA_WEATHER_CSV_PATH}`);
 
     this.dataColumnNames = columnNames.slice(1);
-    console.log(this.dataColumnNames);  // DEBUG
     this.tempCol = columnNames.indexOf('T (degC)');
     tf.util.assert(
         this.tempCol >= 1, 

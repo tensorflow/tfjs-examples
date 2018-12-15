@@ -17,7 +17,7 @@
 
 /**
  * Data object for Jena Weather data.
- * 
+ *
  * TODO(cais): Say something about the origin of the data.
  */
 
@@ -51,7 +51,7 @@ export class JenaWeatherData {
 
   async load() {
     const csvData = await (await fetch(JENA_WEATHER_CSV_PATH)).text();
-    
+
     // Parse CSV file.
     const csvLines = csvData.split('\n');
 
@@ -63,13 +63,13 @@ export class JenaWeatherData {
 
     this.dateTimeCol = columnNames.indexOf('Date Time');
     tf.util.assert(
-        this.dateTimeCol === 0, 
+        this.dateTimeCol === 0,
         `Unexpected date-time column index from ${JENA_WEATHER_CSV_PATH}`);
 
     this.dataColumnNames = columnNames.slice(1);
     this.tempCol = columnNames.indexOf('T (degC)');
     tf.util.assert(
-        this.tempCol >= 1, 
+        this.tempCol >= 1,
         `Unexpected T (degC) column index from ${JENA_WEATHER_CSV_PATH}`);
 
     this.dateTime = [];
@@ -84,18 +84,41 @@ export class JenaWeatherData {
       this.data.push(items.slice(1).map(x => +x));
     }
     this.numRows = this.dateTime.length;
-    console.log(this.numRows);
-    console.log(this.data.length);
-    console.log(this.data[200]);
 
     // TODO(cais): Normalization.
+    await this.calculateMeansAndStddevs_();
+  }
+
+  /**
+   * Calculate the means and standard deviations of every column.
+   *
+   * TensorFlow.js is used for acceleration.
+   */
+  async calculateMeansAndStddevs_() {
+    tf.tidy(() => {
+      // Instead of doing it on all columns at once, we do it
+      // column by column, as doing it all at once causes WebGL OOM
+      // on some machines.
+      this.means = [];
+      this.stddevs = [];
+      for (const columnName of this.dataColumnNames) {
+        // TODO(cais): See if we can relax this limit.
+        const data =
+            tf.tensor1d(this.getColumnData(columnName).slice(0, 6 * 24 * 365));
+        const moments = tf.moments(data);
+        this.means.push(moments.mean.dataSync());
+        this.stddevs.push(Math.sqrt(moments.variance.dataSync()));
+      }
+      console.log('means:', this.means);
+      console.log('stddevs:', this.stddevs);
+    });
   }
 
   getDataColumnNames() {
     return this.dataColumnNames;
   }
 
-  getColumnData(columnName, includeTime, beginIndex, endIndex, stride) {
+  getColumnData(columnName, includeTime, normalize, beginIndex, endIndex, stride) {
     // TODO(cais): Handle includeDateTime.
     const columnIndex = this.dataColumnNames.indexOf(columnName);
     tf.util.assert(columnIndex >= 0, `Invalid column name: ${columnName}`);
@@ -111,12 +134,12 @@ export class JenaWeatherData {
     }
     const out = [];
     for (let i = beginIndex; i < endIndex; i += stride) {
-      let value = this.data[i][columnIndex];  
+      let value = this.data[i][columnIndex];
+      if (normalize) {
+        value = (value - this.means[columnIndex]) / this.stddevs[columnIndex];
+      }
       if (includeTime) {
-        value = {
-          x: this.dateTime[i].getTime(),
-          y: value
-        };
+        value = {x: this.dateTime[i].getTime(), y: value};
       }
       out.push(value);
     }

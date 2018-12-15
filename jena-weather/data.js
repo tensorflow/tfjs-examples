@@ -99,7 +99,7 @@ export class JenaWeatherData {
     return this.dataColumnNames;
   }
 
-  getColumnData(columnName, includeDateTime, beginIndex, endIndex) {
+  getColumnData(columnName, includeTime, beginIndex, endIndex, stride) {
     // TODO(cais): Handle includeDateTime.
     const columnIndex = this.dataColumnNames.indexOf(columnName);
     tf.util.assert(columnIndex >= 0, `Invalid column name: ${columnName}`);
@@ -110,9 +110,19 @@ export class JenaWeatherData {
     if (endIndex == null) {
       endIndex = this.numRows;
     }
+    if (stride == null) {
+      stride = 1;
+    }
     const out = [];
-    for (let i = beginIndex; i < endIndex; ++i) {
-      out.push(this.data[i][columnIndex]);
+    for (let i = beginIndex; i < endIndex; i += stride) {
+      let value = this.data[i][columnIndex];  
+      if (includeTime) {
+        value = {
+          x: this.dateTime[i].getTime(),
+          y: value
+        };
+      }
+      out.push(value);
     }
     return out;
   }

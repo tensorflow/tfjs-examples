@@ -34,15 +34,19 @@ async function run() {
   await jenaWeatherData.load();
   logStatus('Done loading Jena weather data.');
 
-  const lossContainer = document.getElementById('lossChart');
-  const lossValues =
-      [[{x: 0, y: 100}, {x: 1, y: 50}], [{x: 0, y: 110}, {x: 1, y: 40}]]
+  const dataColumnName = 'T (degC)';
+  const dataChartContainer = document.getElementById('data-chart');
+  const includeTime = true;
+  // NOTE(cais): On a Linux workstation running latest Chrome, the length
+  // limit seems to be around 120k.
+  const values = [jenaWeatherData.getColumnData(dataColumnName, includeTime, 0, 7200)];
   tfvis.render.linechart(
-      {values: lossValues, series: ['train', 'validation']}, lossContainer, {
-        width: 420,
+      {values, series: [dataColumnName]}, dataChartContainer,
+      {
+        width: 800,
         height: 300,
         xLabel: 'Time',
-        yLabel: 'loss',
+        yLabel: dataColumnName,
       });
 }
 

@@ -26,28 +26,79 @@ import * as tf from '@tensorflow/tfjs';
 import * as tfvis from '@tensorflow/tfjs-vis';
 
 import {JenaWeatherData} from './data';
-import {logStatus} from './ui';
+import {logStatus, populateSelects} from './ui';
 
-async function run() {
-  logStatus('Loading Jena weather data...');
-  const jenaWeatherData = new JenaWeatherData();
-  await jenaWeatherData.load();
-  logStatus('Done loading Jena weather data.');
+let jenaWeatherData;
 
-  const dataColumnName = 'T (degC)';
-  const dataChartContainer = document.getElementById('data-chart');
+const timeSpanSelect = document.getElementById('time-span');
+const selectSeries1 = document.getElementById('data-series-1');
+const selectSeries2 = document.getElementById('data-series-2');
+const dataChartContainer = document.getElementById('data-chart');
+
+const TIME_SPAN_RANGE_MAP = {
+  day: 6 * 24,
+  week: 6 * 24 * 7,
+  month: 6 * 24 * 7 * 30,
+  year: 6 * 24 * 7 * 365,
+  full: null
+};
+const TIME_SPAN_STRIDE_MAP = {
+  day: 1,
+  week: 1,
+  month: 6,
+  year: 6 * 6,
+  full: 6 * 24
+};
+
+function plotData() {
+  logStatus('Rendering data plot...');
+  console.log('In plotData()');  // DEBUG
+  const timeSpan = timeSpanSelect.value;
+  const series1 = selectSeries1.value;
+  const series2 = selectSeries2.value;
+  console.log(timeSpan, series1, series2);  // DEBUG
+
   const includeTime = true;
   // NOTE(cais): On a Linux workstation running latest Chrome, the length
   // limit seems to be around 120k.
-  const values = [jenaWeatherData.getColumnData(dataColumnName, includeTime, 0, 7200)];
-  tfvis.render.linechart(
-      {values, series: [dataColumnName]}, dataChartContainer,
-      {
-        width: 800,
-        height: 300,
-        xLabel: 'Time',
-        yLabel: dataColumnName,
-      });
+  const values = [];
+  const seriesNames = [];
+  if (series1 != 'None') {
+    values.push(jenaWeatherData.getColumnData(
+        series1, includeTime, 0, TIME_SPAN_RANGE_MAP[timeSpan],
+        TIME_SPAN_STRIDE_MAP[timeSpan]));
+    seriesNames.push(series1);
+  }
+  if (series2 != 'None') {
+    values.push(jenaWeatherData.getColumnData(
+        series2, includeTime, 0, TIME_SPAN_RANGE_MAP[timeSpan],
+        TIME_SPAN_STRIDE_MAP[timeSpan]));
+    seriesNames.push(series2);
+  }
+
+  tfvis.render.linechart({values, series: seriesNames}, dataChartContainer, {
+    width: dataChartContainer.offsetWidth * 0.95,
+    height: 300,
+    xLabel: 'Time',
+    yLabel: seriesNames.length === 1 ? seriesNames[0] : '',
+  });
+  logStatus('Done rendering data plot.');
+}
+
+timeSpanSelect.addEventListener('change', plotData);
+selectSeries1.addEventListener('change', plotData);
+selectSeries2.addEventListener('change', plotData);
+
+async function run() {
+  logStatus('Loading Jena weather data...');
+  jenaWeatherData = new JenaWeatherData();
+  await jenaWeatherData.load();
+  logStatus('Done loading Jena weather data.');
+
+  populateSelects(jenaWeatherData);
+  plotData();
+
+  // const dataColumnName = 'Tdew (degC)';
 }
 
 run();

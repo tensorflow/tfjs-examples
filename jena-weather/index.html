@@ -75,7 +75,27 @@ limitations under the License.
       <div class="controls with-rows">
 
       <section>
-        <p class='section-head'>Training Progress</p>
+        <p class='section-head'>Data Visualization</p>
+        <div>
+          <span>Time span:</span>
+          <select id="time-span">
+            <option value="full">Full</option>
+            <option value="year">Year</option>
+            <option value="month">Month</option>
+            <option value="week">Week</option>
+            <option value="day">Day</option>
+          </select>
+        </div>
+
+        <div>
+          <span>Data series 1:</span>
+          <select id="data-series-1"></select>
+        </div>
+        <div>
+          <span>Data series 2:</span>
+          <select id="data-series-2"></select>
+        </div>
+
         <p id="trainStatus"></p>
         <div class='with-cols'>
           <div id="data-chart"></div>

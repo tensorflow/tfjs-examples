@@ -25,6 +25,7 @@ export function logStatus(message) {
 const timeSpanSelect = document.getElementById('time-span');
 const selectSeries1 = document.getElementById('data-series-1');
 const selectSeries2 = document.getElementById('data-series-2');
+const dataNormalizedCheckbox = document.getElementById('data-normalized');
 
 export function populateSelects(dataObj) {
 const columnNames = ['None'].concat(dataObj.getDataColumnNames());
@@ -44,8 +45,11 @@ const columnNames = ['None'].concat(dataObj.getDataColumnNames());
   if (columnNames.indexOf('T (degC)') !== -1) {
     selectSeries1.value = 'T (degC)';
   }
-  selectSeries2.value = 'None';
+  if (columnNames.indexOf('p (mbar)') !== -1) {
+    selectSeries2.value = 'p (mbar)';
+  }
   timeSpanSelect.value = 'week';
+  dataNormalizedCheckbox.checked = true;
 }
 
 // TODO(cais): Remove or use. DO NOT SUBMIT.

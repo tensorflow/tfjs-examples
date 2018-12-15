@@ -84,7 +84,7 @@ function plotData() {
     series.push(`${series1} - ${series2}`);
 
     tfvis.render.scatterplot({values, series}, dataChartContainer, {
-      width: dataChartContainer.offsetWidth * 0.5,
+      width: dataChartContainer.offsetWidth * 0.6,
       height: dataChartContainer.offsetWidth * 0.5,
       xLabel: series1,
       yLabel: series2

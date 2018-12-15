@@ -15,8 +15,6 @@
  * =============================================================================
  */
 
-import * as tfvis from '@tensorflow/tfjs-vis';
-
 const statusElement = document.getElementById('status');
 const messageElement = document.getElementById('message');
 

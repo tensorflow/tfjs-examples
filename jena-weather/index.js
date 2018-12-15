@@ -35,6 +35,7 @@ const selectSeries1 = document.getElementById('data-series-1');
 const selectSeries2 = document.getElementById('data-series-2');
 const dataChartContainer = document.getElementById('data-chart');
 const dataNormalizedCheckbox = document.getElementById('data-normalized');
+const dataScatterCheckbox = document.getElementById('data-scatter');
 
 const dataPrevButton = document.getElementById('data-prev');
 const dataNextButton = document.getElementById('data-next');
@@ -62,32 +63,63 @@ function plotData() {
   const series1 = selectSeries1.value;
   const series2 = selectSeries2.value;
   const normalize = dataNormalizedCheckbox.checked;
+  const scatter = dataScatterCheckbox.checked;
 
-  const includeTime = true;
-  // NOTE(cais): On a Linux workstation running latest Chrome, the length
-  // limit seems to be around 120k.
+  const plotAgainstEachOther =
+      scatter && series1 !== 'None' && series2 !== 'None';
   const values = [];
-  const seriesNames = [];
-  if (series1 != 'None') {
-    values.push(jenaWeatherData.getColumnData(
+  const series = [];
+  if (plotAgainstEachOther) {
+    // Plot the two series against each other.
+    const includeTime = false;
+    const xs = jenaWeatherData.getColumnData(
         series1, includeTime, normalize, currBeginIndex,
-        TIME_SPAN_RANGE_MAP[timeSpan], TIME_SPAN_STRIDE_MAP[timeSpan]));
-    seriesNames.push(series1);
-  }
-  if (series2 != 'None') {
-    values.push(jenaWeatherData.getColumnData(
+        TIME_SPAN_RANGE_MAP[timeSpan], TIME_SPAN_STRIDE_MAP[timeSpan]);
+    const ys = jenaWeatherData.getColumnData(
         series2, includeTime, normalize, currBeginIndex,
-        TIME_SPAN_RANGE_MAP[timeSpan], TIME_SPAN_STRIDE_MAP[timeSpan]));
-    seriesNames.push(series2);
+        TIME_SPAN_RANGE_MAP[timeSpan], TIME_SPAN_STRIDE_MAP[timeSpan]);
+    values.push(xs.map((x, i) => {
+      return {x, y: ys[i]};
+    }));
+    series.push(`${series1} - ${series2}`);
+
+    tfvis.render.scatterplot({values, series}, dataChartContainer, {
+      width: dataChartContainer.offsetWidth * 0.5,
+      height: dataChartContainer.offsetWidth * 0.5,
+      xLabel: series1,
+      yLabel: series2
+    });
+    updateDateTimeRangeSpan();
+    logStatus('Done rendering data plot.');
+  } else {
+    // Plot one or two series agains time.
+    const includeTime = true;
+    if (series1 !== 'None') {
+      values.push(jenaWeatherData.getColumnData(
+          series1, includeTime, normalize, currBeginIndex,
+          TIME_SPAN_RANGE_MAP[timeSpan], TIME_SPAN_STRIDE_MAP[timeSpan]));
+      series.push(series1);
+    }
+    if (series2 !== 'None') {
+      values.push(jenaWeatherData.getColumnData(
+          series2, includeTime, normalize, currBeginIndex,
+          TIME_SPAN_RANGE_MAP[timeSpan], TIME_SPAN_STRIDE_MAP[timeSpan]));
+      series.push(series2);
+    }
+
+    // NOTE(cais): On a Linux workstation running latest Chrome, the length
+    // limit seems to be around 120k.
+    tfvis.render.linechart({values, series: series}, dataChartContainer, {
+      width: dataChartContainer.offsetWidth * 0.95,
+      height: dataChartContainer.offsetWidth * 0.3,
+      xLabel: 'Time',
+      yLabel: series.length === 1 ? series[0] : '',
+    });
+    updateDateTimeRangeSpan();
+    logStatus('Done rendering data plot.');
   }
-  tfvis.render.linechart({values, series: seriesNames}, dataChartContainer, {
-    width: dataChartContainer.offsetWidth * 0.95,
-    height: 300,
-    xLabel: 'Time',
-    yLabel: seriesNames.length === 1 ? seriesNames[0] : '',
-  });
-  updateDateTimeRangeSpan();
-  logStatus('Done rendering data plot.');
+
+  updateScatterCheckbox();
 }
 
 function updateDateTimeRangeSpan() {
@@ -100,6 +132,12 @@ function updateDateTimeRangeSpan() {
   dateTimeRangeSpan.textContent = `${begin} - ${end}`;
 }
 
+function updateScatterCheckbox() {
+  const series1 = selectSeries1.value;
+  const series2 = selectSeries2.value;
+  dataScatterCheckbox.disabled = series1 === 'None' || series2 === 'None';
+}
+
 timeSpanSelect.addEventListener('change', () => {
   currBeginIndex = 0;
   plotData();
@@ -107,10 +145,11 @@ timeSpanSelect.addEventListener('change', () => {
 selectSeries1.addEventListener('change', plotData);
 selectSeries2.addEventListener('change', plotData);
 dataNormalizedCheckbox.addEventListener('change', plotData);
+dataScatterCheckbox.addEventListener('change', plotData);
 
 dataPrevButton.addEventListener('click', () => {
   const timeSpan = timeSpanSelect.value;
-  currBeginIndex -= Math.round(TIME_SPAN_RANGE_MAP[timeSpan] / 4);
+  currBeginIndex -= Math.round(TIME_SPAN_RANGE_MAP[timeSpan] / 8);
   if (currBeginIndex >= 0) {
     plotData();
   } else {
@@ -120,7 +159,7 @@ dataPrevButton.addEventListener('click', () => {
 
 dataNextButton.addEventListener('click', () => {
   const timeSpan = timeSpanSelect.value;
-  currBeginIndex += Math.round(TIME_SPAN_RANGE_MAP[timeSpan] / 4);
+  currBeginIndex += Math.round(TIME_SPAN_RANGE_MAP[timeSpan] / 8);
   plotData();
 });
 

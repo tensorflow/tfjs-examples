@@ -36,6 +36,10 @@ const selectSeries2 = document.getElementById('data-series-2');
 const dataChartContainer = document.getElementById('data-chart');
 const dataNormalizedCheckbox = document.getElementById('data-normalized');
 
+const dataPrevButton = document.getElementById('data-prev');
+const dataNextButton = document.getElementById('data-next');
+const dateTimeRangeSpan = document.getElementById('date-time-range');
+
 const TIME_SPAN_RANGE_MAP = {
   day: 6 * 24,
   week: 6 * 24 * 7,
@@ -51,6 +55,7 @@ const TIME_SPAN_STRIDE_MAP = {
   full: 6 * 24
 };
 
+let currBeginIndex = 0;
 function plotData() {
   logStatus('Rendering data plot...');
   const timeSpan = timeSpanSelect.value;
@@ -65,14 +70,14 @@ function plotData() {
   const seriesNames = [];
   if (series1 != 'None') {
     values.push(jenaWeatherData.getColumnData(
-        series1, includeTime, normalize, 0, TIME_SPAN_RANGE_MAP[timeSpan],
-        TIME_SPAN_STRIDE_MAP[timeSpan]));
+        series1, includeTime, normalize, currBeginIndex,
+        TIME_SPAN_RANGE_MAP[timeSpan], TIME_SPAN_STRIDE_MAP[timeSpan]));
     seriesNames.push(series1);
   }
   if (series2 != 'None') {
     values.push(jenaWeatherData.getColumnData(
-        series2, includeTime, normalize, 0, TIME_SPAN_RANGE_MAP[timeSpan],
-        TIME_SPAN_STRIDE_MAP[timeSpan]));
+        series2, includeTime, normalize, currBeginIndex,
+        TIME_SPAN_RANGE_MAP[timeSpan], TIME_SPAN_STRIDE_MAP[timeSpan]));
     seriesNames.push(series2);
   }
   tfvis.render.linechart({values, series: seriesNames}, dataChartContainer, {
@@ -81,13 +86,43 @@ function plotData() {
     xLabel: 'Time',
     yLabel: seriesNames.length === 1 ? seriesNames[0] : '',
   });
+  updateDateTimeRangeSpan();
   logStatus('Done rendering data plot.');
 }
 
-timeSpanSelect.addEventListener('change', plotData);
+function updateDateTimeRangeSpan() {
+  const timeSpan = timeSpanSelect.value;
+  const currEndIndex = currBeginIndex + TIME_SPAN_RANGE_MAP[timeSpan];
+  const begin =
+      new Date(jenaWeatherData.getTime(currBeginIndex)).toLocaleDateString();
+  const end =
+      new Date(jenaWeatherData.getTime(currEndIndex)).toLocaleDateString();
+  dateTimeRangeSpan.textContent = `${begin} - ${end}`;
+}
+
+timeSpanSelect.addEventListener('change', () => {
+  currBeginIndex = 0;
+  plotData();
+});
 selectSeries1.addEventListener('change', plotData);
 selectSeries2.addEventListener('change', plotData);
 dataNormalizedCheckbox.addEventListener('change', plotData);
+
+dataPrevButton.addEventListener('click', () => {
+  const timeSpan = timeSpanSelect.value;
+  currBeginIndex -= Math.round(TIME_SPAN_RANGE_MAP[timeSpan] / 4);
+  if (currBeginIndex >= 0) {
+    plotData();
+  } else {
+    currBeginIndex = 0;
+  }
+});
+
+dataNextButton.addEventListener('click', () => {
+  const timeSpan = timeSpanSelect.value;
+  currBeginIndex += Math.round(TIME_SPAN_RANGE_MAP[timeSpan] / 4);
+  plotData();
+});
 
 async function run() {
   logStatus('Loading Jena weather data...');

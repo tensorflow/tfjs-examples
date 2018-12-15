@@ -83,7 +83,8 @@ export class JenaWeatherData {
       this.dateTime.push(parseDateTime(items[0]));
       this.data.push(items.slice(1).map(x => +x));
     }
-    this.numRows = this.dateTime.length;
+    this.numRows = this.data.length;
+    console.log(`numRows: ${this.numRows}`);
 
     // TODO(cais): Normalization.
     await this.calculateMeansAndStddevs_();
@@ -118,22 +119,27 @@ export class JenaWeatherData {
     return this.dataColumnNames;
   }
 
-  getColumnData(columnName, includeTime, normalize, beginIndex, endIndex, stride) {
-    // TODO(cais): Handle includeDateTime.
+  getTime(index) {
+    return this.dateTime[index];
+  }
+
+  getColumnData(
+      columnName, includeTime, normalize, beginIndex, length, stride) {
     const columnIndex = this.dataColumnNames.indexOf(columnName);
     tf.util.assert(columnIndex >= 0, `Invalid column name: ${columnName}`);
 
     if (beginIndex == null) {
       beginIndex = 0;
     }
-    if (endIndex == null) {
-      endIndex = this.numRows;
+    if (length == null) {
+      length = this.numRows - beginIndex;
     }
     if (stride == null) {
       stride = 1;
     }
     const out = [];
-    for (let i = beginIndex; i < endIndex; i += stride) {
+    for (let i = beginIndex; i < beginIndex + length && i < this.numRows;
+         i += stride) {
       let value = this.data[i][columnIndex];
       if (normalize) {
         value = (value - this.means[columnIndex]) / this.stddevs[columnIndex];

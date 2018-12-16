@@ -81,13 +81,19 @@ function plotData() {
     values.push(xs.map((x, i) => {
       return {x, y: ys[i]};
     }));
-    series.push(`${series1} - ${series2}`);
+    let seriesLabel1 = series1;
+    let seriesLabel2 = series2;
+    if (normalize) {
+      seriesLabel1 += ' (normalized)';
+      seriesLabel2 += ' (normalized)';
+    }
+    series.push(`${seriesLabel1} - ${seriesLabel2}`);
 
     tfvis.render.scatterplot({values, series}, dataChartContainer, {
-      width: dataChartContainer.offsetWidth * 0.6,
+      width: dataChartContainer.offsetWidth * 0.7,
       height: dataChartContainer.offsetWidth * 0.5,
-      xLabel: series1,
-      yLabel: series2
+      xLabel: seriesLabel1,
+      yLabel: seriesLabel2
     });
     updateDateTimeRangeSpan();
     logStatus('Done rendering data plot.');
@@ -98,15 +104,14 @@ function plotData() {
       values.push(jenaWeatherData.getColumnData(
           series1, includeTime, normalize, currBeginIndex,
           TIME_SPAN_RANGE_MAP[timeSpan], TIME_SPAN_STRIDE_MAP[timeSpan]));
-      series.push(series1);
+      series.push(normalize ? `${series1} (normalized)` : series1);
     }
     if (series2 !== 'None') {
       values.push(jenaWeatherData.getColumnData(
           series2, includeTime, normalize, currBeginIndex,
           TIME_SPAN_RANGE_MAP[timeSpan], TIME_SPAN_STRIDE_MAP[timeSpan]));
-      series.push(series2);
+      series.push(normalize ? `${series2} (normalized)` : series2);
     }
-
     // NOTE(cais): On a Linux workstation running latest Chrome, the length
     // limit seems to be around 120k.
     tfvis.render.linechart({values, series: series}, dataChartContainer, {

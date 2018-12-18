@@ -9,9 +9,10 @@
     "node": ">=8.11.0"
   },
   "dependencies": {
-    "@tensorflow/tfjs-node": "^0.1.21",
-    "@tensorflow/tfjs-node-gpu": "^0.1.21",
-    "argparse": "^1.0.10"
+    "@tensorflow/tfjs-node": "^0.2.1",
+    "@tensorflow/tfjs-node-gpu": "^0.2.1",
+    "argparse": "^1.0.10",
+    "https-proxy-agent": "2.2.1"
   },
   "scripts": {
     "postinstall": "yarn upgrade --pattern @tensorflow",

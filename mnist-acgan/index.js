@@ -68,7 +68,7 @@ function getLatentVectors(numRepeats) {
     const latentDims = latentSliders.length;
     const zs = [];
     for (let i = 0; i < latentDims; ++i) {
-      zs.push(latentSliders[i].value);
+      zs.push(+latentSliders[i].value);
     }
     const singleLatentVector = tf.tensor2d(zs, [1, latentDims]);
     return singleLatentVector.tile([numRepeats, 1]);

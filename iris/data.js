@@ -122,6 +122,14 @@ export async function getIrisData(testSplit) {
     const dsThisClass = rawDataset.filter(e => e[4] === i).shuffle(100);
     testDatasetsByClass.push(dsThisClass.take(numTestExamples));
     trainDatasetsByClass.push(dsThisClass.skip(numTestExamples));
+    // A
+    dsThisClass.take(2).forEach(element => {
+      console.log(JSON.stringify(element));
+    });
+    // B
+    trainDatasetsByClass[i].take(2).forEach(element => {
+      console.log(JSON.stringify(element));
+    });
   }
 
   const trainDataset = trainDatasetsByClass[0]

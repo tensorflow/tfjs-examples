@@ -109,7 +109,7 @@ to another project.
   </tr>
   <tr>
     <td><a href="./mnist-acgan">mnist-acgan</a></td>
-    <td></td>
+    <td><a href="https://storage.googleapis.com/tfjs-examples/mnist-acgan/dist/index.html">🔗</a></td>
     <td>Image</td>
     <td>Generative Adversarial Network (GAN)</td>
     <td>Convolutional neural network; GAN</td>

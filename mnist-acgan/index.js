@@ -194,7 +194,7 @@ async function init() {
     }
     if (metadata.currentEpoch < 10) {
       status.textContent +=
-          '(Note: generator results may be bad in the first few epochs ' +
+          '(Note: generator results may be bad during the first few epochs ' +
           'of training, but should get better as training progresses.) '
     }
     if (metadata.lastUpdated != null) {

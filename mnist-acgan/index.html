@@ -35,13 +35,16 @@ limitations under the License.
         <a href="https://arxiv.org/abs/1610.09585" target="_blank">Auxiliary Classifier Generative Adversarial Network (ACGAN)</a>.
       </p>
       <p>
-        The training process is in gan.js, which runs in Node.js using tfjs-node
+        The training code is in
+        <a href="https://github.com/tensorflow/tfjs-examples/blob/master/mnist-acgan/gan.js">gan.js</a>,
+        which runs in Node.js using tfjs-node
         or tfjs-node-gpu. In this web page, we load the generator part of a pre-trained
         GAN to generate MNIST images. How real those generated MNIST images look depends
         on how well the model has been trained. After 5 epochs of training, you should
-        start seeing reasonable images. After 15 epochs, the images should be good.
-        Close-to-perfect images (ones that are hard to discern from the real ones)
-        appear toward the end of the default 100 epochs of training.
+        start seeing reasonable images. After 15 epochs, the images should start to
+        look good.
+        Close-to-perfect images (ones that are hard to distinguish from the real ones)
+        should appear toward the end of the default 100 epochs of training.
       </p>
       <p>
         The ACGAN is a type of

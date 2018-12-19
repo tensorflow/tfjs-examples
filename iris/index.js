@@ -23,7 +23,7 @@ import * as loader from './loader';
 import * as ui from './ui';
 
 let model;
-const BATCH_SIZE = 100;
+const BATCH_SIZE = 300;
 
 /**
  * Train a `tf.Model` to recognize Iris flower type.
@@ -69,14 +69,22 @@ async function trainModel(trainDataset, validationDataset) {
     callbacks: {
       onEpochEnd: async (epoch, logs) => {
         console.log('epoch end' + epoch);
+        // console.log('logs -> ' + JSON.stringify(logs));
+        console.log('logs.loss -> ' + logs.loss);
         // Plot the loss and accuracy values at the end of every training epoch.
-        trainLogs.push(logs);
+        // TODO(bileschi): Get rid of the explicit clone-assign when logs is no
+        // longer a reference. (next version of tfjs-union 0.14.2).
+        const newLogs = {};
+        Object.assign(newLogs, logs);
+        trainLogs.push(newLogs);
         tfvis.show.history(lossContainer, trainLogs, ['loss', 'val_loss'])
         tfvis.show.history(accContainer, trainLogs, ['acc', 'val_acc'])
         // calculateAndDrawConfusionMatrix(model, xTest, yTest);
       },
     }
   });
+
+  console.log(JSON.stringify(trainLogs));
 
   ui.status('Model training complete.');
   return model;

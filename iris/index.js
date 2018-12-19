@@ -81,7 +81,7 @@ async function trainModel(trainDataset, validationDataset) {
             (performance.now() - beginMs) / (1000 * (epoch + 1));
         ui.status(`Training model... Approximately ${
             secPerTrainEpoch.toFixed(4)} seconds per epoch`)
-        trainLogs.push(logs);
+        trainLogs.push(newLogs);
         tfvis.show.history(lossContainer, trainLogs, ['loss', 'val_loss'])
         tfvis.show.history(accContainer, trainLogs, ['acc', 'val_acc'])
         // calculateAndDrawConfusionMatrix(model, xTest, yTest);

@@ -86,12 +86,13 @@ const IRIS_RAW_DATA = [
  * @returns an array of two elements, firstly a 1D tensor of the four feature
  *  values, and secondly, a 1D one-hot vector representing the class.
  */
-function rawToXY(raw) {
-  return [
-    tf.tensor1d(raw.slice(0, 4)), tf.oneHot(raw.slice(4, 5), IRIS_NUM_CLASSES)
-  ];
+function toFeaturesAndLabels(raw) {
+  const features = tf.tensor1d(raw.slice(0, 4));
+  // This can be simplified after tfjs bug #1037 is fixed
+  // "tf.oneHot fails on scalar tensors (#1037)."
+  const labels = tf.squeeze(tf.oneHot([raw[4]], IRIS_NUM_CLASSES));
+  return [features, labels];
 }
-
 
 /**
  * Obtains Iris data, split into training and test sets and with the label
@@ -122,26 +123,18 @@ export async function getIrisData(testSplit) {
     const dsThisClass = rawDataset.filter(e => e[4] === i).shuffle(100);
     testDatasetsByClass.push(dsThisClass.take(numTestExamples));
     trainDatasetsByClass.push(dsThisClass.skip(numTestExamples));
-    // A
-    dsThisClass.take(2).forEach(element => {
-      console.log(JSON.stringify(element));
-    });
-    // B
-    trainDatasetsByClass[i].take(2).forEach(element => {
-      console.log(JSON.stringify(element));
-    });
   }
 
   const trainDataset = trainDatasetsByClass[0]
                            .concatenate(trainDatasetsByClass[1])
                            .concatenate(trainDatasetsByClass[2])
                            .shuffle(100)
-                           .map(rawToXY);
+                           .map(toFeaturesAndLabels);
 
   const testDataset = testDatasetsByClass[0]
                           .concatenate(testDatasetsByClass[1])
                           .concatenate(testDatasetsByClass[2])
                           .shuffle(100)
-                          .map(rawToXY);
+                          .map(toFeaturesAndLabels);
   return [trainDataset, testDataset];
 }

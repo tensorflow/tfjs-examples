@@ -23,6 +23,7 @@ import * as loader from './loader';
 import * as ui from './ui';
 
 let model;
+const BATCH_SIZE = 100;
 
 /**
  * Train a `tf.Model` to recognize Iris flower type.
@@ -43,8 +44,11 @@ async function trainModel(trainDataset, validationDataset) {
 
   // Define the topology of the model: two dense layers.
   const model = tf.sequential();
-  model.add(tf.layers.dense(
-      {units: 10, activation: 'sigmoid', inputShape: [data.NUM_FEATURES]}));
+  model.add(tf.layers.dense({
+    units: 10,
+    activation: 'sigmoid',
+    inputShape: [data.IRIS_NUM_FEATURES]
+  }));
   model.add(tf.layers.dense({units: 3, activation: 'softmax'}));
   model.summary();
 
@@ -64,11 +68,12 @@ async function trainModel(trainDataset, validationDataset) {
     validationData: validationDataset,
     callbacks: {
       onEpochEnd: async (epoch, logs) => {
+        console.log('epoch end' + epoch);
         // Plot the loss and accuracy values at the end of every training epoch.
         trainLogs.push(logs);
         tfvis.show.history(lossContainer, trainLogs, ['loss', 'val_loss'])
         tfvis.show.history(accContainer, trainLogs, ['acc', 'val_acc'])
-        calculateAndDrawConfusionMatrix(model, xTest, yTest);
+        // calculateAndDrawConfusionMatrix(model, xTest, yTest);
       },
     }
   });
@@ -158,28 +163,34 @@ async function evaluateModelOnTestData(model, testDataset) {
 const HOSTED_MODEL_JSON_URL =
     'https://storage.googleapis.com/tfjs-models/tfjs/iris_v1/model.json';
 
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
 /**
  * The main function of the Iris demo.
  */
 async function iris() {
   console.log('I live');
-  const [trainDataset, testDataset] = await data.getIrisData(0.15);
+  let [trainDataset, testDataset] = await data.getIrisData(0.15);
+  trainDataset = trainDataset.batch(BATCH_SIZE);
+  testDataset = testDataset.batch(BATCH_SIZE);
+
+  trainDataset.take(1).forEach(e => console.log(e));
 
   const localLoadButton = document.getElementById('load-local');
   const localSaveButton = document.getElementById('save-local');
   const localRemoveButton = document.getElementById('remove-local');
 
-  console.log('train data');
-  trainDataset.take(1).forEach(e => console.log(e));
 
-  /*document.getElementById('train-from-scratch')
+  document.getElementById('train-from-scratch')
       .addEventListener('click', async () => {
         model = await trainModel(trainDataset, testDataset);
-        await evaluateModelOnTestData(model, testDataset);
+        // await evaluateModelOnTestData(model, testDataset);
         localSaveButton.disabled = false;
       });
 
-    if (await loader.urlExists(HOSTED_MODEL_JSON_URL)) {
+  /*  if (await loader.urlExists(HOSTED_MODEL_JSON_URL)) {
       ui.status('Model available: ' + HOSTED_MODEL_JSON_URL);
       const button = document.getElementById('load-pretrained-remote');
       button.addEventListener('click', async () => {

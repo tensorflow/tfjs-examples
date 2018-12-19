@@ -676,8 +676,8 @@
     "@types/node" "*"
 
 "@types/node@*", "@types/node@^10.1.0", "@types/node@^10.11.7":
-  version "10.12.16"
-  resolved "https://registry.yarnpkg.com/@types/node/-/node-10.12.16.tgz#006a67ab106673f4c0d5928b7bcb5072e336a148"
+  version "10.12.17"
+  resolved "https://registry.yarnpkg.com/@types/node/-/node-10.12.17.tgz#7040565b2c93d59325a68fa69073e754a7eda93a"
 
 "@types/q@^1.5.1":
   version "1.5.1"
@@ -2402,8 +2402,8 @@ ee-first@1.1.1:
   resolved "https://registry.yarnpkg.com/ee-first/-/ee-first-1.1.1.tgz#590c61156b0ae2f4f0255732a158b266bc56b21d"
 
 electron-to-chromium@^1.2.7, electron-to-chromium@^1.3.30, electron-to-chromium@^1.3.92:
-  version "1.3.94"
-  resolved "https://registry.yarnpkg.com/electron-to-chromium/-/electron-to-chromium-1.3.94.tgz#896dba14f6fefb431295b90543874925ee0cd46e"
+  version "1.3.95"
+  resolved "https://registry.yarnpkg.com/electron-to-chromium/-/electron-to-chromium-1.3.95.tgz#79fac438813ca7f3db182a525c2ab432934f6484"
 
 elliptic@^6.0.0:
   version "6.4.1"
@@ -5901,8 +5901,8 @@ vega-typings@0.3.51:
     vega-util "^1.7.0"
 
 vega-util@^1.7.0:
-  version "1.7.0"
-  resolved "https://registry.yarnpkg.com/vega-util/-/vega-util-1.7.0.tgz#0ca0512bb8dcc6541165c34663d115d0712e0cf1"
+  version "1.7.1"
+  resolved "https://registry.yarnpkg.com/vega-util/-/vega-util-1.7.1.tgz#0b95bbe6058895c332596c215247507caa68ab61"
 
 vega-view-transforms@^2.0.3:
   version "2.0.3"

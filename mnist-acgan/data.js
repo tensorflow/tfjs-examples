@@ -129,7 +129,6 @@ class MnistDataset {
     this.dataset = null;
     this.trainSize = 0;
     this.testSize = 0;
-    this.testBatchIndex = 0;
   }
 
   /** Loads training and test data. */

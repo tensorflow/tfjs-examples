@@ -24,6 +24,7 @@
  *   2. A hosted model, via HTTPS requests.
  */
 
+import * as ta from 'time-ago';
 import * as tf from '@tensorflow/tfjs';
 
 // Load dataset just for comparison with the fake (generated images).
@@ -191,6 +192,16 @@ async function init() {
       status.textContent = `Training of ACGAN in Node.js is ongoing (epoch ` +
           `${metadata.currentEpoch + 1}/${metadata.totalEpochs})... `;
     }
+    if (metadata.currentEpoch < 10) {
+      status.textContent +=
+          '(Note: generator results may be bad in the first few epochs ' +
+          'of training, but should get better as training progresses.) '
+    }
+    if (metadata.lastUpdated != null) {
+      status.textContent +=
+          ` (Saved model was last updated at ` +
+          `${ta.ago(new Date(metadata.lastUpdated))}). `;
+    }
     status.textContent +=
         'Loaded locally-saved model! Now click "Generate" or ' +
         'adjust the z-space sliders.';
@@ -199,7 +210,6 @@ async function init() {
     status.textContent =
         'Failed to load locally-saved model and/or metadata. ' +
         'Please click "Load Hosted Model"';
-    loadHostedModel.disabled = false;
   }
 
   loadHostedModel.addEventListener('click', async () => {

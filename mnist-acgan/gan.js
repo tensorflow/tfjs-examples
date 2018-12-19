@@ -356,6 +356,15 @@ function buildArgumentParser() {
   return parser;
 }
 
+function makeMetadata(totalEpochs, currentEpoch, completed) {
+  return {
+    totalEpochs,
+    currentEpoch,
+    completed,
+    lastUpdated: new Date().getTime()
+  }
+}
+
 async function run() {
   const parser = buildArgumentParser();
   const args = parser.parseArgs();
@@ -408,8 +417,7 @@ async function run() {
     // Write some metadata to disk at the beginning of every epoch.
     fs.writeFileSync(
         metadataPath,
-        JSON.stringify(
-            {totalEpochs: args.epochs, currentEpoch: epoch, completed: false}));
+        JSON.stringify(makeMetadata(args.epochs, epoch, false)));
 
     const tBatchBegin = tf.util.now();
 
@@ -459,7 +467,7 @@ async function run() {
   // the end of the training.
   fs.writeFileSync(
       metadataPath,
-      JSON.stringify({totalEpochs: args.epochs, completed: true}));
+      JSON.stringify(makeMetadata(args.epochs, args.epochs, true)));
 }
 
 run();

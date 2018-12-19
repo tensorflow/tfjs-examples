@@ -62,6 +62,7 @@ async function trainModel(trainDataset, validationDataset) {
   const trainLogs = [];
   const lossContainer = document.getElementById('lossCanvas');
   const accContainer = document.getElementById('accuracyCanvas');
+  const beginMs = performance.now();
   // Call `model.fit` to train the model.
   await model.fitDataset(trainDataset, {
     epochs: params.epochs,
@@ -77,6 +78,10 @@ async function trainModel(trainDataset, validationDataset) {
         const newLogs = {};
         Object.assign(newLogs, logs);
         trainLogs.push(newLogs);
+        const secPerEpoch =
+            (performance.now() - beginMs) / (1000 * (epoch + 1));
+        ui.status(`Training model... Approximately ${
+            secPerEpoch.toFixed(4)} seconds per epoch`)
         tfvis.show.history(lossContainer, trainLogs, ['loss', 'val_loss'])
         tfvis.show.history(accContainer, trainLogs, ['acc', 'val_acc'])
         // calculateAndDrawConfusionMatrix(model, xTest, yTest);
@@ -86,7 +91,7 @@ async function trainModel(trainDataset, validationDataset) {
 
   console.log(JSON.stringify(trainLogs));
 
-  ui.status('Model training complete.');
+  ui.status(`Model training complete:  ${secPerEpoch} seconds per epoch`);
   return model;
 }
 

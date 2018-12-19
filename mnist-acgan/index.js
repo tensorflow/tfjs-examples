@@ -199,7 +199,7 @@ async function init() {
     }
     if (metadata.lastUpdated != null) {
       status.textContent +=
-          ` (Saved model was last updated at ` +
+          ` (Saved model was last updated ` +
           `${ta.ago(new Date(metadata.lastUpdated))}). `;
     }
     status.textContent +=

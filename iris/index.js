@@ -67,10 +67,10 @@ async function trainModel(xTrain, yTrain, xTest, yTest) {
     callbacks: {
       onEpochEnd: async (epoch, logs) => {
         // Plot the loss and accuracy values at the end of every training epoch.
-        const secPerEpoch =
+        const secPerTrainEpoch =
             (performance.now() - beginMs) / (1000 * (epoch + 1));
         ui.status(`Training model... Approximately ${
-            secPerEpoch.toFixed(4)} seconds per epoch`)
+            secPerTrainEpoch.toFixed(4)} seconds per epoch`)
         trainLogs.push(logs);
         tfvis.show.history(lossContainer, trainLogs, ['loss', 'val_loss'])
         tfvis.show.history(accContainer, trainLogs, ['acc', 'val_acc'])
@@ -78,8 +78,10 @@ async function trainModel(xTrain, yTrain, xTest, yTest) {
       },
     }
   });
-
-  ui.status(`Model training complete:  ${secPerEpoch} seconds per epoch`);
+  const secPerTrainEpoch =
+      (performance.now() - beginMs) / (1000 * params.epochs);
+  ui.status(`Model training complete:  ${
+      secPerTrainEpoch.toFixed(4)} seconds per epoch`);
   return model;
 }
 

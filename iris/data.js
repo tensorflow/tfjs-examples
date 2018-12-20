@@ -78,53 +78,17 @@ export const IRIS_RAW_DATA = [
 ];
 
 /**
- * Formats the raw IRIS data elements into [X, y] pairs for training, including
- * converting the integer target into a one-hot vector.
- *
- * @param {Array} raw A raw element from the IRIS_FLOWERS data, consisting of
- *  four floating point features and one integer label, in that order.
- * @returns an array of two elements, firstly a 1D tensor of the four feature
- *  values, and secondly, a 1D one-hot vector representing the class.
+ * Converts an integer into its one-hot representation and returns
+ * the data as a JS Array.
  */
-function toFeaturesAndLabels(raw) {
-  const features = tf.tensor1d(raw.slice(0, 4));
-  // This can be simplified after tfjs bug #1037 is fixed
-  // "tf.oneHot fails on scalar tensors (#1037)."
-  const labels = tf.squeeze(tf.oneHot([raw[4]], IRIS_NUM_CLASSES));
-  return [features, labels];
-}
-
-/**
- * Caches the provided dataset in memory, to prevent reconstruction /
- * reshuffling.
- *
- * TODO(bileschi): Replace this with the tfjs-data native caching behavior once
- * https://github.com/tensorflow/tfjs/issues/1025 is complete.
- *
- * Warning!  This will cache the ENTIRE dataset.  Only use this with tiny
- * datasets.
- *
- * @param indata Dataset to be cached.
- * @returns The same dataset, cached on disk.
- */
-export async function cacheDataset(indata) {
-  console.log('Caching...');
-  const tensorsToCache = await indata.collectAll();
-  console.log('tensorsToCache', tensorsToCache);
-  const numbersToCache =
-      tensorsToCache.map(row => [row[0].dataSync(), row[1].dataSync()]);
-  console.log('numbersToCache', numbersToCache);
-  return tf.data.array(numbersToCache);
-}
-
 export function flatOneHot(idx) {
-  // return tf.oneHot([idx], 3);
-  const ohT = tf.oneHot([idx], 3);
-  const ohArray1 = ohT.dataSync();
-  const ohArray2 = [ohArray1[0], ohArray1[1], ohArray1[2]];
-  return ohArray2;
+  // TODO(bileschi): Remove 'Array.from' from here once tf.data supports typed
+  // arrays https://github.com/tensorflow/tfjs/issues/1041
+  // TODO(bileschi): Remove '.dataSync()' from here once tf.data supports
+  // datasets built from tensors.
+  // https://github.com/tensorflow/tfjs/issues/1046
+  return Array.from(tf.oneHot([idx], 3).dataSync());
 }
-
 
 /**
  * Obtains Iris data, split into training and test sets and with the label
@@ -133,21 +97,28 @@ export function flatOneHot(idx) {
  * @param testSplit Fraction of the data at the end to split as test data: a
  *   number between 0 and 1.
  *
- * @param returns A list of four datasets, [trainX, trainY, testX, testY].
+ * @param returns A list of two datasets, [trainingData, testingData].
  *   The datasets represent a shuffled partition of the raw IRIS data.
- *   - X elements as arrays of four floats.
- *   - Y elements as a rank-1 `Tensor` in one-hot format.
+ *   Elements of the yielded data will consist of [Features, Labels].
+ *   - Features as a rank-1 `Tensor` of length-4 of numbers.
+ *   - Labels as a rank-1 `Tensor` in one-hot format.
  */
-export async function getIrisData(testSplit, useCache) {
-  const numTestExamples = Math.round(IRIS_RAW_DATA.length * testSplit);
-  const numTrainExamples = IRIS_RAW_DATA.length - numTestExamples;
+export async function getIrisData(testSplit) {
+  // Shuffle a copy of the raw data.
   const shuffled = IRIS_RAW_DATA.slice();
   tf.util.shuffle(shuffled);
+  // Split the data into training and testing portions.
+  const numTestExamples = Math.round(IRIS_RAW_DATA.length * testSplit);
+  const numTrainExamples = IRIS_RAW_DATA.length - numTestExamples;
   const train = shuffled.slice(0, numTrainExamples);
   const test = shuffled.slice(numTrainExamples);
-  const dsTrainX = tf.data.array(train.map(r => r.slice(0, 4)));
-  const dsTestX = tf.data.array(test.map(r => r.slice(0, 4)));
-  const dsTrainY = tf.data.array(train.map(r => flatOneHot(r[4])));
-  const dsTestY = tf.data.array(test.map(r => flatOneHot(r[4])));
-  return [dsTrainX, dsTrainY, dsTestX, dsTestY];
+  // Split the data into into X & y and apply feature mapping transformations
+  const trainX = tf.data.array(train.map(r => r.slice(0, 4)));
+  const testX = tf.data.array(test.map(r => r.slice(0, 4)));
+  const trainY = tf.data.array(train.map(r => flatOneHot(r[4])));
+  const testY = tf.data.array(test.map(r => flatOneHot(r[4])));
+  // Recombine the X and y portions of the data.
+  const trainDataset = tf.data.zip([trainX, trainY]);
+  const testDataset = tf.data.zip([testX, testY])
+  return [trainDataset, testDataset];
 }

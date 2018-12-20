@@ -167,42 +167,17 @@ async function evaluateModelOnTestData(model, testDataset) {
 const HOSTED_MODEL_JSON_URL =
     'https://storage.googleapis.com/tfjs-models/tfjs/iris_v1/model.json';
 
-function sleep(ms) {
-  return new Promise(resolve => setTimeout(resolve, ms));
-}
-
-function XXXPrintOne(prefix, ds) {
-  ds.take(1).collectAll().then(oneSample => {
-    oneSample = oneSample[0];
-    console.log(prefix, 'one sample', oneSample);
-  });
-}
-
 /**
  * The main function of the Iris demo.
  */
 async function iris() {
   const testFraction = 0.15;
-  let [trainX, trainY, testX, testY] = await data.getIrisData(testFraction);
+  let [trainDataset, testDataset] = await data.getIrisData(testFraction);
   const TEST_BATCH_SIZE = Math.round(data.IRIS_RAW_DATA.length * testFraction);
   const TRAIN_BATCH_SIZE = data.IRIS_RAW_DATA.length - TEST_BATCH_SIZE;
-  // Logging for how many samples there are.
-
-  console.log('trainX count ', trainX.collectAll().then(e => e.length));
-  console.log('trainY count ', trainY.collectAll().then(e => e.length));
-  console.log('testX count ', testX.collectAll().then(e => e.length));
-  console.log('testY count ', testY.collectAll().then(e => e.length));
-  // Logging for looking at individual samples for each dataset.
-  XXXPrintOne('trainX sample', trainX);
-  XXXPrintOne('trainY sample', trainY);
-  XXXPrintOne('testX sample', testX);
-  XXXPrintOne('testY sample', testY);
-  // Zip datasets and batch
-  const trainDataset = tf.data.zip([trainX, trainY]).batch(TRAIN_BATCH_SIZE);
-  const testDataset = tf.data.zip([testX, testY]).batch(TEST_BATCH_SIZE);
-
-  console.log('training data collect all', await trainDataset.collectAll());
-  console.log('testing data collect all', await testDataset.collectAll());
+  // Batch datasets.
+  trainDataset = trainDataset.batch(TRAIN_BATCH_SIZE);
+  testDataset = testDataset.batch(TEST_BATCH_SIZE);
 
   const localLoadButton = document.getElementById('load-local');
   const localSaveButton = document.getElementById('save-local');

@@ -171,27 +171,44 @@ function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
+function XXXPrintOne(prefix, ds) {
+  ds.take(1).collectAll().then(oneSample => {
+    oneSample = oneSample[0];
+    console.log(prefix, 'one sample', oneSample);
+    console.log(prefix, 'oneSample[0]');
+    // oneSample[0].print();
+    console.log(oneSample[0]);
+    console.log(prefix, 'oneSample[1]');
+    // oneSample[1].print();
+    console.log(oneSample[1]);
+  });
+}
+
 /**
  * The main function of the Iris demo.
  */
 async function iris() {
   const testFraction = 0.15;
-  const useCache = false;
+  const useCache = true;
   let [trainDataset, testDataset] =
       await data.getIrisData(testFraction, useCache);
   const TEST_BATCH_SIZE = Math.round(data.IRIS_RAW_DATA.length * testFraction);
   const TRAIN_BATCH_SIZE = data.IRIS_RAW_DATA.length - TEST_BATCH_SIZE;
   Math.round(data.IRIS_RAW_DATA.length * testFraction);
+  // Logging for how many samples there are.
   console.log('all samples : ', data.IRIS_RAW_DATA.length);
   console.log('train samples expected: ', TRAIN_BATCH_SIZE);
-  console.log('one train sample', await trainDataset.take(1).collectAll());
-  console.log('test samples expected: ', TEST_BATCH_SIZE);
-  console.log('trainDataset ', trainDataset);
   console.log(
       'test samples found: ', testDataset.collectAll().then(e => e.length));
+  // Logging for looking at individual samples for each dataset.
+  XXXPrintOne('training', trainDataset);
+  XXXPrintOne('testing', testDataset);
+
   trainDataset = trainDataset.batch(TRAIN_BATCH_SIZE);
   testDataset = testDataset.batch(TEST_BATCH_SIZE);
 
+  console.log('training data collect all', await trainDataset.collectAll());
+  console.log('testing data collect all', await testDataset.collectAll());
 
   const localLoadButton = document.getElementById('load-local');
   const localSaveButton = document.getElementById('save-local');

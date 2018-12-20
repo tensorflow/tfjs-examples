@@ -108,7 +108,13 @@ function toFeaturesAndLabels(raw) {
  * @returns The same dataset, cached on disk.
  */
 export async function cacheDataset(indata) {
-  return tf.data.array(await indata.collectAll());
+  console.log('Caching...');
+  const tensorsToCache = await indata.collectAll();
+  console.log('tensorsToCache', tensorsToCache);
+  const numbersToCache =
+      tensorsToCache.map(row => [row[0].dataSync(), row[1].dataSync()]);
+  console.log('numbersToCache', numbersToCache);
+  return tf.data.array(numbersToCache);
 }
 
 /**

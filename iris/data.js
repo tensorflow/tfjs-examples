@@ -117,6 +117,14 @@ export async function cacheDataset(indata) {
   return tf.data.array(numbersToCache);
 }
 
+export function flatOneHot(idx) {
+  // return tf.oneHot([idx], 3);
+  const ohT = tf.oneHot([idx], 3);
+  const ohArray = ohT.dataSync();
+  return ohArray;
+}
+
+
 /**
  * Obtains Iris data, split into training and test sets and with the label
  * converted into one-hot format.
@@ -124,51 +132,21 @@ export async function cacheDataset(indata) {
  * @param testSplit Fraction of the data at the end to split as test data: a
  *   number between 0 and 1.
  *
- * @param returns A list of two datasets, [trainingData, testingData].
+ * @param returns A list of four datasets, [trainX, trainY, testX, testY].
  *   The datasets represent a shuffled partition of the raw IRIS data.
- *   Elements of the yielded data will consist of [Features, Labels].
- *   - Features as a rank-1 `Tensor` of length-4 of numbers.
- *   - Labels as a rank-1 `Tensor` in one-hot format.
+ *   - X elements as arrays of four floats.
+ *   - Y elements as a rank-1 `Tensor` in one-hot format.
  */
 export async function getIrisData(testSplit, useCache) {
   const numTestExamples = Math.round(IRIS_RAW_DATA.length * testSplit);
   const numTrainExamples = IRIS_RAW_DATA.length - numTestExamples;
-  const rawDataset =
-      tf.data.array(IRIS_RAW_DATA).shuffle(150).map(toFeaturesAndLabels);
-  if (useCache) {
-    return [
-      await cacheDataset(rawDataset.take(numTrainExamples)),
-      await cacheDataset(rawDataset.skip(numTrainExamples))
-    ];
-  } else {
-    return [
-      rawDataset.take(numTrainExamples), rawDataset.skip(numTrainExamples)
-    ];
-  } /*
- const trainDatasetsByClass = [];
- const testDatasetsByClass = [];
- // Perform shuffling and selection individually for each class to get
- // a good balance between the classes.  If we were to randomly
- // subsample from the entire set at once we may end up with too few,
- // or possibly 0, testings examples for one class.  This wouldn't be
- // necessary if there were more examples, due to the law of large
- // numbers.  Note that many of the operations below are necessary due to the
- very small size of h for (let i = 0; i < IRIS_CLASSES.length; ++i) { const
- dsThisClass = rawDataset.filter(e => e[4] === i); const numThisClass =
- testDatasetsByClass.push(dsThisClass.take(numTestExamples));
- trainDatasetsByClass.push(dsThisClass.skip(numTestExamples));
- }
-
- const trainDataset = trainDatasetsByClass[0]
-                    .concatenate(trainDatasetsByClass[1])
-                    .concatenate(trainDatasetsByClass[2])
-                    .shuffle(100)
-                    .map(toFeaturesAndLabels);
-
- const testDataset = testDatasetsByClass[0]
-                   .concatenate(testDatasetsByClass[1])
-                   .concatenate(testDatasetsByClass[2])
-                   .shuffle(100)
-                   .map(toFeaturesAndLabels);
- return [trainDataset, testDataset];*/
+  const shuffled = IRIS_RAW_DATA.slice();
+  tf.util.shuffle(shuffled);
+  const train = shuffled.slice(0, numTrainExamples);
+  const test = shuffled.slice(numTrainExamples);
+  const dsTrainX = tf.data.array(train.map(r => r.slice(0, 4)));
+  const dsTestX = tf.data.array(test.map(r => r.slice(0, 4)));
+  const dsTrainY = tf.data.array(train.map(r => flatOneHot(r[4])));
+  const dsTestY = tf.data.array(test.map(r => flatOneHot(r[4])));
+  return [dsTrainX, dsTrainY, dsTestX, dsTestY];
 }

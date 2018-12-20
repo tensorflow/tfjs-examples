@@ -120,8 +120,9 @@ export async function cacheDataset(indata) {
 export function flatOneHot(idx) {
   // return tf.oneHot([idx], 3);
   const ohT = tf.oneHot([idx], 3);
-  const ohArray = ohT.dataSync();
-  return ohArray;
+  const ohArray1 = ohT.dataSync();
+  const ohArray2 = [ohArray1[0], ohArray1[1], ohArray1[2]];
+  return ohArray2;
 }
 
 

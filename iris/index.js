@@ -73,10 +73,10 @@ async function trainModel(trainDataset, validationDataset) {
         // longer a reference. (next version of tfjs-union 0.14.2).
         const newLogs = {};
         Object.assign(newLogs, logs);
-        const secPerTrainEpoch =
+        const secPerEpoch =
             (performance.now() - beginMs) / (1000 * (epoch + 1));
         ui.status(`Training model... Approximately ${
-            secPerTrainEpoch.toFixed(4)} seconds per epoch`)
+            secPerEpoch.toFixed(4)} seconds per epoch`)
         trainLogs.push(newLogs);
         tfvis.show.history(lossContainer, trainLogs, ['loss', 'val_loss'])
         tfvis.show.history(accContainer, trainLogs, ['acc', 'val_acc'])
@@ -86,10 +86,9 @@ async function trainModel(trainDataset, validationDataset) {
     }
   });
 
-  const secPerTrainEpoch =
-      (performance.now() - beginMs) / (1000 * params.epochs);
-  ui.status(`Model training complete:  ${
-      secPerTrainEpoch.toFixed(4)} seconds per epoch`);
+  const secPerEpoch = (performance.now() - beginMs) / (1000 * params.epochs);
+  ui.status(
+      `Model training complete:  ${secPerEpoch.toFixed(4)} seconds per epoch`);
   return model;
 }
 
@@ -177,11 +176,21 @@ function sleep(ms) {
  */
 async function iris() {
   const testFraction = 0.15;
-  let [trainDataset, testDataset] = await data.getIrisData(testFraction);
-  const BATCH_SIZE = data.IRIS_RAW_DATA.length -
-      Math.round(data.IRIS_RAW_DATA.length * testFraction);
-  trainDataset = trainDataset.batch(BATCH_SIZE);
-  testDataset = testDataset.batch(BATCH_SIZE);
+  const useCache = false;
+  let [trainDataset, testDataset] =
+      await data.getIrisData(testFraction, useCache);
+  const TEST_BATCH_SIZE = Math.round(data.IRIS_RAW_DATA.length * testFraction);
+  const TRAIN_BATCH_SIZE = data.IRIS_RAW_DATA.length - TEST_BATCH_SIZE;
+  Math.round(data.IRIS_RAW_DATA.length * testFraction);
+  console.log('all samples : ', data.IRIS_RAW_DATA.length);
+  console.log('train samples expected: ', TRAIN_BATCH_SIZE);
+  console.log('one train sample', await trainDataset.take(1).collectAll());
+  console.log('test samples expected: ', TEST_BATCH_SIZE);
+  console.log('trainDataset ', trainDataset);
+  console.log(
+      'test samples found: ', testDataset.collectAll().then(e => e.length));
+  trainDataset = trainDataset.batch(TRAIN_BATCH_SIZE);
+  testDataset = testDataset.batch(TEST_BATCH_SIZE);
 
 
   const localLoadButton = document.getElementById('load-local');
@@ -191,7 +200,7 @@ async function iris() {
 
   document.getElementById('train-from-scratch')
       .addEventListener('click', async () => {
-        model = await trainModel(trainDataset, testDataset, BATCH_SIZE);
+        model = await trainModel(trainDataset, testDataset);
         await evaluateModelOnTestData(model, testDataset);
         localSaveButton.disabled = false;
       });

@@ -95,6 +95,23 @@ function toFeaturesAndLabels(raw) {
 }
 
 /**
+ * Caches the provided dataset in memory, to prevent reconstruction /
+ * reshuffling.
+ *
+ * TODO(bileschi): Replace this with the tfjs-data native caching behavior once
+ * https://github.com/tensorflow/tfjs/issues/1025 is complete.
+ *
+ * Warning!  This will cache the ENTIRE dataset.  Only use this with tiny
+ * datasets.
+ *
+ * @param indata Dataset to be cached.
+ * @returns The same dataset, cached on disk.
+ */
+export async function cacheDataset(indata) {
+  return tf.data.array(await indata.collectAll());
+}
+
+/**
  * Obtains Iris data, split into training and test sets and with the label
  * converted into one-hot format.
  *
@@ -107,34 +124,45 @@ function toFeaturesAndLabels(raw) {
  *   - Features as a rank-1 `Tensor` of length-4 of numbers.
  *   - Labels as a rank-1 `Tensor` in one-hot format.
  */
-export async function getIrisData(testSplit) {
+export async function getIrisData(testSplit, useCache) {
   const numTestExamples = Math.round(IRIS_RAW_DATA.length * testSplit);
-  const rawDataset = tf.data.array(IRIS_RAW_DATA);
+  const numTrainExamples = IRIS_RAW_DATA.length - numTestExamples;
+  const rawDataset =
+      tf.data.array(IRIS_RAW_DATA).shuffle(150).map(toFeaturesAndLabels);
+  if (useCache) {
+    return [
+      await cacheDataset(rawDataset.take(numTrainExamples)),
+      await cacheDataset(rawDataset.skip(numTrainExamples))
+    ];
+  } else {
+    return [
+      rawDataset.take(numTrainExamples), rawDataset.skip(numTrainExamples)
+    ];
+  } /*
+ const trainDatasetsByClass = [];
+ const testDatasetsByClass = [];
+ // Perform shuffling and selection individually for each class to get
+ // a good balance between the classes.  If we were to randomly
+ // subsample from the entire set at once we may end up with too few,
+ // or possibly 0, testings examples for one class.  This wouldn't be
+ // necessary if there were more examples, due to the law of large
+ // numbers.  Note that many of the operations below are necessary due to the
+ very small size of h for (let i = 0; i < IRIS_CLASSES.length; ++i) { const
+ dsThisClass = rawDataset.filter(e => e[4] === i); const numThisClass =
+ testDatasetsByClass.push(dsThisClass.take(numTestExamples));
+ trainDatasetsByClass.push(dsThisClass.skip(numTestExamples));
+ }
 
-  const trainDatasetsByClass = [];
-  const testDatasetsByClass = [];
-  // Perform shuffling and selection individually for each class to get
-  // a good balance between the classes.  If we were to randomly
-  // subsample from the entire set at once we may end up with too few,
-  // or possibly 0, testings examples for one class.  This wouldn't be
-  // necessary if there were more examples, due to the law of large
-  // numbers.
-  for (let i = 0; i < IRIS_CLASSES.length; ++i) {
-    const dsThisClass = rawDataset.filter(e => e[4] === i).shuffle(100);
-    testDatasetsByClass.push(dsThisClass.take(numTestExamples));
-    trainDatasetsByClass.push(dsThisClass.skip(numTestExamples));
-  }
+ const trainDataset = trainDatasetsByClass[0]
+                    .concatenate(trainDatasetsByClass[1])
+                    .concatenate(trainDatasetsByClass[2])
+                    .shuffle(100)
+                    .map(toFeaturesAndLabels);
 
-  const trainDataset = trainDatasetsByClass[0]
-                           .concatenate(trainDatasetsByClass[1])
-                           .concatenate(trainDatasetsByClass[2])
-                           .shuffle(100)
-                           .map(toFeaturesAndLabels);
-
-  const testDataset = testDatasetsByClass[0]
-                          .concatenate(testDatasetsByClass[1])
-                          .concatenate(testDatasetsByClass[2])
-                          .shuffle(100)
-                          .map(toFeaturesAndLabels);
-  return [trainDataset, testDataset];
+ const testDataset = testDatasetsByClass[0]
+                   .concatenate(testDatasetsByClass[1])
+                   .concatenate(testDatasetsByClass[2])
+                   .shuffle(100)
+                   .map(toFeaturesAndLabels);
+ return [trainDataset, testDataset];*/
 }

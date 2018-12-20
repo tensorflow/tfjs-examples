@@ -18,42 +18,50 @@ limitations under the License.
 <html>
 
 <head>
-  <link rel="stylesheet" href="https://code.getmdl.io/1.3.0/material.cyan-teal.min.css" />
-  <style>
-    textarea {
-      border: none;
-      resize: none;
-      font-size: 20px;
-      text-align: center;
-    }
-    .container {
-      width: 80%;
-      margin-left: auto;
-      margin-right: auto;
-      text-align: center;
-    }
-    #plotLoss, #plotAccuracy {
-      width: auto;
-      height: auto;
-      display: inline-block;
-    }
-  </style>
+  <title>TensorFlow.js: Classify Website URLs as Phishy or Normal</title>
+
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="../shared/tfjs-examples.css" />
 </head>
 
 <body>
-  <div class="container">
-    <h3>TensorFlow.js: Classify Website URLs as Phishy or Normal</h3>
+  <div class="tfjs-example-container centered-container">
+    <section class='title-area'>
+      <h1>TensorFlow.js: Classify Website URLs as Phishy or Normal</h1>
+    </section>
 
-    <div>
-      <div id="plotLoss"></div>
-      <div id="plotAccuracy"></div>
-    </div>
-    <textarea rows="7" cols="90" readonly="true" id="status">Loading data...</textarea>
+    <section>
+      <p class='section-head'>Description</p>
 
-    <div>
-      <div>ROC Curves</div>
-      <div id="rocCurve"></div>
-    </div>
+      <p>
+        This example shows you how to classify URLs as <a href="https://en.wikipedia.org/wiki/Phishing">phishy</a> or
+        normal using <a href="http://eprints.hud.ac.uk/id/eprint/24330/6/MohammadPhishing14July2015.pdf">Phishing
+          Website Dataset</a>. Since we are classifying the elements of a given set into two groups ie. phishy or
+        normal, this is a binary classification problem.
+      </p>
+      <p><a href="https://github.com/tensorflow/tfjs-examples/tree/master/website-phishing">30 different features</a>
+        are available for each site.</p>
+    </section>
+
+    <section>
+      <p class='section-head'>Status</p>
+      <p id="status">Loading data...</p>
+    </section>
+
+    <section>
+      <p class='section-head'>Training progress</p>
+
+      <div class="with-cols">
+        <div id="plotLoss"></div>
+        <div id="plotAccuracy"></div>
+      </div>
+
+      <div>
+        <div>ROC Curves</div>
+        <div id="rocCurve"></div>
+      </div>
+    </section>
   </div>
 
   <script src="index.js"></script>

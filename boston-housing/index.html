@@ -18,56 +18,95 @@ limitations under the License.
 <html>
 
 <head>
-  <link rel="stylesheet" href="https://code.getmdl.io/1.3.0/material.cyan-teal.min.css" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="../shared/tfjs-examples.css" />
+
   <style>
-    textarea {
-      border: none;
-      resize: none;
-      font-size: 20px;
-      text-align: center;
-    }
-
-    .container {
-      width: 80%;
-      margin-left: auto;
-      margin-right: auto;
-      text-align: center;
-    }
-
     .negativeWeight {
       color: #cc0000;
     }
+
     .positiveWeight {
       color: #00aa00;
     }
 
-    #plot {
-      width: auto;
-      height: auto;
+    #buttons {
+      margin-top: 20px;
+      padding: 5px;
     }
 
-    #modelInspectionOutput {
-      text-align: left;
+    #oneHidden {
+      border-left: 1px solid #ededed;
+      border-right: 1px solid #ededed;
+    }
+
+    #linear,
+    #oneHidden,
+    #twoHidden {
+      padding: 5px;
     }
   </style>
 </head>
 
 <body>
-  <div class="container">
-    <h3>Multivariate Regression</h3>
-    <div id="plot"></div>
-    <textarea rows="3" cols="60" readonly="true" id="status">Loading data...</textarea>
-    <textarea rows="3" cols="60" readonly="true" id="baselineStatus">Baseline not computed...</textarea>
-    <div id="buttons">
-      <button id="simple-mlr">Train Linear Regressor</button>
-      <button id="nn-mlr-1hidden">Train Neural Network Regressor (1 hidden layer)</button>
-      <button id="nn-mlr-2hidden">Train Neural Network Regressor (2 hidden layers)</button>
-    </div>
-    <p></p>
-    <div id="modelInspectionOutput">
-      <textarea rows="1" cols="60" readonly="true" id="inspectionHeadline"></textarea>
-      <table id="myTable"></table>
-    </div>
+  <div class='tfjs-example-container centered-container'>
+    <section class='title-area'>
+      <h1>Multivariate Regression</h1>
+      <p class='subtitle'>Compare different models for housing price prediction.</p>
+    </section>
+
+    <section>
+      <p class='section-head'>Description</p>
+      <p>
+        This example shows you how to perform regression with more than one input feature using the
+        <a href="https://www.cs.toronto.edu/~delve/data/boston/bostonDetail.html">Boston Housing Dataset</a>,
+        which is a famous dataset derived from information collected by the U.S. Census Service concerning housing
+        in the area of Boston Massachusetts.
+      </p>
+      <p>
+        It allows you to compare the perfomance of 3 different models for predicting the house prices. When training
+        the linear model, it will also display the largest 5 weights (by absolute value) of the model and
+        the feature associated with each of those weights.
+      </p>
+    </section>
+
+    <section>
+      <p class='section-head'>Status</p>
+      <p id="status">Loading data...</p>
+      <p id="baselineStatus">Baseline not computed...</p>
+    </section>
+
+    <section>
+      <p class='section-head'>Training Progress</p>
+      <div class="with-cols">
+        <div id="linear">
+          <div class="chart"></div>
+          <div class="status"></div>
+          <div id="modelInspectionOutput">
+            <p id="inspectionHeadline"></p>
+            <table id="myTable"></table>
+          </div>
+        </div>
+        <div id="oneHidden">
+          <div class="chart"></div>
+          <div class="status"></div>
+        </div>
+        <div id="twoHidden">
+          <div class="chart"></div>
+          <div class="status"></div>
+        </div>
+      </div>
+
+      <div id="buttons">
+        <div class="with-cols">
+          <button id="simple-mlr">Train Linear Regressor</button>
+          <button id="nn-mlr-1hidden">Train Neural Network Regressor (1 hidden layer)</button>
+          <button id="nn-mlr-2hidden">Train Neural Network Regressor (2 hidden layers)</button>
+        </div>
+      </div>
+
+    </section>
   </div>
   <script src="index.js"></script>
 </body>

@@ -175,10 +175,8 @@ class Translator {
 
   /** Translate the given English sentence into French. */
   translate(inputSentence) {
-    ui.status('Translating...');
     const inputSeq = this.encodeString(inputSentence);
     const decodedSentence = this.decodeSequence(inputSeq);
-    ui.status('');
     return decodedSentence;
   }
 }

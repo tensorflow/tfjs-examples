@@ -31,7 +31,7 @@ function parseDateTime(str) {
   const dateStr = items[0];
   const dateStrItems = dateStr.split('.');
   const day = +dateStrItems[0];
-  const month = +dateStrItems[1];
+  const month = +dateStrItems[1] - 1;  // month is 0-based in JS `Date` class.
   const year = +dateStrItems[2];
 
   const timeStrItems = items[1].split(':');
@@ -39,7 +39,7 @@ function parseDateTime(str) {
   const minutes = +timeStrItems[1];
   const seconds = +timeStrItems[2];
 
-  return new Date(year, month, day, hours, minutes, seconds);
+  return new Date(Date.UTC(year, month, day, hours, minutes, seconds));
 }
 
 /**
@@ -80,11 +80,23 @@ export class JenaWeatherData {
         continue;
       }
       const items = line.split(',');
-      this.dateTime.push(parseDateTime(items[0]));
+      const newDateTime = parseDateTime(items[0]);
+      if (newDateTime == null) {
+        console.log('Failed to parse date time:', items[0]);  // DEBUG
+      }
+      if (this.dateTime.length > 0 &&
+          newDateTime.getTime() <=
+              this.dateTime[this.dateTime.length - 1].getTime()) {
+        console.warn(
+            newDateTime, '<=', this.dateTime[this.dateTime.length - 1],
+            items[0]);  // DEBUG
+      }
+
+      this.dateTime.push(newDateTime);
       this.data.push(items.slice(1).map(x => +x));
     }
     this.numRows = this.data.length;
-    console.log(`numRows: ${this.numRows}`);
+    this.numColumns = this.data[0].length - 1;
 
     // TODO(cais): Normalization.
     await this.calculateMeansAndStddevs_();
@@ -150,5 +162,68 @@ export class JenaWeatherData {
       out.push(value);
     }
     return out;
+  }
+
+  getIteratorFn(
+      lookBack, delay, batchSize, step, minIndex, maxIndex, normalize) {
+    // TODO(cais): Make this return a function instead.
+    // TODO(cais): Add shuffle.
+    // TODO(cais): Use tf.data.datasetFromIteratorFn();
+
+    let i = minIndex + lookBack;
+    // if (i + batchSize >= maxIndex) {  // TODO(cais): Check this.
+    //   i = minIndex + lookBack;
+    // }
+    const lookBackSlices = Math.floor(lookBack / step);
+    console.log(`lookBackSlices = ${lookBackSlices}`);  // DEBUG
+    console.log(`this.tempCol = ${this.tempCol}`);      // DEBUG
+
+    function iteratorFn() {
+      const rows = [];
+      for (let r = i; r < i + batchSize && r < maxIndex; ++r) {
+        rows.push(r);
+      }
+      const numExamples = rows.length;
+      i += numExamples;
+
+      const samples = tf.buffer([numExamples, lookBackSlices, this.numColumns]);
+      const targets = tf.buffer([numExamples, 1]);
+      for (let j = 0; j < numExamples; ++j) {
+        const row = rows[j];
+        let exampleRow = 0; 
+        for (let r = row - lookBack; r < row; r += step) {
+          let exampleCol = 0;
+          for (let n = 0; n < this.numColumns; ++n) {
+            const columnIndex = n < this.tempCol - 1 ? n : n + 1;
+            let value = this.data[r][columnIndex];
+            if (normalize) {
+              value =
+                  (value - this.means[columnIndex]) / this.stddevs[columnIndex];
+            }
+            // DEBUG
+            // console.log(
+            //     `columnIndex=${columnIndex}, j=${j}, r=${exampleRow}, c=${exampleCol}: value=${value}`);
+            samples.set(value, j, exampleRow, exampleCol++);
+          }
+
+          // TODO(cais): Remove the confusing this.tempCol - 1 thing.
+          let value = this.data[r + delay][this.tempCol - 1];
+          if (normalize) {
+            value =
+                (value - this.means[this.tempCol - 1]) / this.stddevs[this.tempCol - 1];
+          }
+          targets.set(value, j, 0);
+          // TODO(cais): Make sure this doesn't go out of bound.
+          exampleRow++;
+        } 
+      }
+      // TODO(cais): Memory management of samples and targets.
+      return {
+        value: [samples.toTensor(), targets.toTensor()],
+        done: false
+      };  // TODO(cais): Return done = true when done.
+    }
+
+    return iteratorFn.bind(this);
   }
 }

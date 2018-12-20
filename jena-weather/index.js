@@ -16,10 +16,7 @@
  */
 
 /**
- * Addition RNN example.
- *
- * Based on Python Keras example:
- *   https://github.com/keras-team/keras/blob/master/examples/addition_rnn.py
+ * Weather Prediction Example
  */
 
 import * as tf from '@tensorflow/tfjs';
@@ -41,7 +38,10 @@ const dataPrevButton = document.getElementById('data-prev');
 const dataNextButton = document.getElementById('data-next');
 const dateTimeRangeSpan = document.getElementById('date-time-range');
 
+const trainModelButton = document.getElementById('train-model');
+
 const TIME_SPAN_RANGE_MAP = {
+  hour: 6,
   day: 6 * 24,
   week: 6 * 24 * 7,
   month: 6 * 24 * 30,
@@ -144,7 +144,6 @@ function updateScatterCheckbox() {
 }
 
 timeSpanSelect.addEventListener('change', () => {
-  currBeginIndex = 0;
   plotData();
 });
 selectSeries1.addEventListener('change', plotData);
@@ -168,6 +167,55 @@ dataNextButton.addEventListener('click', () => {
   plotData();
 });
 
+trainModelButton.addEventListener('click', async () => {
+  
+
+  // Test iteratorFn.
+  const lookBack = 10 * 24 * 6;  // Look back 10 days.
+  const step = 6;  // 1-hour steps.
+  const delay = 24 * 6;  // Predict the weather 1 day later.
+  const batchSize = 128;
+  const minIndex = 0;
+  const maxIndex = 200000;
+  const normalize = true;  // TODO(cais): Set to true.
+
+  // Construct model.
+  const numFeatures = 13;  // TODO(cais): Do not hardcode.
+  const model = tf.sequential();
+  model.add(tf.layers.flatten({inputShape: [Math.floor(lookBack / step), numFeatures]}));
+  model.add(tf.layers.dense({units: 32, activation: 'relu'}));
+  model.add(tf.layers.dense({units: 1}));
+  model.compile({loss: 'meanAbsoluteError', optimizer: 'rmsprop'});
+  model.summary();
+
+  // const lookBack = 24 * 6;  // Look back 1 days.
+  // const step = 6;  // 1-hour steps.
+  // const delay = 24 * 6;  // Predict the weather 1 day later.
+  // const batchSize = 1;
+  // const minIndex = 0;
+  // const maxIndex = 200000;
+  // const normalize = false;
+
+  const iteratorFn = jenaWeatherData.getIteratorFn(
+      lookBack, delay, batchSize, step, minIndex, maxIndex, normalize);
+  // TODO(cais): Use the following when the API is available.
+  // const dataset = tf.data.generator(iteratorFn);
+  // // let out = await dataset.iterator();
+  // // console.log(out.value[0].shape, out.value[1].shape);
+  // out.value[1].print();
+  // // out = await dataset.iterator();
+  // out.value[1].print();
+
+  const batchesPerEpoch = 500;  // TODO(cais): 500.
+  for (let i = 0; i < batchesPerEpoch; ++i) {
+    const item = iteratorFn();
+    // console.log(item.value[0].shape);  // DEBUG
+    const loss = await model.trainOnBatch(item.value[0], item.value[1]);
+    console.log(loss);  // DEBUG
+    tf.dispose(item.value);
+  }
+});
+
 async function run() {
   logStatus('Loading Jena weather data...');
   jenaWeatherData = new JenaWeatherData();
@@ -176,8 +224,6 @@ async function run() {
 
   populateSelects(jenaWeatherData);
   plotData();
-
-  // const dataColumnName = 'Tdew (degC)';
 }
 
 run();

@@ -23,7 +23,6 @@ import * as loader from './loader';
 import * as ui from './ui';
 
 let model;
-const BATCH_SIZE = 300;
 
 /**
  * Train a `tf.Model` to recognize Iris flower type.
@@ -69,9 +68,6 @@ async function trainModel(trainDataset, validationDataset) {
     validationData: validationDataset,
     callbacks: {
       onEpochEnd: async (epoch, logs) => {
-        console.log('epoch end' + epoch);
-        // console.log('logs -> ' + JSON.stringify(logs));
-        console.log('logs.loss -> ' + logs.loss);
         // Plot the loss and accuracy values at the end of every training epoch.
         // TODO(bileschi): Get rid of the explicit clone-assign when logs is no
         // longer a reference. (next version of tfjs-union 0.14.2).
@@ -84,7 +80,8 @@ async function trainModel(trainDataset, validationDataset) {
         trainLogs.push(newLogs);
         tfvis.show.history(lossContainer, trainLogs, ['loss', 'val_loss'])
         tfvis.show.history(accContainer, trainLogs, ['acc', 'val_acc'])
-        // calculateAndDrawConfusionMatrix(model, xTest, yTest);
+        const [[xTest, yTest]] = await validationDataset.collectAll();
+        calculateAndDrawConfusionMatrix(model, xTest, yTest);
       },
     }
   });
@@ -158,19 +155,13 @@ async function calculateAndDrawConfusionMatrix(model, xTest, yTest) {
  */
 async function evaluateModelOnTestData(model, testDataset) {
   ui.clearEvaluateTable();
-
-  // TODO(bileschi): Convert testDataset into xTest yTest here.
-
-  tf.tidy(() => {
-    const xData = xTest.dataSync();
-    const yTrue = yTest.argMax(-1).dataSync();
-    const predictOut = model.predict(xTest);
-    const yPred = predictOut.argMax(-1);
-    ui.renderEvaluateTable(
-        xData, yTrue, yPred.dataSync(), predictOut.dataSync());
-    calculateAndDrawConfusionMatrix(model, xTest, yTest);
-  });
-
+  const [[xTest, yTest]] = await testDataset.collectAll();
+  const xData = xTest.dataSync();
+  const yTrue = yTest.argMax(-1).dataSync();
+  const predictOut = model.predict(xTest);
+  const yPred = predictOut.argMax(-1);
+  ui.renderEvaluateTable(xData, yTrue, yPred.dataSync(), predictOut.dataSync());
+  calculateAndDrawConfusionMatrix(model, xTest, yTest);
   predictOnManualInput(model);
 }
 
@@ -185,12 +176,13 @@ function sleep(ms) {
  * The main function of the Iris demo.
  */
 async function iris() {
-  console.log('I live');
-  let [trainDataset, testDataset] = await data.getIrisData(0.15);
+  const testFraction = 0.15;
+  let [trainDataset, testDataset] = await data.getIrisData(testFraction);
+  const BATCH_SIZE = data.IRIS_RAW_DATA.length -
+      Math.round(data.IRIS_RAW_DATA.length * testFraction);
   trainDataset = trainDataset.batch(BATCH_SIZE);
   testDataset = testDataset.batch(BATCH_SIZE);
 
-  trainDataset.take(1).forEach(e => console.log(e));
 
   const localLoadButton = document.getElementById('load-local');
   const localSaveButton = document.getElementById('save-local');
@@ -199,42 +191,41 @@ async function iris() {
 
   document.getElementById('train-from-scratch')
       .addEventListener('click', async () => {
-        model = await trainModel(trainDataset, testDataset);
-        // await evaluateModelOnTestData(model, testDataset);
+        model = await trainModel(trainDataset, testDataset, BATCH_SIZE);
+        await evaluateModelOnTestData(model, testDataset);
         localSaveButton.disabled = false;
       });
 
-  /*  if (await loader.urlExists(HOSTED_MODEL_JSON_URL)) {
-      ui.status('Model available: ' + HOSTED_MODEL_JSON_URL);
-      const button = document.getElementById('load-pretrained-remote');
-      button.addEventListener('click', async () => {
-        ui.clearEvaluateTable();
-        model = await loader.loadHostedPretrainedModel(HOSTED_MODEL_JSON_URL);
-        await predictOnManualInput(model);
-        localSaveButton.disabled = false;
-      });
-    }
-
-    localLoadButton.addEventListener('click', async () => {
-      model = await loader.loadModelLocally();
+  if (await loader.urlExists(HOSTED_MODEL_JSON_URL)) {
+    ui.status('Model available: ' + HOSTED_MODEL_JSON_URL);
+    const button = document.getElementById('load-pretrained-remote');
+    button.addEventListener('click', async () => {
+      ui.clearEvaluateTable();
+      model = await loader.loadHostedPretrainedModel(HOSTED_MODEL_JSON_URL);
       await predictOnManualInput(model);
+      localSaveButton.disabled = false;
     });
+  }
 
-    localSaveButton.addEventListener('click', async () => {
-      await loader.saveModelLocally(model);
-      await loader.updateLocalModelStatus();
-    });
+  localLoadButton.addEventListener('click', async () => {
+    model = await loader.loadModelLocally();
+    await predictOnManualInput(model);
+  });
 
-    localRemoveButton.addEventListener('click', async () => {
-      await loader.removeModelLocally();
-      await loader.updateLocalModelStatus();
-    });
-
+  localSaveButton.addEventListener('click', async () => {
+    await loader.saveModelLocally(model);
     await loader.updateLocalModelStatus();
+  });
 
-    ui.status('Standing by.');
-    ui.wireUpEvaluateTableCallbacks(() => predictOnManualInput(model));
-    */
+  localRemoveButton.addEventListener('click', async () => {
+    await loader.removeModelLocally();
+    await loader.updateLocalModelStatus();
+  });
+
+  await loader.updateLocalModelStatus();
+
+  ui.status('Standing by.');
+  ui.wireUpEvaluateTableCallbacks(() => predictOnManualInput(model));
 }
 
 iris();

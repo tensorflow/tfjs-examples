@@ -23,6 +23,7 @@ import * as loader from './loader';
 import * as ui from './ui';
 
 let model;
+const BATCH_SIZE = 32;
 
 /**
  * Train a `tf.Model` to recognize Iris flower type.
@@ -173,11 +174,9 @@ const HOSTED_MODEL_JSON_URL =
 async function iris() {
   const testFraction = 0.15;
   let [trainDataset, testDataset] = await data.getIrisData(testFraction);
-  const TEST_BATCH_SIZE = Math.round(data.IRIS_RAW_DATA.length * testFraction);
-  const TRAIN_BATCH_SIZE = data.IRIS_RAW_DATA.length - TEST_BATCH_SIZE;
   // Batch datasets.
-  trainDataset = trainDataset.batch(TRAIN_BATCH_SIZE);
-  testDataset = testDataset.batch(TEST_BATCH_SIZE);
+  trainDataset = trainDataset.batch(BATCH_SIZE);
+  testDataset = testDataset.batch(BATCH_SIZE);
 
   const localLoadButton = document.getElementById('load-local');
   const localSaveButton = document.getElementById('save-local');

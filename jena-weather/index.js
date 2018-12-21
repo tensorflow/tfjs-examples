@@ -39,6 +39,7 @@ const dataNextButton = document.getElementById('data-next');
 const dateTimeRangeSpan = document.getElementById('date-time-range');
 
 const trainModelButton = document.getElementById('train-model');
+const modelTypeSelect = document.getElementById('model-type');
 
 const TIME_SPAN_RANGE_MAP = {
   hour: 6,
@@ -167,17 +168,31 @@ dataNextButton.addEventListener('click', () => {
   plotData();
 });
 
-function buildMLPModel(inputShape) {
+function buildMLPModel(inputShape, kernelRegularizer) {
   const model = tf.sequential();
   model.add(tf.layers.flatten({inputShape}));
-  model.add(tf.layers.dense({units: 32, activation: 'relu'}));
-  model.add(tf.layers.dense({units: 1}));
+  model.add(
+      tf.layers.dense({units: 32, activation: 'relu', kernelRegularizer}));
+  model.add(tf.layers.dense({units: 1, kernelRegularizer}));
   model.compile({loss: 'meanAbsoluteError', optimizer: 'rmsprop'});
   model.summary();
   return model;
 }
 
+function buildModel(inputShape) {
+  const modelType = modelTypeSelect.value;
+  console.log(`modelType = ${modelType}`);  // DEBUG
+  if (modelType === 'mlp') {
+    return buildMLPModel(inputShape);
+  } else if (modelType === 'mlp-l2') {
+    return buildMLPModel(inputShape, tf.regularizers.l2());
+  } else {
+    throw new Error(`Unsupported model type: ${modelType}`);
+  }
+}
+
 trainModelButton.addEventListener('click', async () => {
+  logStatus('Training model...');
   trainModelButton.disabled = true;
   // Test iteratorFn.
   const shuffle = true;
@@ -191,7 +206,7 @@ trainModelButton.addEventListener('click', async () => {
 
   // Construct model.
   const numFeatures = 13;  // TODO(cais): Do not hardcode.
-  const model = buildMLPModel([Math.floor(lookBack / step), numFeatures]);
+  const model = buildModel([Math.floor(lookBack / step), numFeatures]);
 
   const trainIteratorFn = jenaWeatherData.getIteratorFn(
       shuffle, lookBack, delay, batchSize, step, minIndex, maxIndex, normalize);
@@ -199,6 +214,7 @@ trainModelButton.addEventListener('click', async () => {
   // const dataset = tf.data.generator(iteratorFn);
   const epochs = 20;
   const batchesPerEpoch = 500;
+  const displayEvery = 100;
   for (let i = 0; i < epochs; ++i) {
     const t0 = tf.util.now();
     let totalTrainLoss = 0;
@@ -208,7 +224,7 @@ trainModelButton.addEventListener('click', async () => {
       const trainLoss = await model.trainOnBatch(item.value[0], item.value[1]);
       numSeen += item.value[0].shape[0];
       totalTrainLoss += item.value[0].shape[0] * trainLoss;
-      if ((j + 1) % 50 === 0) {
+      if ((j + 1) % displayEvery === 0) {
         console.log(
             `epoch ${i + 1}/${epochs} batch ${j + 1}/${batchesPerEpoch}: ` +
             `trainLoss=${trainLoss.toFixed(6)}`);
@@ -218,7 +234,7 @@ trainModelButton.addEventListener('click', async () => {
     const t1 = tf.util.now();
     const epochTrainLoss = totalTrainLoss / numSeen;
     console.log(
-        `epoch ${i + 1}/${epochs}: trainLoss=${epochTrainLoss} ` +
+        `epoch ${i + 1}/${epochs}: trainLoss=${epochTrainLoss.toFixed(6)} ` +
         `(${((t1 - t0) / batchesPerEpoch).toFixed(1)} ms/batch)\n`);
 
     // Perform validation.
@@ -227,12 +243,12 @@ trainModelButton.addEventListener('click', async () => {
     const valT0 = tf.util.now();
     const valSteps = Math.floor((300000 - 200001 - lookBack) / batchSize);
     tf.tidy(() => {
-      console.log(`Running validation: valSteps = ${valSteps}`);  // DEBUG
+      console.log(`Running validation: valSteps=${valSteps}`);
       let totalValLoss = tf.scalar(0);
       numSeen = 0;
       for (let j = 0; j < valSteps; ++j) {
-        if (j % 100 === 0) {
-          console.log(`evaluate: j = ${j}`);  //  DEBUG
+        if (j % displayEvery === 0) {
+          console.log(`  Validation: step ${j}/${valSteps}`);
         }
         const item = valIterationFn();
         const evalOut =
@@ -244,8 +260,8 @@ trainModelButton.addEventListener('click', async () => {
         tf.dispose([item.value, evalOut]);
       }
       const valLoss = totalValLoss.divStrict(tf.scalar(numSeen));
-      console.log('valLoss:');
-      valLoss.print();
+      console.log(`valLoss=${valLoss.dataSync()[0].toFixed(6)}`);
+      tf.dispose(valLoss);
     });
     const valT1 = tf.util.now();
     const valMsPerBatch = (valT1 - valT0) / valSteps;
@@ -254,6 +270,7 @@ trainModelButton.addEventListener('click', async () => {
         `(${valMsPerBatch} ms/batch)`);
   }
   trainModelButton.disabled = false;
+  logStatus('Model training complete...');
 });
 
 async function run() {

@@ -120,6 +120,14 @@ limitations under the License.
         </div>
 
         <div>
+          <span>Model Type:</span>
+          <select id="model-type">
+            <option id="mlp">MLP</option>
+            <option id="mlp-l2">MLP with L2 regularization</option>
+            <option id="mlp-dropout">MLP with dropout</option>
+            <option id="gru">GRU</option>
+            <option id="gru-recurent-drop">GRU with recurrent dropout</option>
+          </select>
           <button id="train-model">Train model</button>
         </div>
       </section>

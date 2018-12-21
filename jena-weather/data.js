@@ -23,8 +23,7 @@
 
 import * as tf from '@tensorflow/tfjs';
 
-const FAST_JENA_WEATHER_CSV_PATH =
-    './jena_climate_2009_2016.csv';
+const FAST_JENA_WEATHER_CSV_PATH = './jena_climate_2009_2016.csv';
 const JENA_WEATHER_CSV_PATH =
     'https://storage.googleapis.com/learnjs-data/jena_climate/jena_climate_2009_2016.csv';
 
@@ -145,15 +144,6 @@ export class JenaWeatherData {
       }
       this.normalizedData.push(row);
     }
-
-    // Try caching all the values in a big tensor to slice from later.
-    // console.log('Creating cache tensor');  // DEBUG
-    // const cacheTensor = tf.tensor2d(this.normalizedData.slice(0, 200000));
-    // console.log(`cache tensor shape: ${cacheTensor.shape}`);  // DEBUG
-
-    // const slice = cacheTensor.slice([0, 0], [100, cacheTensor.shape[1]]);
-    // console.log('slice:');  // DEBUG
-    // slice.print();  // DEBUG
   }
 
   getDataColumnNames() {
@@ -207,9 +197,6 @@ export class JenaWeatherData {
       shuffle, lookBack, delay, batchSize, step, minIndex, maxIndex,
       normalize) {
     let i = minIndex + lookBack;
-    // if (i + batchSize >= maxIndex) {  // TODO(cais): Check this.
-    //   i = minIndex + lookBack;
-    // }
     const lookBackSlices = Math.floor(lookBack / step);
 
     function iteratorFn() {

@@ -236,18 +236,11 @@ export class JenaWeatherData {
           const value = normalize ?
               this.normalizedData[r + delay][this.tempCol] :
               this.data[r + delay][this.tempCol];
-          // let value = this.data[r + delay][this.tempCol];
-          // if (normalize) {
-          //   value =
-          //       (value - this.means[this.tempCol]) /
-          //       this.stddevs[this.tempCol];
-          // }
           targets.set(value, j, 0);
           // TODO(cais): Make sure this doesn't go out of bound.
           exampleRow++;
         }
       }
-      // TODO(cais): Memory management of samples and targets.
       return {
         value: [samples.toTensor(), targets.toTensor()],
         done: false

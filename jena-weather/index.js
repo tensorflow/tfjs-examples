@@ -180,31 +180,31 @@ function buildMLPModel(inputShape) {
 trainModelButton.addEventListener('click', async () => {
   trainModelButton.disabled = true;
   // Test iteratorFn.
-  const shuffle = true;          // TODO(cais): Change to true.
+  const shuffle = true;
   const lookBack = 10 * 24 * 6;  // Look back 10 days.
   const step = 6;                // 1-hour steps.
   const delay = 24 * 6;          // Predict the weather 1 day later.
   const batchSize = 128;
   const minIndex = 0;
   const maxIndex = 200000;
-  const normalize = true;  // TODO(cais): Change to true.
+  const normalize = true;
 
   // Construct model.
   const numFeatures = 13;  // TODO(cais): Do not hardcode.
   const model = buildMLPModel([Math.floor(lookBack / step), numFeatures]);
 
-  const iteratorFn = jenaWeatherData.getIteratorFn(
+  const trainIteratorFn = jenaWeatherData.getIteratorFn(
       shuffle, lookBack, delay, batchSize, step, minIndex, maxIndex, normalize);
   // TODO(cais): Use the following when the API is available.
   // const dataset = tf.data.generator(iteratorFn);
   const epochs = 20;
-  const batchesPerEpoch = 500;  // TODO(cais): 500.
+  const batchesPerEpoch = 500;
   for (let i = 0; i < epochs; ++i) {
     const t0 = tf.util.now();
     let totalTrainLoss = 0;
     let numSeen = 0;
     for (let j = 0; j < batchesPerEpoch; ++j) {
-      const item = iteratorFn();
+      const item = trainIteratorFn();
       const trainLoss = await model.trainOnBatch(item.value[0], item.value[1]);
       numSeen += item.value[0].shape[0];
       totalTrainLoss += item.value[0].shape[0] * trainLoss;
@@ -220,6 +220,37 @@ trainModelButton.addEventListener('click', async () => {
     console.log(
         `epoch ${i + 1}/${epochs}: trainLoss=${epochTrainLoss} ` +
         `(${((t1 - t0) / batchesPerEpoch).toFixed(1)} ms/batch)\n`);
+
+    // Perform validation.
+    const valIterationFn = jenaWeatherData.getIteratorFn(
+        false, lookBack, delay, batchSize, step, 200001, 300000, normalize);
+    const valT0 = tf.util.now();
+    const valSteps = Math.floor((300000 - 200001 - lookBack) / batchSize);
+    tf.tidy(() => {
+      console.log(`Running validation: valSteps = ${valSteps}`);  // DEBUG
+      let totalValLoss = tf.scalar(0);
+      numSeen = 0;
+      for (let j = 0; j < valSteps; ++j) {
+        if (j % 100 === 0) {
+          console.log(`evaluate: j = ${j}`);  //  DEBUG
+        }
+        const item = valIterationFn();
+        const evalOut =
+            model.evaluate(item.value[0], item.value[1], {batchSize});
+        const numExamples = item.value[0].shape[0];
+        totalValLoss = tf.tidy(
+            () => totalValLoss.add(evalOut.mulStrict(tf.scalar(numExamples))));
+        numSeen += numExamples;
+        tf.dispose([item.value, evalOut]);
+      }
+      const valLoss = totalValLoss.divStrict(tf.scalar(numSeen));
+      console.log('valLoss:');
+      valLoss.print();
+    });
+    const valT1 = tf.util.now();
+    const valMsPerBatch = (valT1 - valT0) / valSteps;
+    console.log(`Validation took ${(valT1 - valT0).toFixed(1)} ms` +
+        `(${valMsPerBatch} ms/batch)`);
   }
   trainModelButton.disabled = false;
 });

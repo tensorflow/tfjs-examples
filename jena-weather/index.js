@@ -249,7 +249,8 @@ trainModelButton.addEventListener('click', async () => {
     });
     const valT1 = tf.util.now();
     const valMsPerBatch = (valT1 - valT0) / valSteps;
-    console.log(`Validation took ${(valT1 - valT0).toFixed(1)} ms` +
+    console.log(
+        `Validation took ${(valT1 - valT0).toFixed(1)} ms ` +
         `(${valMsPerBatch} ms/batch)`);
   }
   trainModelButton.disabled = false;

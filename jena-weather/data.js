@@ -27,6 +27,13 @@ const FAST_JENA_WEATHER_CSV_PATH = './jena_climate_2009_2016.csv';
 const JENA_WEATHER_CSV_PATH =
     'https://storage.googleapis.com/learnjs-data/jena_climate/jena_climate_2009_2016.csv';
 
+/**
+ * TODO(cais): Doc string.
+ * @param {*} str
+ * @returns date:
+ *          normalizedDayOfYear:
+ *          normalizedTimeOfDay:
+ */
 function parseDateTime(str) {
   const items = str.split(' ');
   const dateStr = items[0];
@@ -40,7 +47,12 @@ function parseDateTime(str) {
   const minutes = +timeStrItems[1];
   const seconds = +timeStrItems[2];
 
-  return new Date(Date.UTC(year, month, day, hours, minutes, seconds));
+  const date = new Date(Date.UTC(year, month, day, hours, minutes, seconds));
+  const yearOnset = new Date(year, 0, 1);
+  const normalizedDayOfYear = (date - yearOnset) / (366 * 1000 * 60 * 60 * 24);
+  const dayOnset = new Date(year, month, day);
+  const normalizedTimeOfDay = (date - dayOnset) / (1000 * 60 * 60 * 24)
+  return {date, normalizedDayOfYear, normalizedTimeOfDay};
 }
 
 /**
@@ -84,13 +96,18 @@ export class JenaWeatherData {
 
     this.dateTime = [];
     this.data = [];  // Unnormalized data.
+    // Day of the year data, normalized between 0 and 1.
+    this.normalizedDayOfYear = [];
+    // Time of the day, normalized between 0 and 1.
+    this.normalizedTimeOfDay = [];
     for (let i = 1; i < csvLines.length; ++i) {
       const line = csvLines[i].trim();
       if (line.length === 0) {
         continue;
       }
       const items = line.split(',');
-      const newDateTime = parseDateTime(items[0]);
+      const parsed = parseDateTime(items[0]);
+      const newDateTime = parsed.date;
       if (this.dateTime.length > 0 &&
           newDateTime.getTime() <=
               this.dateTime[this.dateTime.length - 1].getTime()) {
@@ -101,6 +118,8 @@ export class JenaWeatherData {
 
       this.dateTime.push(newDateTime);
       this.data.push(items.slice(1).map(x => +x));
+      this.normalizedDayOfYear.push(parsed.normalizedDayOfYear);
+      this.normalizedTimeOfDay.push(parsed.normalizedTimeOfDay);
     }
     this.numRows = this.data.length;
     this.numColumns = this.data[0].length;
@@ -192,10 +211,12 @@ export class JenaWeatherData {
    * @param {*} minIndex
    * @param {*} maxIndex
    * @param {*} normalize
+   * @param {*} includeDateTime Include the date-time features, including
+   *   normalized day-of-the-year and normalized time-of-the-day.
    */
   getIteratorFn(
-      shuffle, lookBack, delay, batchSize, step, minIndex, maxIndex,
-      normalize) {
+      shuffle, lookBack, delay, batchSize, step, minIndex, maxIndex, normalize,
+      includeDateTime) {
     let i = minIndex + lookBack;
     const lookBackSlices = Math.floor(lookBack / step);
 
@@ -216,18 +237,29 @@ export class JenaWeatherData {
       const numExamples = rows.length;
       i += numExamples;
 
-      const samples = tf.buffer(
-          [numExamples, lookBackSlices, this.numColumnsExcludingTarget]);
+      const featureLength = includeDateTime ?
+          this.numColumnsExcludingTarget + 2 :
+          this.numColumnsExcludingTarget;
+      const samples = tf.buffer([numExamples, lookBackSlices, featureLength]);
       const targets = tf.buffer([numExamples, 1]);
       for (let j = 0; j < numExamples; ++j) {
         const row = rows[j];
         let exampleRow = 0;
         for (let r = row - lookBack; r < row; r += step) {
           let exampleCol = 0;
-          for (let n = 0; n < this.numColumnsExcludingTarget; ++n) {
+          for (let n = 0; n < featureLength; ++n) {
             const columnIndex = n < this.tempCol ? n : n + 1;
-            const value = normalize ? this.normalizedData[r][columnIndex] :
-                                      this.data[r][columnIndex];
+            let value;
+            if (n < this.numColumnsExcludingTarget) {
+              value = normalize ? this.normalizedData[r][columnIndex] :
+                                  this.data[r][columnIndex];
+            } else if (n === this.numColumnsExcludingTarget) {
+              // Normalized day-of-the-year feature.
+              value = this.normalizedDayOfYear[r];
+            } else {
+              // Normalized time-of-the-day feature.
+              value = this.normalizedTimeOfDay[r];
+            }
             // DEBUG
             // if (j === 0) {
             //   console.log(`n=${n}, columnIndex=${columnIndex}, j=${j}, r=${

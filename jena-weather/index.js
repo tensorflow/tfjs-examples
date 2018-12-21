@@ -40,6 +40,8 @@ const dateTimeRangeSpan = document.getElementById('date-time-range');
 
 const trainModelButton = document.getElementById('train-model');
 const modelTypeSelect = document.getElementById('model-type');
+const includeDateTimeSelect =
+    document.getElementById('include-date-time-features')
 
 const TIME_SPAN_RANGE_MAP = {
   hour: 6,
@@ -168,27 +170,48 @@ dataNextButton.addEventListener('click', () => {
   plotData();
 });
 
-function buildMLPModel(inputShape, kernelRegularizer) {
+function buildMLPModel(inputShape, kernelRegularizer, dropoutRate) {
   const model = tf.sequential();
   model.add(tf.layers.flatten({inputShape}));
   model.add(
       tf.layers.dense({units: 32, activation: 'relu', kernelRegularizer}));
+  if (dropoutRate > 0) {
+    model.add(tf.layers.dropout({rate: dropoutRate}));
+  }
   model.add(tf.layers.dense({units: 1, kernelRegularizer}));
-  model.compile({loss: 'meanAbsoluteError', optimizer: 'rmsprop'});
-  model.summary();
+  return model;
+}
+
+function buildGRUModel(inputShape) {
+  // TODO(cais): Add recurrent dropout.
+  const model = tf.sequential();
+  const rnnUnits = 32;
+  model.add(tf.layers.gru({units: rnnUnits, inputShape}));
+  model.add(tf.layers.dense({units: 1}));
   return model;
 }
 
 function buildModel(inputShape) {
   const modelType = modelTypeSelect.value;
   console.log(`modelType = ${modelType}`);  // DEBUG
+  let model;
   if (modelType === 'mlp') {
-    return buildMLPModel(inputShape);
+    model = buildMLPModel(inputShape);
   } else if (modelType === 'mlp-l2') {
-    return buildMLPModel(inputShape, tf.regularizers.l2());
+    model = buildMLPModel(inputShape, tf.regularizers.l2());
+  } else if (modelType === 'mlp-dropout') {
+    const regularizer = null;
+    const dropoutRate = 0.25;
+    model = buildMLPModel(inputShape, regularizer, dropoutRate);
+  } else if (modelType === 'gru') {
+    model = buildGRUModel(inputShape);
   } else {
     throw new Error(`Unsupported model type: ${modelType}`);
   }
+
+  model.compile({loss: 'meanAbsoluteError', optimizer: 'rmsprop'});
+  model.summary();
+  return model;
 }
 
 trainModelButton.addEventListener('click', async () => {
@@ -203,18 +226,24 @@ trainModelButton.addEventListener('click', async () => {
   const minIndex = 0;
   const maxIndex = 200000;
   const normalize = true;
+  const includeDateTime = includeDateTimeSelect.checked;
+  console.log(`includeDateTime = ${includeDateTime}`);  // DEBUG
 
   // Construct model.
-  const numFeatures = 13;  // TODO(cais): Do not hardcode.
+  let numFeatures = 13;  // TODO(cais): Do not hardcode.
+  if (includeDateTime) {
+    numFeatures += 2;
+  }
   const model = buildModel([Math.floor(lookBack / step), numFeatures]);
 
   const trainIteratorFn = jenaWeatherData.getIteratorFn(
-      shuffle, lookBack, delay, batchSize, step, minIndex, maxIndex, normalize);
+      shuffle, lookBack, delay, batchSize, step, minIndex, maxIndex, normalize,
+      includeDateTime);
   // TODO(cais): Use the following when the API is available.
   // const dataset = tf.data.generator(iteratorFn);
   const epochs = 20;
   const batchesPerEpoch = 500;
-  const displayEvery = 100;
+  const displayEvery = 100;  // TODO(cais): 100.
   for (let i = 0; i < epochs; ++i) {
     const t0 = tf.util.now();
     let totalTrainLoss = 0;
@@ -233,13 +262,11 @@ trainModelButton.addEventListener('click', async () => {
     }
     const t1 = tf.util.now();
     const epochTrainLoss = totalTrainLoss / numSeen;
-    console.log(
-        `epoch ${i + 1}/${epochs}: trainLoss=${epochTrainLoss.toFixed(6)} ` +
-        `(${((t1 - t0) / batchesPerEpoch).toFixed(1)} ms/batch)\n`);
 
     // Perform validation.
     const valIterationFn = jenaWeatherData.getIteratorFn(
-        false, lookBack, delay, batchSize, step, 200001, 300000, normalize);
+        false, lookBack, delay, batchSize, step, 200001, 300000, normalize,
+        includeDateTime);
     const valT0 = tf.util.now();
     const valSteps = Math.floor((300000 - 200001 - lookBack) / batchSize);
     tf.tidy(() => {
@@ -260,14 +287,15 @@ trainModelButton.addEventListener('click', async () => {
         tf.dispose([item.value, evalOut]);
       }
       const valLoss = totalValLoss.divStrict(tf.scalar(numSeen));
-      console.log(`valLoss=${valLoss.dataSync()[0].toFixed(6)}`);
+      const valT1 = tf.util.now();
+      const valMsPerBatch = (valT1 - valT0) / valSteps;
+      console.log(
+          `epoch ${i + 1}/${epochs}: trainLoss=${epochTrainLoss.toFixed(6)}; ` +
+          `valLoss=${valLoss.dataSync()[0].toFixed(6)} ` +
+          `(train: ${((t1 - t0) / batchesPerEpoch).toFixed(1)} ms/batch; ` +
+          `val: ${valMsPerBatch.toFixed(1)} ms/batch)\n`);
       tf.dispose(valLoss);
     });
-    const valT1 = tf.util.now();
-    const valMsPerBatch = (valT1 - valT0) / valSteps;
-    console.log(
-        `Validation took ${(valT1 - valT0).toFixed(1)} ms ` +
-        `(${valMsPerBatch} ms/batch)`);
   }
   trainModelButton.disabled = false;
   logStatus('Model training complete...');

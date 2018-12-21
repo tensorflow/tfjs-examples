@@ -71,9 +71,11 @@ export class JenaWeatherData {
     tf.util.assert(
         this.tempCol >= 1,
         `Unexpected T (degC) column index from ${JENA_WEATHER_CSV_PATH}`);
+    // Account for the fact that the first column of the csv file is date-time.
+    this.tempCol--;
 
     this.dateTime = [];
-    this.data = [];
+    this.data = [];  // Unnormalized data.
     for (let i = 1; i < csvLines.length; ++i) {
       const line = csvLines[i].trim();
       if (line.length === 0) {
@@ -81,9 +83,6 @@ export class JenaWeatherData {
       }
       const items = line.split(',');
       const newDateTime = parseDateTime(items[0]);
-      if (newDateTime == null) {
-        console.log('Failed to parse date time:', items[0]);  // DEBUG
-      }
       if (this.dateTime.length > 0 &&
           newDateTime.getTime() <=
               this.dateTime[this.dateTime.length - 1].getTime()) {
@@ -96,9 +95,11 @@ export class JenaWeatherData {
       this.data.push(items.slice(1).map(x => +x));
     }
     this.numRows = this.data.length;
-    this.numColumns = this.data[0].length - 1;
+    this.numColumns = this.data[0].length;
+    this.numColumnsExcludingTarget = this.data[0].length - 1;
+    console.log(
+        `this.numColumnsExcludingTarget = ${this.numColumnsExcludingTarget}`);
 
-    // TODO(cais): Normalization.
     await this.calculateMeansAndStddevs_();
   }
 
@@ -125,6 +126,16 @@ export class JenaWeatherData {
       console.log('means:', this.means);
       console.log('stddevs:', this.stddevs);
     });
+
+    // Cache normalized values.
+    this.normalizedData = [];
+    for (let i = 0; i < this.numRows; ++i) {
+      const row = [];
+      for (let j = 0; j < this.numColumns; ++j) {
+        row.push((this.data[i][j] - this.means[j]) / this.stddevs[j]);
+      }
+      this.normalizedData.push(row);
+    }
   }
 
   getDataColumnNames() {
@@ -152,10 +163,8 @@ export class JenaWeatherData {
     const out = [];
     for (let i = beginIndex; i < beginIndex + length && i < this.numRows;
          i += stride) {
-      let value = this.data[i][columnIndex];
-      if (normalize) {
-        value = (value - this.means[columnIndex]) / this.stddevs[columnIndex];
-      }
+      let value = normalize ? this.normalizedData[i][columnIndex] :
+                              this.data[i][columnIndex];
       if (includeTime) {
         value = {x: this.dateTime[i].getTime(), y: value};
       }
@@ -166,6 +175,7 @@ export class JenaWeatherData {
 
   /**
    * TODO(cais): Doc string.
+   *
    * @param {*} shuffle
    * @param {*} lookBack
    * @param {*} delay
@@ -176,14 +186,15 @@ export class JenaWeatherData {
    * @param {*} normalize
    */
   getIteratorFn(
-      shuffle, lookBack, delay, batchSize, step, minIndex, maxIndex, normalize) {
+      shuffle, lookBack, delay, batchSize, step, minIndex, maxIndex,
+      normalize) {
+    console.log(`normalize = ${normalize}`);  // DEBUG
     let i = minIndex + lookBack;
     // if (i + batchSize >= maxIndex) {  // TODO(cais): Check this.
     //   i = minIndex + lookBack;
     // }
     const lookBackSlices = Math.floor(lookBack / step);
     console.log(`lookBackSlices = ${lookBackSlices}`);  // DEBUG
-    console.log(`this.tempCol = ${this.tempCol}`);      // DEBUG
 
     function iteratorFn() {
       const rows = [];
@@ -202,32 +213,35 @@ export class JenaWeatherData {
       const numExamples = rows.length;
       i += numExamples;
 
-      const samples = tf.buffer([numExamples, lookBackSlices, this.numColumns]);
+      const samples = tf.buffer(
+          [numExamples, lookBackSlices, this.numColumnsExcludingTarget]);
       const targets = tf.buffer([numExamples, 1]);
       for (let j = 0; j < numExamples; ++j) {
         const row = rows[j];
         let exampleRow = 0;
         for (let r = row - lookBack; r < row; r += step) {
           let exampleCol = 0;
-          for (let n = 0; n < this.numColumns; ++n) {
-            const columnIndex = n < this.tempCol - 1 ? n : n + 1;
-            let value = this.data[r][columnIndex];
-            if (normalize) {
-              value =
-                  (value - this.means[columnIndex]) / this.stddevs[columnIndex];
-            }
+          for (let n = 0; n < this.numColumnsExcludingTarget; ++n) {
+            const columnIndex = n < this.tempCol ? n : n + 1;
+            const value = normalize ? this.normalizedData[r][columnIndex] :
+                                      this.data[r][columnIndex];
             // DEBUG
-            // console.log(
-            //     `columnIndex=${columnIndex}, j=${j}, r=${exampleRow}, c=${exampleCol}: value=${value}`);
+            // if (j === 0) {
+            //   console.log(`n=${n}, columnIndex=${columnIndex}, j=${j}, r=${
+            //       exampleRow}, c=${exampleCol}: value=${value}`);
+            // }
             samples.set(value, j, exampleRow, exampleCol++);
           }
 
-          // TODO(cais): Remove the confusing this.tempCol - 1 thing.
-          let value = this.data[r + delay][this.tempCol - 1];
-          if (normalize) {
-            value =
-                (value - this.means[this.tempCol - 1]) / this.stddevs[this.tempCol - 1];
-          }
+          const value = normalize ?
+              this.normalizedData[r + delay][this.tempCol] :
+              this.data[r + delay][this.tempCol];
+          // let value = this.data[r + delay][this.tempCol];
+          // if (normalize) {
+          //   value =
+          //       (value - this.means[this.tempCol]) /
+          //       this.stddevs[this.tempCol];
+          // }
           targets.set(value, j, 0);
           // TODO(cais): Make sure this doesn't go out of bound.
           exampleRow++;

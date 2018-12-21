@@ -167,61 +167,61 @@ dataNextButton.addEventListener('click', () => {
   plotData();
 });
 
-trainModelButton.addEventListener('click', async () => {
-
-
-  // Test iteratorFn.
-  const shuffle = true;
-  const lookBack = 10 * 24 * 6;  // Look back 10 days.
-  const step = 6;  // 1-hour steps.
-  const delay = 24 * 6;  // Predict the weather 1 day later.
-  const batchSize = 128;
-  const minIndex = 0;
-  const maxIndex = 200000;
-  const normalize = true;  // TODO(cais): Set to true.
-
-  // Construct model.
-  const numFeatures = 13;  // TODO(cais): Do not hardcode.
+function buildMLPModel(inputShape) {
   const model = tf.sequential();
-  model.add(tf.layers.flatten({inputShape: [Math.floor(lookBack / step), numFeatures]}));
+  model.add(tf.layers.flatten({inputShape}));
   model.add(tf.layers.dense({units: 32, activation: 'relu'}));
   model.add(tf.layers.dense({units: 1}));
   model.compile({loss: 'meanAbsoluteError', optimizer: 'rmsprop'});
   model.summary();
+  return model;
+}
 
-  // const lookBack = 24 * 6;  // Look back 1 days.
-  // const step = 6;  // 1-hour steps.
-  // const delay = 24 * 6;  // Predict the weather 1 day later.
-  // const batchSize = 1;
-  // const minIndex = 0;
-  // const maxIndex = 200000;
-  // const normalize = false;
+trainModelButton.addEventListener('click', async () => {
+  trainModelButton.disabled = true;
+  // Test iteratorFn.
+  const shuffle = true;          // TODO(cais): Change to true.
+  const lookBack = 10 * 24 * 6;  // Look back 10 days.
+  const step = 6;                // 1-hour steps.
+  const delay = 24 * 6;          // Predict the weather 1 day later.
+  const batchSize = 128;
+  const minIndex = 0;
+  const maxIndex = 200000;
+  const normalize = true;  // TODO(cais): Change to true.
+
+  // Construct model.
+  const numFeatures = 13;  // TODO(cais): Do not hardcode.
+  const model = buildMLPModel([Math.floor(lookBack / step), numFeatures]);
 
   const iteratorFn = jenaWeatherData.getIteratorFn(
       shuffle, lookBack, delay, batchSize, step, minIndex, maxIndex, normalize);
   // TODO(cais): Use the following when the API is available.
   // const dataset = tf.data.generator(iteratorFn);
-  // // let out = await dataset.iterator();
-  // // console.log(out.value[0].shape, out.value[1].shape);
-  // out.value[1].print();
-  // // out = await dataset.iterator();
-  // out.value[1].print();
-
   const epochs = 20;
   const batchesPerEpoch = 500;  // TODO(cais): 500.
   for (let i = 0; i < epochs; ++i) {
     const t0 = tf.util.now();
+    let totalTrainLoss = 0;
+    let numSeen = 0;
     for (let j = 0; j < batchesPerEpoch; ++j) {
       const item = iteratorFn();
       const trainLoss = await model.trainOnBatch(item.value[0], item.value[1]);
-      console.log(
-          `epoch ${i + 1}/${epochs} batch ${j + 1}/${batchesPerEpoch}: ` +
-          `trainLoss=${trainLoss.toFixed(6)}`);  // DEBUG
+      numSeen += item.value[0].shape[0];
+      totalTrainLoss += item.value[0].shape[0] * trainLoss;
+      if ((j + 1) % 50 === 0) {
+        console.log(
+            `epoch ${i + 1}/${epochs} batch ${j + 1}/${batchesPerEpoch}: ` +
+            `trainLoss=${trainLoss.toFixed(6)}`);
+      }
       tf.dispose(item.value);
     }
     const t1 = tf.util.now();
-    console.log(`${(t1 - t0) / batchesPerEpoch} ms/batch`);
+    const epochTrainLoss = totalTrainLoss / numSeen;
+    console.log(
+        `epoch ${i + 1}/${epochs}: trainLoss=${epochTrainLoss} ` +
+        `(${((t1 - t0) / batchesPerEpoch).toFixed(1)} ms/batch)\n`);
   }
+  trainModelButton.disabled = false;
 });
 
 async function run() {

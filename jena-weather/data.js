@@ -164,12 +164,19 @@ export class JenaWeatherData {
     return out;
   }
 
+  /**
+   * TODO(cais): Doc string.
+   * @param {*} shuffle
+   * @param {*} lookBack
+   * @param {*} delay
+   * @param {*} batchSize
+   * @param {*} step
+   * @param {*} minIndex
+   * @param {*} maxIndex
+   * @param {*} normalize
+   */
   getIteratorFn(
-      lookBack, delay, batchSize, step, minIndex, maxIndex, normalize) {
-    // TODO(cais): Make this return a function instead.
-    // TODO(cais): Add shuffle.
-    // TODO(cais): Use tf.data.datasetFromIteratorFn();
-
+      shuffle, lookBack, delay, batchSize, step, minIndex, maxIndex, normalize) {
     let i = minIndex + lookBack;
     // if (i + batchSize >= maxIndex) {  // TODO(cais): Check this.
     //   i = minIndex + lookBack;
@@ -180,9 +187,18 @@ export class JenaWeatherData {
 
     function iteratorFn() {
       const rows = [];
-      for (let r = i; r < i + batchSize && r < maxIndex; ++r) {
-        rows.push(r);
+      if (shuffle) {
+        const range = maxIndex - (minIndex + lookBack);
+        for (let i = 0; i < batchSize; ++i) {
+          const row = minIndex + lookBack + Math.floor(Math.random() * range);
+          rows.push(row);
+        }
+      } else {
+        for (let r = i; r < i + batchSize && r < maxIndex; ++r) {
+          rows.push(r);
+        }
       }
+
       const numExamples = rows.length;
       i += numExamples;
 
@@ -190,7 +206,7 @@ export class JenaWeatherData {
       const targets = tf.buffer([numExamples, 1]);
       for (let j = 0; j < numExamples; ++j) {
         const row = rows[j];
-        let exampleRow = 0; 
+        let exampleRow = 0;
         for (let r = row - lookBack; r < row; r += step) {
           let exampleCol = 0;
           for (let n = 0; n < this.numColumns; ++n) {
@@ -215,7 +231,7 @@ export class JenaWeatherData {
           targets.set(value, j, 0);
           // TODO(cais): Make sure this doesn't go out of bound.
           exampleRow++;
-        } 
+        }
       }
       // TODO(cais): Memory management of samples and targets.
       return {

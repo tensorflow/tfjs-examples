@@ -1,0 +1,4 @@
+*.png
+model.json
+group*shard*
+*.h5

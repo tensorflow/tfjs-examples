@@ -51,7 +51,7 @@ limitations under the License.
 <body>
   <div class="tfjs-example-container">
     <section class='title-area'>
-      <h1>TensorFlow.js: Visualize Convnet</h1>
+      <h1>TensorFlow.js: Visualize Convnet Filters</h1>
     </section>
 
     <section>
@@ -74,15 +74,10 @@ limitations under the License.
     <section>
       <p class='section-head'>Model Output</p>
 
-      <div id="file-container" style="display: none">
-        Upload an image: <input type="file" id="files" name="files[]" multiple />
-      </div>
-
-      <div id="predictions"></div>
-
-      <img style="display: none" id="cat" src="cat.jpg" width=224 height=224 />
+      <canvas id="filter"></div>
     </section>
 
+    <script src="tf-core.js"></script>
     <script src="index.js"></script>
   </div>
 </body>

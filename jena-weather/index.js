@@ -62,6 +62,21 @@ const TIME_SPAN_STRIDE_MAP = {
 };
 
 let currBeginIndex = 0;
+
+/**
+ * Render data chart.
+ *
+ * The rendered visualization obeys:
+ *
+ * - The dropdown menus for the timeseries.
+ * - The "Plot against each other" checkbox.
+ * - The "Normalize data" checkbox.
+ *
+ * Depending on the status of the UI contorls, the chart may be
+ *
+ * - A line chart that plots one or two timeseries against time, or
+ * - A scatter plot that plots two timeseries against on another.
+ */
 function plotData() {
   logStatus('Rendering data plot...');
   const timeSpan = timeSpanSelect.value;
@@ -70,66 +85,93 @@ function plotData() {
   const normalize = dataNormalizedCheckbox.checked;
   const scatter = dataScatterCheckbox.checked;
 
-  const plotAgainstEachOther =
-      scatter && series1 !== 'None' && series2 !== 'None';
-  const values = [];
-  const series = [];
-  if (plotAgainstEachOther) {
+  if (scatter && series1 !== 'None' && series2 !== 'None') {
     // Plot the two series against each other.
-    const includeTime = false;
-    const xs = jenaWeatherData.getColumnData(
-        series1, includeTime, normalize, currBeginIndex,
-        TIME_SPAN_RANGE_MAP[timeSpan], TIME_SPAN_STRIDE_MAP[timeSpan]);
-    const ys = jenaWeatherData.getColumnData(
-        series2, includeTime, normalize, currBeginIndex,
-        TIME_SPAN_RANGE_MAP[timeSpan], TIME_SPAN_STRIDE_MAP[timeSpan]);
-    values.push(xs.map((x, i) => {
-      return {x, y: ys[i]};
-    }));
-    let seriesLabel1 = series1;
-    let seriesLabel2 = series2;
-    if (normalize) {
-      seriesLabel1 += ' (normalized)';
-      seriesLabel2 += ' (normalized)';
-    }
-    series.push(`${seriesLabel1} - ${seriesLabel2}`);
-
-    tfvis.render.scatterplot({values, series}, dataChartContainer, {
-      width: dataChartContainer.offsetWidth * 0.7,
-      height: dataChartContainer.offsetWidth * 0.5,
-      xLabel: seriesLabel1,
-      yLabel: seriesLabel2
-    });
-    updateDateTimeRangeSpan();
-    logStatus('Done rendering data plot.');
+    makeTimeSeriesScatterPlot(series1, series2, timeSpan, normalize);
   } else {
     // Plot one or two series agains time.
-    const includeTime = true;
-    if (series1 !== 'None') {
-      values.push(jenaWeatherData.getColumnData(
-          series1, includeTime, normalize, currBeginIndex,
-          TIME_SPAN_RANGE_MAP[timeSpan], TIME_SPAN_STRIDE_MAP[timeSpan]));
-      series.push(normalize ? `${series1} (normalized)` : series1);
-    }
-    if (series2 !== 'None') {
-      values.push(jenaWeatherData.getColumnData(
-          series2, includeTime, normalize, currBeginIndex,
-          TIME_SPAN_RANGE_MAP[timeSpan], TIME_SPAN_STRIDE_MAP[timeSpan]));
-      series.push(normalize ? `${series2} (normalized)` : series2);
-    }
-    // NOTE(cais): On a Linux workstation running latest Chrome, the length
-    // limit seems to be around 120k.
-    tfvis.render.linechart({values, series: series}, dataChartContainer, {
-      width: dataChartContainer.offsetWidth * 0.95,
-      height: dataChartContainer.offsetWidth * 0.3,
-      xLabel: 'Time',
-      yLabel: series.length === 1 ? series[0] : '',
-    });
+    makeTimeSerieChart(series1, series2, timeSpan, normalize);
     updateDateTimeRangeSpan();
-    logStatus('Done rendering data plot.');
   }
 
+  updateDateTimeRangeSpan();
   updateScatterCheckbox();
+  logStatus('Done rendering chart.');
+}
+
+/**
+ * Plot zero, one or two time series against time.
+ *
+ * @param {string} series1 Name of timeseries 1 (x-axis).
+ * @param {string} series2 Name of timeseries 2 (y-axis).
+ * @param {string} timeSpan Name of the time span. Must be a member of
+ *   `TIME_SPAN_STRIDE_MAP`.
+ * @param {boolean} normalize Whether to use normalized for the two
+ *   timeseries.
+ */
+function makeTimeSerieChart(series1, series2, timeSpan, normalize) {
+  const values = [];
+  const series = [];
+  const includeTime = true;
+  if (series1 !== 'None') {
+    values.push(jenaWeatherData.getColumnData(
+        series1, includeTime, normalize, currBeginIndex,
+        TIME_SPAN_RANGE_MAP[timeSpan], TIME_SPAN_STRIDE_MAP[timeSpan]));
+    series.push(normalize ? `${series1} (normalized)` : series1);
+  }
+  if (series2 !== 'None') {
+    values.push(jenaWeatherData.getColumnData(
+        series2, includeTime, normalize, currBeginIndex,
+        TIME_SPAN_RANGE_MAP[timeSpan], TIME_SPAN_STRIDE_MAP[timeSpan]));
+    series.push(normalize ? `${series2} (normalized)` : series2);
+  }
+  // NOTE(cais): On a Linux workstation running latest Chrome, the length
+  // limit seems to be around 120k.
+  tfvis.render.linechart({values, series: series}, dataChartContainer, {
+    width: dataChartContainer.offsetWidth * 0.95,
+    height: dataChartContainer.offsetWidth * 0.3,
+    xLabel: 'Time',
+    yLabel: series.length === 1 ? series[0] : '',
+  });
+}
+
+/**
+ * Make a scatter plot of two timeseries.
+ *
+ * The scatter plot plots the two timeseries against each other.
+ *
+ * @param {string} series1 Name of timeseries 1 (x-axis).
+ * @param {string} series2 Name of timeseries 2 (y-axis).
+ * @param {string} timeSpan Name of the time span. Must be a member of
+ *   `TIME_SPAN_STRIDE_MAP`.
+ * @param {boolean} normalize Whether to use normalized for the two
+ *   timeseries.
+ */
+function makeTimeSeriesScatterPlot(series1, series2, timeSpan, normalize) {
+  const includeTime = false;
+  const xs = jenaWeatherData.getColumnData(
+      series1, includeTime, normalize, currBeginIndex,
+      TIME_SPAN_RANGE_MAP[timeSpan], TIME_SPAN_STRIDE_MAP[timeSpan]);
+  const ys = jenaWeatherData.getColumnData(
+      series2, includeTime, normalize, currBeginIndex,
+      TIME_SPAN_RANGE_MAP[timeSpan], TIME_SPAN_STRIDE_MAP[timeSpan]);
+  const values = [xs.map((x, i) => {
+    return {x, y: ys[i]};
+  })];
+  let seriesLabel1 = series1;
+  let seriesLabel2 = series2;
+  if (normalize) {
+    seriesLabel1 += ' (normalized)';
+    seriesLabel2 += ' (normalized)';
+  }
+  const series = [`${seriesLabel1} - ${seriesLabel2}`];
+
+  tfvis.render.scatterplot({values, series}, dataChartContainer, {
+    width: dataChartContainer.offsetWidth * 0.7,
+    height: dataChartContainer.offsetWidth * 0.5,
+    xLabel: seriesLabel1,
+    yLabel: seriesLabel2
+  });
 }
 
 function updateDateTimeRangeSpan() {
@@ -195,7 +237,7 @@ function buildGRUModel(inputShape) {
 
 function buildModel(inputShape) {
   const modelType = modelTypeSelect.value;
-  console.log(`modelType = ${modelType}`);  // DEBUG
+  console.log(`modelType = ${modelType}`);
   let model;
   if (modelType === 'mlp') {
     model = buildMLPModel(inputShape);
@@ -229,7 +271,7 @@ trainModelButton.addEventListener('click', async () => {
   const maxIndex = 200000;
   const normalize = true;
   const includeDateTime = includeDateTimeSelect.checked;
-  console.log(`includeDateTime = ${includeDateTime}`);  // DEBUG
+  console.log(`includeDateTime = ${includeDateTime}`);
 
   // Construct model.
   let numFeatures = 13;  // TODO(cais): Do not hardcode.
@@ -245,7 +287,7 @@ trainModelButton.addEventListener('click', async () => {
   // const dataset = tf.data.generator(iteratorFn);
   const epochs = 20;
   const batchesPerEpoch = 500;
-  const displayEvery = 100;  // TODO(cais): 100.
+  const displayEvery = 100;
   for (let i = 0; i < epochs; ++i) {
     const t0 = tf.util.now();
     let totalTrainLoss = 0;

@@ -45,6 +45,26 @@ limitations under the License.
   .answer-wrong {
     color: red;
   }
+
+  .data-series {
+    display: inline-block;
+    width: 320px;
+    margin: 4px;
+  }
+
+  .data-options {
+    display: inline-block;
+    width: 320px;
+    margin: 4px;
+  }
+
+  .data-time-options {
+    width: 240px;
+  }
+
+  .data-nav {
+    margin: 4px;
+  }
 </style>
 
 <body>
@@ -77,40 +97,45 @@ limitations under the License.
 
       <section>
         <p class='section-head'>Data Visualization</p>
-        <div>
+        <div class="data-options data-time-options">
           <span>Time span:</span>
           <select id="time-span">
             <option value="full">Full</option>
             <option value="year">Year</option>
             <option value="month">Month</option>
             <option value="week">Week</option>
+            <option value="tenDays">10 days</option>
             <option value="day">Day</option>
             <option value="hour">Hour</option>
           </select>
         </div>
 
-        <div>
-          <span>Data series 1:</span>
-          <select id="data-series-1"></select>
-        </div>
-        <div>
-          <span>Data series 2:</span>
-          <select id="data-series-2"></select>
+        <div class="data-options">
+          <button id="data-prev" class="data-nav">←</button>
+          <button id="data-next" class="data-nav">→</button>
+          <span id="date-time-range"></span>
         </div>
 
         <div>
-          <span>Normalize data</span>
-          <input type="checkbox" id="data-normalized">
+          <div class="data-series">
+            <span>Data series 1:</span>
+            <select id="data-series-1"></select>
+          </div>
+          <div class="data-series">
+            <span>Data series 2:</span>
+            <select id="data-series-2"></select>
+          </div>
         </div>
+
         <div>
+          <div class="data-options">
+            <span>Normalize data</span>
+            <input type="checkbox" id="data-normalized">
+          </div>
+          <div class="data-options">
             <span>Plot against each other</span>
             <input type="checkbox" id="data-scatter">
           </div>
-
-        <div>
-          <button id="data-prev">←</button>
-          <button id="data-next">→</button>
-          <span id="date-time-range"></span>
         </div>
 
         <p id="trainStatus"></p>

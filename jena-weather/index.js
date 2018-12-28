@@ -47,6 +47,7 @@ const TIME_SPAN_RANGE_MAP = {
   hour: 6,
   day: 6 * 24,
   week: 6 * 24 * 7,
+  tenDays: 6 * 24 * 10,
   month: 6 * 24 * 30,
   year: 6 * 24 * 365,
   full: null
@@ -54,6 +55,7 @@ const TIME_SPAN_RANGE_MAP = {
 const TIME_SPAN_STRIDE_MAP = {
   day: 1,
   week: 1,
+  tenDays: 6,
   month: 6,
   year: 6 * 6,
   full: 6 * 24

@@ -62,6 +62,13 @@ function parseDateTime(str) {
 export class JenaWeatherData {
   constructor() {}
 
+  /**
+   * Load and preprocess data.
+   *
+   * This method first tries to load the data from `FAST_JENA_WEATHER_CSV_PATH`
+   * (a relative path) and, if that fails, will try to load it from a remote
+   * URL (`JENA_WEATHER_CSV_PATH`).
+   */
   async load() {
     let csvData;
     try {
@@ -201,18 +208,36 @@ export class JenaWeatherData {
   }
 
   /**
-   * TODO(cais): Doc string.
+   * Get a data iterator function.
    *
-   * @param {*} shuffle
-   * @param {*} lookBack
-   * @param {*} delay
-   * @param {*} batchSize
-   * @param {*} step
-   * @param {*} minIndex
-   * @param {*} maxIndex
-   * @param {*} normalize
-   * @param {*} includeDateTime Include the date-time features, including
+   * @param {boolean} shuffle Whether the data is to be shuffled.
+   * @param {number} lookBack Number of look-back time steps. This is how many
+   *   steps to look back back when making a prediction. Typical value: 10 days
+   *   (i.e., 6 * 24 * 10 = 1440).
+   * @param {number} delay Number of time steps from the last time point in the
+   *   input features to the time of prediction. Typical value: 1 day (i.e.,
+   *   6 * 24 = 144).
+   * @param {number} batchSize Batch size.
+   * @param {number} step Number of steps between consecutive time points in the
+   *   input features. This is a downsampling factor for the input features.
+   *   Typical value: 1 hour (i.e., 6).
+   * @param {number} minIndex Optional minimum index to draw from the original
+   *   data set. Together with `maxIndex`, this can be used to reserve a chunk
+   *   of the original data for validation or evaluation.
+   * @param {number} maxIndex Optional maximum index to draw from the original
+   *   data set. Together with `minIndex`, this can be used to reserve a chunk
+   *   of the original data for validation or evaluation.
+   * @param {boolean} normalize Whether the iterator function will return
+   *   normalized data.
+   * @param {boolean} includeDateTime Include the date-time features, including
    *   normalized day-of-the-year and normalized time-of-the-day.
+   * @return {Function} An iterator Function, which returns a batch of features
+   *   and targets when invoked. The features and targets are arranged in a
+   *   length-2 array, in the said order.
+   *   The features are represented as a float32-type `tf.Tensor` of shape
+   *     `[batchSize, Math.floor(lookBack / step), featureLength]`
+   *   The targets are represented as a float32-type `tf.Tensor` of shape
+   *     `[batchSize, 1]`.
    */
   getIteratorFn(
       shuffle, lookBack, delay, batchSize, step, minIndex, maxIndex, normalize,
@@ -260,11 +285,6 @@ export class JenaWeatherData {
               // Normalized time-of-the-day feature.
               value = this.normalizedTimeOfDay[r];
             }
-            // DEBUG
-            // if (j === 0) {
-            //   console.log(`n=${n}, columnIndex=${columnIndex}, j=${j}, r=${
-            //       exampleRow}, c=${exampleCol}: value=${value}`);
-            // }
             samples.set(value, j, exampleRow, exampleCol++);
           }
 
@@ -272,7 +292,6 @@ export class JenaWeatherData {
               this.normalizedData[r + delay][this.tempCol] :
               this.data[r + delay][this.tempCol];
           targets.set(value, j, 0);
-          // TODO(cais): Make sure this doesn't go out of bound.
           exampleRow++;
         }
       }

@@ -65,6 +65,10 @@ limitations under the License.
   .data-nav {
     margin: 4px;
   }
+
+  .model-training {
+    margin: 4px;
+  }
 </style>
 
 <body>
@@ -154,9 +158,18 @@ limitations under the License.
             <option value="gru">GRU</option>
             <option value="gru-recurent-drop">GRU with recurrent dropout</option>
           </select>
-          <span>Include date and time features</span>
-          <input type="checkbox" id="include-date-time-features" checked="false">
-          <button id="train-model">Train model</button>
+          <div class="model-training">
+            <span>Include date and time features</span>
+            <input type="checkbox" id="include-date-time-features">
+          </div>
+          <div class="model-training">
+            <span>Epochs:</span>
+            <input type="number" id="epochs" value="20">
+          </div>
+          <div class="model-training">
+            <button id="train-model">Train model</button>
+          </div>
+
         </div>
       </section>
 

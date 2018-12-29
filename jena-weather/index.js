@@ -41,7 +41,9 @@ const dateTimeRangeSpan = document.getElementById('date-time-range');
 const trainModelButton = document.getElementById('train-model');
 const modelTypeSelect = document.getElementById('model-type');
 const includeDateTimeSelect =
-    document.getElementById('include-date-time-features')
+    document.getElementById('include-date-time-features');
+
+const epochsInput = document.getElementById('epochs');
 
 const TIME_SPAN_RANGE_MAP = {
   hour: 6,
@@ -235,8 +237,7 @@ function buildGRUModel(inputShape) {
   return model;
 }
 
-function buildModel(inputShape) {
-  const modelType = modelTypeSelect.value;
+function buildModel(modelType, inputShape) {
   console.log(`modelType = ${modelType}`);
   let model;
   if (modelType === 'mlp') {
@@ -274,18 +275,20 @@ trainModelButton.addEventListener('click', async () => {
   console.log(`includeDateTime = ${includeDateTime}`);
 
   // Construct model.
+  const modelType = modelTypeSelect.value;
   let numFeatures = 13;  // TODO(cais): Do not hardcode.
   if (includeDateTime) {
     numFeatures += 2;
   }
-  const model = buildModel([Math.floor(lookBack / step), numFeatures]);
+  const model =
+      buildModel(modelType, [Math.floor(lookBack / step), numFeatures]);
 
   const trainIteratorFn = jenaWeatherData.getIteratorFn(
       shuffle, lookBack, delay, batchSize, step, minIndex, maxIndex, normalize,
       includeDateTime);
   // TODO(cais): Use the following when the API is available.
   // const dataset = tf.data.generator(iteratorFn);
-  const epochs = 20;
+  const epochs = +epochsInput.value;
   const batchesPerEpoch = 500;
   const displayEvery = 100;
   for (let i = 0; i < epochs; ++i) {
@@ -343,7 +346,26 @@ trainModelButton.addEventListener('click', async () => {
   }
   trainModelButton.disabled = false;
   logStatus('Model training complete...');
+
+  if (modelType.indexOf('mlp') === 0) {
+    visualizeModelLayers(
+        [model.layers[1], model.layers[2]], ['Dense Layer 1', 'Dense Layer 2']);
+  }
 });
+
+/**
+ * Visualize layers of a model.
+ *
+ * @param {tf.layers.Layer[]} layers An array of layers to visualize.
+ * @param {string[]} layerNames Names of the layers, to be used to label the
+ *   tfvis surfaces. Must have the same length as `layers`.
+ */
+function visualizeModelLayers(layers, layerNames) {
+  layers.forEach((layer, i) => {
+    const surface = tfvis.visor().surface({name: layerNames[i], tab: 'Model'});
+    tfvis.show.layer(surface, layer);
+  });
+}
 
 async function run() {
   logStatus('Loading Jena weather data (41.2 MB)...');

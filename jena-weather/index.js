@@ -216,15 +216,22 @@ dataNextButton.addEventListener('click', () => {
   plotData();
 });
 
+function buildLinearRegressionModel(inputShape) {
+  const model = tf.sequential();
+  model.add(tf.layers.flatten({inputShape}));
+  model.add(tf.layers.dense({units: 1}));
+  return model;
+}
+
 function buildMLPModel(inputShape, kernelRegularizer, dropoutRate) {
   const model = tf.sequential();
   model.add(tf.layers.flatten({inputShape}));
   model.add(
-      tf.layers.dense({units: 32, activation: 'relu', kernelRegularizer}));
+      tf.layers.dense({units: 32, kernelRegularizer, activation: 'relu'}));
   if (dropoutRate > 0) {
     model.add(tf.layers.dropout({rate: dropoutRate}));
   }
-  model.add(tf.layers.dense({units: 1, kernelRegularizer}));
+  model.add(tf.layers.dense({units: 1}));
   return model;
 }
 
@@ -244,6 +251,8 @@ function buildModel(modelType, inputShape) {
     model = buildMLPModel(inputShape);
   } else if (modelType === 'mlp-l2') {
     model = buildMLPModel(inputShape, tf.regularizers.l2());
+  } else if (modelType === 'linear-regression') {
+    model = buildLinearRegressionModel(inputShape);
   } else if (modelType === 'mlp-dropout') {
     const regularizer = null;
     const dropoutRate = 0.25;
@@ -276,12 +285,17 @@ trainModelButton.addEventListener('click', async () => {
 
   // Construct model.
   const modelType = modelTypeSelect.value;
-  let numFeatures = 13;  // TODO(cais): Do not hardcode.
+  let numFeatures = jenaWeatherData.getDataColumnNames().length;
   if (includeDateTime) {
     numFeatures += 2;
   }
   const model =
       buildModel(modelType, [Math.floor(lookBack / step), numFeatures]);
+
+  // Draw a summary of the model with tfjs-vis visor.
+  const surface =
+      tfvis.visor().surface({name: 'Model Summary', tab: modelType});
+  tfvis.show.modelSummary(surface, model);
 
   const trainIteratorFn = jenaWeatherData.getIteratorFn(
       shuffle, lookBack, delay, batchSize, step, minIndex, maxIndex, normalize,
@@ -298,6 +312,7 @@ trainModelButton.addEventListener('click', async () => {
     for (let j = 0; j < batchesPerEpoch; ++j) {
       const item = trainIteratorFn();
       const trainLoss = await model.trainOnBatch(item.value[0], item.value[1]);
+
       numSeen += item.value[0].shape[0];
       totalTrainLoss += item.value[0].shape[0] * trainLoss;
       if ((j + 1) % displayEvery === 0) {
@@ -347,22 +362,26 @@ trainModelButton.addEventListener('click', async () => {
   trainModelButton.disabled = false;
   logStatus('Model training complete...');
 
-  if (modelType.indexOf('mlp') === 0) {
+  if (modelType.indexOf('mlp') === 0 ||
+      modelType.indexOf('linear-regression') === 0) {
     visualizeModelLayers(
-        [model.layers[1], model.layers[2]], ['Dense Layer 1', 'Dense Layer 2']);
+        modelType, [model.layers[1], model.layers[2]],
+        ['Dense Layer 1', 'Dense Layer 2']);
   }
 });
 
 /**
  * Visualize layers of a model.
  *
+ * @param {string} tab Name of the tfjs-vis visor tab on which the visualization
+ *   will be made.
  * @param {tf.layers.Layer[]} layers An array of layers to visualize.
  * @param {string[]} layerNames Names of the layers, to be used to label the
  *   tfvis surfaces. Must have the same length as `layers`.
  */
-function visualizeModelLayers(layers, layerNames) {
+function visualizeModelLayers(tab, layers, layerNames) {
   layers.forEach((layer, i) => {
-    const surface = tfvis.visor().surface({name: layerNames[i], tab: 'Model'});
+    const surface = tfvis.visor().surface({name: layerNames[i]});
     tfvis.show.layer(surface, layer);
   });
 }

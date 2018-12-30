@@ -264,7 +264,6 @@ function buildModel(modelType, inputShape) {
   }
 
   model.compile({loss: 'meanAbsoluteError', optimizer: 'rmsprop'});
-  model.summary();
   return model;
 }
 
@@ -274,9 +273,10 @@ let valLossValues;
 /**
  * Plot loss and accuracy curves.
  *
- * TODO(cais): More doc strings.
+ * TODO(cais): This should be replaced by tfvis.show.fitCallbacks() once
+ *   fitDataset() is used.
  */
-function plotLossAndAcc(modelType, epoch, loss, valLoss) {
+function plotLoss(modelType, epoch, loss, valLoss) {
   const lossSurface =
       tfvis.visor().surface({name: 'Loss curves', tab: modelType});
 
@@ -383,7 +383,7 @@ trainModelButton.addEventListener('click', async () => {
           `valLoss=${valLoss.toFixed(6)} ` +
           `(train: ${((t1 - t0) / batchesPerEpoch).toFixed(1)} ms/batch; ` +
           `val: ${valMsPerBatch.toFixed(1)} ms/batch)\n`);
-      plotLossAndAcc(modelType, i + 1, epochTrainLoss, valLoss)
+      plotLoss(modelType, i + 1, epochTrainLoss, valLoss)
 
       tf.dispose(valLoss);
     });

@@ -268,6 +268,31 @@ function buildModel(modelType, inputShape) {
   return model;
 }
 
+let lossValues;
+let valLossValues;
+
+/**
+ * Plot loss and accuracy curves.
+ *
+ * TODO(cais): More doc strings.
+ */
+function plotLossAndAcc(modelType, epoch, loss, valLoss) {
+  const lossSurface =
+      tfvis.visor().surface({name: 'Loss curves', tab: modelType});
+
+  if (epoch <= 1) {
+    lossValues = [];
+    valLossValues = [];
+  }
+  lossValues.push({x: epoch, y: loss});
+  valLossValues.push({x: epoch, y: valLoss});
+
+  // const values = [{x: 1, y: 10}, {x: 2, y: 20}, {x: 3, y: 5}];
+  tfvis.render.linechart(
+      {values: [lossValues, valLossValues], series: ['loss', 'val_loss']},
+      lossSurface, {xLabel: 'Epoch #', yLabel: 'Loss'});
+}
+
 trainModelButton.addEventListener('click', async () => {
   logStatus('Training model...');
   trainModelButton.disabled = true;
@@ -300,8 +325,10 @@ trainModelButton.addEventListener('click', async () => {
   const trainIteratorFn = jenaWeatherData.getIteratorFn(
       shuffle, lookBack, delay, batchSize, step, minIndex, maxIndex, normalize,
       includeDateTime);
+
   // TODO(cais): Use the following when the API is available.
   // const dataset = tf.data.generator(iteratorFn);
+  // await model.fitDataset(dataset, {epochs, batchesPerEpoch, ...});
   const epochs = +epochsInput.value;
   const batchesPerEpoch = 500;
   const displayEvery = 100;
@@ -348,25 +375,28 @@ trainModelButton.addEventListener('click', async () => {
         numSeen += numExamples;
         tf.dispose([item.value, evalOut]);
       }
-      const valLoss = totalValLoss.divStrict(tf.scalar(numSeen));
+      const valLoss = totalValLoss.divStrict(tf.scalar(numSeen)).dataSync()[0];
       const valT1 = tf.util.now();
       const valMsPerBatch = (valT1 - valT0) / valSteps;
       console.log(
           `epoch ${i + 1}/${epochs}: trainLoss=${epochTrainLoss.toFixed(6)}; ` +
-          `valLoss=${valLoss.dataSync()[0].toFixed(6)} ` +
+          `valLoss=${valLoss.toFixed(6)} ` +
           `(train: ${((t1 - t0) / batchesPerEpoch).toFixed(1)} ms/batch; ` +
           `val: ${valMsPerBatch.toFixed(1)} ms/batch)\n`);
+      plotLossAndAcc(modelType, i + 1, epochTrainLoss, valLoss)
+
       tf.dispose(valLoss);
     });
   }
   trainModelButton.disabled = false;
   logStatus('Model training complete...');
 
-  if (modelType.indexOf('mlp') === 0 ||
-      modelType.indexOf('linear-regression') === 0) {
+  if (modelType.indexOf('mlp') === 0) {
     visualizeModelLayers(
         modelType, [model.layers[1], model.layers[2]],
         ['Dense Layer 1', 'Dense Layer 2']);
+  } else if (modelType.indexOf('linear-regression') === 0) {
+    visualizeModelLayers(modelType, [model.layers[1]], ['Dense Layer 1']);
   }
 });
 
@@ -381,7 +411,7 @@ trainModelButton.addEventListener('click', async () => {
  */
 function visualizeModelLayers(tab, layers, layerNames) {
   layers.forEach((layer, i) => {
-    const surface = tfvis.visor().surface({name: layerNames[i]});
+    const surface = tfvis.visor().surface({name: layerNames[i], tab});
     tfvis.show.layer(surface, layer);
   });
 }
@@ -391,6 +421,9 @@ async function run() {
   jenaWeatherData = new JenaWeatherData();
   await jenaWeatherData.load();
   logStatus('Done loading Jena weather data.');
+  console.log(
+      'standard deviation of the T (degC) column: ' +
+      jenaWeatherData.getMeanAndStddev('T (degC)').stddev.toFixed(4));
 
   populateSelects(jenaWeatherData);
   plotData();

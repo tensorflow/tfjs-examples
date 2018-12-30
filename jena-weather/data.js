@@ -28,11 +28,13 @@ const JENA_WEATHER_CSV_PATH =
     'https://storage.googleapis.com/learnjs-data/jena_climate/jena_climate_2009_2016.csv';
 
 /**
- * TODO(cais): Doc string.
- * @param {*} str
- * @returns date:
- *          normalizedDayOfYear:
- *          normalizedTimeOfDay:
+ * Parse the date-time string from the Jena weather CSV file.
+ *
+ * @param {*} str The date time string with a format that looks like:
+ *   "17.01.2009 22:10:00"
+ * @returns date: A JavaScript Date object.
+ *          normalizedDayOfYear: Day of the year, normalized between 0 and 1.
+ *          normalizedTimeOfDay: Time of the day, normalized between 0 and 1.
  */
 function parseDateTime(str) {
   const items = str.split(' ');
@@ -178,6 +180,26 @@ export class JenaWeatherData {
 
   getTime(index) {
     return this.dateTime[index];
+  }
+
+  /**
+   * Get the mean and standard deviation of a data column.
+   *
+   *
+   */
+  getMeanAndStddev(dataColumnName) {
+    if (this.means == null ||  this.stddevs == null) {
+      throw new Error('means and stddevs have not been calculated yet.');
+    }
+
+    const index = this.getDataColumnNames().indexOf(dataColumnName);
+    if (index === -1) {
+      throw new Error(`Invalid data column name: ${dataColumnName}`);
+    }
+    return {
+      mean: this.means[index],
+      stddev: this.stddevs[index]
+    }
   }
 
   getColumnData(

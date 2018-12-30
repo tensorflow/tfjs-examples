@@ -278,7 +278,7 @@ let valLossValues;
  */
 function plotLoss(modelType, epoch, loss, valLoss) {
   const lossSurface =
-      tfvis.visor().surface({name: 'Loss curves', tab: modelType});
+      tfvis.visor().surface({tab: modelType, name: 'Loss curves'});
 
   if (epoch <= 1) {
     lossValues = [];
@@ -289,7 +289,7 @@ function plotLoss(modelType, epoch, loss, valLoss) {
 
   // const values = [{x: 1, y: 10}, {x: 2, y: 20}, {x: 3, y: 5}];
   tfvis.render.linechart(
-      {values: [lossValues, valLossValues], series: ['loss', 'val_loss']},
+      {values: [lossValues, valLossValues], series: ['train', 'val']},
       lossSurface, {xLabel: 'Epoch #', yLabel: 'Loss'});
 }
 
@@ -319,7 +319,7 @@ trainModelButton.addEventListener('click', async () => {
 
   // Draw a summary of the model with tfjs-vis visor.
   const surface =
-      tfvis.visor().surface({name: 'Model Summary', tab: modelType});
+      tfvis.visor().surface({tab: modelType, name: 'Model Summary'});
   tfvis.show.modelSummary(surface, model);
 
   const trainIteratorFn = jenaWeatherData.getIteratorFn(
@@ -411,7 +411,7 @@ trainModelButton.addEventListener('click', async () => {
  */
 function visualizeModelLayers(tab, layers, layerNames) {
   layers.forEach((layer, i) => {
-    const surface = tfvis.visor().surface({name: layerNames[i], tab});
+    const surface = tfvis.visor().surface({tab, name: layerNames[i]});
     tfvis.show.layer(surface, layer);
   });
 }

@@ -16,12 +16,22 @@
  */
 
 const filtersSection = document.getElementById('filters-section');
+const vizTypeSelect = document.getElementById('viz-type');
 
 async function run() {
-  const manifest = await (await fetch('filters/filters-manifest.json')).json();
-  for (let i = 0; i < manifest.layers.length; ++i) {
-    const layerName = manifest.layers[i].layerName;
-    const filePaths = manifest.layers[i].filePaths;
+  while (filtersSection.firstChild) {
+    filtersSection.removeChild(filtersSection.firstChild);
+  }
+
+  const vizType = vizTypeSelect.value;
+
+  const activationManifest = await (await fetch('activation/activation-manifest.json')).json();
+  const filterManifest = await (await fetch('filters/filters-manifest.json')).json();
+
+  for (let i = 0; i < filterManifest.layers.length; ++i) {
+    const layerName = filterManifest.layers[i].layerName;
+    const filePaths = filterManifest.layers[i].filePaths;
+    const activationPaths = activationManifest.layerName2FilePaths[layerName];
 
     const layerDiv = document.createElement('div');
     layerDiv.classList.add('layer-div');
@@ -32,17 +42,32 @@ async function run() {
     const layerFiltersDiv = document.createElement('div');
     layerFiltersDiv.classList.add('layer-filters');
     for (let j = 0; j < filePaths.length; ++j) {
-      const img = document.createElement('img');
-      img.classList.add('filter-image');
-      const filePath = filePaths[j].startsWith('dist/') ?
-          filePaths[j].slice(5) : filePaths[j];
-      img.src = filePath;
-      layerFiltersDiv.appendChild(img);
+      const filterDiv = document.createElement('div');
+      filterDiv.classList.add('filter-div');
+      if (vizType === 'filters' || vizType === 'both') {
+        const filterImg = document.createElement('img');
+        filterImg.classList.add('filter-image');
+        filterImg.src = filePaths[j].startsWith('dist/') ?
+            filePaths[j].slice(5) : filePaths[j];
+        filterDiv.appendChild(filterImg);
+      }
+      if (vizType === 'activation' || vizType === 'both') {
+        const activationImg = document.createElement('img');
+        activationImg.classList.add('activation-image');
+        activationImg.src = activationPaths[j].startsWith('dist/') ?
+            activationPaths[j].slice(5) : activationPaths[j];
+        console.log(activationImg.src);  // DEBUG
+        filterDiv.appendChild(activationImg);
+      }
+
+      layerFiltersDiv.appendChild(filterDiv);
     }
     layerDiv.appendChild(layerFiltersDiv);
     
     filtersSection.appendChild(layerDiv);
   }
 };
+
+vizTypeSelect.addEventListener('change', run);
 
 run();

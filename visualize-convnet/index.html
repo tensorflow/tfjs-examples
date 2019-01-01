@@ -57,10 +57,23 @@ limitations under the License.
     white-space: nowrap;
   }
 
+  .filter-div {
+    display: inline-table;
+    width: 112px;
+    max-width: 112px;
+    white-space: pre-wrap;
+    text-align: center;
+    vertical-align: middle;
+  }
+
   .filter-image {
     margin: 3px;
     width: 112px;
     height: 112px;
+  }
+
+  .activation-image {
+    margin: 3px;
   }
 </style>
 
@@ -83,15 +96,19 @@ limitations under the License.
     </section>
 
     <section>
-      <p class='section-head'>Status</p>
-      <div id="status"></div>
-    </section>
+      <p class='section-head'>Visualization of convolutional filters</p>
 
-    <section>
-      <p class='section-head'>Maximally-activating images for convolutional filters</p>
+      <div>
+        <span>What to visualize:</span>
+        <select id="viz-type">
+          <option value="filters">Maximally-activating input images</option>
+          <option value="activation">Filter activation</option>
+          <option value="both">Both</option>
+        </select>
+      </div>
+
 
       <div id="filters-section">
-
       </div>
     </section>
 

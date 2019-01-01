@@ -149,7 +149,7 @@ async function writeInternalActivationAndGetOutput(
     const filePaths = [];
     for (let j = 0; j < actualFilters; ++j) {
       const imageTensor = tf.tidy(
-          () => deprocessImage(tf.tile(activationTensors[i], [1, 1, 1, 3])));
+          () => deprocessImage(tf.tile(activationTensors[j], [1, 1, 1, 3])));
       const outputFilePath = path.join(outputDir, `${layerName}_${j + 1}.png`);
       filePaths.push(outputFilePath);
       await utils.writeImageTensorToFile(imageTensor, outputFilePath);

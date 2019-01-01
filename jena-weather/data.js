@@ -120,9 +120,6 @@ export class JenaWeatherData {
       if (this.dateTime.length > 0 &&
           newDateTime.getTime() <=
               this.dateTime[this.dateTime.length - 1].getTime()) {
-        console.warn(
-            newDateTime, '<=', this.dateTime[this.dateTime.length - 1],
-            items[0]);  // DEBUG
       }
 
       this.dateTime.push(newDateTime);

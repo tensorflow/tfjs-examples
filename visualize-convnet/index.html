@@ -51,17 +51,23 @@ limitations under the License.
     margin: 10px;
   }
 
+  .layer-filters {
+    overflow: auto;
+    overflow-y: hidden;
+    white-space: nowrap;
+  }
+
   .filter-image {
     margin: 3px;
-    width: 56px;
-    height: 56x;
+    width: 112px;
+    height: 112px;
   }
 </style>
 
 <body>
   <div class="tfjs-example-container">
     <section class='title-area'>
-      <h1>TensorFlow.js: Visualize Convnet Filters</h1>
+      <h1>TensorFlow.js: Visualize Convnet Internals</h1>
     </section>
 
     <section>

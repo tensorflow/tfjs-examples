@@ -18,7 +18,7 @@
 const filtersSection = document.getElementById('filters-section');
 
 async function run() {
-  const manifest = await (await fetch('filters/manifest.json')).json();
+  const manifest = await (await fetch('filters/filters-manifest.json')).json();
   for (let i = 0; i < manifest.layers.length; ++i) {
     const layerName = manifest.layers[i].layerName;
     const filePaths = manifest.layers[i].filePaths;
@@ -30,6 +30,7 @@ async function run() {
     layerDiv.appendChild(layerNameSpan);
 
     const layerFiltersDiv = document.createElement('div');
+    layerFiltersDiv.classList.add('layer-filters');
     for (let j = 0; j < filePaths.length; ++j) {
       const img = document.createElement('img');
       img.classList.add('filter-image');

@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-export const IMAGENET_CLASSES = {
+const IMAGENET_CLASSES = {
   0: 'tench, Tinca tinca',
   1: 'goldfish, Carassius auratus',
   2: 'great white shark, white shark, man-eater, man-eating shark, ' +
@@ -1038,3 +1038,5 @@ export const IMAGENET_CLASSES = {
   998: 'ear, spike, capitulum',
   999: 'toilet tissue, toilet paper, bathroom tissue'
 };
+
+module.exports = {IMAGENET_CLASSES};

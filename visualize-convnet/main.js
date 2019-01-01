@@ -26,6 +26,7 @@ const path = require('path');
 const shelljs = require('shelljs');
 const tf = require('@tensorflow/tfjs');
 const utils = require('./utils');
+const imagenetClasses = require('./imagenet_classes');
 
 const EPSILON = 1e-5;  // "Fudge" factor to prevent division by zero.
 
@@ -55,7 +56,7 @@ function inputGradientAscent(model, layerName, filterIndex, iterations = 40) {
     const auxModel = tf.model({inputs: model.inputs, outputs: layerOutput});
 
     // This function calculates the value of the convolutional layer's
-    // output at the designated filter index. 
+    // output at the designated filter index.
     const lossFunction = (input) =>
         auxModel.apply(input, {training: true}).gather([filterIndex], 3);
 
@@ -121,13 +122,43 @@ async function writeConvLayerFilters(
     console.log(
         `Processing layer ${layerName}, filter ${i + 1} of ${numFilters}`);
     const imageTensor = inputGradientAscent(model, layerName, i, iterations);
-    const outputFilePath = `${outputDir}/${layerName}_${i}.png`;
+    const outputFilePath = path.join(outputDir, `${layerName}_${i + 1}.png`);
     filePaths.push(outputFilePath);
     await utils.writeImageTensorToFile(imageTensor, outputFilePath);
     imageTensor.dispose();
     console.log(`  --> ${outputFilePath}`);
   }
   return filePaths;
+}
+
+async function writeInternalActivationAndGetOutput(
+    model, layerNames, inputImage, filters, outputDir) {
+  const layerName2FilePaths = {};
+  const layerOutputs =
+      layerNames.map(layerName => model.getLayer(layerName).output);
+  const compositeModel = tf.model(
+      {inputs: model.input, outputs: layerOutputs.concat(model.outputs[0])});
+  const outputs = compositeModel.predict(inputImage);
+  for (let i = 0; i < outputs.length - 1; ++i) {
+    const layerName = layerNames[i];
+    const activationTensors =
+        tf.split(outputs[i], outputs[i].shape[outputs[i].shape.length - 1], -1);
+    const actualFilters = filters <= activationTensors.length ?
+        filters :
+        activationTensors.length;
+    const filePaths = [];
+    for (let j = 0; j < actualFilters; ++j) {
+      const imageTensor = tf.tidy(
+          () => deprocessImage(tf.tile(activationTensors[i], [1, 1, 1, 3])));
+      const outputFilePath = path.join(outputDir, `${layerName}_${j + 1}.png`);
+      filePaths.push(outputFilePath);
+      await utils.writeImageTensorToFile(imageTensor, outputFilePath);
+    }
+    layerName2FilePaths[layerName] = filePaths;
+    tf.dispose(activationTensors);
+  }
+  tf.dispose(outputs.slice(0, outputs.length - 1));
+  return {modelOutput: outputs[outputs.length - 1], layerName2FilePaths};
 }
 
 function parseArguments() {
@@ -141,6 +172,13 @@ function parseArguments() {
     type: 'string',
     help: 'Names of the conv2d layers to visualize, separated by commas ' +
         'e.g., (block1_conv1,block2_conv1,block3_conv1,block4_conv1)'
+  });
+  parser.addArgument('--inputImage', {
+    type: 'string',
+    defaultValue: '',
+    help: 'Path to the input image. If specified, will compute the internal' +
+        'activations of the specified convolutional layers. If not specified, ' +
+        'will compute the maximally-activating input images using gradient ascent.'
   });
   parser.addArgument('--outputDir', {
     type: 'string',
@@ -187,20 +225,51 @@ async function run() {
     shelljs.mkdir('-p', args.outputDir);
   }
 
-  const layerNames = args.convLayerNames.split(',');
-  const manifest = {layers: []};
-  for (let i = 0; i < layerNames.length; ++i) {
-    const layerName = layerNames[i];
-    console.log(
-        `\n=== Processing layer ${i + 1} of ${layerNames.length}: ` +
-        `${layerName} ===`);
-    const filePaths = await writeConvLayerFilters(
-        model, layerName, args.filters, args.iterations, args.outputDir);
-    manifest.layers.push({layerName, filePaths});
+  if (args.inputImage != null && args.inputImage !== '') {
+    // Compute the internal activations of the conv layers' outputs.
+    const imageHeight = model.inputs[0].shape[1];
+    const imageWidth = model.inputs[0].shape[2];
+    const x = await utils.readImageTensorFromFile(
+        args.inputImage, imageHeight, imageWidth);
+    const layerNames = args.convLayerNames.split(',');
+    const {modelOutput, layerName2FilePaths} =
+        await writeInternalActivationAndGetOutput(
+            model, layerNames, x, args.filters, args.outputDir);
+
+    const topNum = 10;
+    const {values: topKVals, indices: topKIndices} =
+        tf.topk(modelOutput, topNum);
+    const values = await topKVals.data();
+    const indices = await topKIndices.data();
+    const manifest = {indices, values, layerName2FilePaths};
+
+    console.log(`Top-${topNum} classes:`)
+    for (let i = 0; i < topNum; ++i) {
+      console.log(
+          `  ${imagenetClasses.IMAGENET_CLASSES[indices[i]]}: ` +
+          `${values[i].toFixed(4)}`);
+    }
+
+    const manifestPath = path.join(args.outputDir, 'activation-manifest.json');
+    fs.writeFileSync(manifestPath, JSON.stringify(manifest));
+  } else {
+    // Calculate the maximally-activating input images for the conv layers'
+    // filters.
+    const layerNames = args.convLayerNames.split(',');
+    const manifest = {layers: []};
+    for (let i = 0; i < layerNames.length; ++i) {
+      const layerName = layerNames[i];
+      console.log(
+          `\n=== Processing layer ${i + 1} of ${layerNames.length}: ` +
+          `${layerName} ===`);
+      const filePaths = await writeConvLayerFilters(
+          model, layerName, args.filters, args.iterations, args.outputDir);
+      manifest.layers.push({layerName, filePaths});
+    }
+    // Write manifest to file.
+    const manifestPath = path.join(args.outputDir, 'filters-manifest.json');
+    fs.writeFileSync(manifestPath, JSON.stringify(manifest));
   }
-  // Write manifest to file.
-  const manifestPath = path.join(args.outputDir, 'manifest.json');
-  fs.writeFileSync(manifestPath, JSON.stringify(manifest));
 };
 
 run();

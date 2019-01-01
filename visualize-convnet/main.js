@@ -27,27 +27,14 @@ const shelljs = require('shelljs');
 const tf = require('@tensorflow/tfjs');
 const utils = require('./utils');
 
-// TODO(cais): Clean up.
-// const MODEL_PATH =
-//     // tslint:disable-next-line:max-line-length
-//     'https://storage.googleapis.com/tfjs-models/tfjs/mobilenet_v1_0.25_224/model.json';
-// const MODEL_PATH = 'https://storage.googleapis.com/tfjs-speech-model-test/mobilenetv2_tfjs/model.json';
-// const MODEL_PATH = 'https://storage.googleapis.com/tfjs-speech-model-test/mobilenetv2_0.35_tfjs/model.json';
-// const MODEL_PATH = 'https://storage.googleapis.com/tfjs-models/tfjs/mnist_transfer_cnn_v1/model.json';
-// const MODEL_PATH = 'file://./vgg16_tfjs/model.json';
-
 const EPSILON = 1e-5;  // "Fudge" factor to prevent division by zero.
 
-// const filterCanvas = document.getElementById('filter');
-
 // TODO(cais): Deduplicate with index.js.
-// TODO(cais): Get rid of filterIndex.
-// TODO(cais): Doc string.
 /**
  * Generate the maximally-activating input image for a conv2d layer filter.
- * 
+ *
  * Uses gradient ascent in input space.
- * 
+ *
  * @param {tf.Model} model The model that the conv2d layer of interest belongs
  *   to.
  * @param {string} layerName Name of the layer.
@@ -64,10 +51,12 @@ function inputGradientAscent(model, layerName, filterIndex, iterations = 40) {
 
     const layerOutput = model.getLayer(layerName).output;
     const auxModel = tf.model({inputs: model.inputs, outputs: layerOutput});
-    const lossFunction =
-        (input) => auxModel.apply(input, {training: true}).gather([filterIndex], 3);
-  
-    let image = tf.randomUniform([1, imageH, imageW, imageDepth], 0, 1).mul(20).add(128);
+    const lossFunction = (input) =>
+        auxModel.apply(input, {training: true}).gather([filterIndex], 3);
+
+    let image = tf.randomUniform([1, imageH, imageW, imageDepth], 0, 1)
+                    .mul(20)
+                    .add(128);
     const gradients = tf.grad(lossFunction);
 
     const stepSize = 1;
@@ -101,19 +90,20 @@ function deprocessImage(x) {
 }
 
 /**
- * Visualize the maximally-activating input images for a covn2d layer.
- * 
+ * Calcuate and save the maximally-activating input images for a covn2d layer.
+ *
  * @param {tf.Model} model The model that the conv2d layer of interest belongs
  *   to.
  * @param {string} layerName The name of the layer of interest.
  * @param {number} numFilters Number of the conv2d layer's filter to calculate
  *   maximally-activating inputs for. If this exceeds the number of filters
  *   that the conv2d layer has, it will be cut off.
- * @param {string} filePathPrefix File path prefix to which the output image
+ * @param {string} outputDir Path to the directory to which the output image
  *   will be written.
  * @returns {string[]} Paths to the image files generated in this call.
  */
-function writeConvLayerFilters(model, layerName, numFilters, iterations, filePathPrefix) {
+function writeConvLayerFilters(
+    model, layerName, numFilters, iterations, outputDir) {
   const filePaths = [];
   tf.tidy(() => {
     const maxFilters = model.getLayer(layerName).getWeights()[0].shape[3];
@@ -121,9 +111,10 @@ function writeConvLayerFilters(model, layerName, numFilters, iterations, filePat
       numFilters = maxFilters;
     }
     for (let i = 0; i < numFilters; ++i) {
-      console.log(`Processing layer ${layerName}, filter ${i + 1} of ${numFilters}`);
+      console.log(
+          `Processing layer ${layerName}, filter ${i + 1} of ${numFilters}`);
       const imageTensor = inputGradientAscent(model, layerName, i, iterations);
-      const outputFilePath = `${filePathPrefix}_${layerName}_${i}.png`;
+      const outputFilePath = `${outputDir}/${layerName}_${i}.png`;
       filePaths.push(outputFilePath);
       utils.writeImageTensorToFile(imageTensor, outputFilePath);
       console.log(`  --> ${outputFilePath}`);
@@ -133,9 +124,8 @@ function writeConvLayerFilters(model, layerName, numFilters, iterations, filePat
 }
 
 function parseArguments() {
-  const parser = new argparse.ArgumentParser({
-    description: 'Visualize convnet'
-  });
+  const parser =
+      new argparse.ArgumentParser({description: 'Visualize convnet'});
   parser.addArgument('modelJsonUrl', {
     type: 'string',
     help: 'URL to model JSON. Can be a file://, http://, or https:// URL'
@@ -143,12 +133,13 @@ function parseArguments() {
   parser.addArgument('convLayerNames', {
     type: 'string',
     help: 'Names of the conv2d layers to visualize, separated by commas ' +
-    'e.g., (block1_conv1,block2_conv1,block3_conv1,block4_conv1)'
+        'e.g., (block1_conv1,block2_conv1,block3_conv1,block4_conv1)'
   });
-  parser.addArgument('--outputPathPrefix', {
+  parser.addArgument('--outputDir', {
     type: 'string',
-    defaultValue: 'dist/filters/filter',
-    help: 'Output file path prefix'
+    defaultValue: 'dist/filters',
+    help: 'Output directory to which the image files and the manifest will ' +
+    'be written'
   });
   parser.addArgument('--filters', {
     type: 'int',
@@ -160,16 +151,14 @@ function parseArguments() {
     defaultValue: 40,
     help: 'Number of iterations to use for gradient ascent'
   });
-  parser.addArgument('--gpu', {
-    action: 'storeTrue',
-    help: 'Use tfjs-node-gpu (required CUDA GPU).'
-  });
+  parser.addArgument(
+      '--gpu',
+      {action: 'storeTrue', help: 'Use tfjs-node-gpu (required CUDA GPU).'});
   return parser.parseArgs();
 }
 
 async function run() {
   const args = parseArguments();
-  console.log('args:', args);  // DEBUG
 
   if (args.gpu) {
     // Use GPU bindings.
@@ -186,54 +175,24 @@ async function run() {
     args.modelJsonUrl = `file://${args.modelJsonUrl}`;
   }
   const model = await tf.loadModel(args.modelJsonUrl);
-  // const model = await tf.loadModel('./vgg16_tfjs/model.json');
-  // model.summary();  //
 
-  // Warmup the model. This isn't necessary, but makes the first prediction
-  // faster. Call `dispose` to release the WebGL memory allocated for the return
-  // value of `predict`.
-  // model.predict(tf.zeros([1, IMAGE_SIZE, IMAGE_SIZE, 3])).dispose();
-
-  console.log('Calling generate patterns');  // DEBUG
-  // generatePatterns(model, 'conv_pw_8', 0);
-  // generatePatterns(model, 'conv_pw_8_relu', 10);
-  // generatePatterns(model, 'conv_pw_9_relu', 11);
-  // generatePatterns(model, 'conv_pw_14', 0);
-  // generatePatterns(model, 'block_1_depthwise', 3);
-
-  // MobileNetV2 alpha=1.0.
-//   generatePatterns(model, 'block_1_depthwise_relu', 50);  // Interesting.
-  // generatePatterns(model, 'block_2_depthwise_relu', 2);  // Interesting.
-  // generatePatterns(model, 'block_3_depthwise_relu', 0);  // Interesting.
-  // generatePatterns(model, 'block_4_depthwise_relu', 100);  // Interesting.
-  // generatePatterns(model, 'block_4_depthwise_relu', 128);  // Interesting.
-  // Becomes extremely slow when you reach block 5.
-//   generatePatterns(model, 'block_5_depthwise_relu', 1);  // Interesting.
-
-  // MobileNetV2 alpha=0.35.
-  // generatePatterns(model, 'block_1_depthwise_relu', 0);  // Interesting.
-  // generatePatterns(model, 'block_1_depthwise_relu', 7);  // Interesting.
-  // generatePatterns(model, 'block_5_depthwise_relu', 1);  // Interesting.
-  // generatePatterns(model, 'block_6_depthwise_relu', 2);  // Interesting.
-  // generatePatterns(model, 'block_8_depthwise_relu', 2);  // Interesting.
-  // generatePatterns(model, 'block_10_depthwise_relu', 100);  // Interesting.
-  // generatePatterns(model, 'block_12_depthwise_relu', 100);  // Interesting.
-  
-  // MNIST model.
-//   generatePatterns(model, 'max_pooling2d_1', 1);  // Interesting.
-
-  console.log(args.outputPathPrefix);  // DEBUG
-  const outputDirname = path.dirname(args.outputPathPrefix);
-  if (!fs.existsSync(outputDirname)) {
-    shelljs.mkdir('-p', outputDirname);
+  if (!fs.existsSync(args.outputDir)) {
+    shelljs.mkdir('-p', args.outputDir);
   }
 
-  // VGG16
-  // TODO(cais): Handle multiple layers.
-  // inputGradientAscent(model, args.convLayerNames, filterIndex, args.iterations);  // Interesting.
-  writeConvLayerFilters(model, args.convLayerNames, args.filters, args.iterations, args.outputPathPrefix);
-
-  // TODO(cais): 
+  const layerNames = args.convLayerNames.split(',');
+  const manifest = {};
+  layerNames.forEach((layerName, i) => {
+    console.log(
+        `\n=== Processing layer ${i + 1} of ${layerNames.length}: ` +
+        `${layerName} ===`);
+    const filePaths = writeConvLayerFilters(
+        model, layerName, args.filters, args.iterations, args.outputDir);
+    manifest[layerName] = filePaths;
+  });
+  // Write manifest to file.
+  const manifestPath = path.join(args.outputDir, 'manifest.json');
+  fs.writeFileSync(manifestPath, JSON.stringify(manifest));
 };
 
 run();

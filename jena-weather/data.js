@@ -18,7 +18,8 @@
 /**
  * Data object for Jena Weather data.
  *
- * TODO(cais): Say something about the origin of the data.
+ * The data used in this demo is the
+ * [Jena weather archive dataset](https://www.kaggle.com/pankrzysiu/weather-archive-jena).
  */
 
 import * as tf from '@tensorflow/tfjs';

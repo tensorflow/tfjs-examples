@@ -1,0 +1,105 @@
+<!--
+Copyright 2018 Google LLC. All Rights Reserved.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+==============================================================================
+-->
+
+<!doctype html>
+<head>
+  <link rel="stylesheet" href="../shared/tfjs-examples.css" />
+  <link rel="stylesheet" href="./style.css" />
+</head>
+
+<body>
+  <div class="tfjs-example-container centered-container">
+    <section class='title-area'>
+      <h1>TensorFlow.js: Generative Adversarial Network</h1>
+      <p class='subtitle'>Demonstrates the generator part of the ACGAN in the browser.</p>
+    </section>
+
+    <p class='section-head'>Description</p>
+      <p>
+        This is the web demo part of the dual-environment TensorFlow.js example
+        of
+        <a href="https://arxiv.org/abs/1610.09585" target="_blank">Auxiliary Classifier Generative Adversarial Network (ACGAN)</a>.
+      </p>
+      <p>
+        The training code is in
+        <a href="https://github.com/tensorflow/tfjs-examples/blob/master/mnist-acgan/gan.js">gan.js</a>,
+        which runs in Node.js using tfjs-node
+        or tfjs-node-gpu. In this web page, we load the generator part of a pre-trained
+        GAN to generate MNIST images. How real those generated MNIST images look depends
+        on how well the model has been trained. After 5 epochs of training, you should
+        start seeing reasonable images. After 15 epochs, the images should start to
+        look good.
+        Close-to-perfect images (ones that are hard to distinguish from the real ones)
+        should appear toward the end of the default 100 epochs of training.
+      </p>
+      <p>
+        The ACGAN is a type of
+        <a href="https://en.wikipedia.org/wiki/Generative_adversarial_network" target="_blank">GAN</a>.
+        It consists of
+          <ul>
+            <li>
+              A <strong>disriminator</strong>, which is trained to distinguish a "counterfeit" MNIST image
+              from a real MNIST image. In addition, the disciminator part of ACGAN is also trained
+              to classify an MNIST image into the ten digit categories.
+            </li>
+            <li>
+              A <strong>generator</strong>, which is trained to generate realistic-looking MNIST images
+              and "fool" the discriminator. The generator takes two inputs:
+              <ol>
+                <li>
+                  A fixed-length latent vector, which can be viewed as a "random primer" for the fake
+                  generation process.
+                </li>
+                <li>
+                  An integer in the interval [0, 10), which indicates the desired digit category.
+                </li>
+              </ol>
+              Using these two inputs, it outputs a fake MNIST image.
+            </li>
+          </ul>
+      </p>
+    </p>
+
+    <div id="status">Loading model...</div>
+    <button id="load-hosted-model">Load Hosted model</button>
+    <button id="test" disabled="true">Generate</button>
+
+    <div>
+      <div>
+        <div>
+          <span id="fake-images-span">Fake images (1 example per class)</span>
+        </div>
+        <div>
+          <button id="toggle-sliders" disabled="true">Show z-vector sliders</button>
+          <div id="sliders-container"></div>
+        </div>
+        
+        <canvas id="fake-canvas" width="280" height="28"></canvas>
+      </div>
+      <div>
+        <div>
+          <span>Real images for comparison (10 examples per class)</span>
+        </div>
+        <canvas id="real-canvas" width="280" height="280"></canvas>
+      </div>
+    </div>
+
+    <div>
+  </div>
+</body>
+
+<script src="index.js"></script>

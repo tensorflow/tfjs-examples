@@ -89,7 +89,7 @@ to another project.
     <td><a href="./lstm-text-generation">lstm-text-generation</a></td>
     <td><a href="https://storage.googleapis.com/tfjs-examples/lstm-text-generation/dist/index.html">🔗</a></td>
     <td>Text</td>
-    <td>Sequent-to-prediction</td>
+    <td>Sequence-to-prediction</td>
     <td>RNN: LSTM</td>
     <td>Browser</td>
     <td>Browser</td>
@@ -106,6 +106,17 @@ to another project.
     <td>Browser</td>
     <td>Layers</td>
     <td></td>
+  </tr>
+  <tr>
+    <td><a href="./mnist-acgan">mnist-acgan</a></td>
+    <td><a href="https://storage.googleapis.com/tfjs-examples/mnist-acgan/dist/index.html">🔗</a></td>
+    <td>Image</td>
+    <td>Generative Adversarial Network (GAN)</td>
+    <td>Convolutional neural network; GAN</td>
+    <td>Node.js</td>
+    <td>Browser</td>
+    <td>Layers</td>
+    <td>Saving to filesystem from Node.js and loading it in the browser</td>
   </tr>
   <tr>
     <td><a href="./mnist-core">mnist-core</a></td>

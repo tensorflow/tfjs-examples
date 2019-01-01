@@ -1,27 +1,28 @@
 {
-  "name": "tfjs-examples-simple-object-detection",
+  "name": "tfjs-examples-mnist-node",
   "version": "0.1.0",
   "description": "",
   "main": "index.js",
   "license": "Apache-2.0",
   "private": true,
   "engines": {
-    "node": ">=8.9.0"
+    "node": ">=8.11.0"
   },
   "dependencies": {
-    "@tensorflow/tfjs-node": "0.2.1",
+    "@tensorflow/tfjs-node": "^0.2.1",
+    "@tensorflow/tfjs-node-gpu": "^0.2.1",
     "argparse": "^1.0.10",
-    "canvas": "2.0.1",
-    "node-fetch": "2.2.1"
+    "time-ago": "0.2.1"
   },
   "scripts": {
-    "watch": "cross-env NODE_ENV=development parcel index.html --no-hmr --open",
     "build": "cross-env NODE_ENV=production parcel build index.html --no-minify --public-url ./",
-    "link-local": "yalc link",
     "postinstall": "yarn upgrade --pattern @tensorflow",
-    "train": "node train.js"
+    "train": "node gan.js",
+    "watch": "cross-env NODE_ENV=development parcel index.html --no-hmr --open"
   },
   "devDependencies": {
+    "@babel/core": "^7.0.0-0",
+    "@babel/plugin-transform-runtime": "^7.1.0",
     "babel-core": "^6.26.3",
     "babel-plugin-transform-runtime": "~6.23.0",
     "babel-polyfill": "~6.26.0",

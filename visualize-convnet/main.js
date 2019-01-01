@@ -102,24 +102,23 @@ function deprocessImage(x) {
  *   will be written.
  * @returns {string[]} Paths to the image files generated in this call.
  */
-function writeConvLayerFilters(
+async function writeConvLayerFilters(
     model, layerName, numFilters, iterations, outputDir) {
   const filePaths = [];
-  tf.tidy(() => {
-    const maxFilters = model.getLayer(layerName).getWeights()[0].shape[3];
-    if (numFilters > maxFilters) {
-      numFilters = maxFilters;
-    }
-    for (let i = 0; i < numFilters; ++i) {
-      console.log(
-          `Processing layer ${layerName}, filter ${i + 1} of ${numFilters}`);
-      const imageTensor = inputGradientAscent(model, layerName, i, iterations);
-      const outputFilePath = `${outputDir}/${layerName}_${i}.png`;
-      filePaths.push(outputFilePath);
-      utils.writeImageTensorToFile(imageTensor, outputFilePath);
-      console.log(`  --> ${outputFilePath}`);
-    }
-  });
+  const maxFilters = model.getLayer(layerName).getWeights()[0].shape[3];
+  if (numFilters > maxFilters) {
+    numFilters = maxFilters;
+  }
+  for (let i = 0; i < numFilters; ++i) {
+    console.log(
+        `Processing layer ${layerName}, filter ${i + 1} of ${numFilters}`);
+    const imageTensor = inputGradientAscent(model, layerName, i, iterations);
+    const outputFilePath = `${outputDir}/${layerName}_${i}.png`;
+    filePaths.push(outputFilePath);
+    await utils.writeImageTensorToFile(imageTensor, outputFilePath);
+    imageTensor.dispose();
+    console.log(`  --> ${outputFilePath}`);
+  }
   return filePaths;
 }
 
@@ -139,7 +138,7 @@ function parseArguments() {
     type: 'string',
     defaultValue: 'dist/filters',
     help: 'Output directory to which the image files and the manifest will ' +
-    'be written'
+        'be written'
   });
   parser.addArgument('--filters', {
     type: 'int',
@@ -181,15 +180,16 @@ async function run() {
   }
 
   const layerNames = args.convLayerNames.split(',');
-  const manifest = {};
-  layerNames.forEach((layerName, i) => {
+  const manifest = {};  
+  for (let i = 0; i < layerNames.length; ++i) {
+    const layerName = layerNames[i];
     console.log(
         `\n=== Processing layer ${i + 1} of ${layerNames.length}: ` +
         `${layerName} ===`);
-    const filePaths = writeConvLayerFilters(
+    const filePaths = await writeConvLayerFilters(
         model, layerName, args.filters, args.iterations, args.outputDir);
     manifest[layerName] = filePaths;
-  });
+  }
   // Write manifest to file.
   const manifestPath = path.join(args.outputDir, 'manifest.json');
   fs.writeFileSync(manifestPath, JSON.stringify(manifest));

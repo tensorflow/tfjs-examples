@@ -19,7 +19,8 @@
  * Data object for Jena Weather data.
  *
  * The data used in this demo is the
- * [Jena weather archive dataset](https://www.kaggle.com/pankrzysiu/weather-archive-jena).
+ * [Jena weather archive
+ * dataset](https://www.kaggle.com/pankrzysiu/weather-archive-jena).
  */
 
 import * as tf from '@tensorflow/tfjs';
@@ -186,7 +187,7 @@ export class JenaWeatherData {
    *
    */
   getMeanAndStddev(dataColumnName) {
-    if (this.means == null ||  this.stddevs == null) {
+    if (this.means == null || this.stddevs == null) {
       throw new Error('means and stddevs have not been calculated yet.');
     }
 
@@ -195,8 +196,7 @@ export class JenaWeatherData {
       throw new Error(`Invalid data column name: ${dataColumnName}`);
     }
     return {
-      mean: this.means[index],
-      stddev: this.stddevs[index]
+      mean: this.means[index], stddev: this.stddevs[index]
     }
   }
 

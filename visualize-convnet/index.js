@@ -15,115 +15,33 @@
  * =============================================================================
  */
 
-/**
- * Based on
- * https://github.com/fchollet/deep-learning-with-python-notebooks/blob/master/5.4-visualizing-what-convnets-learn.ipynb
- */
-
-import * as tf from '@tensorflow/tfjs';
-// TODO(cais): Try the tfjs-node version of this.
-
-// const MODEL_PATH =
-//     // tslint:disable-next-line:max-line-length
-//     'https://storage.googleapis.com/tfjs-models/tfjs/mobilenet_v1_0.25_224/model.json';
-// const MODEL_PATH = 'https://storage.googleapis.com/tfjs-speech-model-test/mobilenetv2_tfjs/model.json';
-// const MODEL_PATH = 'https://storage.googleapis.com/tfjs-speech-model-test/mobilenetv2_0.35_tfjs/model.json';
-const MODEL_PATH = 'https://storage.googleapis.com/tfjs-models/tfjs/mnist_transfer_cnn_v1/model.json';
-
-const epsilon = tf.scalar(1e-5);
-
-const filterCanvas = document.getElementById('filter');
-
-async function generatePatterns(model, layerName, filterIndex) {
-  const imageH = model.inputs[0].shape[1];
-  const imageW = model.inputs[0].shape[2];
-  const imageDepth = model.inputs[0].shape[3];
-
-  const layerOutput = model.getLayer(layerName).output;
-  const auxModel = tf.model({inputs: model.inputs, outputs: layerOutput});
-  const lossFunction = (input) => {
-    // ----------------------------------
-    // console.log(`Calling apply(): input.shape: ${input.shape}`);  // DEBUG
-    const out = auxModel.apply(input, {training: true}).gather([filterIndex], 3);
-    return out;
-  }  // TODO(cais): Simplify.
-
-  let inputImage = tf.tidy(() => tf.randomUniform([1, imageH, imageW, imageDepth], 0, 1).mul(20).add(128));
-  const gradients = tf.grad(lossFunction);
-
-  const iterations = 200;  // TODO(cais): 40.
-  const stepSize = 4;
-  for (let i = 0; i < iterations; ++i) {
-    console.log(`Iteration ${i + 1}/${iterations}`);  // DEBUG
-    const scaledGrads = tf.tidy(() => {
-      const grads = gradients(inputImage);
-      // console.log(`grads.shape: ${JSON.stringify(grads.shape)}`);  // DEBUG
-      const norm = tf.sqrt(tf.mean(tf.square(grads))).add(epsilon);
-      // console.log(`norm.shape: ${JSON.stringify(norm.shape)}`);  // DEBUG
-      // norm.print();
-      return grads.div(norm);
-    });
-    const newInputImage = tf.tidy(() => inputImage.add(scaledGrads.mul(stepSize)).clipByValue(0, 255));
-    scaledGrads.dispose();
-    inputImage.dispose();
-    inputImage = newInputImage;
-    // clipByValue(0, 255)
-    const filterImage = tf.tidy(() => inputImage.squeeze([0]).asType('int32'));
-    await tf.toPixels(filterImage, filterCanvas);
-    filterImage.dispose();
-    // console.log(tf.memory().numTensors);  // DEBUG
-  }
-}
+const filtersSection = document.getElementById('filters-section');
 
 async function run() {
-  status('Loading model...');
-  // console.log(tf.models.execute);
+  const manifest = await (await fetch('filters/manifest.json')).json();
+  for (let i = 0; i < manifest.layers.length; ++i) {
+    const layerName = manifest.layers[i].layerName;
+    const filePaths = manifest.layers[i].filePaths;
 
-  const model = await tf.loadModel(MODEL_PATH);
-  // const model = await tf.loadModel('./vgg16_tfjs/model.json');
-  model.summary();  //
+    const layerDiv = document.createElement('div');
+    layerDiv.classList.add('layer-div');
+    const layerNameSpan = document.createElement('div');
+    layerNameSpan.textContent = `Layer "${layerName}"`;
+    layerDiv.appendChild(layerNameSpan);
 
-  // Warmup the model. This isn't necessary, but makes the first prediction
-  // faster. Call `dispose` to release the WebGL memory allocated for the return
-  // value of `predict`.
-  // model.predict(tf.zeros([1, IMAGE_SIZE, IMAGE_SIZE, 3])).dispose();
-
-  status('');
-
-  console.log('Calling generate patterns');  // DEBUG
-  // generatePatterns(model, 'conv_pw_8', 0);
-  // generatePatterns(model, 'conv_pw_8_relu', 10);
-  // generatePatterns(model, 'conv_pw_9_relu', 11);
-  // generatePatterns(model, 'conv_pw_14', 0);
-  // generatePatterns(model, 'block_1_depthwise', 3);
-
-  // MobileNetV2 alpha=1.0.
-  // generatePatterns(model, 'block_1_depthwise_relu', 50);  // Interesting.
-  // generatePatterns(model, 'block_2_depthwise_relu', 2);  // Interesting.
-  // generatePatterns(model, 'block_3_depthwise_relu', 0);  // Interesting.
-  // generatePatterns(model, 'block_4_depthwise_relu', 100);  // Interesting.
-  // generatePatterns(model, 'block_4_depthwise_relu', 128);  // Interesting.
-  // Becomes extremely slow when you reach block 5.
-  // generatePatterns(model, 'block_5_depthwise_relu', 1);  // Interesting.
-
-  // MobileNetV2 alpha=0.35.
-  // generatePatterns(model, 'block_1_depthwise_relu', 0);  // Interesting.
-  // generatePatterns(model, 'block_1_depthwise_relu', 7);  // Interesting.
-  // generatePatterns(model, 'block_5_depthwise_relu', 1);  // Interesting.
-  // generatePatterns(model, 'block_6_depthwise_relu', 2);  // Interesting.
-  // generatePatterns(model, 'block_8_depthwise_relu', 2);  // Interesting.
-  // generatePatterns(model, 'block_10_depthwise_relu', 100);  // Interesting.
-  // generatePatterns(model, 'block_12_depthwise_relu', 100);  // Interesting.
-  
-  // MNIST model.
-  generatePatterns(model, 'max_pooling2d_1', 1);  // Interesting.
+    const layerFiltersDiv = document.createElement('div');
+    for (let j = 0; j < filePaths.length; ++j) {
+      const img = document.createElement('img');
+      img.classList.add('filter-image');
+      const filePath = filePaths[j].startsWith('dist/') ?
+          filePaths[j].slice(5) : filePaths[j];
+      img.src = filePath;
+      layerFiltersDiv.appendChild(img);
+    }
+    layerDiv.appendChild(layerFiltersDiv);
+    
+    filtersSection.appendChild(layerDiv);
+  }
 };
-
-//
-// UI
-//
-
-const demoStatusElement = document.getElementById('status');
-const status = msg => demoStatusElement.innerText = msg;
 
 run();

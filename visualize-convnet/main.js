@@ -37,7 +37,7 @@ const EPSILON = 1e-5;  // "Fudge" factor to prevent division by zero.
  *
  * @param {tf.Model} model The model that the conv2d layer of interest belongs
  *   to.
- * @param {string} layerName Name of the layer.
+ * @param {string} layerName Name of the convolutional layer.
  * @param {number} filterIndex Index to the filter of interest. Must be
  *   < number of filters of the conv2d layer.
  * @param {number} iterations Number of gradient-ascent iterations.
@@ -49,28 +49,36 @@ function inputGradientAscent(model, layerName, filterIndex, iterations = 40) {
     const imageW = model.inputs[0].shape[2];
     const imageDepth = model.inputs[0].shape[3];
 
+    // Create an auxiliary model of which input is the same as the original
+    // model but the output is the convolutional layer of interest.
     const layerOutput = model.getLayer(layerName).output;
     const auxModel = tf.model({inputs: model.inputs, outputs: layerOutput});
+
+    // This function calculates the value of the convolutional layer's
+    // output at the designated filter index. 
     const lossFunction = (input) =>
         auxModel.apply(input, {training: true}).gather([filterIndex], 3);
 
+    // This function (`gradient`) calculates the gradient of the convolutional
+    // filter's output with respect to the input image.
+    const gradients = tf.grad(lossFunction);
+
+    // Form a random image as the starting point of the gradient ascent.
     let image = tf.randomUniform([1, imageH, imageW, imageDepth], 0, 1)
                     .mul(20)
                     .add(128);
-    const gradients = tf.grad(lossFunction);
 
-    const stepSize = 1;
     for (let i = 0; i < iterations; ++i) {
-      // console.log(`Iteration ${i + 1}/${iterations}`);  // DEBUG
       const scaledGrads = tf.tidy(() => {
         const grads = gradients(image);
         const norm = tf.sqrt(tf.mean(tf.square(grads))).add(EPSILON);
+        // Important trick: scale the gradient with the magnitude (norm)
+        // of the gradient.
         return grads.div(norm);
       });
-      const newInputImage = image.add(scaledGrads.mul(stepSize));
-      scaledGrads.dispose();
-      image.dispose();
-      image = newInputImage;
+      // Perform one step of gradient ascent: Update the image along the
+      // direction of the gradient.
+      image = image.add(scaledGrads);
     }
     return deprocessImage(image);
   });
@@ -158,7 +166,6 @@ function parseArguments() {
 
 async function run() {
   const args = parseArguments();
-
   if (args.gpu) {
     // Use GPU bindings.
     require('@tensorflow/tfjs-node-gpu');
@@ -174,13 +181,14 @@ async function run() {
     args.modelJsonUrl = `file://${args.modelJsonUrl}`;
   }
   const model = await tf.loadModel(args.modelJsonUrl);
+  console.log('Model loading complete.');
 
   if (!fs.existsSync(args.outputDir)) {
     shelljs.mkdir('-p', args.outputDir);
   }
 
   const layerNames = args.convLayerNames.split(',');
-  const manifest = {};  
+  const manifest = {layers: []};
   for (let i = 0; i < layerNames.length; ++i) {
     const layerName = layerNames[i];
     console.log(
@@ -188,7 +196,7 @@ async function run() {
         `${layerName} ===`);
     const filePaths = await writeConvLayerFilters(
         model, layerName, args.filters, args.iterations, args.outputDir);
-    manifest[layerName] = filePaths;
+    manifest.layers.push({layerName, filePaths});
   }
   // Write manifest to file.
   const manifestPath = path.join(args.outputDir, 'manifest.json');

@@ -216,6 +216,12 @@ dataNextButton.addEventListener('click', () => {
   plotData();
 });
 
+/**
+ * Build a linear-regression model for the temperature-prediction problem.
+ *
+ * @param {tf.Shape} inputShape Input shape (without the batch dimenson).
+ * @returns {tf.Model} A TensorFlow.js tf.Model instance.
+ */
 function buildLinearRegressionModel(inputShape) {
   const model = tf.sequential();
   model.add(tf.layers.flatten({inputShape}));
@@ -223,6 +229,18 @@ function buildLinearRegressionModel(inputShape) {
   return model;
 }
 
+/**
+ * Build a GRU model for the temperature-prediction problem.
+ *
+ * @param {tf.Shape} inputShape Input shape (without the batch dimenson).
+ * @param {tf.regularizer.Regularizer} kernelRegularizer An optional
+ *   regularizer for the kernel of the first (hdiden) dense layer of the MLP.
+ *   If not specified, no weight regularization will be included in the MLP.
+ * @param {number} dropoutRate Dropout rate of an optional dropout layer
+ *   inserted between the two dense layers of the MLP. Optional. If not
+ *   specified, no dropout layers will be included in the MLP.
+ * @returns {tf.Model} A TensorFlow.js tf.Model instance.
+ */
 function buildMLPModel(inputShape, kernelRegularizer, dropoutRate) {
   const model = tf.sequential();
   model.add(tf.layers.flatten({inputShape}));
@@ -235,15 +253,31 @@ function buildMLPModel(inputShape, kernelRegularizer, dropoutRate) {
   return model;
 }
 
-function buildGRUModel(inputShape) {
-  // TODO(cais): Add recurrent dropout.
-  const model = tf.sequential();
-  const rnnUnits = 32;
-  model.add(tf.layers.gru({units: rnnUnits, inputShape}));
-  model.add(tf.layers.dense({units: 1}));
-  return model;
-}
+/**
+ * Build a GRU model for the temperature-prediction problem.
+ *
+ * TODO(cais): Move this to a tfjs-node training script, as training
+ *  the GRU in the browser turns out to be too slow.
+ *
+ * @param {tf.Shape} inputShape Input shape (without the batch dimenson).
+ * @returns {tf.Model} A TensorFlow.js GRU model.
+ */
+// function buildGRUModel(inputShape) {
+//   // TODO(cais): Add recurrent dropout.
+//   const model = tf.sequential();
+//   const rnnUnits = 32;
+//   model.add(tf.layers.gru({units: rnnUnits, inputShape}));
+//   model.add(tf.layers.dense({units: 1}));
+//   return model;
+// }
 
+/**
+ * Build a model for the temperature-prediction problem.
+ *
+ * @param {string} modelType Model type.
+ * @param {tf.Shape} inputShape Input shape (without the batch dimenson).
+ * @returns A compiled instance of `tf.Model`.
+ */
 function buildModel(modelType, inputShape) {
   console.log(`modelType = ${modelType}`);
   let model;

@@ -191,40 +191,73 @@ async function writeInternalActivationAndGetOutput(
   return {modelOutput: outputs[outputs.length - 1], layerName2FilePaths};
 }
 
-function gradClassActivationMap(model, lastConvLayerName, classIndex, x) {
-  const lastConvLayerOutput = model.getLayer(lastConvLayerName).output;
-  const auxModel1 = tf.model({
+function gradClassActivationMap(model, classIndex, x) {
+  // Try to locate the last conv layer of the model.
+  let layerIndex = model.layers.length - 1;
+  while (layerIndex >= 0) {
+    if (model.layers[layerIndex].getClassName().startsWith("Conv")) {
+      break;
+    }
+    layerIndex--;
+  }
+  tf.util.assert(
+      layerIndex >= 0, `Failed to find a convolutional layer in model`);
+
+  const lastConvLayer = model.layers[layerIndex];
+  console.log(
+      `Located last convolutional layer of the model at ` +
+      `index ${layerIndex}: layer type = ${lastConvLayer.className}`)
+  
+  // Get "sub-model 1", which goes from the original input to the output
+  // of the last convolutional layer.
+  const lastConvLayerOutput = lastConvLayer.output;
+  const subModel1 = tf.model({
     inputs: model.inputs,
     outputs: lastConvLayerOutput
   });
-  // Locate the last conv layer.
-  let layerIndex = 0;
-  while (model.layers[layerIndex].name !== lastConvLayerName) {
-    layerIndex++;
-  }
-  console.log(`layerIndex = ${layerIndex}`);  // DEBUG
+
+  // Get "sub-model 2", which goes from the output of the last convlutional
+  // layer to the original output.
   const newInput = tf.input({shape: lastConvLayerOutput.shape.slice(1)});
-  console.log(newInput.shape);  // DEBUG
   layerIndex++;
   let y = newInput;
   while (layerIndex < model.layers.length) {
-    console.log(`applying ${model.layers[layerIndex].name}`);  // DEBUG
     y = model.layers[layerIndex++].apply(y);
-    console.log(y.shape);
   }
-  const auxModel2 = tf.model({inputs: newInput, outputs: y});
-  auxModel2.summary();  // DEBUG
+  const subModel2 = tf.model({inputs: newInput, outputs: y});
 
-  const convOutput2ClassOutput = (input) =>
-      auxModel2.apply(input, {training: true}).gather([classIndex], 1);
-  const gradFunction = tf.grad(convOutput2ClassOutput);
+  tf.tidy(() => {
+    // This function runs sub-model 2 and extracts the slice of the probability
+    // output that corresponds to the desired class.
+    const convOutput2ClassOutput = (input) =>
+        subModel2.apply(input, {training: true}).gather([classIndex], 1);
+    // This is the gradient function of the output corresponding to the desired
+    // class with respect to its input (i.e., the output of the last
+    // convolutional layer of the original model).
+    const gradFunction = tf.grad(convOutput2ClassOutput);
 
-  const lastConvLayerOutputValues = auxModel1.apply(x);
-  console.log(lastConvLayerOutputValues.shape);  // DEBUG
-  const gradValues = gradFunction(lastConvLayerOutputValues);
+    // Calculate the values of the last conv layer's output.
+    const lastConvLayerOutputValues = subModel1.apply(x);
+    // Calculate the values of gradients of the class output w.r.t. the output
+    // of the last convolutional layer.
+    const gradValues = gradFunction(lastConvLayerOutputValues);
 
-  const pooledGradValues = tf.mean(gradValues, [0, 1, 2]);
-  console.log(pooledGradValues.dataSync());  // DEBUG
+    // Pool the gradient values within each filter of the last convolutional
+    // layer, resulting in a tensor of shape [numFilters].
+    const pooledGradValues = tf.mean(gradValues, [0, 1, 2]);
+    // Scale the convlutional layer's output by the pooled gradients, using
+    // broadcasting.
+    const scaledConvOutputValues =
+        lastConvLayerOutputValues.mul(pooledGradValues);
+
+    // Create heat map by averaging and collapsing over all filters.
+    let heatMap = scaledConvOutputValues.mean(-1);
+
+    // Normalize heatMap to the [0, 1] interval.
+    heatMap = heatMap.relu();
+    heatMap = heatMap.div(heatMap.max());
+    heatMap.print();
+  });
 }
 
 function parseArguments() {
@@ -318,9 +351,8 @@ async function run() {
           `${values[i].toFixed(4)}`);
     }
 
-
     // Calculate Grad-CAM heatmap.
-    gradClassActivationMap(model, 'block5_conv3', topKIndices[0], x);
+    gradClassActivationMap(model, indices[0], x);
 
     const manifestPath = path.join(args.outputDir, 'activation-manifest.json');
     fs.writeFileSync(manifestPath, JSON.stringify(manifest));

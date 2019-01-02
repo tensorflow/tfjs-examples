@@ -142,7 +142,7 @@ function applyColorMap(x) {
       x.shape[3] === 1,
       `Expected exactly one channel, but got ${x.shape[3]} channels`);
 
-  return tidy(() => {
+  return tf.tidy(() => {
     // Get normalized x.
     const EPSILON = 1e-5;
     const xRange = x.max().sub(x.min());

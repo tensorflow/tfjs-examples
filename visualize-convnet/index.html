@@ -90,12 +90,27 @@ limitations under the License.
     <section>
       <p class='section-head'>Description</p>
       <p>
-        This demo uses the pretrained MobileNet_25_224 model from Keras which you can find
-        <a href="https://github.com/fchollet/deep-learning-models/releases/download/v0.6/mobilenet_2_5_224_tf.h5">here</a>.
+        This example demonstrates some techniques of visualizing
+        the internal workings of a convolutional neural network (convnet)
+        in TensorFlow.js, including:
 
-        It is not trained to recognize human faces. For best performance, upload images of objects
-        like piano, coffee mugs, bottles, etc. You can see all the objects types it has been trained to recognize in <a
-          href="https://github.com/tensorflow/tfjs-examples/blob/master/mobilenet/imagenet_classes.js">imagenet_classes.js</a>.
+        <ul>
+          <li>
+            Finding what convolutional layers' filters are sensitive to after
+            training: calculating maximally-activating input image for
+            convolutional filters through gradient ascent in the input space.
+          </li>
+          <li>
+            Getting the internal activation of a convnet by uisng the
+            functional model API of TensorFlow.js
+          </li>
+          <li>
+            Finding which part of an input image is most relevant to the
+            classification decision made by a convnet (
+            <a href="https://keras.io/applications/#vgg16">VGG16</a> in this case),
+            using the gradient-based class activation map (CAM) approach.
+          </li>
+        </ul>
       </p>
     </section>
 

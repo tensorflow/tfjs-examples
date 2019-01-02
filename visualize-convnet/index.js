@@ -30,8 +30,10 @@ async function run() {
 
   const vizType = vizTypeSelect.value;
 
-  const activationManifest = await (await fetch('activation/activation-manifest.json')).json();
-  const filterManifest = await (await fetch('filters/filters-manifest.json')).json();
+  const activationManifest =
+      await (await fetch('activation/activation-manifest.json')).json();
+  const filterManifest =
+      await (await fetch('filters/filters-manifest.json')).json();
 
   if (vizType === 'filters' || vizType === 'activation' || vizType === 'both') {
     for (let i = 0; i < filterManifest.layers.length; ++i) {
@@ -66,7 +68,7 @@ async function run() {
         layerFiltersDiv.appendChild(filterDiv);
       }
       layerDiv.appendChild(layerFiltersDiv);
-      
+
       vizSection.appendChild(layerDiv);
     }
   } else if (vizType === 'cam') {
@@ -75,9 +77,14 @@ async function run() {
     const img = document.createElement('img');
     img.src = normalizePath(activationManifest.camImagePath);
     imgDiv.appendChild(img);
-    vizSection.appendChild(imgDiv);
-  }
 
+    const winnerDiv = document.createElement('div');
+    winnerDiv.textContent = `${activationManifest.topClass} ` +
+        `(p=${activationManifest.topProb.toFixed(4)})`;
+
+    vizSection.appendChild(imgDiv);
+    vizSection.appendChild(winnerDiv);
+  }
 };
 
 vizTypeSelect.addEventListener('change', run);

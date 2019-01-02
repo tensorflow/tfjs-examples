@@ -203,7 +203,7 @@ async function writeInternalActivationAndGetOutput(
  * output (activation) under the input image, weights its filters by the
  * gradient of the class output with respect to them, and then collapses along
  * the filter dimension.
- * 
+ *
  * @param {tf.Sequential} model A TensorFlow.js sequential model, assumed to
  *   contain at least o
  * @param {number} classIndex Index to class in the model's final classification
@@ -219,7 +219,7 @@ function gradClassActivationMap(model, classIndex, x, overlayFactor = 2.0) {
   // Try to locate the last conv layer of the model.
   let layerIndex = model.layers.length - 1;
   while (layerIndex >= 0) {
-    if (model.layers[layerIndex].getClassName().startsWith("Conv")) {
+    if (model.layers[layerIndex].getClassName().startsWith('Conv')) {
       break;
     }
     layerIndex--;
@@ -232,14 +232,12 @@ function gradClassActivationMap(model, classIndex, x, overlayFactor = 2.0) {
       `Located last convolutional layer of the model at ` +
       `index ${layerIndex}: layer type = ${lastConvLayer.getClassName()}; ` +
       `layer name = ${lastConvLayer.name}`);
-  
+
   // Get "sub-model 1", which goes from the original input to the output
   // of the last convolutional layer.
   const lastConvLayerOutput = lastConvLayer.output;
-  const subModel1 = tf.model({
-    inputs: model.inputs,
-    outputs: lastConvLayerOutput
-  });
+  const subModel1 =
+      tf.model({inputs: model.inputs, outputs: lastConvLayerOutput});
 
   // Get "sub-model 2", which goes from the output of the last convolutional
   // layer to the original output.
@@ -391,7 +389,15 @@ async function run() {
     console.log(`Written CAM-overlaid image to: ${camImagePath}`);
 
     // Create manifest and write it to disk.
-    const manifest = {indices, values, layerName2FilePaths, camImagePath};
+    const manifest = {
+      indices,
+      values,
+      layerName2FilePaths,
+      camImagePath,
+      topIndex: indices[0],
+      topProb: values[0],
+      topClass: imagenetClasses.IMAGENET_CLASSES[indices[0]]
+    };
     const manifestPath = path.join(args.outputDir, 'activation-manifest.json');
     fs.writeFileSync(manifestPath, JSON.stringify(manifest));
   } else {

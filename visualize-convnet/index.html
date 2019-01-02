@@ -75,6 +75,10 @@ limitations under the License.
   .activation-image {
     margin: 3px;
   }
+
+  .cam-image {
+    margin: 5px;
+  }
 </style>
 
 <body>
@@ -96,19 +100,20 @@ limitations under the License.
     </section>
 
     <section>
-      <p class='section-head'>Visualization of convolutional filters</p>
+      <p class='section-head'>Visualization</p>
 
       <div>
         <span>What to visualize:</span>
         <select id="viz-type">
           <option value="filters">Maximally-activating input images</option>
           <option value="activation">Filter activation</option>
-          <option value="both">Both</option>
+          <option value="both">Maximally-activating input images + filter activation</option>
+          <option value="cam">Class activation map (CAM)</option>
         </select>
       </div>
 
 
-      <div id="filters-section">
+      <div id="viz-section">
       </div>
     </section>
 

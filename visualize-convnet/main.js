@@ -191,7 +191,14 @@ async function writeInternalActivationAndGetOutput(
   return {modelOutput: outputs[outputs.length - 1], layerName2FilePaths};
 }
 
-function gradClassActivationMap(model, classIndex, x) {
+/**
+ * TODO(cais): Doc string.
+ * @param {*} model 
+ * @param {*} classIndex 
+ * @param {*} x 
+ * @param {*} overlayFactor 
+ */
+function gradClassActivationMap(model, classIndex, x, overlayFactor = 2.0) {
   // Try to locate the last conv layer of the model.
   let layerIndex = model.layers.length - 1;
   while (layerIndex >= 0) {
@@ -206,7 +213,8 @@ function gradClassActivationMap(model, classIndex, x) {
   const lastConvLayer = model.layers[layerIndex];
   console.log(
       `Located last convolutional layer of the model at ` +
-      `index ${layerIndex}: layer type = ${lastConvLayer.className}`)
+      `index ${layerIndex}: layer type = ${lastConvLayer.getClassName()}; ` +
+      `layer name = ${lastConvLayer.name}`);
   
   // Get "sub-model 1", which goes from the original input to the output
   // of the last convolutional layer.
@@ -226,7 +234,7 @@ function gradClassActivationMap(model, classIndex, x) {
   }
   const subModel2 = tf.model({inputs: newInput, outputs: y});
 
-  tf.tidy(() => {
+  return tf.tidy(() => {
     // This function runs sub-model 2 and extracts the slice of the probability
     // output that corresponds to the desired class.
     const convOutput2ClassOutput = (input) =>
@@ -255,8 +263,17 @@ function gradClassActivationMap(model, classIndex, x) {
 
     // Normalize heatMap to the [0, 1] interval.
     heatMap = heatMap.relu();
-    heatMap = heatMap.div(heatMap.max());
-    heatMap.print();
+    heatMap = heatMap.div(heatMap.max()).expandDims(-1);
+
+    // Up-sample the heat map to the size of the input image.
+    heatMap = tf.image.resizeBilinear(heatMap, [x.shape[1], x.shape[2]]);
+
+    // Apply an RGB colormap on the heatMap.
+    heatMap = utils.applyColorMap(heatMap);
+
+    // To form the final output, overlay the color heat map on the input image.
+    heatMap = heatMap.mul(overlayFactor).add(x.div(255));
+    return heatMap.div(heatMap.max()).mul(255);
   });
 }
 
@@ -341,7 +358,6 @@ async function run() {
         tf.topk(modelOutput, topNum);
     const values = await topKVals.data();
     const indices = await topKIndices.data();
-    const manifest = {indices, values, layerName2FilePaths};
 
     console.log(`Top-${topNum} classes:`);
     for (let i = 0; i < topNum; ++i) {
@@ -352,8 +368,13 @@ async function run() {
     }
 
     // Calculate Grad-CAM heatmap.
-    gradClassActivationMap(model, indices[0], x);
+    const xWithCAMOverlay = gradClassActivationMap(model, indices[0], x);
+    const camImagePath = path.join(args.outputDir, 'cam.png');
+    await utils.writeImageTensorToFile(xWithCAMOverlay, camImagePath);
+    console.log(`Written CAM-overlaid image to: ${camImagePath}`);
 
+    // Create manifest and write it to disk.
+    const manifest = {indices, values, layerName2FilePaths, camImagePath};
     const manifestPath = path.join(args.outputDir, 'activation-manifest.json');
     fs.writeFileSync(manifestPath, JSON.stringify(manifest));
   } else {

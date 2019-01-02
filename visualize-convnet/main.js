@@ -19,10 +19,16 @@
  * Based on
  * https://github.com/fchollet/deep-learning-with-python-notebooks/blob/master/5.4-visualizing-what-convnets-learn.ipynb
  *
- * TODO(cais): More doc string. Describe
- * - Retrieving internal activations of a convnet
- * - Maximally-activating input image: Gradient ascent in input space
- * - Grad-CAM
+ * This script performs the following operations:
+ * 1. Retrieving internal activations of a convnet.
+ *    See function `writeInternalActivationAndGetOutput`.
+ * 2. Calculate maximally-activating input image for convnet filters, using
+ *    gradient ascent in input space.
+ *    See function `inputGradientAscent`.
+ * 3. Get visual interpretation of which parts of the image more most
+ *    responsible for a convnet's classification decision, using the
+ *    gradient-based class activation map (CAM) method.
+ *    See function `gradClassActivationMap`.
  */
 
 const argparse = require('argparse');
@@ -35,7 +41,6 @@ const imagenetClasses = require('./imagenet_classes');
 
 const EPSILON = 1e-5;  // "Fudge" factor to prevent division by zero.
 
-// TODO(cais): Deduplicate with index.js.
 /**
  * Generate the maximally-activating input image for a conv2d layer filter.
  *
@@ -192,11 +197,23 @@ async function writeInternalActivationAndGetOutput(
 }
 
 /**
- * TODO(cais): Doc string.
- * @param {*} model 
- * @param {*} classIndex 
- * @param {*} x 
- * @param {*} overlayFactor 
+ * Calculate gradient-based class activation map and overlay it on input image.
+ *
+ * This function automatically finds the last convolutional layer, get its
+ * output (activation) under the input image, weights its filters by the
+ * gradient of the class output with respect to them, and then collapses along
+ * the filter dimension.
+ * 
+ * @param {tf.Sequential} model A TensorFlow.js sequential model, assumed to
+ *   contain at least o
+ * @param {number} classIndex Index to class in the model's final classification
+ *   output.
+ * @param {tf.Tensor4d} x Input image, assumed to have shape
+ *   `[1, height, width, 3]`.
+ * @param {number} overlayFactor Optional overlay factor.
+ * @returns The input image with a heat-map representation of the class
+ *   activation map overlaid on top of it, as float32-type `tf.Tensor4d` of
+ *   shape `[1, height, width, 3]`.
  */
 function gradClassActivationMap(model, classIndex, x, overlayFactor = 2.0) {
   // Try to locate the last conv layer of the model.
@@ -224,7 +241,7 @@ function gradClassActivationMap(model, classIndex, x, overlayFactor = 2.0) {
     outputs: lastConvLayerOutput
   });
 
-  // Get "sub-model 2", which goes from the output of the last convlutional
+  // Get "sub-model 2", which goes from the output of the last convolutional
   // layer to the original output.
   const newInput = tf.input({shape: lastConvLayerOutput.shape.slice(1)});
   layerIndex++;

@@ -125,6 +125,13 @@ const RGB_COLORMAP = [
   0.9769,   0.9839,  0.0805
 ];
 
+/**
+ * Convert an input monocolor image to color by applying a color map.
+ * 
+ * @param {tf.Tensor4d} x Input monocolor image, assumed to be of shape
+ *   `[1, height, width, 1]`.
+ * @returns Color image, of shape `[1, height, width, 3]`.
+ */
 function applyColorMap(x) {
   tf.util.assert(
       x.rank === 4, `Expected rank-4 tensor input, got rank ${x.rank}`);
@@ -135,28 +142,29 @@ function applyColorMap(x) {
       x.shape[3] === 1,
       `Expected exactly one channel, but got ${x.shape[3]} channels`);
 
-  // TODO(cais): Memory managemnet.
-  // Get normalized x.
-  const EPSILON = 1e-5;
-  const xRange = x.max().sub(x.min());
-  const xNorm = x.sub(x.min()).div(xRange.add(EPSILON));
-  const xNormData = xNorm.dataSync();
+  return tidy(() => {
+    // Get normalized x.
+    const EPSILON = 1e-5;
+    const xRange = x.max().sub(x.min());
+    const xNorm = x.sub(x.min()).div(xRange.add(EPSILON));
+    const xNormData = xNorm.dataSync();
 
-  const h = x.shape[1];
-  const w = x.shape[2];
-  const buffer = tf.buffer([1, h, w, 3]);
+    const h = x.shape[1];
+    const w = x.shape[2];
+    const buffer = tf.buffer([1, h, w, 3]);
 
-  const colorMapSize = RGB_COLORMAP.length / 3;
-  for (let i = 0; i < h; ++i) {
-    for (let j = 0; j < w; ++j) {
-      const pixelValue = xNormData[i * w + j];
-      const row = Math.floor(pixelValue * colorMapSize);
-      buffer.set(RGB_COLORMAP[3 * row], 0, i, j, 0);
-      buffer.set(RGB_COLORMAP[3 * row + 1], 0, i, j, 1);
-      buffer.set(RGB_COLORMAP[3 * row + 2], 0, i, j, 2);
+    const colorMapSize = RGB_COLORMAP.length / 3;
+    for (let i = 0; i < h; ++i) {
+      for (let j = 0; j < w; ++j) {
+        const pixelValue = xNormData[i * w + j];
+        const row = Math.floor(pixelValue * colorMapSize);
+        buffer.set(RGB_COLORMAP[3 * row], 0, i, j, 0);
+        buffer.set(RGB_COLORMAP[3 * row + 1], 0, i, j, 1);
+        buffer.set(RGB_COLORMAP[3 * row + 2], 0, i, j, 2);
+      }
     }
-  }
-  return buffer.toTensor();
+    return buffer.toTensor();
+  });
 }
 
 module.exports = {

@@ -191,6 +191,42 @@ async function writeInternalActivationAndGetOutput(
   return {modelOutput: outputs[outputs.length - 1], layerName2FilePaths};
 }
 
+function gradClassActivationMap(model, lastConvLayerName, classIndex, x) {
+  const lastConvLayerOutput = model.getLayer(lastConvLayerName).output;
+  const auxModel1 = tf.model({
+    inputs: model.inputs,
+    outputs: lastConvLayerOutput
+  });
+  // Locate the last conv layer.
+  let layerIndex = 0;
+  while (model.layers[layerIndex].name !== lastConvLayerName) {
+    layerIndex++;
+  }
+  console.log(`layerIndex = ${layerIndex}`);  // DEBUG
+  const newInput = tf.input({shape: lastConvLayerOutput.shape.slice(1)});
+  console.log(newInput.shape);  // DEBUG
+  layerIndex++;
+  let y = newInput;
+  while (layerIndex < model.layers.length) {
+    console.log(`applying ${model.layers[layerIndex].name}`);  // DEBUG
+    y = model.layers[layerIndex++].apply(y);
+    console.log(y.shape);
+  }
+  const auxModel2 = tf.model({inputs: newInput, outputs: y});
+  auxModel2.summary();  // DEBUG
+
+  const convOutput2ClassOutput = (input) =>
+      auxModel2.apply(input, {training: true}).gather([classIndex], 1);
+  const gradFunction = tf.grad(convOutput2ClassOutput);
+
+  const lastConvLayerOutputValues = auxModel1.apply(x);
+  console.log(lastConvLayerOutputValues.shape);  // DEBUG
+  const gradValues = gradFunction(lastConvLayerOutputValues);
+
+  const pooledGradValues = tf.mean(gradValues, [0, 1, 2]);
+  console.log(pooledGradValues.dataSync());  // DEBUG
+}
+
 function parseArguments() {
   const parser =
       new argparse.ArgumentParser({description: 'Visualize convnet'});
@@ -276,12 +312,15 @@ async function run() {
 
     console.log(`Top-${topNum} classes:`);
     for (let i = 0; i < topNum; ++i) {
+      const index = indices[i];
       console.log(
-          `  ${imagenetClasses.IMAGENET_CLASSES[indices[i]]}: ` +
+          `  ${imagenetClasses.IMAGENET_CLASSES[index]} (index=${index}): ` +
           `${values[i].toFixed(4)}`);
     }
 
+
     // Calculate Grad-CAM heatmap.
+    gradClassActivationMap(model, 'block5_conv3', topKIndices[0], x);
 
     const manifestPath = path.join(args.outputDir, 'activation-manifest.json');
     fs.writeFileSync(manifestPath, JSON.stringify(manifest));

@@ -18,6 +18,11 @@
 /**
  * Based on
  * https://github.com/fchollet/deep-learning-with-python-notebooks/blob/master/5.4-visualizing-what-convnets-learn.ipynb
+ *
+ * TODO(cais): More doc string. Describe
+ * - Retrieving internal activations of a convnet
+ * - Maximally-activating input image: Gradient ascent in input space
+ * - Grad-CAM
  */
 
 const argparse = require('argparse');
@@ -236,6 +241,7 @@ async function run() {
         await writeInternalActivationAndGetOutput(
             model, layerNames, x, args.filters, args.outputDir);
 
+    // Calculate internal activations and final output of the model.
     const topNum = 10;
     const {values: topKVals, indices: topKIndices} =
         tf.topk(modelOutput, topNum);
@@ -249,6 +255,8 @@ async function run() {
           `  ${imagenetClasses.IMAGENET_CLASSES[indices[i]]}: ` +
           `${values[i].toFixed(4)}`);
     }
+
+    // Calculate Grad-CAM heatmap.
 
     const manifestPath = path.join(args.outputDir, 'activation-manifest.json');
     fs.writeFileSync(manifestPath, JSON.stringify(manifest));

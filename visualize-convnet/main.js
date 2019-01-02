@@ -136,16 +136,40 @@ async function writeConvLayerFilters(
   return filePaths;
 }
 
+/**
+ * Write internal activation of conv layers to file; Get model output.
+ *
+ * @param {tf.Model} model The model of interest.
+ * @param {string[]} layerNames Names of layers of interest.
+ * @param {tf.Tensor4d} inputImage The input image represented as a 4D tensor
+ *   of shape [1, height, width, 3].
+ * @param {number} filters Number of filters to run for each convolutional
+ *   layer. If it exceeds the number of filters of a convolutional layer, it
+ *   will be cut off.
+ * @param {string} outputDir Path to the directory to which the image files
+ *   representing the activation will be saved.
+ * @return modelOutput: final output of the model as a tf.Tensor.
+ *         layerName2FilePaths: an object mapping layer name to the paths to the
+ *           image files saved for the layer's activation.
+ */
 async function writeInternalActivationAndGetOutput(
     model, layerNames, inputImage, filters, outputDir) {
   const layerName2FilePaths = {};
   const layerOutputs =
       layerNames.map(layerName => model.getLayer(layerName).output);
+
+  // Construct a mdoel that returns all the desired internal activations,
+  // in addition to the final output of the original model.
   const compositeModel = tf.model(
       {inputs: model.input, outputs: layerOutputs.concat(model.outputs[0])});
+
+  // `outputs` is an array of `tf.Tensor`s, including the internal activations
+  // and the final output.
   const outputs = compositeModel.predict(inputImage);
+
   for (let i = 0; i < outputs.length - 1; ++i) {
     const layerName = layerNames[i];
+    // Split the activation of the convolutional layer by filter.
     const activationTensors =
         tf.split(outputs[i], outputs[i].shape[outputs[i].shape.length - 1], -1);
     const actualFilters = filters <= activationTensors.length ?
@@ -153,6 +177,7 @@ async function writeInternalActivationAndGetOutput(
         activationTensors.length;
     const filePaths = [];
     for (let j = 0; j < actualFilters; ++j) {
+      // Format activation tensors and write them to disk.
       const imageTensor = tf.tidy(
           () => deprocessImage(tf.tile(activationTensors[j], [1, 1, 1, 3])));
       const outputFilePath = path.join(outputDir, `${layerName}_${j + 1}.png`);
@@ -249,7 +274,7 @@ async function run() {
     const indices = await topKIndices.data();
     const manifest = {indices, values, layerName2FilePaths};
 
-    console.log(`Top-${topNum} classes:`)
+    console.log(`Top-${topNum} classes:`);
     for (let i = 0; i < topNum; ++i) {
       console.log(
           `  ${imagenetClasses.IMAGENET_CLASSES[indices[i]]}: ` +

@@ -93,7 +93,6 @@ function plotData() {
   } else {
     // Plot one or two series agains time.
     makeTimeSerieChart(series1, series2, timeSpan, normalize);
-    updateDateTimeRangeSpan();
   }
 
   updateDateTimeRangeSpan();
@@ -129,6 +128,7 @@ function makeTimeSerieChart(series1, series2, timeSpan, normalize) {
   }
   // NOTE(cais): On a Linux workstation running latest Chrome, the length
   // limit seems to be around 120k.
+  console.log('Calling linerchart');  // DEBUG
   tfvis.render.linechart({values, series: series}, dataChartContainer, {
     width: dataChartContainer.offsetWidth * 0.95,
     height: dataChartContainer.offsetWidth * 0.3,
@@ -459,7 +459,10 @@ async function run() {
       'standard deviation of the T (degC) column: ' +
       jenaWeatherData.getMeanAndStddev('T (degC)').stddev.toFixed(4));
 
+  console.log('Populating data-series selects...');
   populateSelects(jenaWeatherData);
+
+  console.log('Plotting data...');
   plotData();
 }
 

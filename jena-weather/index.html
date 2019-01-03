@@ -81,12 +81,6 @@ limitations under the License.
     </section>
 
     <section>
-      <p class='section-head'>Status</p>
-      <p id="status"></p>
-      <p id="message"></p>
-    </section>
-
-    <section>
       <p class='section-head'>Description</p>
       <p>
         This demo showcases
@@ -113,7 +107,8 @@ limitations under the License.
         <p>
           <ol>
             <li>
-              To play with the visualization, select various columns of the dataset in the
+              To visualize and explore the data that goes into the model,
+              select various columns of the dataset in the
               "Data series 1" and "Data series 2" dropdown menus. Experiment with normalization
               and no-normalization options. Try showing the data at different time spans.
               At time spans narrower than "full", you can use the left and right arrow
@@ -122,15 +117,22 @@ limitations under the License.
               checkbox.
             </li>
             <li>
-              To train a linear-regression or MLP model, specify the number of training epochs
+              To train a linear-regression model or a multilayer perceptron (MLP),
+              specify the number of training epochs
               and click "Train model". Wait patiently for the training to finish.
-              Loss vaules from the training and validation dataset will be refreshed in the
+              Loss values from the training and validation dataset will be refreshed in the
               tfjs-vis visor surface on the right-hand side of the page at the end of
               every training epoch. Experiment with regularization and dropout and observe
               their effects on overfitting.
             </li>
           </ol>
         </p>
+      </section>
+
+      <section>
+        <p class='section-head'>Status</p>
+        <p id="status"></p>
+        <p id="message"></p>
       </section>
 
       <div class="controls with-rows">

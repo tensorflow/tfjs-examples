@@ -23,47 +23,16 @@ import * as tf from '@tensorflow/tfjs';
 import * as tfvis from '@tensorflow/tfjs-vis';
 
 import {JenaWeatherData} from './data';
-import {logStatus, populateSelects} from './ui';
+import {currBeginIndex, getDataVizOptions, logStatus, populateSelects, TIME_SPAN_RANGE_MAP, TIME_SPAN_STRIDE_MAP, updateDateTimeRangeSpan, updateScatterCheckbox} from './ui';
 
-let jenaWeatherData;
-
-const timeSpanSelect = document.getElementById('time-span');
-const selectSeries1 = document.getElementById('data-series-1');
-const selectSeries2 = document.getElementById('data-series-2');
 const dataChartContainer = document.getElementById('data-chart');
-const dataNormalizedCheckbox = document.getElementById('data-normalized');
-const dataScatterCheckbox = document.getElementById('data-scatter');
-
-const dataPrevButton = document.getElementById('data-prev');
-const dataNextButton = document.getElementById('data-next');
-const dateTimeRangeSpan = document.getElementById('date-time-range');
-
 const trainModelButton = document.getElementById('train-model');
 const modelTypeSelect = document.getElementById('model-type');
 const includeDateTimeSelect =
     document.getElementById('include-date-time-features');
-
 const epochsInput = document.getElementById('epochs');
 
-const TIME_SPAN_RANGE_MAP = {
-  hour: 6,
-  day: 6 * 24,
-  week: 6 * 24 * 7,
-  tenDays: 6 * 24 * 10,
-  month: 6 * 24 * 30,
-  year: 6 * 24 * 365,
-  full: null
-};
-const TIME_SPAN_STRIDE_MAP = {
-  day: 1,
-  week: 1,
-  tenDays: 6,
-  month: 6,
-  year: 6 * 6,
-  full: 6 * 24
-};
-
-let currBeginIndex = 0;
+let jenaWeatherData;
 
 /**
  * Render data chart.
@@ -79,23 +48,19 @@ let currBeginIndex = 0;
  * - A line chart that plots one or two timeseries against time, or
  * - A scatter plot that plots two timeseries against on another.
  */
-function plotData() {
+export function plotData() {
   logStatus('Rendering data plot...');
-  const timeSpan = timeSpanSelect.value;
-  const series1 = selectSeries1.value;
-  const series2 = selectSeries2.value;
-  const normalize = dataNormalizedCheckbox.checked;
-  const scatter = dataScatterCheckbox.checked;
+  const {timeSpan, series1, series2, normalize, scatter} = getDataVizOptions();
 
   if (scatter && series1 !== 'None' && series2 !== 'None') {
     // Plot the two series against each other.
     makeTimeSeriesScatterPlot(series1, series2, timeSpan, normalize);
   } else {
     // Plot one or two series agains time.
-    makeTimeSerieChart(series1, series2, timeSpan, normalize);
+    makeTimeSeriesChart(series1, series2, timeSpan, normalize);
   }
 
-  updateDateTimeRangeSpan();
+  updateDateTimeRangeSpan(jenaWeatherData);
   updateScatterCheckbox();
   logStatus('Done rendering chart.');
 }
@@ -110,7 +75,7 @@ function plotData() {
  * @param {boolean} normalize Whether to use normalized for the two
  *   timeseries.
  */
-function makeTimeSerieChart(series1, series2, timeSpan, normalize) {
+function makeTimeSeriesChart(series1, series2, timeSpan, normalize) {
   const values = [];
   const series = [];
   const includeTime = true;
@@ -175,46 +140,6 @@ function makeTimeSeriesScatterPlot(series1, series2, timeSpan, normalize) {
     yLabel: seriesLabel2
   });
 }
-
-function updateDateTimeRangeSpan() {
-  const timeSpan = timeSpanSelect.value;
-  const currEndIndex = currBeginIndex + TIME_SPAN_RANGE_MAP[timeSpan];
-  const begin =
-      new Date(jenaWeatherData.getTime(currBeginIndex)).toLocaleDateString();
-  const end =
-      new Date(jenaWeatherData.getTime(currEndIndex)).toLocaleDateString();
-  dateTimeRangeSpan.textContent = `${begin} - ${end}`;
-}
-
-function updateScatterCheckbox() {
-  const series1 = selectSeries1.value;
-  const series2 = selectSeries2.value;
-  dataScatterCheckbox.disabled = series1 === 'None' || series2 === 'None';
-}
-
-timeSpanSelect.addEventListener('change', () => {
-  plotData();
-});
-selectSeries1.addEventListener('change', plotData);
-selectSeries2.addEventListener('change', plotData);
-dataNormalizedCheckbox.addEventListener('change', plotData);
-dataScatterCheckbox.addEventListener('change', plotData);
-
-dataPrevButton.addEventListener('click', () => {
-  const timeSpan = timeSpanSelect.value;
-  currBeginIndex -= Math.round(TIME_SPAN_RANGE_MAP[timeSpan] / 8);
-  if (currBeginIndex >= 0) {
-    plotData();
-  } else {
-    currBeginIndex = 0;
-  }
-});
-
-dataNextButton.addEventListener('click', () => {
-  const timeSpan = timeSpanSelect.value;
-  currBeginIndex += Math.round(TIME_SPAN_RANGE_MAP[timeSpan] / 8);
-  plotData();
-});
 
 /**
  * Build a linear-regression model for the temperature-prediction problem.

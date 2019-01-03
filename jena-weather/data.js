@@ -25,43 +25,15 @@
 
 import * as tf from '@tensorflow/tfjs';
 
-const FAST_JENA_WEATHER_CSV_PATH = './jena_climate_2009_2016.csv';
-const JENA_WEATHER_CSV_PATH =
+const LOCAL_JENA_WEATHER_CSV_PATH = './jena_climate_2009_2016.csv';
+const REMOTE_JENA_WEATHER_CSV_PATH =
     'https://storage.googleapis.com/learnjs-data/jena_climate/jena_climate_2009_2016.csv';
 
 /**
- * Parse the date-time string from the Jena weather CSV file.
+ * A class that fetches and processes the Jena weather archive data.
  *
- * @param {*} str The date time string with a format that looks like:
- *   "17.01.2009 22:10:00"
- * @returns date: A JavaScript Date object.
- *          normalizedDayOfYear: Day of the year, normalized between 0 and 1.
- *          normalizedTimeOfDay: Time of the day, normalized between 0 and 1.
- */
-function parseDateTime(str) {
-  const items = str.split(' ');
-  const dateStr = items[0];
-  const dateStrItems = dateStr.split('.');
-  const day = +dateStrItems[0];
-  const month = +dateStrItems[1] - 1;  // month is 0-based in JS `Date` class.
-  const year = +dateStrItems[2];
-
-  const timeStrItems = items[1].split(':');
-  const hours = +timeStrItems[0];
-  const minutes = +timeStrItems[1];
-  const seconds = +timeStrItems[2];
-
-  const date = new Date(Date.UTC(year, month, day, hours, minutes, seconds));
-  const yearOnset = new Date(year, 0, 1);
-  const normalizedDayOfYear = (date - yearOnset) / (366 * 1000 * 60 * 60 * 24);
-  const dayOnset = new Date(year, month, day);
-  const normalizedTimeOfDay = (date - dayOnset) / (1000 * 60 * 60 * 24)
-  return {date, normalizedDayOfYear, normalizedTimeOfDay};
-}
-
-/**
- * A class that fetches the sprited MNIST dataset and provide data as
- * tf.Tensors.
+ * It also provides a method to create a function that iterates over
+ * batches of training or validation data.
  */
 export class JenaWeatherData {
   constructor() {}
@@ -74,11 +46,11 @@ export class JenaWeatherData {
    * URL (`JENA_WEATHER_CSV_PATH`).
    */
   async load() {
-    let response = await fetch(FAST_JENA_WEATHER_CSV_PATH);
+    let response = await fetch(LOCAL_JENA_WEATHER_CSV_PATH);
     if (response.statusCode === 200 || response.statusCode === 300) {
       console.log('Loaded data from fast path');
     } else {
-      response = await fetch(JENA_WEATHER_CSV_PATH);
+      response = await fetch(REMOTE_JENA_WEATHER_CSV_PATH);
       console.log('Loaded data from remote path');
     }
     const csvData = await response.text();
@@ -86,24 +58,20 @@ export class JenaWeatherData {
     // Parse CSV file.
     const csvLines = csvData.split('\n');
 
-    // Parser header.
+    // Parse header.
     const columnNames = csvLines[0].split(',');
     for (let i = 0; i < columnNames.length; ++i) {
+      // Discard the quotes around the column name.
       columnNames[i] = columnNames[i].slice(1, columnNames[i].length - 1);
     }
 
     this.dateTimeCol = columnNames.indexOf('Date Time');
     tf.util.assert(
-        this.dateTimeCol === 0,
-        `Unexpected date-time column index from ${JENA_WEATHER_CSV_PATH}`);
+        this.dateTimeCol === 0, `Unexpected date-time column index`);
 
     this.dataColumnNames = columnNames.slice(1);
-    this.tempCol = columnNames.indexOf('T (degC)');
-    tf.util.assert(
-        this.tempCol >= 1,
-        `Unexpected T (degC) column index from ${JENA_WEATHER_CSV_PATH}`);
-    // Account for the fact that the first column of the csv file is date-time.
-    this.tempCol--;
+    this.tempCol = this.dataColumnNames.indexOf('T (degC)');
+    tf.util.assert(this.tempCol >= 1, `Unexpected T (degC) column index`);
 
     this.dateTime = [];
     this.data = [];  // Unnormalized data.
@@ -117,7 +85,7 @@ export class JenaWeatherData {
         continue;
       }
       const items = line.split(',');
-      const parsed = parseDateTime(items[0]);
+      const parsed = this.parseDateTime_(items[0]);
       const newDateTime = parsed.date;
       if (this.dateTime.length > 0 &&
           newDateTime.getTime() <=
@@ -137,6 +105,38 @@ export class JenaWeatherData {
 
     await this.calculateMeansAndStddevs_();
   }
+
+  /**
+   * Parse the date-time string from the Jena weather CSV file.
+   *
+   * @param {*} str The date time string with a format that looks like:
+   *   "17.01.2009 22:10:00"
+   * @returns date: A JavaScript Date object.
+   *          normalizedDayOfYear: Day of the year, normalized between 0 and 1.
+   *          normalizedTimeOfDay: Time of the day, normalized between 0 and 1.
+   */
+  parseDateTime_(str) {
+    const items = str.split(' ');
+    const dateStr = items[0];
+    const dateStrItems = dateStr.split('.');
+    const day = +dateStrItems[0];
+    const month = +dateStrItems[1] - 1;  // month is 0-based in JS `Date` class.
+    const year = +dateStrItems[2];
+
+    const timeStrItems = items[1].split(':');
+    const hours = +timeStrItems[0];
+    const minutes = +timeStrItems[1];
+    const seconds = +timeStrItems[2];
+
+    const date = new Date(Date.UTC(year, month, day, hours, minutes, seconds));
+    const yearOnset = new Date(year, 0, 1);
+    const normalizedDayOfYear =
+        (date - yearOnset) / (366 * 1000 * 60 * 60 * 24);
+    const dayOnset = new Date(year, month, day);
+    const normalizedTimeOfDay = (date - dayOnset) / (1000 * 60 * 60 * 24)
+    return {date, normalizedDayOfYear, normalizedTimeOfDay};
+  }
+
 
   /**
    * Calculate the means and standard deviations of every column.
@@ -181,11 +181,7 @@ export class JenaWeatherData {
     return this.dateTime[index];
   }
 
-  /**
-   * Get the mean and standard deviation of a data column.
-   *
-   *
-   */
+  /** Get the mean and standard deviation of a data column. */
   getMeanAndStddev(dataColumnName) {
     if (this.means == null || this.stddevs == null) {
       throw new Error('means and stddevs have not been calculated yet.');
@@ -264,13 +260,13 @@ export class JenaWeatherData {
    *   The targets are represented as a float32-type `tf.Tensor` of shape
    *     `[batchSize, 1]`.
    */
-  getIteratorFn(
+  getNextBatchFunction(
       shuffle, lookBack, delay, batchSize, step, minIndex, maxIndex, normalize,
       includeDateTime) {
-    let i = minIndex + lookBack;
+    let startIndex = minIndex + lookBack;
     const lookBackSlices = Math.floor(lookBack / step);
 
-    function iteratorFn() {
+    function nextBatchFn() {
       const rows = [];
       if (shuffle) {
         const range = maxIndex - (minIndex + lookBack);
@@ -279,13 +275,13 @@ export class JenaWeatherData {
           rows.push(row);
         }
       } else {
-        for (let r = i; r < i + batchSize && r < maxIndex; ++r) {
+        for (let r = startIndex; r < startIndex + batchSize && r < maxIndex; ++r) {
           rows.push(r);
         }
       }
 
       const numExamples = rows.length;
-      i += numExamples;
+      startIndex += numExamples;
 
       const featureLength =
           includeDateTime ? this.numColumns + 2 : this.numColumns;
@@ -323,6 +319,6 @@ export class JenaWeatherData {
       };  // TODO(cais): Return done = true when done.
     }
 
-    return iteratorFn.bind(this);
+    return nextBatchFn.bind(this);
   }
 }

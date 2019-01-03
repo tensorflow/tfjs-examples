@@ -281,7 +281,7 @@ trainModelButton.addEventListener('click', async () => {
       tfvis.visor().surface({tab: modelType, name: 'Model Summary'});
   tfvis.show.modelSummary(surface, model);
 
-  const trainIteratorFn = jenaWeatherData.getIteratorFn(
+  const trainNextBatchFn = jenaWeatherData.getNextBatchFunction(
       shuffle, lookBack, delay, batchSize, step, minIndex, maxIndex, normalize,
       includeDateTime);
 
@@ -296,7 +296,7 @@ trainModelButton.addEventListener('click', async () => {
     let totalTrainLoss = 0;
     let numSeen = 0;
     for (let j = 0; j < batchesPerEpoch; ++j) {
-      const item = trainIteratorFn();
+      const item = trainNextBatchFn();
       const trainLoss = await model.trainOnBatch(item.value[0], item.value[1]);
 
       numSeen += item.value[0].shape[0];
@@ -312,9 +312,11 @@ trainModelButton.addEventListener('click', async () => {
     const epochTrainLoss = totalTrainLoss / numSeen;
 
     // Perform validation.
-    const valIterationFn = jenaWeatherData.getIteratorFn(
-        false, lookBack, delay, batchSize, step, 200001, 300000, normalize,
-        includeDateTime);
+    const valMinIndex = 200001;
+    const valMaxIndex = 300000;
+    const valNextBatchFn = jenaWeatherData.getNextBatchFunction(
+        false, lookBack, delay, batchSize, step, valMinIndex, valMaxIndex,
+        normalize, includeDateTime);
     const valT0 = tf.util.now();
     const valSteps = Math.floor((300000 - 200001 - lookBack) / batchSize);
     tf.tidy(() => {
@@ -325,7 +327,7 @@ trainModelButton.addEventListener('click', async () => {
         if (j % displayEvery === 0) {
           console.log(`  Validation: step ${j}/${valSteps}`);
         }
-        const item = valIterationFn();
+        const item = valNextBatchFn();
         const evalOut =
             model.evaluate(item.value[0], item.value[1], {batchSize});
         const numExamples = item.value[0].shape[0];

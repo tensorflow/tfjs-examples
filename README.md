@@ -89,7 +89,7 @@ to another project.
     <td><a href="./lstm-text-generation">lstm-text-generation</a></td>
     <td><a href="https://storage.googleapis.com/tfjs-examples/lstm-text-generation/dist/index.html">🔗</a></td>
     <td>Text</td>
-    <td>Sequent-to-prediction</td>
+    <td>Sequence-to-prediction</td>
     <td>RNN: LSTM</td>
     <td>Browser</td>
     <td>Browser</td>

@@ -110,7 +110,7 @@ export function multiLayerPerceptronRegressionModel2Hidden() {
  * @returns {List} List of objects, each with a string feature name, and value
  *     feature weight.
  */
-export function describeKerenelElements(kernel) {
+export function describeKernelElements(kernel) {
   tf.util.assert(
       kernel.length == 12,
       `kernel must be a array of length 12, got ${kernel.length}`);
@@ -150,7 +150,7 @@ export async function run(model, modelName, weightsIllustration) {
 
         if (weightsIllustration) {
           model.layers[0].getWeights()[0].data().then(kernelAsArr => {
-            const weightsList = describeKerenelElements(kernelAsArr);
+            const weightsList = describeKernelElements(kernelAsArr);
             ui.updateWeightDescription(weightsList);
           });
         }

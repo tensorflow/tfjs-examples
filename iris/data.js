@@ -104,6 +104,10 @@ export function flatOneHot(idx) {
  *   - Labels as a rank-1 `Tensor` in one-hot format.
  */
 export async function getIrisData(testSplit) {
+  // TODO(bileschi): Update shuffle etc. to use the tf.data API calls once
+  // it is possible to cache the results for performance and train-test split
+  // stability across epochs.
+
   // Shuffle a copy of the raw data.
   const shuffled = IRIS_RAW_DATA.slice();
   tf.util.shuffle(shuffled);

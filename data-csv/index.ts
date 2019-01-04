@@ -63,7 +63,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     let i = 0;
     const updateFn = (x) => {
       i += 1;
-      console.log("got" + JSON.stringify(x));
+      // console.log("got" + JSON.stringify(x));
       if ((i % 1000) === 0) {
         ui.updateStatus(`Counted ${i} rows of data in the CSV so far...`);
       }

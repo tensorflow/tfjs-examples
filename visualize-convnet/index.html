@@ -74,6 +74,15 @@ limitations under the License.
 
   .activation-image {
     margin: 3px;
+    width: 112px;
+    height: 112px;
+    image-rendering: optimizeSpeed;
+    image-rendering: -moz-crisp-edges;
+    image-rendering: -o-crisp-edges;
+    image-rendering: -webkit-optimize-contrast;
+    image-rendering: pixelated;
+    image-rendering: optimize-contrast;
+    -ms-interpolation-mode: nearest-neighbor;
   }
 
   .cam-image {
@@ -115,14 +124,17 @@ limitations under the License.
     </section>
 
     <section>
+      <p class='section-head'>Input image and classification result</p>
+
+      <div id="input-image-div"></div>
+
       <p class='section-head'>Visualization</p>
 
       <div>
         <span>What to visualize:</span>
         <select id="viz-type">
-          <option value="filters">Maximally-activating input images</option>
           <option value="activation">Filter activation</option>
-          <option value="both">Maximally-activating input images + filter activation</option>
+          <option value="filters">Maximally-activating input images</option>
           <option value="cam">Class activation map (CAM)</option>
         </select>
       </div>

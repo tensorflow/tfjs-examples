@@ -39,8 +39,6 @@ const tf = require('@tensorflow/tfjs');
 const utils = require('./utils');
 const imagenetClasses = require('./imagenet_classes');
 
-const EPSILON = 1e-5;  // "Fudge" factor to prevent division by zero.
-
 /**
  * Generate the maximally-activating input image for a conv2d layer filter.
  *
@@ -82,14 +80,15 @@ function inputGradientAscent(model, layerName, filterIndex, iterations = 40) {
     for (let i = 0; i < iterations; ++i) {
       const scaledGrads = tf.tidy(() => {
         const grads = gradients(image);
-        const norm = tf.sqrt(tf.mean(tf.square(grads))).add(EPSILON);
+        const norm =
+            tf.sqrt(tf.mean(tf.square(grads))).add(tf.ENV.get('EPSILON'));
         // Important trick: scale the gradient with the magnitude (norm)
         // of the gradient.
         return grads.div(norm);
       });
       // Perform one step of gradient ascent: Update the image along the
       // direction of the gradient.
-      image = image.add(scaledGrads);
+      image = tf.clipByValue(image.add(scaledGrads), 0, 255);
     }
     return deprocessImage(image);
   });
@@ -99,7 +98,7 @@ function deprocessImage(x) {
   return tf.tidy(() => {
     const {mean, variance} = tf.moments(x);
     x = x.sub(mean);
-    x = x.div(tf.sqrt(variance).add(EPSILON));
+    x = x.div(tf.sqrt(variance).add(tf.ENV.get('EPSILON')));
     // Clip to [0, 1].
     x = x.add(0.5);
     x = tf.clipByValue(x, 0, 1);
@@ -324,7 +323,7 @@ function parseArguments() {
   });
   parser.addArgument('--iterations', {
     type: 'int',
-    defaultValue: 40,
+    defaultValue: 80,
     help: 'Number of iterations to use for gradient ascent'
   });
   parser.addArgument(
@@ -371,32 +370,39 @@ async function run() {
     const topNum = 10;
     const {values: topKVals, indices: topKIndices} =
         tf.topk(modelOutput, topNum);
-    const values = await topKVals.data();
+    const probScores = await topKVals.data();
     const indices = await topKIndices.data();
+    const classNames =
+        indices.map(index => imagenetClasses.IMAGENET_CLASSES[index]);
 
     console.log(`Top-${topNum} classes:`);
     for (let i = 0; i < topNum; ++i) {
-      const index = indices[i];
       console.log(
-          `  ${imagenetClasses.IMAGENET_CLASSES[index]} (index=${index}): ` +
-          `${values[i].toFixed(4)}`);
+          `  ${classNames[i]} (index=${indices[i]}): ` +
+          `${probScores[i].toFixed(4)}`);
     }
+
+    // Save the original input image and the top-10 classification results.
+    const origImagePath = path.join(args.outputDir, path.basename(args.inputImage));
+    shelljs.cp(args.inputImage, origImagePath);
 
     // Calculate Grad-CAM heatmap.
     const xWithCAMOverlay = gradClassActivationMap(model, indices[0], x);
     const camImagePath = path.join(args.outputDir, 'cam.png');
     await utils.writeImageTensorToFile(xWithCAMOverlay, camImagePath);
-    console.log(`Written CAM-overlaid image to: ${camImagePath}`);
+    console.log(`Written CAM-overlaid image to: ${camImagePath}`);    
 
     // Create manifest and write it to disk.
     const manifest = {
       indices,
-      values,
+      origImagePath,
+      classNames,
+      values: probScores,
       layerName2FilePaths,
       camImagePath,
       topIndex: indices[0],
-      topProb: values[0],
-      topClass: imagenetClasses.IMAGENET_CLASSES[indices[0]]
+      topProb: probScores[0],
+      topClass: classNames[0]
     };
     const manifestPath = path.join(args.outputDir, 'activation-manifest.json');
     fs.writeFileSync(manifestPath, JSON.stringify(manifest));

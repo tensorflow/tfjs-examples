@@ -32,7 +32,7 @@
 set -e
 
 # Parse input arguments 
-IMAGE="owl.jpg"
+IMAGE="cat.jpg"
 FILTERS="8"
 GPU_FLAG=""
 while [[ ! -z "$1" ]]; do
@@ -63,20 +63,25 @@ fi
 
 yarn
 
+# Clean up old files.
+rm -rf dist/activation dist/filters
+
 echo "Calculating maximally-activating input images for convnet filters..."
+LAYER_NAMES="block1_conv1,block2_conv1,block3_conv2,block4_conv2"
 node main.js \
-  "./vgg16_tfjs/model.json" \
-  "block1_conv1,block2_conv1,block3_conv1,block4_conv1,block5_conv1" \
-  --filters "${FILTERS}"  ${GPU_FLAG} \
-  --outputDir dist/filters
+    "./vgg16_tfjs/model.json" \
+    "${LAYER_NAMES}" \
+    --filters "${FILTERS}" ${GPU_FLAG} \
+    --outputDir dist/filters
 
 echo "Calculating convnet activations and class activation map (CAM)..."
+LAYER_NAMES="block1_conv1,block2_conv1,block3_conv2,block4_conv2,block5_conv3"
 node main.js \
-  "./vgg16_tfjs/model.json" \
-  "block1_conv1,block2_conv1,block3_conv1,block4_conv1,block5_conv1" \
-  --filters "${FILTERS}" ${GPU_FLAG} \
-  --inputImage "${IMAGE}" \
-  --outputDir dist/activation
+    "./vgg16_tfjs/model.json" \
+    "${LAYER_NAMES}" \
+    --filters "${FILTERS}" ${GPU_FLAG} \
+    --inputImage "${IMAGE}" \
+    --outputDir dist/activation
 
 echo "Launching parcel server and opening page in browser..."
 yarn watch

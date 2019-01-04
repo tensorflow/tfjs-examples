@@ -34,12 +34,14 @@ async function run() {
       await (await fetch('activation/activation-manifest.json')).json();
   const filterManifest =
       await (await fetch('filters/filters-manifest.json')).json();
+  console.log(activationManifest);
 
-  if (vizType === 'filters' || vizType === 'activation' || vizType === 'both') {
-    for (let i = 0; i < filterManifest.layers.length; ++i) {
-      const layerName = filterManifest.layers[i].layerName;
-      const filePaths = filterManifest.layers[i].filePaths;
-      const activationPaths = activationManifest.layerName2FilePaths[layerName];
+  if (vizType === 'activation') {
+    const layerNames = Object.keys(activationManifest.layerName2FilePaths);
+    layerNames.sort();
+    for (let i = 0; i < layerNames.length; ++i) {
+      const layerName = layerNames[i];
+      const filePaths = activationManifest.layerName2FilePaths[layerName];
 
       const layerDiv = document.createElement('div');
       layerDiv.classList.add('layer-div');
@@ -52,23 +54,40 @@ async function run() {
       for (let j = 0; j < filePaths.length; ++j) {
         const filterDiv = document.createElement('div');
         filterDiv.classList.add('filter-div');
-        if (vizType === 'filters' || vizType === 'both') {
+        const activationImg = document.createElement('img');
+        activationImg.classList.add('activation-image');
+        activationImg.src = normalizePath(filePaths[j]);
+        filterDiv.appendChild(activationImg);
+        layerFiltersDiv.appendChild(filterDiv);
+      }
+      layerDiv.appendChild(layerFiltersDiv);
+      vizSection.appendChild(layerDiv);
+    }
+  } else if (vizType === 'filters') {
+    for (let i = 0; i < filterManifest.layers.length; ++i) {
+      const layerName = filterManifest.layers[i].layerName;
+      const filePaths = filterManifest.layers[i].filePaths;
+
+      const layerDiv = document.createElement('div');
+      layerDiv.classList.add('layer-div');
+      const layerNameSpan = document.createElement('div');
+      layerNameSpan.textContent = `Layer "${layerName}"`;
+      layerDiv.appendChild(layerNameSpan);
+
+      const layerFiltersDiv = document.createElement('div');
+      layerFiltersDiv.classList.add('layer-filters');
+      for (let j = 0; j < filePaths.length; ++j) {
+        const filterDiv = document.createElement('div');
+        filterDiv.classList.add('filter-div');
+        if (vizType === 'filters') {
           const filterImg = document.createElement('img');
           filterImg.classList.add('filter-image');
           filterImg.src = normalizePath(filePaths[j]);
           filterDiv.appendChild(filterImg);
         }
-        if (vizType === 'activation' || vizType === 'both') {
-          const activationImg = document.createElement('img');
-          activationImg.classList.add('activation-image');
-          activationImg.src = normalizePath(activationPaths[j]);
-          filterDiv.appendChild(activationImg);
-        }
-
         layerFiltersDiv.appendChild(filterDiv);
       }
       layerDiv.appendChild(layerFiltersDiv);
-
       vizSection.appendChild(layerDiv);
     }
   } else if (vizType === 'cam') {

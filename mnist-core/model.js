@@ -17,8 +17,6 @@
 
 import * as tf from '@tensorflow/tfjs';
 
-import {MnistData} from './data';
-
 // Hyperparameters.
 const LEARNING_RATE = .1;
 const BATCH_SIZE = 64;
@@ -86,8 +84,7 @@ export async function train(data, log) {
       return loss(batch.labels, model(batch.xs));
     }, returnCost);
 
-    log(`loss[${i}]: ${cost.dataSync()}`);
-
+    log(cost.dataSync(), i);
     await tf.nextFrame();
   }
 }

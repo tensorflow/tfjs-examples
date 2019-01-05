@@ -15,8 +15,6 @@
  * =============================================================================
  */
 
-import * as tf from '@tensorflow/tfjs';
-
 /**
  * Calculates the mean and standard deviation of each column of a data array.
  *

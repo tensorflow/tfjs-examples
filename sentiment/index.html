@@ -16,54 +16,96 @@ limitations under the License.
 -->
 
 <!doctype html>
-<head>
-  <link rel="stylesheet" href="https://code.getmdl.io/1.3.0/material.cyan-teal.min.css" />
-</head>
 
-<body>
+<head>
+  <title>TensorFlow.js Layers: Sentiment Analysis Demo</title>
+
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="../shared/tfjs-examples.css" />
+
   <style>
     #review-text {
       font-size: 120%;
       width: 60%;
       height: 200px;
     }
+
+    select {
+      display: block;
+      margin-bottom: 20px;
+    }
   </style>
-  <h1>
-    TensorFlow.js Layers: Sentiment Analysis Demo
-  </h1>
-  <hr>
-  <div class="create-model">
-    <button id="load-pretrained-remote" style="display:none">Load hosted pretrained model</button>
-    <button id="load-pretrained-local" style="display:none">Load local pretrained model</button>
+</head>
+
+<body>
+  <div class="tfjs-example-container centered-container">
+    <section class='title-area'>
+      <h1>TensorFlow.js Layers: Sentiment Analysis Demo</h1>
+    </section>
+
+    <section>
+      <p class='section-head'>Description</p>
+
+      <p>
+        This example demonstrated loading a pre-trained model and using it in the browser. This model is trained to
+        predict the sentiment of a short movie review (as a score between 0 and 1). The training is done server side
+        using Python and then converted into a TensorFlow.js model.
+      </p>
+      <p>
+        The model is trained using IMDB reviews that have been truncated to a maximum of 200 words, only the
+        20000 most used words in the reviews are used. You can experiment with the model on this page or experiment
+        with training your model by looking at the <a href="https://github.com/tensorflow/tfjs-examples/tree/master/sentiment/python">training
+          code</a> in the repository.
+      </p>
+      <p>This is not intended to be a production level sentiment analysis model.</p>
+    </section>
+
+
+
+    <section>
+      <p class='section-head'>Load Model</p>
+
+      <div class="create-model">
+        <button id="load-pretrained-remote" style="display:none">Load hosted pretrained model</button>
+        <button id="load-pretrained-local" style="display:none">Load local pretrained model</button>
+      </div>
+
+      <div>
+        <div>
+          <span>Model type: </span>
+          <span id="modelType"></span>
+        </div>
+        <div>
+          <span>Vocabulary size: </span>
+          <span id="vocabularySize"></span>
+        </div>
+        <div>
+          <span>Max length: </span>
+          <span id="maxLen"></span>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <p class='section-head'>Input Sample</p>
+
+      <select id="test-example-select" class="form-control">
+        <option value="positive">Positive example</option>
+        <option value="negative">Negative example</option>
+      </select>
+      <textarea id="review-text"></textarea>
+    </section>
+
+    <section>
+      <p class='section-head'>Status</p>
+      <span id="status">Standing by.</span>
+    </section>
+
   </div>
-  <div>
-    <div>
-      <span>Model type: </span>
-      <span id="modelType"></span>
-    </div>
-    <div>
-      <span>Vocabulary size: </span>
-      <span id="vocabularySize"></span>
-    </div>
-    <div>
-      <span>Max length: </span>
-      <span id="maxLen"></span>
-    </div>
-  </div>
-  <hr>
-  <div>
-    <select id="test-example-select" class="form-control">
-      <option value="positive">Positive example</option>
-      <option value="negative">Negative example</option>
-    </select>
-  </div>
-  <div>
-    <textarea id="review-text"></textarea>
-  </div>
-  <hr>
-  <div>
-    <span id="status">Standing by.</span>
-  </div>
+
+
+
 
   <script src='index.js'></script>
 </body>

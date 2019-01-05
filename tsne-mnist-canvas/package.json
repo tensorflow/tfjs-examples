@@ -9,12 +9,12 @@
     "node": ">=8.9.0"
   },
   "dependencies": {
-    "@tensorflow/tfjs": "^0.13.3",
+    "@tensorflow/tfjs": "^0.14.1",
     "@tensorflow/tfjs-tsne": "0.2.0",
     "d3": "^5.2.0"
   },
   "scripts": {
-    "watch": "NODE_ENV=development parcel --no-hmr --open index.html ",
+    "watch": "NODE_ENV=development parcel index.html --no-hmr --open  ",
     "build": "NODE_ENV=production parcel build index.html --no-minify --public-url ./",
     "link-local": "yalc link"
   },

@@ -16,6 +16,7 @@
  */
 
 import * as tf from '@tensorflow/tfjs';
+import * as tfvis from '@tensorflow/tfjs-vis';
 
 import {BostonHousingDataset, featureDescriptions} from './data';
 import * as normalization from './normalization';
@@ -31,7 +32,7 @@ const tensors = {};
 
 // Convert loaded data into tensors and creates normalized versions of the
 // features.
-export const arraysToTensors = () => {
+export function arraysToTensors() {
   tensors.rawTrainFeatures = tf.tensor2d(bostonData.trainFeatures);
   tensors.trainTarget = tf.tensor2d(bostonData.trainTarget);
   tensors.rawTestFeatures = tf.tensor2d(bostonData.testFeatures);
@@ -106,9 +107,10 @@ export function multiLayerPerceptronRegressionModel2Hidden() {
  * Describe the current linear weights for a human to read.
  *
  * @param {Array} kernel Array of floats of length 12.  One value per feature.
- * @returns {List} List of objects, each with a string feature name, and value feature weight.
+ * @returns {List} List of objects, each with a string feature name, and value
+ *     feature weight.
  */
-export function describeKerenelElements(kernel) {
+export function describeKernelElements(kernel) {
   tf.util.assert(
       kernel.length == 12,
       `kernel must be a array of length 12, got ${kernel.length}`);
@@ -127,27 +129,28 @@ export function describeKerenelElements(kernel) {
  * @param {boolean} weightsIllustration Whether to print info about the learned
  *  weights.
  */
-export const run = async (model, weightsIllustration) => {
-  await ui.updateStatus('Compiling model...');
+export async function run(model, modelName, weightsIllustration) {
   model.compile(
       {optimizer: tf.train.sgd(LEARNING_RATE), loss: 'meanSquaredError'});
 
-  let trainLoss;
-  let valLoss;
-  await ui.updateStatus('Starting training process...');
+  let trainLogs = [];
+  const container = document.querySelector(`#${modelName} .chart`);
+
+  ui.updateStatus('Starting training process...');
   await model.fit(tensors.trainFeatures, tensors.trainTarget, {
     batchSize: BATCH_SIZE,
     epochs: NUM_EPOCHS,
     validationSplit: 0.2,
     callbacks: {
       onEpochEnd: async (epoch, logs) => {
-        await ui.updateStatus(`Epoch ${epoch + 1} of ${NUM_EPOCHS} completed.`);
-        trainLoss = logs.loss;
-        valLoss = logs.val_loss;
-        await ui.plotData(epoch, trainLoss, valLoss);
+        await ui.updateModelStatus(
+            `Epoch ${epoch + 1} of ${NUM_EPOCHS} completed.`, modelName);
+        trainLogs.push(logs);
+        tfvis.show.history(container, trainLogs, ['loss', 'val_loss'])
+
         if (weightsIllustration) {
           model.layers[0].getWeights()[0].data().then(kernelAsArr => {
-            const weightsList = describeKerenelElements(kernelAsArr);
+            const weightsList = describeKernelElements(kernelAsArr);
             ui.updateWeightDescription(weightsList);
           });
         }
@@ -155,17 +158,21 @@ export const run = async (model, weightsIllustration) => {
     }
   });
 
-  await ui.updateStatus('Running on test data...');
+  ui.updateStatus('Running on test data...');
   const result = model.evaluate(
       tensors.testFeatures, tensors.testTarget, {batchSize: BATCH_SIZE});
   const testLoss = result.dataSync()[0];
-  await ui.updateStatus(
+
+  const trainLoss = trainLogs[trainLogs.length - 1].loss;
+  const valLoss = trainLogs[trainLogs.length - 1].val_loss;
+  await ui.updateModelStatus(
       `Final train-set loss: ${trainLoss.toFixed(4)}\n` +
-      `Final validation-set loss: ${valLoss.toFixed(4)}\n` +
-      `Test-set loss: ${testLoss.toFixed(4)}`);
+          `Final validation-set loss: ${valLoss.toFixed(4)}\n` +
+          `Test-set loss: ${testLoss.toFixed(4)}`,
+      modelName);
 };
 
-export const computeBaseline = () => {
+export function computeBaseline() {
   const avgPrice = tf.mean(tensors.trainTarget);
   console.log(`Average price: ${avgPrice.dataSync()}`);
   const baseline = tf.mean(tf.pow(tf.sub(tensors.testTarget, avgPrice), 2));
@@ -182,6 +189,8 @@ document.addEventListener('DOMContentLoaded', async () => {
   ui.updateStatus(
       'Data is now available as tensors.\n' +
       'Click a train button to begin.');
+  // TODO Explain what baseline loss is. How it is being computed in this
+  // Instance
   ui.updateBaselineStatus('Estimating baseline loss');
   computeBaseline();
   await ui.setup();

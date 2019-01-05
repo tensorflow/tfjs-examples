@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import * as tf from '@tensorflow/tfjs';
+import * as tfvis from '@tensorflow/tfjs-vis';
 
 const statusElement = document.getElementById('status');
 const messageElement = document.getElementById('message');
@@ -24,9 +24,18 @@ const imagesElement = document.getElementById('images');
 export function isTraining() {
   statusElement.innerText = 'Training...';
 }
-export function trainingLog(message) {
-  messageElement.innerText = `${message}\n`;
-  console.log(message);
+
+const lossArr = [];
+export function trainingLog(loss, iteration) {
+  messageElement.innerText = `loss[${iteration}]: ${loss}`;
+  lossArr.push({x: iteration, y: loss});
+  const container = {name: 'Loss', tab: 'Training'};
+  const options = {
+    xLabel: 'Training Step',
+    yLavel: 'Loss',
+  };
+  const data = {values: lossArr, series: ['loss']};
+  tfvis.render.linechart(data, container, options);
 }
 
 export function showTestResults(batch, predictions, labels) {
@@ -63,7 +72,7 @@ export function showTestResults(batch, predictions, labels) {
 
   const accuracy = 100 * totalCorrect / testExamples;
   const displayStr =
-      `accuracy: ${accuracy.toFixed(2)}% (${totalCorrect} / ${testExamples})`;
+      `Accuracy: ${accuracy.toFixed(2)}% (${totalCorrect} / ${testExamples})`;
   messageElement.innerText = `${displayStr}\n`;
   console.log(displayStr);
 }

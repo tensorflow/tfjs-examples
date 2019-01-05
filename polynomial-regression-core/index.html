@@ -16,59 +16,86 @@ limitations under the License.
 -->
 
 <html>
-  <head>
-    <link rel="stylesheet" href="https://code.getmdl.io/1.3.0/material.cyan-teal.min.css" />
-  </head>
-  <body>
-    <h3>TensorFlow.js: Fitting a curve to synthetic data</h3>
-    <style>
-      body {
-        padding: 50px;
-      }
 
-      .plots {
-        display: flex;
-        flex-direction: row;
-        flex-wrap: wrap;
-      }
+<head>
+  <title>TensorFlow.js: Fitting a curve to synthetic api</title>
 
-      #data, #random, #trained {
-        margin: 30px;
-      }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="../shared/tfjs-examples.css" />
 
-      .caption {
-       font-weight: bold;
-      }
+  <style>
+    .plots {
+      display: flex;
+      flex-direction: row;
+      flex-wrap: wrap;
+    }
 
-      .coeff {
-        font-weight: normal;
-      }
+    #data,
+    #random,
+    #trained {
+      margin: 30px;
+    }
 
-    </style>
+    .caption {
+      font-weight: bold;
+    }
 
-    <div class="plots">
+    .coeff {
+      font-weight: normal;
+    }
+  </style>
+
+</head>
+
+<body>
+  <div class='tfjs-example-container'>
+    <section class='title-area'>
+      <h1>TensorFlow.js: Fitting a curve to synthetic data</h1>
+      <p class='subtitle'>Train a model to learn the coefficients of a cubic function.</p>
+    </section>
+
+    <section>
+      <p class="section-head">Description</p>
+      <p>
+        This model learns to approximate the coefficients of a cubic funtion used to generate the points shown below
+        on the left.
+      </p>
+      <p>
+        See <a href="https://js.tensorflow.org/tutorials/fit-curve.html">this tutorial</a> for more details.
+      </p>
+    </section>
+
+    <section>
+      <p class="section-head">Input Data</p>
       <div id="data">
         <div class="caption">Original Data (Synthetic)</div>
         <div class="caption">True coefficients: <span class='coeff'></span></div>
         <div class="plot"></div>
       </div>
-      <div id="random">
-        <div class="caption">Fit curve with random coefficients (before training)</div>
-        <div class="caption">Random coefficients:
-          <span class='coeff'></span>
-        </div>
-        <div class="plot"></div>
-      </div>
-      <div id="trained">
-        <div class="caption">Fit curve with learned coefficients (after training)</div>
-        <div class="caption">Learned coefficients:
-          <span class='coeff'></span>
-        </div>
-        <div class="plot"></div>
-      </div>
-    </div>
+    </section>
 
+    <section>
+      <p class="section-head">Model Outputs</p>
+      <div class="with-cols">
+        <div id="random">
+          <div class="caption">Fit curve with random coefficients (before training)</div>
+          <div class="caption">Random coefficients:
+            <span class='coeff'></span>
+          </div>
+          <div class="plot"></div>
+        </div>
+        <div id="trained">
+          <div class="caption">Fit curve with learned coefficients (after training)</div>
+          <div class="caption">Learned coefficients:
+            <span class='coeff'></span>
+          </div>
+          <div class="plot"></div>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script src="index.js"></script>
+</body>
 
-    <script src="index.js"></script>
-  </body>
 </html>

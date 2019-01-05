@@ -107,9 +107,9 @@ def train_model(model_type,
     model_type: Type of the model to train, as a `str`.
     vocabulary_size: Vocabulary size.
     embedding_size: Embedding dimensions.
-    x_train: An int array of shape `(num_exapmles, max_len)`: index-encoded
+    x_train: An int array of shape `(num_examples, max_len)`: index-encoded
       sentences.
-    y_train: An int array of shape `(num_exapmles,)`: labels for the sentences.
+    y_train: An int array of shape `(num_examples,)`: labels for the sentences.
     x_test: Same as `x_train`, but for test.
     y_test: Same as `y_train`, but for test.
     epochs: Number of epochs to train the model for.
@@ -199,10 +199,10 @@ def main():
   json.dump(metadata, open(metadata_json_path, 'wt'))
   print('\nSaved model metadata at: %s' % metadata_json_path)
 
-  tfjs.converters.save_tf.keras_model(model, FLAGS.artifacts_dir)
-  print('\nSaved model artifcats in directory: %s' % FLAGS.artifacts_dir)
+  tfjs.converters.save_keras_model(model, FLAGS.artifacts_dir)
+  print('\nSaved model artifacts in directory: %s' % FLAGS.artifacts_dir)
 
-
+ 
 if __name__ == '__main__':
   parser = argparse.ArgumentParser('IMDB sentiment classification model')
   parser.add_argument(
@@ -243,7 +243,7 @@ if __name__ == '__main__':
   parser.add_argument(
       '--artifacts_dir',
       type=str,
-      default='/tmp/mnist.keras',
+      default='/tmp/imdb.keras',
       help='Local path for saving the TensorFlow.js artifacts.')
 
   FLAGS, _ = parser.parse_known_args()

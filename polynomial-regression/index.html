@@ -16,23 +16,24 @@ limitations under the License.
 -->
 
 <!doctype html>
+
 <head>
-  <link rel="stylesheet" href="https://code.getmdl.io/1.3.0/material.cyan-teal.min.css" />
+  <title>TensorFlow.js: Polynomial Regression with layers api</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="../shared/tfjs-examples.css" />
 </head>
 
 <style>
-  body {
-    font-family: "Roboto", "Helvetica", "Arial", sans-serif;
-    margin-top: 50px;
-    margin-left: 50px;
-  }
   .equation-div {
     font-family: monospace;
     margin-bottom: 1em;
   }
+
   .input-div {
     margin-bottom: 1em;
   }
+
   input {
     width: 5em;
     text-align: center;
@@ -40,30 +41,53 @@ limitations under the License.
 </style>
 
 <body>
-  <h1>TensorFlow.js: Polynomial Regression Training Example</h1>
-  <div>
-    <canvas id="canvas" height="600" width="800"></canvas>
-  </div>
-  <div>
-    <div class="equation-div">
-      <div>Truth equation:</div>
-      <span>y =</span>
-      <input id="cubic-coeff" value="6e-6"></input>
-      <span>* x^3 +</span>
-      <input id="quad-coeff" value="-2e-3"></input>
-      <span>* x^2 +</span>
-      <input id="linear-coeff" value="0.1"></input>
-      <span>* x +</span>
-      <input id="const-coeff" value="10"></input>
-    </div>
-    <div class="input-div">
-      <span>Learning rate:</span>
-      <input id="learning-rate" value="0.5"></input>
-    </div>
-    <div class="input-div">
-      <span>Epochs:</span>
-      <input id="epochs" value="40"></input>
-    </div>
+  <div class="tfjs-example-container centered-container">
+    <section class='title-area'>
+      <h1>TensorFlow.js: Polynomial Regression</h1>
+      <p class='subtitle'>Train a model to predict y-values for a cubic equation using a single layer perceptron</p>
+    </section>
+
+    <section>
+      <p class="section-head">Description</p>
+      <p>This model learns to generate a curve to match a polynomial equation. It uses a single layer perceptron with 4
+        weights.</p>
+    </section>
+
+    <section>
+      <p class="section-head">Data Generation</p>
+      <p>We generate training data using the following function and co-efficients. You can edit the co-efficients to
+        generate new data and fit the model.</p>
+      <div class="equation-div">
+        <span>y =</span>
+        <input id="cubic-coeff" value="6e-6"></input>
+        <span>* x^3 +</span>
+        <input id="quad-coeff" value="-2e-3"></input>
+        <span>* x^2 +</span>
+        <input id="linear-coeff" value="0.1"></input>
+        <span>* x +</span>
+        <input id="const-coeff" value="10"></input>
+      </div>
+    </section>
+
+    <section>
+      <p class="section-head">Training Parameters</p>
+      <div class="input-div">
+        <span>Learning rate:</span>
+        <input id="learning-rate" value="0.5"></input>
+      </div>
+      <div class="input-div">
+        <span>Epochs:</span>
+        <input id="epochs" value="40"></input>
+      </div>
+    </section>
+
+    <section>
+      <p class="section-head">Model Output</p>
+      <p>We plot a curve using y-coordinate predictions the model has learned to make for each x-coordinate.</p>
+      <div>
+        <canvas id="canvas" height="600" width="800"></canvas>
+      </div>
+    </section>
   </div>
 </body>
 

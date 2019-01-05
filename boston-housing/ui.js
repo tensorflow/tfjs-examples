@@ -15,31 +15,34 @@
  * =============================================================================
  */
 
-import renderChart from 'vega-embed';
-
 import {linearRegressionModel, multiLayerPerceptronRegressionModel1Hidden, multiLayerPerceptronRegressionModel2Hidden, run} from '.';
 
 const statusElement = document.getElementById('status');
-export const updateStatus = (message) => {
-  statusElement.value = message;
+export function updateStatus(message) {
+  statusElement.innerText = message;
 };
 
 const baselineStatusElement = document.getElementById('baselineStatus');
-export const updateBaselineStatus = (message) => {
-  baselineStatusElement.value = message;
+export function updateBaselineStatus(message) {
+  baselineStatusElement.innerText = message;
 };
 
-// const weightsElement = document.getElementById('modelInspectionOutput');
+export function updateModelStatus(message, modelName) {
+  const statElement = document.querySelector(`#${modelName} .status`);
+  statElement.innerText = message;
+};
+
 const NUM_TOP_WEIGHTS_TO_DISPLAY = 5;
 /**
  * Updates the weights output area to include information about the weights
  * learned in a simple linear model.
- * @param {List} weightsList list of objects with 'value':number and 'description':string
+ * @param {List} weightsList list of objects with 'value':number and
+ *     'description':string
  */
-export const updateWeightDescription = (weightsList) => {
+export function updateWeightDescription(weightsList) {
   const inspectionHeadlineElement =
       document.getElementById('inspectionHeadline');
-  inspectionHeadlineElement.value =
+  inspectionHeadlineElement.innerText =
       `Top ${NUM_TOP_WEIGHTS_TO_DISPLAY} weights by magnitude`;
   // Sort weights objects by descending absolute value.
   weightsList.sort((a, b) => Math.abs(b.value) - Math.abs(a.value));
@@ -63,7 +66,7 @@ export const updateWeightDescription = (weightsList) => {
   });
 };
 
-export const setup = async () => {
+export async function setup() {
   const trainSimpleLinearRegression = document.getElementById('simple-mlr');
   const trainNeuralNetworkLinearRegression1Hidden =
       document.getElementById('nn-mlr-1hidden');
@@ -72,42 +75,18 @@ export const setup = async () => {
 
   trainSimpleLinearRegression.addEventListener('click', async (e) => {
     const model = linearRegressionModel();
-    losses = [];
-    await run(model, true);
+    await run(model, 'linear', true);
   }, false);
 
   trainNeuralNetworkLinearRegression1Hidden.addEventListener(
       'click', async () => {
         const model = multiLayerPerceptronRegressionModel1Hidden();
-        losses = [];
-        await run(model, false);
+        await run(model, 'oneHidden', false);
       }, false);
 
   trainNeuralNetworkLinearRegression2Hidden.addEventListener(
       'click', async () => {
         const model = multiLayerPerceptronRegressionModel2Hidden();
-        losses = [];
-        await run(model, false);
+        await run(model, 'twoHidden', false);
       }, false);
 };
-
-let losses = [];
-export const plotData = async (epoch, trainLoss, valLoss) => {
-  losses.push({'epoch': epoch, 'loss': trainLoss, 'split': 'Train Loss'});
-  losses.push({'epoch': epoch, 'loss': valLoss, 'split': 'Validation Loss'});
-
-  const spec = {
-    '$schema': 'https://vega.github.io/schema/vega-lite/v2.json',
-    'width': 250,
-    'height': 250,
-    'data': {'values': losses},
-    'mark': 'line',
-    'encoding': {
-      'x': {'field': 'epoch', 'type': 'quantitative'},
-      'y': {'field': 'loss', 'type': 'quantitative'},
-      'color': {'field': 'split', 'type': 'nominal'}
-    }
-  };
-
-  return renderChart('#plot', spec, {actions: false});
-}

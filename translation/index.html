@@ -16,43 +16,79 @@ limitations under the License.
 -->
 
 <!doctype html>
+
 <head>
-  <link rel="stylesheet" href="https://code.getmdl.io/1.3.0/material.cyan-teal.min.css" />
+  <title>TensorFlow.js Layers: Sequence-to-Sequence (English-French Translation) Demo</title>
+
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="../shared/tfjs-examples.css" />
+
+  <style>
+    .input-div {
+      padding: 5px;
+      font-family: monospace;
+    }
+
+    .input-output-label {
+      display: inline-block;
+    }
+
+    .output {
+      font-weight: bold;
+    }
+  </style>
 </head>
 
-<style>
-  .input-div {
-    padding: 5px;
-    font-family: monospace;
-  }
-  .input-output-label {
-    display: inline-block;
-  }
-  .output {
-    font-weight: bold;
-  }
-
-</style>
-
 <body>
-  <h1>TensorFlow.js Layers: Sequence-to-Sequence (English-French Translation) Demo</h1>
-  <div class="create-model">
-    <button id="load-pretrained-remote" style="display:none">Load hosted pretrained model</button>
-    <button id="load-pretrained-local" style="display:none">Load local pretrained model</button>
+  <div class="tfjs-example-container centered-container">
+    <section class='title-area'>
+      <h1>TensorFlow.js Layers: Sequence-to-Sequence (English-French Translation)</h1>
+    </section>
+
+    <section>
+      <p class='section-head'>Description</p>
+
+      <p>
+        This example demonstrates a pre-trained sequence-to-sequence models can be used in the browser. It is
+        based on the <a href="https://github.com/keras-team/keras/blob/master/examples/lstm_seq2seq.py">Keras
+          LSTM-seq2seq example</a> and uses a charachter based model to translate the text (as opposed to a word based
+        model).
+      </p>
+      <p>
+        The model is <a href="https://github.com/tensorflow/tfjs-examples/tree/master/translation/python">trained in
+          Python</a> and then converted to TensorFlow.js format.
+      </p>
+      <p>This is not intended to be a production level translation model.</p>
+    </section>
+
+    <section>
+      <p class='section-head'>Status</p>
+      <span id="status">Standing by.</span>
+    </section>
+
+    <section>
+      <p class='section-head'>Load Model</p>
+
+      <div class="create-model">
+        <button id="load-pretrained-remote" style="display:none">Load hosted pretrained model</button>
+        <button id="load-pretrained-local" style="display:none">Load local pretrained model</button>
+      </div>
+    </section>
+
+    <section>
+      <p class='section-head'>Test Model</p>
+
+      <div class="input-div">
+        <span class="input-output-label">Input English phrase:</span>
+        <input id="englishSentence" size=16 maxlength="16"></input>
+      </div>
+      <div class="input-div">
+        <span class="input-output-label">Output French phrase:</span>
+        <span class="output" id="frenchSentence"></span>
+      </div>
+    </section>
   </div>
-  <div>
-    <span id="status">Standing by.</span>
-  </div>
-  <hr>
-  <div class="input-div">
-    <span class="input-output-label">Input English sentence:</span>
-    <input id="englishSentence" size=16 maxlength="16"></input>
-  </div>
-  <div class="input-div">
-    <span class="input-output-label">Output French sentence:</span>
-    <span class="output" id="frenchSentence"></span>
-  </div>
-  <hr>
 
   <script src="index.js"></script>
 </body>

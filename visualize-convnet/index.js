@@ -15,6 +15,14 @@
  * =============================================================================
  */
 
+
+/**
+ * This is the front-end of the visualize-convnet example.
+ *
+ * It loads display the image files and associated metainformation generated
+ * by main.js in Node.js.
+ */
+
 const vizSection = document.getElementById('viz-section');
 const vizTypeSelect = document.getElementById('viz-type');
 const imageResultSection = document.getElementById('image-result');
@@ -112,7 +120,7 @@ async function run() {
     }
   } else if (vizType === 'cam') {
     const imgDiv = document.createElement('div');
-    imgDiv.classList.add('cam-img');
+    imgDiv.classList.add('cam-image');
     const img = document.createElement('img');
     img.src = normalizePath(activationManifest.camImagePath);
     imgDiv.appendChild(img);

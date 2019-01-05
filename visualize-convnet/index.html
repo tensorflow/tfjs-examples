@@ -18,87 +18,12 @@ limitations under the License.
 <!doctype html>
 
 <head>
-  <title>TensorFlow.js: Visualize Convnet</title>
+  <title>TensorFlow.js: Visualize Convnet Internals</title>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="stylesheet" href="../shared/tfjs-examples.css" />
+  <link rel="stylesheet" href="./style.css" />
 </head>
-
-<style>
-  .pred-container {
-    margin-bottom: 20px;
-  }
-
-  .pred-container > div {
-    display: inline-block;
-    margin-right: 20px;
-    vertical-align: top;
-  }
-
-  .row {
-    display: table-row;
-  }
-  .cell {
-    display: table-cell;
-    padding-right: 20px;
-  }
-
-  #file-container {
-    margin-bottom: 20px;
-  }
-
-  .layer-div {
-    margin: 10px;
-  }
-
-  .layer-filters {
-    overflow: auto;
-    overflow-y: hidden;
-    white-space: nowrap;
-  }
-
-  .filter-div {
-    display: inline-table;
-    width: 112px;
-    max-width: 112px;
-    white-space: pre-wrap;
-    text-align: center;
-    vertical-align: middle;
-  }
-
-  .filter-image {
-    margin: 3px;
-    width: 112px;
-    height: 112px;
-  }
-
-  .activation-image {
-    margin: 3px;
-    width: 112px;
-    height: 112px;
-    image-rendering: optimizeSpeed;
-    image-rendering: -moz-crisp-edges;
-    image-rendering: -o-crisp-edges;
-    image-rendering: -webkit-optimize-contrast;
-    image-rendering: pixelated;
-    image-rendering: optimize-contrast;
-    -ms-interpolation-mode: nearest-neighbor;
-  }
-
-  .cam-image {
-    margin: 5px;
-  }
-
-  .image-result-heading {
-    width: 250px;
-  }
-
-  .input-image {
-    margin: 3px;
-    width: 224px;
-    height: 224px;
-  }
-</style>
 
 <body>
   <div class="tfjs-example-container">
@@ -126,15 +51,18 @@ limitations under the License.
           <li>
             Finding which part of an input image is most relevant to the
             classification decision made by a convnet (
-            <a href="https://keras.io/applications/#vgg16">VGG16</a> in this case),
-            using the gradient-based class activation map (CAM) approach.
+            <a href="https://keras.io/applications/#vgg16">VGG16</a>
+            in this case), using the gradient-based class activation map (CAM)
+            approach.
           </li>
         </ul>
       </p>
     </section>
 
     <section>
-      <p class='section-head image-result-heading'>Input image and classification result</p>
+      <p class='section-head image-result-heading'>
+        Input image and classification result
+      </p>
 
       <div id="image-result"></div>
 
@@ -149,9 +77,7 @@ limitations under the License.
         </select>
       </div>
 
-
-      <div id="viz-section">
-      </div>
+      <div id="viz-section"></div>
     </section>
 
     <script src="index.js"></script>

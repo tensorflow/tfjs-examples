@@ -285,7 +285,8 @@ function gradClassActivationMap(model, classIndex, x, overlayFactor = 2.0) {
     // Create heat map by averaging and collapsing over all filters.
     let heatMap = scaledConvOutputValues.mean(-1);
 
-    // Normalize heatMap to the [0, 1] interval.
+    // Discard negative values from the heat map and normalize it to the [0, 1]
+    // interval.
     heatMap = heatMap.relu();
     heatMap = heatMap.div(heatMap.max()).expandDims(-1);
 

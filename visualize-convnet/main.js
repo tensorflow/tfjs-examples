@@ -407,7 +407,7 @@ async function run() {
       indices,
       origImagePath,
       classNames,
-      values: probScores,
+      probScores,
       layerName2FilePaths,
       layerName2ImageDims,
       camImagePath,

@@ -17,24 +17,42 @@
 
 const vizSection = document.getElementById('viz-section');
 const vizTypeSelect = document.getElementById('viz-type');
+const imageResultSection = document.getElementById('image-result');
 
 function normalizePath(path) {
   return path.startsWith('dist/') ? path.slice(5) : path;
 }
 
 async function run() {
+  //  Empty the image-and-result section.
+  while (imageResultSection.firstChild) {
+    imageResultSection.removeChild(imageResultSection.firstChild);
+  }
   // Empty the viz section.
   while (vizSection.firstChild) {
     vizSection.removeChild(vizSection.firstChild);
   }
 
-  const vizType = vizTypeSelect.value;
-
   const activationManifest =
       await (await fetch('activation/activation-manifest.json')).json();
   const filterManifest =
       await (await fetch('filters/filters-manifest.json')).json();
-  console.log(activationManifest);
+
+  // Render the input image in the image-result section.
+  const inputImage = document.createElement('img');
+  inputImage.classList.add('input-image');
+  inputImage.src = normalizePath(activationManifest.origImagePath);
+  imageResultSection.appendChild(inputImage);
+
+  // Render the top-3 classification results;
+  for (let i = 0; i < 3; ++i) {
+    const outputClassDiv = document.createElement('div');
+    outputClassDiv.textContent = `${activationManifest.classNames[i]} ` +
+        `(p=${activationManifest.probScores[i].toFixed(4)})`;
+    imageResultSection.appendChild(outputClassDiv);
+  }
+
+  const vizType = vizTypeSelect.value;
 
   if (vizType === 'activation') {
     const layerNames = Object.keys(activationManifest.layerName2FilePaths);
@@ -99,12 +117,7 @@ async function run() {
     img.src = normalizePath(activationManifest.camImagePath);
     imgDiv.appendChild(img);
 
-    const winnerDiv = document.createElement('div');
-    winnerDiv.textContent = `${activationManifest.topClass} ` +
-        `(p=${activationManifest.topProb.toFixed(4)})`;
-
     vizSection.appendChild(imgDiv);
-    vizSection.appendChild(winnerDiv);
   }
 };
 

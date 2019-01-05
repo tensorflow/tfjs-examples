@@ -46,7 +46,9 @@ async function run() {
       const layerDiv = document.createElement('div');
       layerDiv.classList.add('layer-div');
       const layerNameSpan = document.createElement('div');
-      layerNameSpan.textContent = `Layer "${layerName}"`;
+      const height = activationManifest.layerName2ImageDims[layerName][0];
+      const width = activationManifest.layerName2ImageDims[layerName][1];
+      layerNameSpan.textContent = `Layer "${layerName}" (${height}x${width})`;
       layerDiv.appendChild(layerNameSpan);
 
       const layerFiltersDiv = document.createElement('div');

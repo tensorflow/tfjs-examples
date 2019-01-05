@@ -155,10 +155,13 @@ async function writeConvLayerFilters(
  * @return modelOutput: final output of the model as a tf.Tensor.
  *         layerName2FilePaths: an object mapping layer name to the paths to the
  *           image files saved for the layer's activation.
+ *         layerName2FilePaths: an object mapping layer name to the height
+ *           and width of the layer's filter outputs.
  */
 async function writeInternalActivationAndGetOutput(
     model, layerNames, inputImage, filters, outputDir) {
   const layerName2FilePaths = {};
+  const layerName2ImageDims = {};
   const layerOutputs =
       layerNames.map(layerName => model.getLayer(layerName).output);
 
@@ -180,6 +183,7 @@ async function writeInternalActivationAndGetOutput(
         filters :
         activationTensors.length;
     const filePaths = [];
+    let imageTensorShape;
     for (let j = 0; j < actualFilters; ++j) {
       // Format activation tensors and write them to disk.
       const imageTensor = tf.tidy(
@@ -187,12 +191,18 @@ async function writeInternalActivationAndGetOutput(
       const outputFilePath = path.join(outputDir, `${layerName}_${j + 1}.png`);
       filePaths.push(outputFilePath);
       await utils.writeImageTensorToFile(imageTensor, outputFilePath);
+      imageTensorShape = imageTensor.shape;
     }
     layerName2FilePaths[layerName] = filePaths;
+    layerName2ImageDims[layerName] = imageTensorShape.slice(1, 3);
     tf.dispose(activationTensors);
   }
   tf.dispose(outputs.slice(0, outputs.length - 1));
-  return {modelOutput: outputs[outputs.length - 1], layerName2FilePaths};
+  return {
+    modelOutput: outputs[outputs.length - 1],
+    layerName2FilePaths,
+    layerName2ImageDims
+  };
 }
 
 /**
@@ -362,7 +372,7 @@ async function run() {
     const x = await utils.readImageTensorFromFile(
         args.inputImage, imageHeight, imageWidth);
     const layerNames = args.convLayerNames.split(',');
-    const {modelOutput, layerName2FilePaths} =
+    const {modelOutput, layerName2FilePaths, layerName2ImageDims} =
         await writeInternalActivationAndGetOutput(
             model, layerNames, x, args.filters, args.outputDir);
 
@@ -370,8 +380,8 @@ async function run() {
     const topNum = 10;
     const {values: topKVals, indices: topKIndices} =
         tf.topk(modelOutput, topNum);
-    const probScores = await topKVals.data();
-    const indices = await topKIndices.data();
+    const probScores = Array.from(await topKVals.data());
+    const indices = Array.from(await topKIndices.data());
     const classNames =
         indices.map(index => imagenetClasses.IMAGENET_CLASSES[index]);
 
@@ -399,6 +409,7 @@ async function run() {
       classNames,
       values: probScores,
       layerName2FilePaths,
+      layerName2ImageDims,
       camImagePath,
       topIndex: indices[0],
       topProb: probScores[0],

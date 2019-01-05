@@ -41,17 +41,17 @@ export class JenaWeatherData {
   /**
    * Load and preprocess data.
    *
-   * This method first tries to load the data from `FAST_JENA_WEATHER_CSV_PATH`
+   * This method first tries to load the data from `LOCAL_JENA_WEATHER_CSV_PATH`
    * (a relative path) and, if that fails, will try to load it from a remote
    * URL (`JENA_WEATHER_CSV_PATH`).
    */
   async load() {
     let response = await fetch(LOCAL_JENA_WEATHER_CSV_PATH);
-    if (response.statusCode === 200 || response.statusCode === 300) {
-      console.log('Loaded data from fast path');
+    if (response.statusCode === 200 || response.statusCode === 304) {
+      console.log('Loading data from local path');
     } else {
       response = await fetch(REMOTE_JENA_WEATHER_CSV_PATH);
-      console.log('Loaded data from remote path');
+      console.log('Loading data from remote path');
     }
     const csvData = await response.text();
 
@@ -66,8 +66,7 @@ export class JenaWeatherData {
     }
 
     this.dateTimeCol = columnNames.indexOf('Date Time');
-    tf.util.assert(
-        this.dateTimeCol === 0, `Unexpected date-time column index`);
+    tf.util.assert(this.dateTimeCol === 0, `Unexpected date-time column index`);
 
     this.dataColumnNames = columnNames.slice(1);
     this.tempCol = this.dataColumnNames.indexOf('T (degC)');
@@ -267,31 +266,37 @@ export class JenaWeatherData {
     const lookBackSlices = Math.floor(lookBack / step);
 
     function nextBatchFn() {
-      const rows = [];
+      const rowIndices = [];
       if (shuffle) {
+        // If `shuffle` is `true`, start from randomly chosen rows.
         const range = maxIndex - (minIndex + lookBack);
         for (let i = 0; i < batchSize; ++i) {
           const row = minIndex + lookBack + Math.floor(Math.random() * range);
-          rows.push(row);
+          rowIndices.push(row);
         }
       } else {
-        for (let r = startIndex; r < startIndex + batchSize && r < maxIndex; ++r) {
-          rows.push(r);
+        // If `shuffle` is `false`, the starting row indices will be sequential.
+        for (let r = startIndex; r < startIndex + batchSize && r < maxIndex;
+             ++r) {
+          rowIndices.push(r);
         }
       }
 
-      const numExamples = rows.length;
+      const numExamples = rowIndices.length;
       startIndex += numExamples;
 
       const featureLength =
           includeDateTime ? this.numColumns + 2 : this.numColumns;
       const samples = tf.buffer([numExamples, lookBackSlices, featureLength]);
       const targets = tf.buffer([numExamples, 1]);
+      // Iterate over examples. Each example contains a number of rows.
       for (let j = 0; j < numExamples; ++j) {
-        const row = rows[j];
+        const rowIndex = rowIndices[j];
         let exampleRow = 0;
-        for (let r = row - lookBack; r < row; r += step) {
+        // Iterate over rows in the example.
+        for (let r = rowIndex - lookBack; r < rowIndex; r += step) {
           let exampleCol = 0;
+          // Iterate over features in the row.
           for (let n = 0; n < featureLength; ++n) {
             let value;
             if (n < this.numColumns) {

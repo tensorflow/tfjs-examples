@@ -10,7 +10,7 @@
   },
   "dependencies": {
     "@tensorflow/tfjs": "^0.14.1",
-    "@tensorflow/tfjs-vis": "0.4.0"
+    "@tensorflow/tfjs-vis": "^0.4.2"
   },
   "scripts": {
     "watch": "./serve.sh",

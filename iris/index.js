@@ -23,29 +23,32 @@ import * as loader from './loader';
 import * as ui from './ui';
 
 let model;
+const BATCH_SIZE = 32;
 
 /**
  * Train a `tf.Model` to recognize Iris flower type.
  *
- * @param xTrain Training feature data, a `tf.Tensor` of shape
- *   [numTrainExamples, 4]. The second dimension include the features
- *   petal length, petalwidth, sepal length and sepal width.
- * @param yTrain One-hot training labels, a `tf.Tensor` of shape
- *   [numTrainExamples, 3].
- * @param xTest Test feature data, a `tf.Tensor` of shape [numTestExamples, 4].
- * @param yTest One-hot test labels, a `tf.Tensor` of shape
- *   [numTestExamples, 3].
+ * @param trainDataset A tf.Dataset object yielding features and targets. The
+ *   features must be of shape [numTrainExamples, 4], while the targets must be
+ *   [numTrainExamples, 3]. The four feature dimensions include the
+ *   petal_length, petal_width, sepal_length and sepal_width.  The target is
+ *   one-hot encoded labels of the three iris categories.
+ * @param validataionDataset A tf.Dataset of the same format as the trainDataset
+ *   for use in validation.
  * @returns The trained `tf.Model` instance.
  */
-async function trainModel(xTrain, yTrain, xTest, yTest) {
+async function trainModel(trainDataset, validationDataset) {
   ui.status('Training model... Please wait.');
 
   const params = ui.loadTrainParametersFromUI();
 
   // Define the topology of the model: two dense layers.
   const model = tf.sequential();
-  model.add(tf.layers.dense(
-      {units: 10, activation: 'sigmoid', inputShape: [xTrain.shape[1]]}));
+  model.add(tf.layers.dense({
+    units: 10,
+    activation: 'sigmoid',
+    inputShape: [data.IRIS_NUM_FEATURES]
+  }));
   model.add(tf.layers.dense({units: 3, activation: 'softmax'}));
   model.summary();
 
@@ -61,23 +64,29 @@ async function trainModel(xTrain, yTrain, xTest, yTest) {
   const accContainer = document.getElementById('accuracyCanvas');
   const beginMs = performance.now();
   // Call `model.fit` to train the model.
-  const history = await model.fit(xTrain, yTrain, {
+  await model.fitDataset(trainDataset, {
     epochs: params.epochs,
-    validationData: [xTest, yTest],
+    validationData: validationDataset,
     callbacks: {
       onEpochEnd: async (epoch, logs) => {
         // Plot the loss and accuracy values at the end of every training epoch.
+        // TODO(bileschi): Get rid of the explicit clone-assign when logs is no
+        // longer a reference. (next version of tfjs-union 0.14.2).
+        const newLogs = {};
+        Object.assign(newLogs, logs);
         const secPerEpoch =
             (performance.now() - beginMs) / (1000 * (epoch + 1));
         ui.status(`Training model... Approximately ${
             secPerEpoch.toFixed(4)} seconds per epoch`)
-        trainLogs.push(logs);
+        trainLogs.push(newLogs);
         tfvis.show.history(lossContainer, trainLogs, ['loss', 'val_loss'])
         tfvis.show.history(accContainer, trainLogs, ['acc', 'val_acc'])
+        const [[xTest, yTest]] = await validationDataset.collectAll();
         calculateAndDrawConfusionMatrix(model, xTest, yTest);
       },
     }
   });
+
   const secPerEpoch = (performance.now() - beginMs) / (1000 * params.epochs);
   ui.status(
       `Model training complete:  ${secPerEpoch.toFixed(4)} seconds per epoch`);
@@ -138,23 +147,21 @@ async function calculateAndDrawConfusionMatrix(model, xTest, yTest) {
  * Run inference on some test Iris flower data.
  *
  * @param model The instance of `tf.Model` to run the inference with.
- * @param xTest Test data feature, a `tf.Tensor` of shape [numTestExamples, 4].
- * @param yTest Test true labels, one-hot encoded, a `tf.Tensor` of shape
- *   [numTestExamples, 3].
+ * @param testDataset A tf.Dataset object yielding features and targets. The
+ *   features must be of shape [numTrainExamples, 4], while the targets must be
+ *   [numTrainExamples, 3]. The four feature dimensions include the
+ *   petal_length, petal_width, sepal_length and sepal_width.  The target is
+ *   one-hot encoded labels of the three iris categories.
  */
-async function evaluateModelOnTestData(model, xTest, yTest) {
+async function evaluateModelOnTestData(model, testDataset) {
   ui.clearEvaluateTable();
-
-  tf.tidy(() => {
-    const xData = xTest.dataSync();
-    const yTrue = yTest.argMax(-1).dataSync();
-    const predictOut = model.predict(xTest);
-    const yPred = predictOut.argMax(-1);
-    ui.renderEvaluateTable(
-        xData, yTrue, yPred.dataSync(), predictOut.dataSync());
-    calculateAndDrawConfusionMatrix(model, xTest, yTest);
-  });
-
+  const [[xTest, yTest]] = await testDataset.collectAll();
+  const xData = xTest.dataSync();
+  const yTrue = yTest.argMax(-1).dataSync();
+  const predictOut = model.predict(xTest);
+  const yPred = predictOut.argMax(-1);
+  ui.renderEvaluateTable(xData, yTrue, yPred.dataSync(), predictOut.dataSync());
+  calculateAndDrawConfusionMatrix(model, xTest, yTest);
   predictOnManualInput(model);
 }
 
@@ -165,16 +172,21 @@ const HOSTED_MODEL_JSON_URL =
  * The main function of the Iris demo.
  */
 async function iris() {
-  const [xTrain, yTrain, xTest, yTest] = data.getIrisData(0.15);
+  const testFraction = 0.15;
+  let [trainDataset, testDataset] = await data.getIrisData(testFraction);
+  // Batch datasets.
+  trainDataset = trainDataset.batch(BATCH_SIZE);
+  testDataset = testDataset.batch(BATCH_SIZE);
 
   const localLoadButton = document.getElementById('load-local');
   const localSaveButton = document.getElementById('save-local');
   const localRemoveButton = document.getElementById('remove-local');
 
+
   document.getElementById('train-from-scratch')
       .addEventListener('click', async () => {
-        model = await trainModel(xTrain, yTrain, xTest, yTest);
-        await evaluateModelOnTestData(model, xTest, yTest);
+        model = await trainModel(trainDataset, testDataset);
+        await evaluateModelOnTestData(model, testDataset);
         localSaveButton.disabled = false;
       });
 

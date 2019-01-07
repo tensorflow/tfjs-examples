@@ -110,6 +110,7 @@ export async function getIrisData(testSplit) {
   // and then map the preprocessing functions across the batches.
   // https://github.com/tensorflow/tfjs/issues/1025
 
+  console.log(tf.version);
   // Shuffle a copy of the raw data.
   const shuffled = IRIS_RAW_DATA.slice();
   tf.util.shuffle(shuffled);
@@ -121,8 +122,14 @@ export async function getIrisData(testSplit) {
   // Split the data into into X & y and apply feature mapping transformations
   const trainX = tf.data.array(train.map(r => r.slice(0, 4)));
   const testX = tf.data.array(test.map(r => r.slice(0, 4)));
-  const trainY = tf.data.array(train.map(r => flatOneHot(r[4])));
-  const testY = tf.data.array(test.map(r => flatOneHot(r[4])));
+  // const trainY = tf.data.array(train.map(r => flatOneHot(r[4])));
+  // const testY = tf.data.array(test.map(r => flatOneHot(r[4])));
+  // TODO(we should be able to just directly use tensors built from oneHot here
+  // instead of converting to tensor and back using datasync & Array.from.
+  // This causes an internal disposal error however.
+  //
+  const trainY = tf.data.array(train.map(r => tf.oneHot([r[4]], 3)));
+  const testY = tf.data.array(test.map(r => tf.oneHot([r[4]], 3)));
   // Recombine the X and y portions of the data.
   const trainDataset = tf.data.zip([trainX, trainY]);
   const testDataset = tf.data.zip([testX, testY])

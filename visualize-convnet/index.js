@@ -52,7 +52,7 @@ async function run() {
   inputImage.src = normalizePath(activationManifest.origImagePath);
   imageResultSection.appendChild(inputImage);
 
-  // Render the top-3 classification results;
+  // Render the top-3 classification results.
   for (let i = 0; i < 3; ++i) {
     const outputClassDiv = document.createElement('div');
     outputClassDiv.textContent = `${activationManifest.classNames[i]} ` +

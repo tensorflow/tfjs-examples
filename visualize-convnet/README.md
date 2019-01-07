@@ -37,7 +37,10 @@ This will automatically
 
 Step 3 and 4 (especially step 3) involve relatively heavy computation
 and is best done usnig tfjs-node-gpu instead of the default
-tfjs-node. To do that,
+tfjs-node. This requires that a CUDA-enabled GPU and the necessary
+driver and libraries installed on your machine. 
+
+Assuming those prerequisites are met, do:
 
 ```sh
 yarn visualize --gpu

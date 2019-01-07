@@ -21,14 +21,14 @@
  *
  * This script performs the following operations:
  * 1. Retrieving internal activations of a convnet.
- *    See function `writeInternalActivationAndGetOutput`.
+ *    See function `writeInternalActivationAndGetOutput()`.
  * 2. Calculate maximally-activating input image for convnet filters, using
  *    gradient ascent in input space.
- *    See function `inputGradientAscent`.
+ *    See function `inputGradientAscent()`.
  * 3. Get visual interpretation of which parts of the image more most
  *    responsible for a convnet's classification decision, using the
  *    gradient-based class activation map (CAM) method.
- *    See function `gradClassActivationMap`.
+ *    See function `gradClassActivationMap()`.
  */
 
 const argparse = require('argparse');
@@ -44,8 +44,8 @@ const imagenetClasses = require('./imagenet_classes');
  *
  * Uses gradient ascent in input space.
  *
- * @param {tf.Model} model The model that the conv2d layer of interest belongs
- *   to.
+ * @param {tf.Model} model The model that the convolutional layer of interest
+ *   belongs to.
  * @param {string} layerName Name of the convolutional layer.
  * @param {number} filterIndex Index to the filter of interest. Must be
  *   < number of filters of the conv2d layer.
@@ -59,7 +59,8 @@ function inputGradientAscent(model, layerName, filterIndex, iterations = 40) {
     const imageDepth = model.inputs[0].shape[3];
 
     // Create an auxiliary model of which input is the same as the original
-    // model but the output is the convolutional layer of interest.
+    // model but the output is the output of the convolutional layer of
+    // interest.
     const layerOutput = model.getLayer(layerName).output;
     const auxModel = tf.model({inputs: model.inputs, outputs: layerOutput});
 
@@ -94,10 +95,13 @@ function inputGradientAscent(model, layerName, filterIndex, iterations = 40) {
   });
 }
 
+/** Center and scale input image so the pixel values fall into [0, 255]. */
 function deprocessImage(x) {
   return tf.tidy(() => {
     const {mean, variance} = tf.moments(x);
     x = x.sub(mean);
+    // Add a small positive number (EPSILON) to the denominator to prevent
+    // division-by-zero.
     x = x.div(tf.sqrt(variance).add(tf.ENV.get('EPSILON')));
     // Clip to [0, 1].
     x = x.add(0.5);
@@ -165,13 +169,13 @@ async function writeInternalActivationAndGetOutput(
   const layerOutputs =
       layerNames.map(layerName => model.getLayer(layerName).output);
 
-  // Construct a mdoel that returns all the desired internal activations,
+  // Construct a model that returns all the desired internal activations,
   // in addition to the final output of the original model.
   const compositeModel = tf.model(
       {inputs: model.input, outputs: layerOutputs.concat(model.outputs[0])});
 
-  // `outputs` is an array of `tf.Tensor`s, including the internal activations
-  // and the final output.
+  // `outputs` is an array of `tf.Tensor`s consisting of the internal-activation
+  // values and the final output value.
   const outputs = compositeModel.predict(inputImage);
 
   for (let i = 0; i < outputs.length - 1; ++i) {
@@ -206,7 +210,7 @@ async function writeInternalActivationAndGetOutput(
 }
 
 /**
- * Calculate gradient-based class activation map and overlay it on input image.
+ * Calculate class activation map (CAM) and overlay it on input image.
  *
  * This function automatically finds the last convolutional layer, get its
  * output (activation) under the input image, weights its filters by the
@@ -214,7 +218,7 @@ async function writeInternalActivationAndGetOutput(
  * the filter dimension.
  *
  * @param {tf.Sequential} model A TensorFlow.js sequential model, assumed to
- *   contain at least o
+ *   contain at least one convolutional layer.
  * @param {number} classIndex Index to class in the model's final classification
  *   output.
  * @param {tf.Tensor4d} x Input image, assumed to have shape

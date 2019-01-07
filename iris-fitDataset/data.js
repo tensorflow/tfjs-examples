@@ -121,6 +121,13 @@ export async function getIrisData(testSplit) {
   // Split the data into into X & y and apply feature mapping transformations
   const trainX = tf.data.array(train.map(r => r.slice(0, 4)));
   const testX = tf.data.array(test.map(r => r.slice(0, 4)));
+  // TODO(we should be able to just directly use tensors built from oneHot here
+  // instead of converting to tensor and back using datasync & Array.from.
+  // This causes an internal disposal error however.
+  // See https://github.com/tensorflow/tfjs/issues/1071
+  //
+  // const trainY = tf.data.array(train.map(r => tf.oneHot([r[4]], 3)));
+  // const testY = tf.data.array(test.map(r => tf.oneHot([r[4]], 3)));
   const trainY = tf.data.array(train.map(r => flatOneHot(r[4])));
   const testY = tf.data.array(test.map(r => flatOneHot(r[4])));
   // Recombine the X and y portions of the data.

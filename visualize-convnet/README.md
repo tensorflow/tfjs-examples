@@ -38,7 +38,7 @@ This will automatically
 Step 3 and 4 (especially step 3) involve relatively heavy computation
 and is best done usnig tfjs-node-gpu instead of the default
 tfjs-node. This requires that a CUDA-enabled GPU and the necessary
-driver and libraries installed on your machine. 
+driver and libraries are installed on your system.
 
 Assuming those prerequisites are met, do:
 

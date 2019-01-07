@@ -1,0 +1,257 @@
+<!--
+Copyright 2018 Google LLC. All Rights Reserved.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+==============================================================================
+-->
+
+<html>
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="../shared/tfjs-examples.css" />
+</head>
+
+<body>
+
+  <style>
+
+    input {
+      width: 75px;
+    }
+
+    .input-div {
+      padding: 5px;
+      font-family: monospace;
+      font-size: 16px;
+    }
+
+    .input-label {
+      display: inline-block;
+      width: 160px;
+    }
+
+    td {
+      padding-left: 5px;
+      padding-right: 5px;
+      padding-bottom: 5px;
+    }
+
+    #predict-header {
+      font-weight: bold;
+    }
+
+    .output-div {
+      padding: 5px;
+      padding-top: 20px;
+      font-family: monospace;
+      font-weight: bold;
+    }
+
+    #evaluate-table {
+      display: inline-block;
+    }
+
+    #evaluate-table td, #evaluate-table th {
+      font-family: monospace;
+      border: 1px solid #ddd;
+      padding: 8px;
+    }
+    #evaluate-table th {
+      padding-top: 12px;
+      padding-bottom: 12px;
+      text-align: left;
+      background-color: #4CAF50;
+      color: white;
+    }
+
+    .region {
+      border-left: 1px dashed #ccc;
+      margin-bottom: 5px;
+      padding-left: 24px;
+      margin-left: -24px;
+    }
+
+    .load-save-section {
+      padding-top: 3px;
+      padding-bottom: 3px;
+    }
+
+    .logit-span {
+      padding-right: 1em;
+    }
+    .correct-prediction {
+      background-color: greenyellow
+    }
+    .wrong-prediction {
+      background-color: red;
+    }
+  </style>
+
+  <body>
+    <div class='tfjs-example-container'>
+      <section class='title-area'>
+        <h1>TensorFlow.js Layers: Iris Demo</h1>
+        <p class='subtitle'>Classify structured (tabular) data with a neural network.</p>
+      </section>
+
+      <section>
+        <p class='section-head'>Description</p>
+        <p>
+          This example uses a neural network to classify tabular data representing different flowers. The data used for
+          each flower are the petal length and width as well as the sepal length and width. The goal
+          is to predict what kind of flower it is based on those features of each data point. The
+          data comes from the famous <a href="https://en.wikipedia.org/wiki/Iris_flower_data_set">Iris flower</a> data
+          set.
+        </p>
+      </section>
+
+      <section>
+        <p class='section-head'>Instructions</p>
+        <p>
+          Using the buttons below you can either train a new model from scratch or load a pre-trained model and
+          test its performance.
+        </p>
+        <p>
+          If you train a model from scratch you can also save it to browser local storage.
+        </p>
+        <p>
+          If you load a pre-trained model you can edit the properties in first row of "Test Examples" to generate
+          a prediction for those data points.
+        </p>
+      </section>
+
+      <section>
+        <p class='section-head'>Controls</p>
+
+        <div class="region">
+          <h3>Train Model</h3>
+          <div class="create-model">
+            <div class="input-div">
+              <label class="input-label">Train Epochs:</label>
+              <input id="train-epochs" type="number" value="40"></input>
+            </div>
+            <div class="input-div">
+              <span class="input-label">Learning Rate:</span>
+              <input id="learning-rate" type="number" value="0.01"></input>
+            </div>
+            <button id="train-from-scratch">Train model from scratch</button>
+          </div>
+        </div>
+
+        <div class="region">
+          <h3>Save/Load Model</h3>
+          <div class="load-save-section">
+            <button id="load-pretrained-remote">Load hosted pretrained model</button>
+          </div>
+
+          <div class="load-save-section">
+            <button id="load-local" disabled="true">Load locally-saved model</button>
+            <button id="save-local" disabled="true">Save model locally</button>
+            <button id="remove-local" disabled="true">Remove model locally</button>
+            <span id='local-model-status'>Status unavailable.</span>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <p class='section-head'>Status</p>
+        <div>
+          <span id="demo-status">Standing by.</span>
+        </div>
+      </section>
+
+      <section>
+        <p class='section-head'>Training Progress</p>
+        <div class='with-cols'>
+          <div>
+            <h4>Loss</h4>
+            <div class="canvases" id="lossCanvas"></div>
+          </div>
+          <div>
+            <h4>Accuracy</h4>
+            <div class="canvases" id="accuracyCanvas"></div>
+          </div>
+          <div>
+            <h4>Confusion Matrix (on validation set)</h4>
+            <div id="confusion-matrix"></div>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <p class='section-head'>Test Examples</p>
+
+        <div id="evaluate">
+          <table id="evaluate-table">
+            <tr>
+              <th>Petal length</th>
+              <th>Petal width</th>
+              <th>Sepal length</th>
+              <th>Sepal width</th>
+              <th>True class</th>
+              <th>Predicted class</th>
+              <th>Class Probabilities</th>
+            </tr>
+            <tbody id="evaluate-tbody">
+              <tr>
+                <td>
+                  <input id="petal-length" value="5.1"></input>
+                  <button id="petal-length-inc">+</button>
+                  <button id="petal-length-dec">-</button>
+                </td>
+                <td>
+                  <input id="petal-width" value="3.5"></input>
+                  <button id="petal-width-inc">+</button>
+                  <button id="petal-width-dec">-</button>
+                </td>
+                <td>
+                  <input id="sepal-length" value="1.4"></input>
+                  <button id="sepal-length-inc">+</button>
+                  <button id="sepal-length-dec">-</button>
+                </td>
+                <td>
+                  <input id="sepal-width" value="0.2"></input>
+                  <button id="sepal-width-inc">+</button>
+                  <button id="sepal-width-dec">-</button>
+                </td>
+                <td></td>
+                <td id="winner"></td>
+                <td id="logits"></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+
+
+      <div>
+        <div class="horizontal-section">
+
+
+
+          <div id="horizontal-section">
+
+          </div>
+
+
+        </div>
+      </div>
+    </div>
+
+    <script src="index.js"></script>
+  </body>
+
+</html>

@@ -5,8 +5,7 @@
   "license": "Apache-2.0",
   "private": true,
   "dependencies": {
-    "@tensorflow/tfjs": "0.14.0",
-    "@tensorflow/tfjs-data": "file:.yalc/@tensorflow/tfjs-data"
+    "@tensorflow/tfjs": "^0.14.1"
   },
   "scripts": {
     "link-local": "yalc link",

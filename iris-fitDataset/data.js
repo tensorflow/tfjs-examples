@@ -106,7 +106,9 @@ export function flatOneHot(idx) {
 export async function getIrisData(testSplit) {
   // TODO(bileschi): Update shuffle etc. to use the tf.data API calls once
   // it is possible to cache the results for performance and train-test split
-  // stability across epochs.
+  // stability across epochs.  Once caching is available, perform batching first
+  // and then map the preprocessing functions across the batches.
+  // https://github.com/tensorflow/tfjs/issues/1025
 
   // Shuffle a copy of the raw data.
   const shuffled = IRIS_RAW_DATA.slice();

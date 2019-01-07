@@ -1,0 +1,219 @@
+<!--
+Copyright 2018 Google LLC. All Rights Reserved.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+==============================================================================
+-->
+
+<!doctype html>
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="../shared/tfjs-examples.css" />
+  <link rel="stylesheet" href="./style.css" />
+</head>
+
+<style>
+  .setting {
+    padding: 6px;
+  }
+
+  #trainModel {
+    margin-top: 12px;
+  }
+
+  .setting-label {
+    display: inline-block;
+    width: 12em;
+  }
+
+  .answer-correct {
+    color: green;
+  }
+
+  .answer-wrong {
+    color: red;
+  }
+
+  .data-series {
+    display: inline-block;
+    width: 320px;
+    margin: 4px;
+  }
+
+  .data-options {
+    display: inline-block;
+    width: 320px;
+    margin: 4px;
+  }
+
+  .data-time-options {
+    width: 240px;
+  }
+
+  .data-nav {
+    margin: 4px;
+  }
+
+  .model-training {
+    margin: 4px;
+  }
+</style>
+
+<body>
+  <title>Weather Data Visualization and Prediction with TensorFlow.js</title>
+  <div class='tfjs-example-container centered-container'>
+    <section class='title-area'>
+      <h1>Weather Data Visualization and Prediction with TensorFlow.js</h1>
+      <p class='subtitle'>
+      </p>
+    </section>
+
+    <section>
+      <p class='section-head'>Description</p>
+      <p>
+        This demo showcases
+        <ul>
+          <li>
+            visualization of temporal sequential data with
+            the <a href="https://www.npmjs.com/package/@tensorflow/tfjs-vis">tfjs-vis</a>
+            library
+          </li>
+          <li>
+            predicting future values based on sequential input data using
+            various model types including linear regressors, multilayer
+            perceptrons (MLPs) and recurrent neural networks (RNNs).
+          </li>
+        </ul>
+        The data used in this demo is the
+        <a href="https://www.kaggle.com/pankrzysiu/weather-archive-jena">Jena weather archive dataset</a>.
+      </p>
+    </section>
+
+    <div>
+      <section>
+        <p class='section-head'>Instructions</p>
+        <p>
+          <ol>
+            <li>
+              To visualize and explore the data that goes into the model,
+              select various columns of the dataset in the
+              "Data series 1" and "Data series 2" dropdown menus. Experiment with normalization
+              and no-normalization options. Try showing the data at different time spans.
+              At time spans narrower than "full", you can use the left and right arrow
+              buttons to navigate along the time axis. Finally, try plotting two data series
+              against each other as a scatter plot by checking the "Plot against each other"
+              checkbox.
+            </li>
+            <li>
+              To train a linear-regression model or a multilayer perceptron (MLP),
+              specify the number of training epochs
+              and click "Train model". Wait patiently for the training to finish.
+              Loss values from the training and validation dataset will be refreshed in the
+              tfjs-vis visor surface on the right-hand side of the page at the end of
+              every training epoch. Experiment with regularization and dropout and observe
+              their effects on overfitting.
+            </li>
+          </ol>
+        </p>
+      </section>
+
+      <section>
+        <p class='section-head'>Status</p>
+        <p id="status"></p>
+        <p id="message"></p>
+      </section>
+
+      <div class="controls with-rows">
+
+      <section>
+        <p class='section-head'>Data Visualization</p>
+        <div class="data-options data-time-options">
+          <span>Time span:</span>
+          <select id="time-span">
+            <option value="full">Full</option>
+            <option value="year">Year</option>
+            <option value="month">Month</option>
+            <option value="week">Week</option>
+            <option value="tenDays">10 days</option>
+            <option value="day">Day</option>
+            <option value="hour">Hour</option>
+          </select>
+        </div>
+
+        <div class="data-options">
+          <button id="data-prev" class="data-nav">←</button>
+          <button id="data-next" class="data-nav">→</button>
+          <span id="date-time-range"></span>
+        </div>
+
+        <div>
+          <div class="data-series">
+            <span>Data series 1:</span>
+            <select id="data-series-1"></select>
+          </div>
+          <div class="data-series">
+            <span>Data series 2:</span>
+            <select id="data-series-2"></select>
+          </div>
+        </div>
+
+        <div>
+          <div class="data-options">
+            <span>Normalize data</span>
+            <input type="checkbox" id="data-normalized">
+          </div>
+          <div class="data-options">
+            <span>Plot against each other</span>
+            <input type="checkbox" id="data-scatter">
+          </div>
+        </div>
+
+        <p id="trainStatus"></p>
+        <div class='with-cols'>
+          <div id="data-chart"></div>
+          <!-- <div id="examplesPerSecCanvas"></div> -->
+        </div>
+
+        <p class='section-head'>Model training</p>
+        <div>
+          <span>Model Type:</span>
+          <select id="model-type">
+            <option value="mlp">MLP</option>
+            <option value="mlp-l2">MLP with L2 regularization</option>
+            <option value="mlp-dropout">MLP with dropout</option>
+            <option value="linear-regression">Linear regression</option>
+            <!-- TODO(cais): Add GRU, perhaps as loading of models trained in tfjs-node -->
+          </select>
+          <div class="model-training">
+            <span>Include date and time features</span>
+            <input type="checkbox" id="include-date-time-features">
+          </div>
+          <div class="model-training">
+            <span>Epochs:</span>
+            <input type="number" id="epochs" value="20">
+          </div>
+          <div class="model-training">
+            <button id="train-model">Train model</button>
+          </div>
+
+        </div>
+      </section>
+
+    </div>
+  </div>
+
+</body>
+
+<script src="index.js"></script>

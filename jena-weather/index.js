@@ -16,13 +16,14 @@
  */
 
 /**
- * Weather Prediction Example
+ * Weather Prediction Example.
  */
 
 import * as tf from '@tensorflow/tfjs';
 import * as tfvis from '@tensorflow/tfjs-vis';
 
 import {JenaWeatherData} from './data';
+import {buildModel, trainModel} from './models';
 import {currBeginIndex, getDataVizOptions, logStatus, populateSelects, TIME_SPAN_RANGE_MAP, TIME_SPAN_STRIDE_MAP, updateDateTimeRangeSpan, updateScatterCheckbox} from './ui';
 
 const dataChartContainer = document.getElementById('data-chart');
@@ -141,73 +142,6 @@ function makeTimeSeriesScatterPlot(series1, series2, timeSpan, normalize) {
   });
 }
 
-/**
- * Build a linear-regression model for the temperature-prediction problem.
- *
- * @param {tf.Shape} inputShape Input shape (without the batch dimenson).
- * @returns {tf.Model} A TensorFlow.js tf.Model instance.
- */
-function buildLinearRegressionModel(inputShape) {
-  const model = tf.sequential();
-  model.add(tf.layers.flatten({inputShape}));
-  model.add(tf.layers.dense({units: 1}));
-  return model;
-}
-
-/**
- * Build a GRU model for the temperature-prediction problem.
- *
- * @param {tf.Shape} inputShape Input shape (without the batch dimenson).
- * @param {tf.regularizer.Regularizer} kernelRegularizer An optional
- *   regularizer for the kernel of the first (hdiden) dense layer of the MLP.
- *   If not specified, no weight regularization will be included in the MLP.
- * @param {number} dropoutRate Dropout rate of an optional dropout layer
- *   inserted between the two dense layers of the MLP. Optional. If not
- *   specified, no dropout layers will be included in the MLP.
- * @returns {tf.Model} A TensorFlow.js tf.Model instance.
- */
-function buildMLPModel(inputShape, kernelRegularizer, dropoutRate) {
-  const model = tf.sequential();
-  model.add(tf.layers.flatten({inputShape}));
-  model.add(
-      tf.layers.dense({units: 32, kernelRegularizer, activation: 'relu'}));
-  if (dropoutRate > 0) {
-    model.add(tf.layers.dropout({rate: dropoutRate}));
-  }
-  model.add(tf.layers.dense({units: 1}));
-  return model;
-}
-
-/**
- * Build a model for the temperature-prediction problem.
- *
- * @param {string} modelType Model type.
- * @param {tf.Shape} inputShape Input shape (without the batch dimenson).
- * @returns A compiled instance of `tf.Model`.
- */
-function buildModel(modelType, inputShape) {
-  console.log(`modelType = ${modelType}`);
-  let model;
-  if (modelType === 'mlp') {
-    model = buildMLPModel(inputShape);
-  } else if (modelType === 'mlp-l2') {
-    model = buildMLPModel(inputShape, tf.regularizers.l2());
-  } else if (modelType === 'linear-regression') {
-    model = buildLinearRegressionModel(inputShape);
-  } else if (modelType === 'mlp-dropout') {
-    const regularizer = null;
-    const dropoutRate = 0.25;
-    model = buildMLPModel(inputShape, regularizer, dropoutRate);
-  } else if (modelType === 'gru') {
-    model = buildGRUModel(inputShape);
-  } else {
-    throw new Error(`Unsupported model type: ${modelType}`);
-  }
-
-  model.compile({loss: 'meanAbsoluteError', optimizer: 'rmsprop'});
-  return model;
-}
-
 let lossValues;
 let valLossValues;
 
@@ -237,6 +171,7 @@ function plotLoss(modelType, epoch, loss, valLoss) {
 trainModelButton.addEventListener('click', async () => {
   logStatus('Training model...');
   trainModelButton.disabled = true;
+  trainModelButton.textContent = 'Training model. Please wait...'
   // Test iteratorFn.
   const shuffle = true;
   const lookBack = 10 * 24 * 6;  // Look back 10 days.
@@ -247,91 +182,27 @@ trainModelButton.addEventListener('click', async () => {
   const maxIndex = 200000;
   const normalize = true;
   const includeDateTime = includeDateTimeSelect.checked;
-  console.log(`includeDateTime = ${includeDateTime}`);
-
-  // Construct model.
+  
   const modelType = modelTypeSelect.value;
+
+  console.log('Creating model...');
   let numFeatures = jenaWeatherData.getDataColumnNames().length;
-  if (includeDateTime) {
-    numFeatures += 2;
-  }
-  const model =
-      buildModel(modelType, [Math.floor(lookBack / step), numFeatures]);
+  const model = buildModel(modelType, Math.floor(lookBack / step), numFeatures);
 
   // Draw a summary of the model with tfjs-vis visor.
   const surface =
       tfvis.visor().surface({tab: modelType, name: 'Model Summary'});
   tfvis.show.modelSummary(surface, model);
 
-  const trainNextBatchFn = jenaWeatherData.getNextBatchFunction(
-      shuffle, lookBack, delay, batchSize, step, minIndex, maxIndex, normalize,
-      includeDateTime);
-
-  // TODO(cais): Use the following when the API is available.
-  // const dataset = tf.data.generator(iteratorFn);
-  // await model.fitDataset(dataset, {epochs, batchesPerEpoch, ...});
+  console.log('Starting model training...');
   const epochs = +epochsInput.value;
-  const batchesPerEpoch = 500;
   const displayEvery = 100;
-  for (let i = 0; i < epochs; ++i) {
-    const t0 = tf.util.now();
-    let totalTrainLoss = 0;
-    let numSeen = 0;
-    for (let j = 0; j < batchesPerEpoch; ++j) {
-      const item = trainNextBatchFn();
-      const trainLoss = await model.trainOnBatch(item.value[0], item.value[1]);
+  await trainModel(
+      model, jenaWeatherData, shuffle, normalize, includeDateTime,
+      lookBack, step, delay, batchSize, minIndex, maxIndex, epochs,
+      displayEvery, (epoch, loss, valLoss) => plotLoss(modelType, epoch, loss, valLoss));
 
-      numSeen += item.value[0].shape[0];
-      totalTrainLoss += item.value[0].shape[0] * trainLoss;
-      if ((j + 1) % displayEvery === 0) {
-        console.log(
-            `epoch ${i + 1}/${epochs} batch ${j + 1}/${batchesPerEpoch}: ` +
-            `trainLoss=${trainLoss.toFixed(6)}`);
-      }
-      tf.dispose(item.value);
-    }
-    const t1 = tf.util.now();
-    const epochTrainLoss = totalTrainLoss / numSeen;
-
-    // Perform validation.
-    const valMinIndex = 200001;
-    const valMaxIndex = 300000;
-    const valNextBatchFn = jenaWeatherData.getNextBatchFunction(
-        false, lookBack, delay, batchSize, step, valMinIndex, valMaxIndex,
-        normalize, includeDateTime);
-    const valT0 = tf.util.now();
-    const valSteps = Math.floor((300000 - 200001 - lookBack) / batchSize);
-    tf.tidy(() => {
-      console.log(`Running validation: valSteps=${valSteps}`);
-      let totalValLoss = tf.scalar(0);
-      numSeen = 0;
-      for (let j = 0; j < valSteps; ++j) {
-        if (j % displayEvery === 0) {
-          console.log(`  Validation: step ${j}/${valSteps}`);
-        }
-        const item = valNextBatchFn();
-        const evalOut =
-            model.evaluate(item.value[0], item.value[1], {batchSize});
-        const numExamples = item.value[0].shape[0];
-        totalValLoss = tf.tidy(
-            () => totalValLoss.add(evalOut.mulStrict(tf.scalar(numExamples))));
-        numSeen += numExamples;
-        tf.dispose([item.value, evalOut]);
-      }
-      const valLoss = totalValLoss.divStrict(tf.scalar(numSeen)).dataSync()[0];
-      const valT1 = tf.util.now();
-      const valMsPerBatch = (valT1 - valT0) / valSteps;
-      console.log(
-          `epoch ${i + 1}/${epochs}: trainLoss=${epochTrainLoss.toFixed(6)}; ` +
-          `valLoss=${valLoss.toFixed(6)} ` +
-          `(train: ${((t1 - t0) / batchesPerEpoch).toFixed(1)} ms/batch; ` +
-          `val: ${valMsPerBatch.toFixed(1)} ms/batch)\n`);
-      plotLoss(modelType, i + 1, epochTrainLoss, valLoss)
-
-      tf.dispose(valLoss);
-    });
-  }
-  trainModelButton.disabled = false;
+  
   logStatus('Model training complete...');
 
   if (modelType.indexOf('mlp') === 0) {
@@ -341,6 +212,9 @@ trainModelButton.addEventListener('click', async () => {
   } else if (modelType.indexOf('linear-regression') === 0) {
     visualizeModelLayers(modelType, [model.layers[1]], ['Dense Layer 1']);
   }
+
+  trainModelButton.textContent = 'Train model';
+  trainModelButton.disabled = false;
 });
 
 /**

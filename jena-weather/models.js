@@ -84,8 +84,10 @@ function buildGRUModel(inputShape, dropout, recurrentDropout) {
  * Build a model for the temperature-prediction problem.
  *
  * @param {string} modelType Model type.
- * @param {tf.Shape} lookBack
- * 
+ * @param {number} numTimeSteps Number of time steps in each input.
+ *   exapmle
+ * @param {number} numFeatures Number of features (for each time step).
+ * @returns A compiled instance of `tf.Model`.
  */
 export function buildModel(modelType, numTimeSteps, numFeatures) {
   const inputShape = [numTimeSteps, numFeatures];

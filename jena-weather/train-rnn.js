@@ -15,39 +15,87 @@
  * =============================================================================
  */
 
-// TODO(cais): Add --gpu flag.
-// import '@tensorflow/tfjs-node';
-import '@tensorflow/tfjs-node-gpu';
+import {ArgumentParser} from 'argparse';
 
 import {JenaWeatherData} from './data';
-import {trainModel} from './models';
+import {buildModel, trainModel} from './models';
 
 global.fetch = require('node-fetch');
 
+function parseArguments() {
+  const parser =
+      new ArgumentParser({description: 'Train RNNs for Jena weather problem'});
+  parser.addArgument('--modelType', {
+    type: 'string',
+    defaultValue: 'gru',
+    optionStrings: ['gru', 'gru-dropout'],
+    // TODO(cais): Add more.
+    help: 'Model type to use'
+  });
+  parser.addArgument('--gpu', {
+    action: 'storeTrue',
+    help: 'Use GPU'
+  });
+  parser.addArgument('--lookBack', {
+    type: 'int',
+    defaultValue: 10 * 24 * 6,
+    help: 'Look-back period (# of rows) for generating features'
+  });
+  parser.addArgument('--step', {
+    type: 'int',
+    defaultValue: 6,
+    help: 'Step size (# of rows) used for generating features'
+  });
+  parser.addArgument('--delay', {
+    type: 'int',
+    defaultValue: 24 * 6,
+    help: 'How many steps (# of rows) in the future to predict the ' +
+        'temperature for'
+  });
+  parser.addArgument('--normalize', {
+    defaultValue: true,
+    help: 'Used normalized feature values (default: true)'
+  });
+  parser.addArgument('--includeDateTime', {
+    action: 'storeTrue',
+    help: 'Used date and time features (default: false)'
+  });
+  parser.addArgument(
+      '--batchSize',
+      {type: 'int', defaultValue: 128, help: 'Batch size for training'});
+  parser.addArgument(
+      '--epochs',
+      {type: 'int', defaultValue: 20, help: 'Number of training epochs'});
+  parser.addArgument('--displayEvery', {
+    type: 'int',
+    defaultValue: 10,
+    help: 'Log info to the console every _ batches'
+  });
+  return parser.parseArgs();
+}
+
 async function main() {
+  const args = parseArguments();
+  if (args.gpu) {
+    console.log('Using GPU for training.');
+    require('@tensorflow/tfjs-node-gpu');
+  } else {
+    console.log('Using CPU for training.');
+    require('@tensorflow/tfjs-node');
+  }
+
   const jenaWeatherData = new JenaWeatherData();
   console.log(`Loading Jena weather data...`);
   await jenaWeatherData.load();
 
-  const shuffle = true;
-  const lookBack = 10 * 24 * 6;  // Look back 10 days.
-  const step = 6;                // 1-hour steps.
-  const delay = 24 * 6;          // Predict the weather 1 day later.
-  const batchSize = 128;
-  const minIndex = 0;
-  const maxIndex = 200000;
-  const normalize = true;
-  const includeDateTime = false;
-  const epochs = 20;
-  const displayEvery = 5;
-
-  const modelType = 'gru';
   let numFeatures = jenaWeatherData.getDataColumnNames().length;
-  const model = buildModel(modelType, Math.floor(lookBack / step), numFeatures);
+  const model = buildModel(
+      args.modelType, Math.floor(args.lookBack / args.step), numFeatures);
 
   await trainModel(
-      model, jenaWeatherData, shuffle, normalize, includeDateTime, lookBack,
-      step, delay, batchSize, minIndex, maxIndex, epochs, displayEvery);
+      model, jenaWeatherData, args.normalize, args.includeDateTime,
+      args.lookBack, args.step, args.delay, args.batchSize, args.epochs,
+      args.displayEvery);
 }
 
 main();

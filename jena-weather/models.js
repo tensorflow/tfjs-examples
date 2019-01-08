@@ -127,17 +127,18 @@ export function buildModel(modelType, numTimeSteps, numFeatures) {
  * @param {number} delay How many steps in the future to make the prediction
  *   for.
  * @param {number} batchSize batchSize for training.
- * @param {number} minIndex Minimum row index to sample from the weather data.
- * @param {number} maxIndex Maximum row index to sample from the weather data.
  * @param {number} epochs Number of training epochs.
  * @param {number} displayEvery Log info to console every _ batches.
  * @param {number} epochEndCallback Optional callback to invoke at the
  *   end of every epoch.
  */
 export async function trainModel(
-    model, jenaWeatherData, shuffle, normalize, includeDateTime, lookBack,
-    step, delay, batchSize, minIndex, maxIndex, epochs, displayEvery = 100,
+    model, jenaWeatherData, normalize, includeDateTime, lookBack,
+    step, delay, batchSize, epochs, displayEvery = 100,
     epochEndCallback) {
+  const shuffle = true;
+  const minIndex = 0;
+  const maxIndex = 200000;
   const trainNextBatchFn = jenaWeatherData.getNextBatchFunction(
       shuffle, lookBack, delay, batchSize, step, minIndex, maxIndex, normalize,
       includeDateTime);

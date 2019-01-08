@@ -173,13 +173,10 @@ trainModelButton.addEventListener('click', async () => {
   trainModelButton.disabled = true;
   trainModelButton.textContent = 'Training model. Please wait...'
   // Test iteratorFn.
-  const shuffle = true;
   const lookBack = 10 * 24 * 6;  // Look back 10 days.
   const step = 6;                // 1-hour steps.
   const delay = 24 * 6;          // Predict the weather 1 day later.
   const batchSize = 128;
-  const minIndex = 0;
-  const maxIndex = 200000;
   const normalize = true;
   const includeDateTime = includeDateTimeSelect.checked;
   
@@ -198,8 +195,8 @@ trainModelButton.addEventListener('click', async () => {
   const epochs = +epochsInput.value;
   const displayEvery = 100;
   await trainModel(
-      model, jenaWeatherData, shuffle, normalize, includeDateTime,
-      lookBack, step, delay, batchSize, minIndex, maxIndex, epochs,
+      model, jenaWeatherData, normalize, includeDateTime,
+      lookBack, step, delay, batchSize, epochs,
       displayEvery, (epoch, loss, valLoss) => plotLoss(modelType, epoch, loss, valLoss));
 
   

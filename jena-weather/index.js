@@ -179,24 +179,6 @@ function buildMLPModel(inputShape, kernelRegularizer, dropoutRate) {
 }
 
 /**
- * Build a GRU model for the temperature-prediction problem.
- *
- * TODO(cais): Move this to a tfjs-node training script, as training
- *  the GRU in the browser turns out to be too slow.
- *
- * @param {tf.Shape} inputShape Input shape (without the batch dimenson).
- * @returns {tf.Model} A TensorFlow.js GRU model.
- */
-// function buildGRUModel(inputShape) {
-//   // TODO(cais): Add recurrent dropout.
-//   const model = tf.sequential();
-//   const rnnUnits = 32;
-//   model.add(tf.layers.gru({units: rnnUnits, inputShape}));
-//   model.add(tf.layers.dense({units: 1}));
-//   return model;
-// }
-
-/**
  * Build a model for the temperature-prediction problem.
  *
  * @param {string} modelType Model type.

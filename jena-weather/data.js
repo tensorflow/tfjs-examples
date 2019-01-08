@@ -46,12 +46,18 @@ export class JenaWeatherData {
    * URL (`JENA_WEATHER_CSV_PATH`).
    */
   async load() {
-    let response = await fetch(LOCAL_JENA_WEATHER_CSV_PATH);
-    if (response.statusCode === 200 || response.statusCode === 304) {
+    let response;
+    try {
+      response = await fetch(LOCAL_JENA_WEATHER_CSV_PATH);
+    } catch (err) {}
+
+    if (response != null &&
+        (response.statusCode === 200 || response.statusCode === 304)) {
       console.log('Loading data from local path');
     } else {
       response = await fetch(REMOTE_JENA_WEATHER_CSV_PATH);
-      console.log('Loading data from remote path');
+      console.log(
+          `Loading data from remote path: ${REMOTE_JENA_WEATHER_CSV_PATH}`);
     }
     const csvData = await response.text();
 

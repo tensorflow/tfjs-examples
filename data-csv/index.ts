@@ -17,6 +17,7 @@
 
 import * as tf from '@tensorflow/tfjs';
 import * as ui from './ui';
+import { util } from '@tensorflow/tfjs';
 
 
 // Boston Housing CSV
@@ -34,43 +35,76 @@ const KAGGLE_2018_SURVEY_CSV_URL =
     'https://storage.googleapis.com/learnjs-data/csv-datasets/multipleChoiceResponses.csv'
 
 
+const countRowsHandler = async () => {
+  const url = ui.getQueryElement().value;
+  ui.updateStatus(`Attempting to connect to CSV resource at ${url}`);
+  const myData = tf.data.csv(url);
+  ui.updateStatus('Got the data connection ... counting records in CSV');
+  let i = 0;
+  ui.updateRowCountOutput(`counting...`);
+  const updateFn = (x) => {
+    i += 1;
+    if ((i % 1000) === 0) {
+      ui.updateStatus(`Counting ... ${i} rows of data in the CSV so far...`);
+    }
+  }
+  await myData.forEach((x) => updateFn(x));
+  ui.updateStatus(`Done counting rows.`);
+  ui.updateRowCountOutput(`Counted ${i} rows of data in the CSV.`);
+};
+
+const getColumnNamesHandler = async () => {
+  const url = ui.getQueryElement().value;
+  ui.updateStatus(`Attempting to connect to CSV resource at ${url}`);
+  const myData = tf.data.csv(url);
+  ui.updateStatus('Got the data connection ... determining the column names');
+  ui.updateColumnNamesOutput('Determining column names.');
+  const columnNames = await myData.columnNames();
+  ui.updateStatus('Done getting column names.');
+  ui.updateColumnNamesOutput(columnNames.join(', '));
+};
+
+const getSampleRowHandler = async () => {
+  const url = ui.getQueryElement().value;
+  ui.updateStatus(`Attempting to connect to CSV resource at ${url}`);
+  const myData = tf.data.csv(url);
+  ui.updateStatus('Got the data connection ...collecting first sample');
+  ui.updateSampleRowOutput('IM GETTING A SAMPLE!.');
+  const columnNames = await myData.columnNames();
+  ui.updateStatus('Done getting sample number #NNN.');
+  ui.updateSampleRowOutput('IM A SAMPLE!.');
+};
+
+const resetOutputMessages = () => {
+  ui.updateRowCountOutput('click "Count rows"');
+  ui.updateColumnNamesOutput('click "Get column names"');
+  ui.updateSampleRowOutput('click "Get a sample row"');
+};
 
 // Set up handlers
 document.addEventListener('DOMContentLoaded', async () => {
   console.log(tf.version);
-  const queryElement =
-      document.getElementById('queryURL') as HTMLTextAreaElement;
+  resetOutputMessages();
 
-  // Connect preset URL buttons.
-  const connectURLButton = (buttonId: string, url: string) =>
-      document.getElementById(buttonId).addEventListener('click', async () => {
-        queryElement.value = url;
-      }, false);
+  // Helper to connect preset URL buttons.
+  const connectURLButton = (buttonId: string, url: string) => {
+    document.getElementById(buttonId).addEventListener('click', async () => {
+      ui.getQueryElement().value = url;
+      resetOutputMessages();
+    }, false);
+  };
+
   connectURLButton('productReviewButton', PRODUCT_REVIEW_CSV_URL);
   connectURLButton('bostonButton', BOSTON_HOUSING_CSV_URL);
   connectURLButton('bankingButton', BANKING_CSV_URL);
   connectURLButton('kaggleSurveyButton', KAGGLE_2018_SURVEY_CSV_URL);
 
-  // Connect 'Count rows' button.
-  document.getElementById('countRows').addEventListener('click', async () => {
-    let url = queryElement.value;
-    ui.updateStatus(`Attempting to connect to CSV resource at ${url}`);
-
-    const myData = tf.data.csv(url);
-
-
-    ui.updateStatus('Got the data connection ... counting records in CSV');
-    let i = 0;
-    const updateFn = (x) => {
-      i += 1;
-      // console.log("got" + JSON.stringify(x));
-      if ((i % 1000) === 0) {
-        ui.updateStatus(`Counted ${i} rows of data in the CSV so far...`);
-      }
-    }
-    await myData.forEach((x) => updateFn(x));
-    ui.updateStatus(`Done.  Counted ${i} rows of data in the CSV`);
-  }, false);
-
+  // Connect action buttons.
+  document.getElementById('countRows').addEventListener(
+    'click', countRowsHandler, false);
+    document.getElementById('getColumnNames').addEventListener(
+      'click', getColumnNamesHandler, false);
+      document.getElementById('getSampleRow').addEventListener(
+        'click', getSampleRowHandler, false);
 
 }, false);

@@ -16,7 +16,31 @@
  */
 
 const statusElement = document.getElementById('status') as HTMLTextAreaElement;
+const rowCountOutputElement = document.getElementById('rowCountOutput');
+const columnNamesOutputElement = document.getElementById('columnNamesOutput');
+const sampleRowOutputElement = document.getElementById('sampleRowOutput');
+
 export const updateStatus = (message: string) => {
   console.log(message);
   statusElement.value = message;
 };
+
+export const updateRowCountOutput = (message: string) => {
+  console.log(message);
+  rowCountOutputElement.textContent = message;
+};
+
+export const updateColumnNamesOutput = (message: string) => {
+  console.log(message);
+  columnNamesOutputElement.textContent = message;
+};
+
+export const updateSampleRowOutput = (message: string) => {
+  console.log(message);
+  sampleRowOutputElement.textContent = message;
+};
+
+
+export const getQueryElement = () =>
+  document.getElementById('queryURL') as HTMLTextAreaElement;
+

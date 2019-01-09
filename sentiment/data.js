@@ -72,7 +72,7 @@ function loadTargets(filePath) {
   return tf.tensor2d(ys, [ys.length, 1], 'float32');
 }
 
-function loadData(pathPrefix, numWords, len) {
+export function loadData(pathPrefix, numWords, len) {
   const trainFeaturePath = `${pathPrefix}_train_data.bin`;
   const xTrain = loadFeatures(trainFeaturePath, numWords, len);
   const testFeaturePath = `${pathPrefix}_test_data.bin`;
@@ -90,29 +90,3 @@ function loadData(pathPrefix, numWords, len) {
       `Mismatch in number of examples between xTest and yTest`);
   return {xTrain, yTrain, xTest, yTest};
 }
-
-async function main() {
-  const numWords = 20000;
-  const len = 100;
-  const {xTrain, yTrain, xTest, yTest} = loadData('./python/imdb', numWords, len);
-  console.log(xTrain.shape);  // DEBUG
-  console.log(xTest.shape);  // DEBUG
-  // const sent = xTrain.gather(0).dataSync();
-  yTrain.min().print();  // DEBUG
-  yTrain.max().print();  // DEBUG
-  yTrain.mean().print();  // DEBUG
-
-  // const metadataPath = 'metadata.json';
-  // const word2Index = JSON.parse(fs.readFileSync(metadataPath, {encoding: 'utf-8'})).word_index;
-  // const index2Word = {};
-  // for (const word in word2Index) {
-  //   // console.log(word);
-  //   index2Word[+word2Index[word]] = word;
-  // }
-  // console.log(index2Word);  // DEBUG
-  // for (const i of sent) {
-  //   console.log(index2Word[i - INDEX_FROM]);  // DEBUG
-  // }
-}
-
-main();

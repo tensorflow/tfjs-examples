@@ -1,0 +1,101 @@
+/**
+ * @license
+ * Copyright 2019 Google LLC. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * =============================================================================
+ */
+
+import * as tf from '@tensorflow/tfjs';
+import {ArgumentParser} from 'argparse';
+
+import {loadData} from './data';
+
+function buildModel(modelType, vocabularySize, embeddingSize) {
+  const model = tf.sequential();
+  model.add(tf.layers.embedding(
+      {inputDim: vocabularySize, outputDim: embeddingSize}));
+  if (modelType === 'lstm') {
+    const lstmUnits = 32;
+    model.add(tf.layers.lstm({units: lstmUnits}));
+  } else {
+    throw new Error(`Unsupported model type: ${modelType}`);
+  }
+  model.add(tf.layers.dense({units: 1, activation: 'sigmoid'}));
+  model.compile(
+      {loss: 'binaryCrossentropy', optimizer: 'adam', metrics: ['acc']});
+  return model;
+}
+
+function parseArguments() {
+  const parser = new ArgumentParser(
+      {description: 'Train a model for IMDB sentiment analysis'});
+  parser.addArgument(
+      'modelType',
+      {type: 'string', optionStrings: ['lstm', 'conv'], help: 'Model type'});
+  parser.addArgument('--numWords', {
+    type: 'int',
+    defaultValue: 10000,
+    help: 'Number of words in the vocabulary'
+  });
+  parser.addArgument('--maxLen', {
+    type: 'int',
+    defaultValue: 100,
+    help: 'Maximum sentence length in number of words. ' +
+        'Shorter sentences will be padded; longers ones will be truncated.'
+  });
+  parser.addArgument(
+      '--gpu', {action: 'storeTrue', help: 'Use GPU for training'});
+  parser.addArgument(
+      '--epochs',
+      {type: 'int', defaultValue: 5, help: 'Number of training epochs'});
+  parser.addArgument(
+      '--batchSize',
+      {type: 'int', defaultValue: 128, help: 'Batch size for training'});
+  return parser.parseArgs();
+}
+
+async function main() {
+  const args = parseArguments();
+
+  if (args.gpu) {
+    console.log('Using GPU for training');
+    require('@tensorflow/tfjs-node-gpu');
+  } else {
+    console.log('Using CPU for training');
+    require('@tensorflow/tfjs-node');
+  }
+
+  console.log('Loading data...');
+  const {xTrain, yTrain, xTest, yTest} =
+      loadData('./python/imdb', args.numWords, args.maxLen);
+
+  console.log('Building model...');
+  const embeddingSize = 32;
+  const model = buildModel(args.modelType, args.numWords, embeddingSize);
+  model.summary();
+
+  console.log('Training model...');
+  await model.fit(xTrain, yTrain, {
+    epochs: args.epochs,
+    batchSize: args.batchSize,
+    validationSplit: 0.2
+  });
+
+  console.log('Evaluating model...');
+  const [testLoss, testAcc] =
+      model.evaluate(xTest, yTrain, {batchSize: args.batchSize});
+  console.log(`Evaluation loss: ${(await testLoss.data())[0]}`);
+  console.log(`Evaluation accuracy: ${(await testAcc.data())[0]}`);
+}
+
+main();

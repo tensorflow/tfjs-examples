@@ -20,13 +20,26 @@ import {ArgumentParser} from 'argparse';
 
 import {loadData} from './data';
 
+/**
+ * Create a model for IMDB sentiment analysis.
+ *
+ * @param {string} modelType Type of the model to be created.
+ * @param {number} vocabularySize Input vocabulary size.
+ * @param {number} embeddingSize Embedding vector size, used to
+ *   configure the embedding layer.
+ * @returns A compiled instance of `tf.Model`.
+ */
 function buildModel(modelType, vocabularySize, embeddingSize) {
+  // TODO(cais): Bidirectional and dense-only.
   const model = tf.sequential();
   model.add(tf.layers.embedding(
       {inputDim: vocabularySize, outputDim: embeddingSize}));
   if (modelType === 'lstm') {
     const lstmUnits = 32;
     model.add(tf.layers.lstm({units: lstmUnits}));
+  } else if (modelType === 'simpleRNN') {
+    const simpleRNNUnits = 32;
+    model.add(tf.layers.simpleRNN({units: simpleRNNUnits}));
   } else {
     throw new Error(`Unsupported model type: ${modelType}`);
   }
@@ -39,9 +52,11 @@ function buildModel(modelType, vocabularySize, embeddingSize) {
 function parseArguments() {
   const parser = new ArgumentParser(
       {description: 'Train a model for IMDB sentiment analysis'});
-  parser.addArgument(
-      'modelType',
-      {type: 'string', optionStrings: ['lstm', 'conv'], help: 'Model type'});
+  parser.addArgument('modelType', {
+    type: 'string',
+    optionStrings: ['lstm', 'simpleRNN'],
+    help: 'Model type'
+  });
   parser.addArgument('--numWords', {
     type: 'int',
     defaultValue: 10000,
@@ -55,12 +70,22 @@ function parseArguments() {
   });
   parser.addArgument(
       '--gpu', {action: 'storeTrue', help: 'Use GPU for training'});
+  parser.addArgument('--optimizer', {
+    type: 'string',
+    defaultValue: 'rmsprop',
+    help: 'Optimizer to be used for model training'
+  });
   parser.addArgument(
       '--epochs',
       {type: 'int', defaultValue: 5, help: 'Number of training epochs'});
   parser.addArgument(
       '--batchSize',
       {type: 'int', defaultValue: 128, help: 'Batch size for training'});
+  parser.addArgument('--validationSplit', {
+    type: 'float',
+    defaultValue: 0.2,
+    help: 'Validation split for training'
+  });
   return parser.parseArgs();
 }
 
@@ -88,14 +113,14 @@ async function main() {
   await model.fit(xTrain, yTrain, {
     epochs: args.epochs,
     batchSize: args.batchSize,
-    validationSplit: 0.2
+    validationSplit: args.validationSplit
   });
 
   console.log('Evaluating model...');
   const [testLoss, testAcc] =
-      model.evaluate(xTest, yTrain, {batchSize: args.batchSize});
-  console.log(`Evaluation loss: ${(await testLoss.data())[0]}`);
-  console.log(`Evaluation accuracy: ${(await testAcc.data())[0]}`);
+      model.evaluate(xTest, yTest, {batchSize: args.batchSize});
+  console.log(`Evaluation loss: ${(await testLoss.data())[0].toFixed(4)}`);
+  console.log(`Evaluation accuracy: ${(await testAcc.data())[0].toFixed(4)}`);
 }
 
 main();

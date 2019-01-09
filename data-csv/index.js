@@ -16,7 +16,6 @@
  */
 
 import * as tf from '@tensorflow/tfjs';
-import {util} from '@tensorflow/tfjs';
 
 import * as ui from './ui';
 
@@ -87,11 +86,11 @@ const resetOutputMessages = () => {
 
 // Set up handlers
 document.addEventListener('DOMContentLoaded', async () => {
-  console.log(tf.version);
+  // console.log(tf.version);
   resetOutputMessages();
 
   // Helper to connect preset URL buttons.
-  const connectURLButton = (buttonId: string, url: string) => {
+  const connectURLButton = (buttonId, url) => {
     document.getElementById(buttonId).addEventListener('click', async () => {
       ui.getQueryElement().value = url;
       resetOutputMessages();

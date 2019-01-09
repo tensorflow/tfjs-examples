@@ -15,52 +15,49 @@
  * =============================================================================
  */
 
-// TODO(bileschi): Is this the right way to get the type of the object
-// returned from tfjs-data?
-import { TensorContainer } from "@tensorflow/tfjs-core/dist/tensor_types";
-
-const statusElement = document.getElementById('status') as HTMLTextAreaElement;
+const statusElement = document.getElementById('status');
 const rowCountOutputElement = document.getElementById('rowCountOutput');
 const columnNamesOutputElement = document.getElementById('columnNamesOutput');
 const sampleRowMessageElement = document.getElementById('sampleRowMessage');
-const sampleRowOutputContainerElement = document.getElementById('sampleRowOutputContainer');
-const whichSampleInputElement = document.getElementById('whichSampleInput') as HTMLInputElement;
+const sampleRowOutputContainerElement =
+    document.getElementById('sampleRowOutputContainer');
+const whichSampleInputElement = document.getElementById('whichSampleInput');
 
-export const updateStatus = (message: string) => {
+export const updateStatus = (message) => {
   console.log(message);
   statusElement.value = message;
 };
 
-export const updateRowCountOutput = (message: string) => {
+export const updateRowCountOutput = (message) => {
   console.log(message);
   rowCountOutputElement.textContent = message;
 };
 
-export const updateColumnNamesOutput = (message: string) => {
+export const updateColumnNamesOutput = (message) => {
   console.log(message);
   columnNamesOutputElement.textContent = message;
 };
 
-export const updateSampleRowMessage = (message: string) => {
+export const updateSampleRowMessage = (message) => {
   console.log(message);
   sampleRowMessageElement.textContent = message;
 };
 
-export const updateSampleRowOutput = (rawRow: any) => {
-  sampleRowOutputContainerElement.textContent = "";
-  const row = rawRow as object;
+// tslint:disable-next-line: no-any
+export const updateSampleRowOutput = (rawRow) => {
+  sampleRowOutputContainerElement.textContent = '';
+  const row = rawRow;
   for (const key in row) {
     if (row.hasOwnProperty(key)) {
-      console.log(key);
-      sampleRowOutputContainerElement.textContent += key + " ";
+      sampleRowOutputContainerElement.textContent += key + ':';
+      sampleRowOutputContainerElement.textContent += row[key] + ' ';
     }
   }
 };
 
-export const getSampleIndex = () => {
-  return whichSampleInputElement.valueAsNumber;
-}
+export const getSampleIndex =
+    () => {
+      return whichSampleInputElement.valueAsNumber;
+    }
 
-export const getQueryElement = () =>
-  document.getElementById('queryURL') as HTMLTextAreaElement;
-
+export const getQueryElement = () => document.getElementById('queryURL');

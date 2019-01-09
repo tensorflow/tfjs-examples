@@ -1,5 +1,5 @@
 {
-  "name": "tfjs-examples-mobilenet",
+  "name": "tfjs-examples-visualize-convnet",
   "version": "0.1.0",
   "description": "",
   "main": "index.js",

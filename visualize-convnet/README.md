@@ -23,7 +23,12 @@ yarn visualize
 
 This will automatically
 
-1. install the necessary Python dependencies
+1. install the necessary Python dependencies. If the required
+   Python package (keras, tensorflow and tensorflowjs) are already installed,
+   this step will be a no-op. However, to prevent this step from
+   modifying your global Python environment, you may run this demo from
+   a [virtualenv](https://virtualenv.pypa.io/en/latest/) or
+   [pipenv](https://pipenv.readthedocs.io/en/latest/).
 2. download and convert the VGG16 model to TensorFlow.js format
 3. launch a Node.js script to load the converted model and compute
    the maximally-activating input images for the convnet's filters

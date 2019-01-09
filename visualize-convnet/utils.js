@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2018 Google LLC. All Rights Reserved.
+ * Copyright 2019 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -94,6 +94,8 @@ async function writeImageTensorToFile(imageTensor, filePath) {
 }
 
 // 64 x 3 RGB colormap.
+// This is used to convert a 1-channel (grayscale) image into a color
+// (RGB) one.
 const RGB_COLORMAP = [
   0.2422,   0.1504,  0.6603,   0.25039,   0.165,    0.70761,  0.25777,
   0.18178,  0.75114, 0.26473,  0.19776,   0.79521,  0.27065,  0.21468,

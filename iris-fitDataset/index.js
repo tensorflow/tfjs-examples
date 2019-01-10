@@ -81,7 +81,7 @@ async function trainModel(trainDataset, validationDataset) {
         trainLogs.push(newLogs);
         tfvis.show.history(lossContainer, trainLogs, ['loss', 'val_loss'])
         tfvis.show.history(accContainer, trainLogs, ['acc', 'val_acc'])
-        const [[xTest, yTest]] = await validationDataset.collectAll();
+        const [[xTest, yTest]] = await validationDataset.toArray();
         calculateAndDrawConfusionMatrix(model, xTest, yTest);
       },
     }
@@ -155,7 +155,7 @@ async function calculateAndDrawConfusionMatrix(model, xTest, yTest) {
  */
 async function evaluateModelOnTestData(model, testDataset) {
   ui.clearEvaluateTable();
-  const [[xTest, yTest]] = await testDataset.collectAll();
+  const [[xTest, yTest]] = await testDataset.toArray();
   const xData = xTest.dataSync();
   const yTrue = yTest.argMax(-1).dataSync();
   const predictOut = model.predict(xTest);

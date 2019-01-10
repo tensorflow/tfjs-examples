@@ -35,6 +35,8 @@ const KAGGLE_2018_SURVEY_CSV_URL =
     'https://storage.googleapis.com/learnjs-data/csv-datasets/multipleChoiceResponses.csv'
 
 
+// Builds a CSV Dataset object using the URL specified in the UI.  Then iterates
+// over all eleemnts in that dataset to count them.  Updates the UI accordingly.
 const countRowsHandler = async () => {
   const url = ui.getQueryElement().value;
   ui.updateStatus(`Building data object to connect to ${url}`);
@@ -63,6 +65,9 @@ const countRowsHandler = async () => {
   ui.updateRowCountOutput(`Counted ${i} rows of data in the CSV.`);
 };
 
+// Builds a CSV Dataset object using the URL specified in the UI.  Then connects
+// with the dataset object to retrieve the column names.  Updates the UI
+// accordingly.
 const getColumnNamesHandler = async () => {
   ui.updateColumnNamesOutput([]);
   const url = ui.getQueryElement().value;
@@ -86,12 +91,13 @@ const getColumnNamesHandler = async () => {
   }
 };
 
+// Accesses the CSV to collect a single specified row.  The row index
+// is specified by the UI element managed in the ui library.
 const getSampleRowHandler = async () => {
   const url = ui.getQueryElement().value;
   ui.updateStatus(`Attempting to connect to CSV resource at ${url}`);
   const myData = tf.data.csv(url);
   ui.updateStatus('Got the data connection ... getting requested sample');
-  // const columnNames = await myData.columnNames();
   const sampleIndex = ui.getSampleIndex();
   if (sampleIndex < 0 || isNaN(sampleIndex)) {
     const msg = `Can not get samples with negative or NaN index.  (Requested ${
@@ -103,7 +109,7 @@ const getSampleRowHandler = async () => {
   }
   let sample;
   try {
-    sample = await myData.skip(sampleIndex).take(1).collectAll();
+    sample = await myData.skip(sampleIndex).take(1).toArray();
   } catch (e) {
     let errorMsg = `Caught an error retrieving sample from ${url}.  `
     errorMsg +=
@@ -128,6 +134,7 @@ const getSampleRowHandler = async () => {
   ui.updateSampleRowOutput(sample[0]);
 };
 
+// Clears output messages and tables.
 const resetOutputMessages = () => {
   ui.updateRowCountOutput('click "Count rows"');
   ui.updateColumnNamesMessage('click "Get column names"');
@@ -136,9 +143,8 @@ const resetOutputMessages = () => {
   ui.updateSampleRowOutput([]);
 };
 
-// Set up handlers
+// Sets up handlers for the user affordences, including all buttons.
 document.addEventListener('DOMContentLoaded', async () => {
-  // console.log(tf.version);
   resetOutputMessages();
 
   // Helper to connect preset URL buttons.

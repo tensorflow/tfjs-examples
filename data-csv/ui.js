@@ -25,21 +25,27 @@ const sampleRowOutputContainerElement =
     document.getElementById('sampleRowOutputContainer');
 const whichSampleInputElement = document.getElementById('whichSampleInput');
 
+// Updates the large message at the top of the info table
 export const updateStatus = (message) => {
   console.log(message);
   statusElement.value = message;
 };
 
+// Updates the message in the "count rows" output row.
 export const updateRowCountOutput = (message) => {
   console.log(message);
   rowCountOutputElement.textContent = message;
 };
 
+// Updates the message in the "column names" output row.
 export const updateColumnNamesMessage = (message) => {
   console.log(message);
   columnNamesMessageElement.textContent = message;
 };
 
+
+// Creates an HTML ordered list to display the column names, represented in the
+// `colNames` argument as a list of strings.
 export const updateColumnNamesOutput = (colNames) => {
   const container = columnNamesOutputContainerElement;
   container.align = 'left';
@@ -55,11 +61,15 @@ export const updateColumnNamesOutput = (colNames) => {
   container.appendChild(olList);
 };
 
+// Updates the message in the "sample" output row.
 export const updateSampleRowMessage = (message) => {
   console.log(message);
   sampleRowMessageElement.textContent = message;
 };
 
+// Creates an HTML table, using div elements, to display the key-value pairs
+// represented in the input `rawRow`. This HTML table is inserted into the
+// sample row.
 export const updateSampleRowOutput = (rawRow) => {
   sampleRowOutputContainerElement.textContent = '';
   const row = rawRow;
@@ -83,9 +93,11 @@ export const updateSampleRowOutput = (rawRow) => {
   }
 };
 
+// Returns current value of the selected sample index as a number.
 export const getSampleIndex =
     () => {
       return whichSampleInputElement.valueAsNumber;
     }
 
+// Returns the currently specified URL, from which to access the CSV file.
 export const getQueryElement = () => document.getElementById('queryURL');

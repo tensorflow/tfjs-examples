@@ -24,3 +24,37 @@ yarn watch
 ```
 
 [See this example live!](https://storage.googleapis.com/tfjs-examples/sentiment/dist/index.html)
+
+## Training your own model in tfjs-node
+
+To train the model using tfjs-node, do
+
+```sh
+yarn
+yarn train <MODEL_TYPE>
+```
+
+where `MODEL_TYPE` is a required argument that specifies what type of model is to be
+trained. The available options are:
+
+- `flatten`: A model that flattens the embedding vectors of all words in the sequence.
+- `cnn`: A 1D convolutional model.
+- `simplRNN`: A model that uses a SimpleRNN layer (`tf.layers.simpleRNN`)
+- `lstm`: A model that uses a LSTM laayer (`tf.layers.lstm`)
+- `bidirectionalLSTM`: A model that uses a bidirectional LSTM layer
+  (`tf.layers.bidirectional` and `tf.layers.lstm`)
+
+By default, the training happens on the CPU using the Eigen kernels from tfjs-node.
+You can make the training happen on GPU by adding the `--gpu` flag to the command, e.g.,
+
+```sh
+yarn train --gpu <MODEL_TYPE>
+```
+
+The training process will download the training data and metadata form the web
+if they haven't been downloaded before. After the model training completes, the model
+will be saved to the `dist/reources` folder, alongside with a `metadata.json` file.
+Then when you run `yarn watch`, you will see a "Load local model" button in the web
+page, which allows you to use the locally-trained model for inference in the browser.
+
+The detailed code for training are in the file [train.js](./trani.js).

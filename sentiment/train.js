@@ -39,12 +39,24 @@ function buildModel(modelType, maxLen, vocabularySize, embeddingSize) {
   }));
   if (modelType === 'flatten') {
     model.add(tf.layers.flatten());
+  } else if (modelType === 'cnn') {
+    model.add(tf.layers.dropout({rate: 0.2}));
+    model.add(tf.layers.conv1d({
+      filters: 250,
+      kernelSize: 3,
+      strides: 1,
+      padding: 'valid',
+      activation: 'relu'
+    }));
+    model.add(tf.layers.globalMaxPool1d({}));
+    model.add(tf.layers.dense({units: 250, activation: 'relu'}));
   } else if (modelType === 'simpleRNN') {
-    const simpleRNNUnits = 32;
-    model.add(tf.layers.simpleRNN({units: simpleRNNUnits}));
+    model.add(tf.layers.simpleRNN({units: 32}));
   } else if (modelType === 'lstm') {
-    const lstmUnits = 32;
-    model.add(tf.layers.lstm({units: lstmUnits}));
+    model.add(tf.layers.lstm({units: 32}));
+  } else if (modelType === 'bidirectionalLSTM') {
+    model.add(tf.layers.bidirectional(
+        {layer: tf.layers.lstm({units: 32}), mergeMode: 'concat'}));
   } else {
     throw new Error(`Unsupported model type: ${modelType}`);
   }
@@ -57,7 +69,7 @@ function parseArguments() {
       {description: 'Train a model for IMDB sentiment analysis'});
   parser.addArgument('modelType', {
     type: 'string',
-    optionStrings: ['flatten', 'lstm', 'simpleRNN'],
+    optionStrings: ['flatten', 'cnn', 'simpleRNN', 'lstm', 'bidirectionalLSTM'],
     help: 'Model type'
   });
   parser.addArgument('--numWords', {
@@ -114,12 +126,13 @@ async function main() {
   }
 
   console.log('Loading data...');
+  console.log(`maxLen = ${args.maxLen}`);  // DEBUG
   const {xTrain, yTrain, xTest, yTest} =
-      loadData('./python/imdb', args.numWords, args.maxLen);
+      await loadData(args.numWords, args.maxLen);
 
   console.log('Building model...');
-  const model =
-      buildModel(args.modelType, args.maxLen, args.numWords, args.embeddingSize);
+  const model = buildModel(
+      args.modelType, args.maxLen, args.numWords, args.embeddingSize);
 
   model.compile({
     loss: 'binaryCrossentropy',

@@ -32,17 +32,22 @@ import {loadData} from './data';  // DEBUG
  *   configure the embedding layer.
  * @returns An uncompiled instance of `tf.Model`.
  */
-function buildModel(modelType, vocabularySize, embeddingSize) {
+function buildModel(modelType, maxLen, vocabularySize, embeddingSize) {
   // TODO(cais): Bidirectional and dense-only.
   const model = tf.sequential();
-  model.add(tf.layers.embedding(
-      {inputDim: vocabularySize, outputDim: embeddingSize}));
-  if (modelType === 'lstm') {
-    const lstmUnits = 32;
-    model.add(tf.layers.lstm({units: lstmUnits}));
+  model.add(tf.layers.embedding({
+    inputDim: vocabularySize,
+    outputDim: embeddingSize,
+    inputLength: maxLen
+  }));
+  if (modelType === 'flatten') {
+    model.add(tf.layers.flatten());
   } else if (modelType === 'simpleRNN') {
     const simpleRNNUnits = 32;
     model.add(tf.layers.simpleRNN({units: simpleRNNUnits}));
+  } else if (modelType === 'lstm') {
+    const lstmUnits = 32;
+    model.add(tf.layers.lstm({units: lstmUnits}));
   } else {
     throw new Error(`Unsupported model type: ${modelType}`);
   }
@@ -55,7 +60,7 @@ function parseArguments() {
       {description: 'Train a model for IMDB sentiment analysis'});
   parser.addArgument('modelType', {
     type: 'string',
-    optionStrings: ['lstm', 'simpleRNN'],
+    optionStrings: ['flatten', 'lstm', 'simpleRNN'],
     help: 'Model type'
   });
   parser.addArgument('--numWords', {
@@ -104,17 +109,11 @@ async function main() {
   console.log('Loading data...');
   const {xTrain, yTrain, xTest, yTest} =
       loadData('./python/imdb', args.numWords, args.maxLen);
-  // let xTrain = tfjsNpy.parse(toArrayBuffer(fs.readFileSync('/tmp/x_train.npy')));
-  // let yTrain = tfjsNpy.parse(toArrayBuffer(fs.readFileSync('/tmp/y_train.npy')));
-  // yTrain = yTrain.expandDims(1);
-  // xTrain = tf.tensor2d(xTrain.dataSync(), xTrain.shape);
-  // yTrain = tf.tensor2d(yTrain.dataSync(), yTrain.shape);
-  // console.log(xTrain.shape);  // DEBUG
-  // console.log(yTrain.shape);  // DEBUG
 
   console.log('Building model...');
   const embeddingSize = 32;
-  const model = buildModel(args.modelType, args.numWords, embeddingSize);
+  const model =
+      buildModel(args.modelType, args.maxLen, args.numWords, embeddingSize);
 
   model.compile({
     loss: 'binaryCrossentropy',
@@ -141,7 +140,7 @@ function toArrayBuffer(buf) {
   var ab = new ArrayBuffer(buf.length);
   var view = new Uint8Array(ab);
   for (var i = 0; i < buf.length; ++i) {
-      view[i] = buf[i];
+    view[i] = buf[i];
   }
   return ab;
 }

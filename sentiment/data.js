@@ -17,25 +17,13 @@
 
 import * as tf from '@tensorflow/tfjs';
 import * as fs from 'fs';
+import {padSequences} from './sequence_utils';
 
 const PAD_CHAR = 0;
 const OOV_CHAR = 2;
 const INDEX_FROM = 3;
 
-function padSequence(seq, len) {
-  if (seq.length < len) {
-    const pad = [];
-    for (let i = 0; i < len - seq.length; ++i) {
-      pad.push(PAD_CHAR);
-    }
-    seq = pad.concat(seq);
-    return seq;
-  } else {
-    return seq;
-  }
-}
-
-function loadFeatures(filePath, numWords, len) {
+function loadFeatures(filePath, numWords, maxLen) {
   const buffer = fs.readFileSync(filePath);
   const numBytes = buffer.byteLength;
 
@@ -48,16 +36,6 @@ function loadFeatures(filePath, numWords, len) {
     if (value === 1) {
       // A new sequence has started.
       if (index > 0) {
-        // console.log(`1: seq.length = ${seq.length}`);
-        seq = padSequence(seq, len);
-        // console.log(`2: seq.length = ${seq.length}`);
-        if (seq.length > len) {
-          seq = seq.slice(seq.length - len);
-        }
-        // console.log(`3: seq.length = ${seq.length}`);
-        if (seq.length !== len) {
-          throw new Error(seq.length, len);
-        }
         sequences.push(seq);
       }
       seq = [];
@@ -68,16 +46,12 @@ function loadFeatures(filePath, numWords, len) {
     index += 4;
   }
   if (seq.length > 0) {
-    // console.log(`1: seq.length = ${seq.length}`);
-    seq = padSequence(seq, len);
-    // console.log(`2: seq.length = ${seq.length}`);
-    if (seq.length > len) {
-      seq = seq.slice(seq.length - len);
-    }
-    // console.log(`3: seq.length = ${seq.length}`);
     sequences.push(seq);
   }
-  return tf.tensor2d(sequences, [sequences.length, len], 'int32');
+  const paddedSequences =
+      padSequences(sequences, maxLen, 'pre', 'pre', PAD_CHAR);
+  return tf.tensor2d(
+      paddedSequences, [paddedSequences.length, maxLen], 'int32');
 }
 
 function loadTargets(filePath) {

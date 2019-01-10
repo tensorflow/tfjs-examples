@@ -39,7 +39,7 @@ trained. The available options are:
 
 - `flatten`: A model that flattens the embedding vectors of all words in the sequence.
 - `cnn`: A 1D convolutional model.
-- `simplRNN`: A model that uses a SimpleRNN layer (`tf.layers.simpleRNN`)
+- `simpleRNN`: A model that uses a SimpleRNN layer (`tf.layers.simpleRNN`)
 - `lstm`: A model that uses a LSTM laayer (`tf.layers.lstm`)
 - `bidirectionalLSTM`: A model that uses a bidirectional LSTM layer
   (`tf.layers.bidirectional` and `tf.layers.lstm`)
@@ -53,7 +53,7 @@ yarn train --gpu <MODEL_TYPE>
 
 The training process will download the training data and metadata form the web
 if they haven't been downloaded before. After the model training completes, the model
-will be saved to the `dist/reources` folder, alongside with a `metadata.json` file.
+will be saved to the `dist/reources` folder, alongside a `metadata.json` file.
 Then when you run `yarn watch`, you will see a "Load local model" button in the web
 page, which allows you to use the locally-trained model for inference in the browser.
 

@@ -75,6 +75,13 @@ function loadFeatures(filePath, numWords, maxLen) {
       paddedSequences, [paddedSequences.length, maxLen], 'int32');
 }
 
+/**
+ * Load IMDB targets from a file.
+ * 
+ * @param {string} filePath Path to the binary targets file.
+ * @return {tf.Tensor} The targets as `tf.Tensor` of shape `[numExamples, 1]`
+ *   and dtype `float32`. It has 0 or 1 values.
+ */
 function loadTargets(filePath) {
   const buffer = fs.readFileSync(filePath);
   const numBytes = buffer.byteLength;

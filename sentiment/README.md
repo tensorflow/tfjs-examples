@@ -57,4 +57,13 @@ will be saved to the `dist/reources` folder, alongside with a `metadata.json` fi
 Then when you run `yarn watch`, you will see a "Load local model" button in the web
 page, which allows you to use the locally-trained model for inference in the browser.
 
+Other arguments of the `yarn train` command include:
+
+- `--maxLen` allows you to specify the sequence length.
+- `--numWords` allows you to specify the vocabulary size.
+- `--embeddingSize` allows you to adjust the dimensionality of the embedding vectors.
+- `--epochs`, `--batchSize`, and `--validationSplit` are training-related settings.
+- `--modelSavePath` allows you to specify where to store the model and metadata after
+  training copmletes.
+
 The detailed code for training are in the file [train.js](./trani.js).

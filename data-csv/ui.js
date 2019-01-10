@@ -17,7 +17,9 @@
 
 const statusElement = document.getElementById('status');
 const rowCountOutputElement = document.getElementById('rowCountOutput');
-const columnNamesOutputElement = document.getElementById('columnNamesOutput');
+const columnNamesMessageElement = document.getElementById('columnNamesMessage');
+const columnNamesOutputContainerElement =
+    document.getElementById('columnNamesOutputContainer');
 const sampleRowMessageElement = document.getElementById('sampleRowMessage');
 const sampleRowOutputContainerElement =
     document.getElementById('sampleRowOutputContainer');
@@ -33,9 +35,24 @@ export const updateRowCountOutput = (message) => {
   rowCountOutputElement.textContent = message;
 };
 
-export const updateColumnNamesOutput = (message) => {
+export const updateColumnNamesMessage = (message) => {
   console.log(message);
-  columnNamesOutputElement.textContent = message;
+  columnNamesMessageElement.textContent = message;
+};
+
+export const updateColumnNamesOutput = (colNames) => {
+  const container = columnNamesOutputContainerElement;
+  container.align = 'left';
+  while (container.firstChild) {
+    container.removeChild(container.firstChild);
+  }
+  const olList = document.createElement('ol');
+  for (const name of colNames) {
+    const item = document.createElement('li');
+    item.textContent = name;
+    olList.appendChild(item);
+  }
+  container.appendChild(olList);
 };
 
 export const updateSampleRowMessage = (message) => {
@@ -43,14 +60,25 @@ export const updateSampleRowMessage = (message) => {
   sampleRowMessageElement.textContent = message;
 };
 
-// tslint:disable-next-line: no-any
 export const updateSampleRowOutput = (rawRow) => {
   sampleRowOutputContainerElement.textContent = '';
   const row = rawRow;
   for (const key in row) {
     if (row.hasOwnProperty(key)) {
-      sampleRowOutputContainerElement.textContent += key + ':';
-      sampleRowOutputContainerElement.textContent += row[key] + ' ';
+      const oneKeyRow = document.createElement('div');
+      oneKeyRow.className = 'divTableRow';
+      oneKeyRow.align = 'left';
+      const keyDiv = document.createElement('div');
+      const valueDiv = document.createElement('div');
+      // TODO(bileschi): There is probably a better way to style this.
+      keyDiv.className = 'divTableCellKey';
+      valueDiv.className = 'divTableCell';
+      keyDiv.textContent = key + ': ';
+      valueDiv.textContent = row[key];
+      oneKeyRow.appendChild(keyDiv);
+      oneKeyRow.appendChild(valueDiv);
+      // add the div child to updateSampleRowOutput
+      sampleRowOutputContainerElement.appendChild(oneKeyRow);
     }
   }
 };

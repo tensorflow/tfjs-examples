@@ -28,7 +28,7 @@
     }
 
     .query {
-      font-size: 12px;
+      font-size: 20px;
       text-align: left;
       resize: none;
 
@@ -74,6 +74,13 @@
       padding: 3px 10px;
     }
 
+    .divTableCellKey {
+      border: 1px solid #999999;
+      display: table-cell;
+      padding: 3px 10px;
+      font-weight: bold;
+    }
+
     .divTableHeading {
       background-color: #EEE;
       display: table-header-group;
@@ -105,7 +112,7 @@
     Enter the URL of your csv file below, or click one of the above buttons to
     explore some CSVs we've hosted. Note that you may need to update your web
     host to allow CORS requests in order to access your data this way.
-    <textarea class="query" rows="1" cols="120" id="queryURL">http://path/to/your.csv</textarea>
+    <textarea class="query" rows="3" cols="64" id="queryURL">http://path/to/your.csv</textarea>
     <p></p>
     <div id="buttonDiv">
     </div>
@@ -114,6 +121,7 @@
       Select a CSV URL and begin by counting the number of rows in the CSV.
     </textarea>
     <div class="divTable">
+      <!-- Count rows-->
       <div class="divTableBody">
         <div class="divTableRow">
           <div class="divTableCell">
@@ -122,18 +130,24 @@
           <div class="divTableCell" id="rowCountOutput">
           </div>
         </div>
-        <div class="divTableRow">
+      <!-- Get column names-->
+      <div class="divTableRow">
           <div class="divTableCell">
             <button id="getColumnNames">Get column names</button>
           </div>
           <div class="divTableCell" id="columnNamesOutput">
+            <div id="columnNamesMessage">
+            </div>
+            <div id="columnNamesOutputContainer">
+            </div>
           </div>
         </div>
       </div>
+      <!-- Get sample row-->
       <div class="divTableRow">
         <div class="divTableCell">
-          <button id="getSampleRow">Get a sample row</button>
-          sample index: <input type="number" id="whichSampleInput" value="2">
+          <button id="getSampleRow">Get a sample row</button><p></p>
+          sample index (zero-index): <input type="number" id="whichSampleInput" value="2">
         </div>
         <div class="divTableCell">
           <div id="sampleRowMessage">

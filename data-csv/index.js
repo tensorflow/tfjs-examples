@@ -37,9 +37,8 @@ const KAGGLE_2018_SURVEY_CSV_URL =
 
 const countRowsHandler = async () => {
   const url = ui.getQueryElement().value;
-  ui.updateStatus(`Attempting to connect to CSV resource at ${url}`);
+  ui.updateStatus(`Building data object to connect to ${url}`);
   const myData = tf.data.csv(url);
-  ui.updateStatus('Got the data connection ... counting records in CSV');
   let i = 0;
   ui.updateRowCountOutput(`counting...`);
   const updateFn = (x) => {
@@ -48,38 +47,91 @@ const countRowsHandler = async () => {
       ui.updateStatus(`Counting ... ${i} rows of data in the CSV so far...`);
     }
   };
-  await myData.forEach((x) => updateFn(x));
+  try {
+    ui.updateStatus('Attempting to count records in CSV.');
+    await myData.forEach((x) => updateFn(x));
+  } catch (e) {
+    let errorMsg = `Caught an error iterating over ${url}.  `
+    errorMsg +=
+        'This URL might not be valid or might not support CORS requests.'
+    errorMsg += '  Check the developer console for CORS errors.'
+    errorMsg += e;
+    ui.updateRowCountOutput(errorMsg);
+    return;
+  }
   ui.updateStatus(`Done counting rows.`);
   ui.updateRowCountOutput(`Counted ${i} rows of data in the CSV.`);
 };
 
 const getColumnNamesHandler = async () => {
+  ui.updateColumnNamesOutput([]);
   const url = ui.getQueryElement().value;
   ui.updateStatus(`Attempting to connect to CSV resource at ${url}`);
   const myData = tf.data.csv(url);
   ui.updateStatus('Got the data connection ... determining the column names');
-  ui.updateColumnNamesOutput('Determining column names.');
-  const columnNames = await myData.columnNames();
-  ui.updateStatus('Done getting column names.');
-  ui.updateColumnNamesOutput(columnNames.join(', '));
+  ui.updateColumnNamesMessage('Determining column names.');
+  try {
+    const columnNames = await myData.columnNames();
+    ui.updateStatus('Done getting column names.');
+    ui.updateColumnNamesMessage('Done getting column names.');
+    ui.updateColumnNamesOutput(columnNames);
+  } catch (e) {
+    let errorMsg = `Caught an error retrieving column names from ${url}.  `
+    errorMsg +=
+        'This URL might not be valid or might not support CORS requests.'
+    errorMsg += '  Check the developer console for CORS errors.'
+    errorMsg += e;
+    ui.updateColumnNamesMessage(errorMsg);
+    return;
+  }
 };
 
 const getSampleRowHandler = async () => {
   const url = ui.getQueryElement().value;
   ui.updateStatus(`Attempting to connect to CSV resource at ${url}`);
   const myData = tf.data.csv(url);
-  ui.updateStatus('Got the data connection ...collecting first sample');
+  ui.updateStatus('Got the data connection ... getting requested sample');
   // const columnNames = await myData.columnNames();
   const sampleIndex = ui.getSampleIndex();
-  const sample = await myData.skip(sampleIndex - 1).take(1).collectAll();
-  ui.updateStatus(`Done getting sample number #${sampleIndex}.`);
-  ui.updateSampleRowMessage(`Done getting sample number #${sampleIndex}.`);
+  if (sampleIndex < 0 || isNaN(sampleIndex)) {
+    const msg = `Can not get samples with negative or NaN index.  (Requested ${
+        sampleIndex}).`
+    ui.updateStatus(msg);
+    ui.updateSampleRowMessage(msg);
+    ui.updateSampleRowOutput([]);
+    return;
+  }
+  let sample;
+  try {
+    sample = await myData.skip(sampleIndex).take(1).collectAll();
+  } catch (e) {
+    let errorMsg = `Caught an error retrieving sample from ${url}.  `
+    errorMsg +=
+        'This URL might not be valid or might not support CORS requests.'
+    errorMsg += '  Check the developer console for CORS errors.'
+    errorMsg += e;
+    ui.updateSampleRowMessage(errorMsg);
+    return;
+  }
+  if (sample.length === 0) {
+    // When samples are requested beyond the end of the CSV, the data will
+    // return empty.
+    const msg = `Can not get sample index ${
+        sampleIndex}.  This may be beyond the end of the dataset.`
+    ui.updateStatus(msg);
+    ui.updateSampleRowMessage(msg);
+    ui.updateSampleRowOutput([]);
+    return;
+  }
+  ui.updateStatus(`Done getting sample ${sampleIndex}.`);
+  ui.updateSampleRowMessage(`Done getting sample ${sampleIndex}.`);
   ui.updateSampleRowOutput(sample[0]);
 };
 
 const resetOutputMessages = () => {
   ui.updateRowCountOutput('click "Count rows"');
-  ui.updateColumnNamesOutput('click "Get column names"');
+  ui.updateColumnNamesMessage('click "Get column names"');
+  ui.updateColumnNamesOutput([]);
   ui.updateSampleRowMessage('select an index and click "Get a sample row"');
   ui.updateSampleRowOutput([]);
 };
@@ -109,4 +161,8 @@ document.addEventListener('DOMContentLoaded', async () => {
       .addEventListener('click', getColumnNamesHandler, false);
   document.getElementById('getSampleRow')
       .addEventListener('click', getSampleRowHandler, false);
+
+  // Connect sample index to fetch on change.
+  document.getElementById('whichSampleInput')
+      .addEventListener('change', getSampleRowHandler, false);
 }, false);

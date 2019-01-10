@@ -15,10 +15,13 @@
  * =============================================================================
  */
 
+
+// import * as tfjsNpy from 'tfjs-npy';  // DEBUG
 import * as tf from '@tensorflow/tfjs';
 import {ArgumentParser} from 'argparse';
 
-import {loadData} from './data';
+// import * as fs from 'fs';
+import {loadData} from './data';  // DEBUG
 
 /**
  * Create a model for IMDB sentiment analysis.
@@ -27,7 +30,7 @@ import {loadData} from './data';
  * @param {number} vocabularySize Input vocabulary size.
  * @param {number} embeddingSize Embedding vector size, used to
  *   configure the embedding layer.
- * @returns A compiled instance of `tf.Model`.
+ * @returns An uncompiled instance of `tf.Model`.
  */
 function buildModel(modelType, vocabularySize, embeddingSize) {
   // TODO(cais): Bidirectional and dense-only.
@@ -44,8 +47,6 @@ function buildModel(modelType, vocabularySize, embeddingSize) {
     throw new Error(`Unsupported model type: ${modelType}`);
   }
   model.add(tf.layers.dense({units: 1, activation: 'sigmoid'}));
-  model.compile(
-      {loss: 'binaryCrossentropy', optimizer: 'adam', metrics: ['acc']});
   return model;
 }
 
@@ -72,7 +73,7 @@ function parseArguments() {
       '--gpu', {action: 'storeTrue', help: 'Use GPU for training'});
   parser.addArgument('--optimizer', {
     type: 'string',
-    defaultValue: 'rmsprop',
+    defaultValue: 'adam',
     help: 'Optimizer to be used for model training'
   });
   parser.addArgument(
@@ -103,10 +104,23 @@ async function main() {
   console.log('Loading data...');
   const {xTrain, yTrain, xTest, yTest} =
       loadData('./python/imdb', args.numWords, args.maxLen);
+  // let xTrain = tfjsNpy.parse(toArrayBuffer(fs.readFileSync('/tmp/x_train.npy')));
+  // let yTrain = tfjsNpy.parse(toArrayBuffer(fs.readFileSync('/tmp/y_train.npy')));
+  // yTrain = yTrain.expandDims(1);
+  // xTrain = tf.tensor2d(xTrain.dataSync(), xTrain.shape);
+  // yTrain = tf.tensor2d(yTrain.dataSync(), yTrain.shape);
+  // console.log(xTrain.shape);  // DEBUG
+  // console.log(yTrain.shape);  // DEBUG
 
   console.log('Building model...');
   const embeddingSize = 32;
   const model = buildModel(args.modelType, args.numWords, embeddingSize);
+
+  model.compile({
+    loss: 'binaryCrossentropy',
+    optimizer: args.optimizer,
+    metrics: ['acc']
+  });
   model.summary();
 
   console.log('Training model...');
@@ -121,6 +135,15 @@ async function main() {
       model.evaluate(xTest, yTest, {batchSize: args.batchSize});
   console.log(`Evaluation loss: ${(await testLoss.data())[0].toFixed(4)}`);
   console.log(`Evaluation accuracy: ${(await testAcc.data())[0].toFixed(4)}`);
+}
+
+function toArrayBuffer(buf) {
+  var ab = new ArrayBuffer(buf.length);
+  var view = new Uint8Array(ab);
+  for (var i = 0; i < buf.length; ++i) {
+      view[i] = buf[i];
+  }
+  return ab;
 }
 
 main();

@@ -15,8 +15,8 @@
  * =============================================================================
  */
 
-import * as fs from 'fs';
 import * as tf from '@tensorflow/tfjs';
+import * as fs from 'fs';
 
 const PAD_CHAR = 0;
 const OOV_CHAR = 2;
@@ -24,10 +24,14 @@ const INDEX_FROM = 3;
 
 function padSequence(seq, len) {
   if (seq.length < len) {
-    const padLen = len - seq.length;
-    for (let n = 0; n < padLen; ++n) {
-      seq.push(PAD_CHAR);
+    const pad = [];
+    for (let i = 0; i < len - seq.length; ++i) {
+      pad.push(PAD_CHAR);
     }
+    seq = pad.concat(seq);
+    return seq;
+  } else {
+    return seq;
   }
 }
 
@@ -44,8 +48,17 @@ function loadFeatures(filePath, numWords, len) {
     if (value === 1) {
       // A new sequence has started.
       if (index > 0) {
-        padSequence(seq, len);
-        sequences.push(seq.slice(0, len));
+        // console.log(`1: seq.length = ${seq.length}`);
+        seq = padSequence(seq, len);
+        // console.log(`2: seq.length = ${seq.length}`);
+        if (seq.length > len) {
+          seq = seq.slice(seq.length - len);
+        }
+        // console.log(`3: seq.length = ${seq.length}`);
+        if (seq.length !== len) {
+          throw new Error(seq.length, len);
+        }
+        sequences.push(seq);
       }
       seq = [];
     } else {
@@ -55,8 +68,14 @@ function loadFeatures(filePath, numWords, len) {
     index += 4;
   }
   if (seq.length > 0) {
-    padSequence(seq, len);
-    sequences.push(seq.slice(0, len));
+    // console.log(`1: seq.length = ${seq.length}`);
+    seq = padSequence(seq, len);
+    // console.log(`2: seq.length = ${seq.length}`);
+    if (seq.length > len) {
+      seq = seq.slice(seq.length - len);
+    }
+    // console.log(`3: seq.length = ${seq.length}`);
+    sequences.push(seq);
   }
   return tf.tensor2d(sequences, [sequences.length, len], 'int32');
 }
@@ -76,7 +95,7 @@ export function loadData(pathPrefix, numWords, len) {
   const trainFeaturePath = `${pathPrefix}_train_data.bin`;
   const xTrain = loadFeatures(trainFeaturePath, numWords, len);
   const testFeaturePath = `${pathPrefix}_test_data.bin`;
-  const xTest = loadFeatures(testFeaturePath,  numWords, len);
+  const xTest = loadFeatures(testFeaturePath, numWords, len);
   const trainTargetsPath = `${pathPrefix}_train_targets.bin`;
   const yTrain = loadTargets(trainTargetsPath);
   const testTargetsPath = `${pathPrefix}_test_targets.bin`;

@@ -19,6 +19,9 @@
  * Utilities for sequential data.
  */
 
+export const PAD_CHAR = 0;
+export const OOV_CHAR = 2;
+
 /**
  * Pad and truncate all sequences to the same length
  *
@@ -31,7 +34,7 @@
  * @param {number} value Padding value.
  */
 export function padSequences(
-    sequences, maxLen, padding = 'pre', truncating = 'pre', value = 0) {
+    sequences, maxLen, padding = 'pre', truncating = 'pre', value = PAD_CHAR) {
   // TODO(cais): This perhaps should be refined and moved into tfjs-preproc.
   return sequences.map(seq => {
     // Perform truncation.

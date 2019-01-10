@@ -21,7 +21,7 @@ import * as https from 'https';
 import * as os from 'os';
 import * as path from 'path';
 
-import {padSequences} from './sequence_utils';
+import {OOV_CHAR, PAD_CHAR, padSequences} from './sequence_utils';
 
 const extract = require('extract-zip');
 
@@ -29,9 +29,6 @@ const DATA_ZIP_URL =
     'https://storage.googleapis.com/learnjs-data/imdb/imdb_tfjs_data.zip';
 const METADATA_TEMPLATE_URL =
     'https://storage.googleapis.com/learnjs-data/imdb/metadata.json.zip';
-
-const PAD_CHAR = 0;
-export const OOV_CHAR = 2;
 
 /**
  * Load IMDB data features from a local file.
@@ -70,7 +67,7 @@ function loadFeatures(filePath, numWords, maxLen) {
     sequences.push(seq);
   }
   const paddedSequences =
-      padSequences(sequences, maxLen, 'pre', 'pre', PAD_CHAR);
+      padSequences(sequences, maxLen, 'pre', 'pre');
   return tf.tensor2d(
       paddedSequences, [paddedSequences.length, maxLen], 'int32');
 }

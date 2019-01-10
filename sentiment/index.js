@@ -18,8 +18,7 @@
 import * as tf from '@tensorflow/tfjs';
 import * as loader from './loader';
 import * as ui from './ui';
-import {OOV_CHAR} from './data';
-import {padSequences} from './sequence_utils';
+import {OOV_CHAR, padSequences} from './sequence_utils';
 
 const HOSTED_URLS = {
   model:

@@ -59,11 +59,11 @@ class SentimentPredictor {
     // Convert to lower case and remove all punctuations.
     const inputText =
         text.trim().toLowerCase().replace(/(\.|\,|\!)/g, '').split(' ');
-    // Look up word indices.
+    // Convert the words to a sequence of word indices.
     const sequence =
         inputText.map(word => this.wordIndex[word] + this.indexFrom);
+    // Perform truncation and padding.
     const paddedSequence = padSequences([sequence], this.maxLen);
-    console.log('paddedSequence:', paddedSequence);  // DEBUG
     const input = tf.tensor2d(paddedSequence, [1, this.maxLen]);
 
     ui.status('Running inference');

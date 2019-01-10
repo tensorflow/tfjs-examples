@@ -15,12 +15,9 @@
  * =============================================================================
  */
 
-
-// import * as tfjsNpy from 'tfjs-npy';  // DEBUG
 import * as tf from '@tensorflow/tfjs';
 import {ArgumentParser} from 'argparse';
 
-// import * as fs from 'fs';
 import {loadData} from './data';  // DEBUG
 
 /**
@@ -74,6 +71,11 @@ function parseArguments() {
     help: 'Maximum sentence length in number of words. ' +
         'Shorter sentences will be padded; longers ones will be truncated.'
   });
+  parser.addArgument('--embeddingSize', {
+    type: 'int',
+    defaultValue: 32,
+    help: 'Number of word embedding dimensions'
+  });
   parser.addArgument(
       '--gpu', {action: 'storeTrue', help: 'Use GPU for training'});
   parser.addArgument('--optimizer', {
@@ -91,6 +93,11 @@ function parseArguments() {
     type: 'float',
     defaultValue: 0.2,
     help: 'Validation split for training'
+  });
+  parser.addArgument('--modelSaveDir', {
+    type: 'string',
+    defaultValue: null,
+    help: 'Optional path for model saving.'
   });
   return parser.parseArgs();
 }
@@ -111,9 +118,8 @@ async function main() {
       loadData('./python/imdb', args.numWords, args.maxLen);
 
   console.log('Building model...');
-  const embeddingSize = 32;
   const model =
-      buildModel(args.modelType, args.maxLen, args.numWords, embeddingSize);
+      buildModel(args.modelType, args.maxLen, args.numWords, args.embeddingSize);
 
   model.compile({
     loss: 'binaryCrossentropy',
@@ -134,15 +140,12 @@ async function main() {
       model.evaluate(xTest, yTest, {batchSize: args.batchSize});
   console.log(`Evaluation loss: ${(await testLoss.data())[0].toFixed(4)}`);
   console.log(`Evaluation accuracy: ${(await testAcc.data())[0].toFixed(4)}`);
-}
 
-function toArrayBuffer(buf) {
-  var ab = new ArrayBuffer(buf.length);
-  var view = new Uint8Array(ab);
-  for (var i = 0; i < buf.length; ++i) {
-    view[i] = buf[i];
+  // Save model.
+  if (args.modelSaveDir != null && args.modelSaveDir.length > 0) {
+    await model.save(`file://${args.modelSaveDir}`);
+    console.log(`Saved model to ${args.modelSaveDir}`);
   }
-  return ab;
 }
 
 main();

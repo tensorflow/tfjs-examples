@@ -53,7 +53,7 @@ yarn train --gpu <MODEL_TYPE>
 
 The training process will download the training data and metadata form the web
 if they haven't been downloaded before. After the model training completes, the model
-will be saved to the `dist/reources` folder, alongside a `metadata.json` file.
+will be saved to the `dist/resources` folder, alongside a `metadata.json` file.
 Then when you run `yarn watch`, you will see a "Load local model" button in the web
 page, which allows you to use the locally-trained model for inference in the browser.
 

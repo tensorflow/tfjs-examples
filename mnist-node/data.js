@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-const tf = require('@tensorflow/tfjs');
+const tf = require('@tensorflow/tfjs-node');
 const assert = require('assert');
 const fs = require('fs');
 const https = require('https');

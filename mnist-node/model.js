@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-const tf = require('@tensorflow/tfjs-node');
+const tf = require('@tensorflow/tfjs');
 
 const model = tf.sequential();
 model.add(tf.layers.conv2d({

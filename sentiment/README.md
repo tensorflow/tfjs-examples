@@ -66,4 +66,4 @@ Other arguments of the `yarn train` command include:
 - `--modelSavePath` allows you to specify where to store the model and metadata after
   training copmletes.
 
-The detailed code for training are in the file [train.js](./trani.js).
+The detailed code for training are in the file [train.js](./train.js).

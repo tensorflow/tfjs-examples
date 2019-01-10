@@ -18,6 +18,7 @@
 import * as tf from '@tensorflow/tfjs';
 import * as loader from './loader';
 import * as ui from './ui';
+import {OOV_CHAR} from './data';
 import {padSequences} from './sequence_utils';
 
 const HOSTED_URLS = {
@@ -52,7 +53,9 @@ class SentimentPredictor {
     console.log('indexFrom = ' + this.indexFrom);
     console.log('maxLen = ' + this.maxLen);
 
-    this.wordIndex = sentimentMetadata['word_index']
+    this.wordIndex = sentimentMetadata['word_index'];
+    this.vocabularySize = sentimentMetadata['vocabulary_size'];
+    console.log('vocabularySize = ', this.vocabularySize);
   }
 
   predict(text) {
@@ -60,13 +63,17 @@ class SentimentPredictor {
     const inputText =
         text.trim().toLowerCase().replace(/(\.|\,|\!)/g, '').split(' ');
     // Convert the words to a sequence of word indices.
-    const sequence =
-        inputText.map(word => this.wordIndex[word] + this.indexFrom);
+    const sequence = inputText.map(word => {
+      let wordIndex = this.wordIndex[word] + this.indexFrom;
+      if (wordIndex > this.vocabularySize) {
+        wordIndex = OOV_CHAR;
+      }
+      return wordIndex;
+    });
     // Perform truncation and padding.
     const paddedSequence = padSequences([sequence], this.maxLen);
     const input = tf.tensor2d(paddedSequence, [1, this.maxLen]);
 
-    ui.status('Running inference');
     const beginMs = performance.now();
     const predictOut = this.model.predict(input);
     const score = predictOut.dataSync()[0];

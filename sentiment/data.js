@@ -31,7 +31,7 @@ const METADATA_TEMPLATE_URL =
     'https://storage.googleapis.com/learnjs-data/imdb/metadata.json.zip';
 
 const PAD_CHAR = 0;
-const OOV_CHAR = 2;
+export const OOV_CHAR = 2;
 
 /**
  * Load IMDB data features from a local file.

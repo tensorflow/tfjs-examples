@@ -70,8 +70,6 @@ async function trainModel(trainDataset, validationDataset) {
     callbacks: {
       onEpochEnd: async (epoch, logs) => {
         // Plot the loss and accuracy values at the end of every training epoch.
-        // TODO(bileschi): Get rid of the explicit clone-assign when logs is no
-        // longer a reference. (next version of tfjs-union 0.14.2).
         const secPerEpoch =
             (performance.now() - beginMs) / (1000 * (epoch + 1));
         ui.status(

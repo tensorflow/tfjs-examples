@@ -37,7 +37,7 @@ const utils = require('./utils');
  * @param {string[]} layerNames Names of layers of interest.
  * @param {tf.Tensor4d} inputImage The input image represented as a 4D tensor
  *   of shape [1, height, width, 3].
- * @param {number} filters Number of filters to run for each convolutional
+ * @param {number} numFilters Number of filters to run for each convolutional
  *   layer. If it exceeds the number of filters of a convolutional layer, it
  *   will be cut off.
  * @param {string} outputDir Path to the directory to which the image files
@@ -49,7 +49,7 @@ const utils = require('./utils');
  *           and width of the layer's filter outputs.
  */
 async function writeInternalActivationAndGetOutput(
-    model, layerNames, inputImage, filters, outputDir) {
+    model, layerNames, inputImage, numFilters, outputDir) {
   const layerName2FilePaths = {};
   const layerName2ImageDims = {};
   const layerOutputs =
@@ -69,12 +69,12 @@ async function writeInternalActivationAndGetOutput(
     // Split the activation of the convolutional layer by filter.
     const activationTensors =
         tf.split(outputs[i], outputs[i].shape[outputs[i].shape.length - 1], -1);
-    const actualFilters = filters <= activationTensors.length ?
-        filters :
+    const actualNumFilters = numFilters <= activationTensors.length ?
+        numFilters :
         activationTensors.length;
     const filePaths = [];
     let imageTensorShape;
-    for (let j = 0; j < actualFilters; ++j) {
+    for (let j = 0; j < actualNumFilters; ++j) {
       // Format activation tensors and write them to disk.
       const imageTensor = tf.tidy(
           () => deprocessImage(tf.tile(activationTensors[j], [1, 1, 1, 3])));

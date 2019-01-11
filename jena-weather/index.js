@@ -58,7 +58,8 @@ export function plotData() {
     makeTimeSeriesScatterPlot(series1, series2, timeSpan, normalize);
   } else {
     // Plot one or two series agains time.
-    makeTimeSeriesChart(series1, series2, timeSpan, normalize);
+    makeTimeSeriesChart(
+        series1, series2, timeSpan, normalize, dataChartContainer);
   }
 
   updateDateTimeRangeSpan(jenaWeatherData);
@@ -75,8 +76,11 @@ export function plotData() {
  *   `TIME_SPAN_STRIDE_MAP`.
  * @param {boolean} normalize Whether to use normalized for the two
  *   timeseries.
+ * @param {HTMLDivElement} chartConatiner The div element in which
+ *   the charts will be rendered.
  */
-function makeTimeSeriesChart(series1, series2, timeSpan, normalize) {
+function makeTimeSeriesChart(
+    series1, series2, timeSpan, normalize, chartConatiner) {
   const values = [];
   const series = [];
   const includeTime = true;
@@ -95,9 +99,9 @@ function makeTimeSeriesChart(series1, series2, timeSpan, normalize) {
   // NOTE(cais): On a Linux workstation running latest Chrome, the length
   // limit seems to be around 120k.
   console.log('Calling linerchart');  // DEBUG
-  tfvis.render.linechart({values, series: series}, dataChartContainer, {
-    width: dataChartContainer.offsetWidth * 0.95,
-    height: dataChartContainer.offsetWidth * 0.3,
+  tfvis.render.linechart({values, series: series}, chartConatiner, {
+    width: chartConatiner.offsetWidth * 0.95,
+    height: chartConatiner.offsetWidth * 0.3,
     xLabel: 'Time',
     yLabel: series.length === 1 ? series[0] : '',
   });

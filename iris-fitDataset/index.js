@@ -70,18 +70,15 @@ async function trainModel(trainDataset, validationDataset) {
     callbacks: {
       onEpochEnd: async (epoch, logs) => {
         // Plot the loss and accuracy values at the end of every training epoch.
-        // TODO(bileschi): Get rid of the explicit clone-assign when logs is no
-        // longer a reference. (next version of tfjs-union 0.14.2).
-        const newLogs = {};
-        Object.assign(newLogs, logs);
         const secPerEpoch =
             (performance.now() - beginMs) / (1000 * (epoch + 1));
-        ui.status(`Training model... Approximately ${
-            secPerEpoch.toFixed(4)} seconds per epoch`)
-        trainLogs.push(newLogs);
+        ui.status(
+            `Training model... Approximately ` +
+            `${secPerEpoch.toFixed(4)} seconds per epoch`);
+        trainLogs.push(logs);
         tfvis.show.history(lossContainer, trainLogs, ['loss', 'val_loss'])
         tfvis.show.history(accContainer, trainLogs, ['acc', 'val_acc'])
-        const [[xTest, yTest]] = await validationDataset.collectAll();
+        const [[xTest, yTest]] = await validationDataset.toArray();
         calculateAndDrawConfusionMatrix(model, xTest, yTest);
       },
     }
@@ -155,7 +152,7 @@ async function calculateAndDrawConfusionMatrix(model, xTest, yTest) {
  */
 async function evaluateModelOnTestData(model, testDataset) {
   ui.clearEvaluateTable();
-  const [[xTest, yTest]] = await testDataset.collectAll();
+  const [[xTest, yTest]] = await testDataset.toArray();
   const xData = xTest.dataSync();
   const yTrue = yTest.argMax(-1).dataSync();
   const predictOut = model.predict(xTest);

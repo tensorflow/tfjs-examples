@@ -28,9 +28,9 @@ function parseArguments() {
   parser.addArgument('--modelType', {
     type: 'string',
     defaultValue: 'gru',
-    optionStrings: ['gru', 'gru-dropout'],
+    optionStrings: ['gru'],
     // TODO(cais): Add more.
-    help: 'Model type to use'
+    help: 'Type of the model to train'
   });
   parser.addArgument('--gpu', {
     action: 'storeTrue',

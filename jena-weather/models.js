@@ -106,10 +106,7 @@ export function buildModel(modelType, numTimeSteps, numFeatures) {
     model = buildMLPModel(inputShape, regularizer, dropoutRate);
   } else if (modelType === 'gru') {
     model = buildGRUModel(inputShape);
-  } else if (modelType === 'gru-dropout') {
-    const dropoutRate = 0.2;
-    const recurrentDropoutRate = 0.2;
-    model = buildGRUModel(inputShape, dropoutRate, recurrentDropoutRate);
+    // TODO(cais): Add gru-dropout with recurrentDropout.
   } else {
     throw new Error(`Unsupported model type: ${modelType}`);
   }

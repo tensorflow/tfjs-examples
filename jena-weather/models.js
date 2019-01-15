@@ -57,10 +57,12 @@ export async function getBaselineMeanAbsoluteError(
   await dataset.forEach(dataItem => {
     const features = dataItem[0];
     const targets = dataItem[1];
+    const timeSteps = features.shape[1];
     batchSizes.push(features.shape[0]);
     batchMeanAbsoluteErrors.push(tf.tidy(
         () => tf.losses.absoluteDifference(
-            targets, features.gather([-1], 1).gather([1], 2).squeeze([2]))));
+            targets,
+            features.gather([timeSteps - 1], 1).gather([1], 2).squeeze([2]))));
   });
   const meanAbsoluteError = tf.tidy(() => {
     const batchSizesTensor = tf.tensor1d(batchSizes);

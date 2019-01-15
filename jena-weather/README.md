@@ -21,7 +21,8 @@ The data used in this demo is the
 This exapmle shows how to predict temperature using a few different types of
 models, including linear regressors, multilayer perceptrons, and recurrent
 neural networks (RNNs). While training of the first two types of models
-happen in the browser, the training of RNNs happen in Node.js.
+happen in the browser, the training of RNNs happen in Node.js, due to their
+heavier computational load and longer training time.
 
 For example, to train a gated recurrent unit (GRU) model, use shell commands:
 
@@ -40,4 +41,4 @@ yarn
 yarn train-rnn --gpu
 ```
 
-The training code is in the file [train-rnn.js](train-rnn.js).
+The training code is in the file [train-rnn.js](./train-rnn.js).

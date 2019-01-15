@@ -15,6 +15,14 @@
  * =============================================================================
  */
 
+/**
+ * Creating and training `tf.Model`s for the temperature prediction problem.
+ * 
+ * This file is used to create models for both
+ * - the browser: see [index.js](./index.js), and 
+ * - the Node.js backend environment: see [train-rnn.js](./train-rnn.js).
+ */
+
 import * as tf from '@tensorflow/tfjs';
 import {JenaWeatherData} from './data';
 
@@ -67,7 +75,8 @@ function buildMLPModel(inputShape, kernelRegularizer, dropoutRate) {
  * @returns {tf.Model} A TensorFlow.js GRU model.
  */
 function buildGRUModel(inputShape, dropout, recurrentDropout) {
-  // TODO(cais): Add recurrent dropout.
+  // TODO(cais): Recurrent dropout is currently not fully working.
+  //   Make it work and add a flag to train-rnn.js.
   const model = tf.sequential();
   const rnnUnits = 32;
   model.add(tf.layers.gru({

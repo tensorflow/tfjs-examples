@@ -21,6 +21,10 @@
  * The data used in this demo is the
  * [Jena weather archive
  * dataset](https://www.kaggle.com/pankrzysiu/weather-archive-jena).
+ * 
+ * This file is used to load the Jena weather data in both
+ * - the browser: see [index.js](./index.js), and 
+ * - the Node.js backend environment: see [train-rnn.js](./train-rnn.js).
  */
 
 import * as tf from '@tensorflow/tfjs';

@@ -15,6 +15,17 @@
  * =============================================================================
  */
 
+/**
+ * Train recurrent neural networks (RNNs) for temperature prediction.
+ * 
+ * This script drives the RNN training process in the Node.js environment
+ * using tfjs-node or tfjs-node-gpu (see the `--gpu` flag).
+ * 
+ * - See [data.js](./data.js) for how the Jena weather dataset is loaded.
+ * - See [models.js](./train.js) for the detailed model creation and training
+ *   logic.
+ */
+
 import {ArgumentParser} from 'argparse';
 
 import {JenaWeatherData} from './data';
@@ -29,7 +40,7 @@ function parseArguments() {
     type: 'string',
     defaultValue: 'gru',
     optionStrings: ['gru'],
-    // TODO(cais): Add more.
+    // TODO(cais): Add more model types, e.g., gru with recurrent dropout.
     help: 'Type of the model to train'
   });
   parser.addArgument('--gpu', {

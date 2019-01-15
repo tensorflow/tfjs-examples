@@ -98,7 +98,6 @@ function makeTimeSeriesChart(
   }
   // NOTE(cais): On a Linux workstation running latest Chrome, the length
   // limit seems to be around 120k.
-  console.log('Calling linerchart');  // DEBUG
   tfvis.render.linechart({values, series: series}, chartConatiner, {
     width: chartConatiner.offsetWidth * 0.95,
     height: chartConatiner.offsetWidth * 0.3,
@@ -177,10 +176,8 @@ trainModelButton.addEventListener('click', async () => {
   trainModelButton.disabled = true;
   trainModelButton.textContent = 'Training model. Please wait...'
   // Test iteratorFn.
-  // const lookBack = 10 * 24 * 6;  // Look back 10 days.  // TODO(cais): DEBUG. DO NOT SUBMIT.
-  // const step = 6;                // 1-hour steps.
-  const lookBack = 1 * 24 * 6;  // Look back 10 days.  
-  const step = 12;  // DEBUG
+  const lookBack = 10 * 24 * 6;  // Look back 10 days.
+  const step = 6;                // 1-hour steps.
   const delay = 24 * 6;          // Predict the weather 1 day later.
   const batchSize = 128;
   const normalize = true;

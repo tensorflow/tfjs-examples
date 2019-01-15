@@ -277,6 +277,7 @@ export class JenaWeatherData {
 
     function nextBatchFn() {
       const rowIndices = [];
+      let done = false;  // Indicates whether the dataset has ended.
       if (shuffle) {
         // If `shuffle` is `true`, start from randomly chosen rows.
         const range = maxIndex - (minIndex + lookBack);
@@ -286,9 +287,13 @@ export class JenaWeatherData {
         }
       } else {
         // If `shuffle` is `false`, the starting row indices will be sequential.
-        for (let r = startIndex; r < startIndex + batchSize && r < maxIndex;
+        let r = startIndex;
+        for (; r < startIndex + batchSize && r < maxIndex;
              ++r) {
           rowIndices.push(r);
+        }
+        if (r >= maxIndex) {
+          done = true;
         }
       }
 
@@ -330,8 +335,8 @@ export class JenaWeatherData {
       }
       return {
         value: [samples.toTensor(), targets.toTensor()],
-        done: false
-      };  // TODO(cais): Return done = true when done.
+        done
+      };
     }
 
     return nextBatchFn.bind(this);

@@ -160,10 +160,6 @@ export async function trainModel(
 
   const valMinIndex = 200001;
   const valMaxIndex = 300000;
-  const valNextBatchFn = jenaWeatherData.getNextBatchFunction(
-      false, lookBack, delay, batchSize, step, valMinIndex, valMaxIndex,
-      normalize, includeDateTime);
-  const valDataset = tf.data.generator(valNextBatchFn);
 
   const batchesPerEpoch = 500;
   let t0;
@@ -191,10 +187,14 @@ export async function trainModel(
         }
       },
       onEpochEnd: async (epoch, logs) => {
+        const valNextBatchFn = jenaWeatherData.getNextBatchFunction(
+            false, lookBack, delay, batchSize, step, valMinIndex, valMaxIndex,
+            normalize, includeDateTime);
+        const valDataset = tf.data.generator(valNextBatchFn);
         console.log(`epoch ${epoch + 1}/${epochs}: Performing validation...`);
-        const evalOut = await model.evaluateDataset(valDataset, {
-          batches: 700  // TODO(cais): Do not hard code.
-        });
+        // TODO(cais): Remove the second arg (empty object), when the bug is fixed:
+        //   https://github.com/tensorflow/tfjs/issues/1096
+        const evalOut = await model.evaluateDataset(valDataset, {});
         logs.val_loss = (await evalOut.data())[0];
         tf.dispose(evalOut);
         console.log(

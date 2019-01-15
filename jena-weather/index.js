@@ -17,6 +17,10 @@
 
 /**
  * Weather Prediction Example.
+ * 
+ * - Visualizes data using tfjs-vis.
+ * - Trains simple models (linear regressor and MLPs) and visualizes the
+ *   training processes.
  */
 
 import * as tf from '@tensorflow/tfjs';
@@ -143,32 +147,6 @@ function makeTimeSeriesScatterPlot(series1, series2, timeSpan, normalize) {
     xLabel: seriesLabel1,
     yLabel: seriesLabel2
   });
-}
-
-let lossValues;
-let valLossValues;
-
-/**
- * Plot loss and accuracy curves.
- *
- * TODO(cais): This should be replaced by tfvis.show.fitCallbacks() once
- *   fitDataset() is used.
- */
-function plotLoss(modelType, epoch, loss, valLoss) {
-  const lossSurface =
-      tfvis.visor().surface({tab: modelType, name: 'Loss curves'});
-
-  if (epoch <= 1) {
-    lossValues = [];
-    valLossValues = [];
-  }
-  lossValues.push({x: epoch, y: loss});
-  valLossValues.push({x: epoch, y: valLoss});
-
-  // const values = [{x: 1, y: 10}, {x: 2, y: 20}, {x: 3, y: 5}];
-  tfvis.render.linechart(
-      {values: [lossValues, valLossValues], series: ['train', 'val']},
-      lossSurface, {xLabel: 'Epoch #', yLabel: 'Loss'});
 }
 
 trainModelButton.addEventListener('click', async () => {

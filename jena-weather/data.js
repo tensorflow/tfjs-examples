@@ -288,8 +288,7 @@ export class JenaWeatherData {
       } else {
         // If `shuffle` is `false`, the starting row indices will be sequential.
         let r = startIndex;
-        for (; r < startIndex + batchSize && r < maxIndex;
-             ++r) {
+        for (; r < startIndex + batchSize && r < maxIndex; ++r) {
           rowIndices.push(r);
         }
         if (r >= maxIndex) {

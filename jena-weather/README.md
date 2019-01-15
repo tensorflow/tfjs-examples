@@ -16,13 +16,25 @@ This demo showcases
 The data used in this demo is the
 [Jena weather archive dataset](https://www.kaggle.com/pankrzysiu/weather-archive-jena).
 
+This example also showcases the usage of the following important APIs in
+TensorFlow.js
+
+- `tf.data.generator()`: How to create `tf.data.Dataset` objects from generator
+  functions.
+- `tf.Model.fitDataset()`: How to use a `tf.data.Dataset` object to train a
+  `tf.Model` and use another `tf.data.Dataset` object to perform validation
+  of the model at the end of every training epoch.
+- `tfvis.show.fitCallbacks()`: How to use the convenient method to plot
+  training-set and validation-set losses at the end of batches and epochs of
+  model training.
+
 ## Training RNNs
 
 This exapmle shows how to predict temperature using a few different types of
 models, including linear regressors, multilayer perceptrons, and recurrent
 neural networks (RNNs). While training of the first two types of models
-happen in the browser, the training of RNNs happen in Node.js, due to their
-heavier computational load and longer training time.
+happens in the browser, the training of RNNs is conducted in Node.js, due to
+their heavier computational load and longer training time.
 
 For example, to train a gated recurrent unit (GRU) model, use shell commands:
 

@@ -60,16 +60,14 @@ export async function getBaselineMeanAbsoluteError(
     batchSizes.push(features.shape[0]);
     batchMeanAbsoluteErrors.push(tf.tidy(
         () => tf.losses.absoluteDifference(
-            targets,
-            features.gather([features.shape[1] - 1], 1).gather([1], 2).squeeze([
-              2
-            ]))));
+            targets, features.gather([-1], 1).gather([1], 2).squeeze([2]))));
   });
   const meanAbsoluteError = tf.tidy(() => {
     const batchSizesTensor = tf.tensor1d(batchSizes);
     const batchMeanAbsoluteErrorsTensor = tf.stack(batchMeanAbsoluteErrors);
     return batchMeanAbsoluteErrorsTensor.mul(batchSizesTensor)
-        .sum().div(batchSizesTensor.sum());
+        .sum()
+        .div(batchSizesTensor.sum());
   });
   tf.dispose(batchMeanAbsoluteErrors);
   return meanAbsoluteError.dataSync()[0];

@@ -53,4 +53,14 @@ yarn
 yarn train-rnn --gpu
 ```
 
+You can also calculate the prediction error (mean absolute error) based on a
+commonsense baseline method that is not machine learning: just predict the
+temperature as the latest temperature data point in the input features.
+This can be done with the dummy `--modelType` flag value `baseline`, i.e.,
+
+```sh
+yarn
+yarn train-rnn --modelType baseline
+```
+
 The training code is in the file [train-rnn.js](./train-rnn.js).

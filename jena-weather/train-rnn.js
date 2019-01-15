@@ -29,7 +29,7 @@
 import {ArgumentParser} from 'argparse';
 
 import {JenaWeatherData} from './data';
-import {buildModel, trainModel} from './models';
+import {buildModel, getBaselineMeanAbsoluteError, trainModel} from './models';
 
 global.fetch = require('node-fetch');
 
@@ -41,7 +41,8 @@ function parseArguments() {
     defaultValue: 'gru',
     optionStrings: ['gru'],
     // TODO(cais): Add more model types, e.g., gru with recurrent dropout.
-    help: 'Type of the model to train'
+    help: 'Type of the model to train. Use "baselin" to compute the ' +
+    'commonsense baseline prediction error.'
   });
   parser.addArgument('--gpu', {
     action: 'storeTrue',
@@ -99,14 +100,24 @@ async function main() {
   console.log(`Loading Jena weather data...`);
   await jenaWeatherData.load();
 
-  let numFeatures = jenaWeatherData.getDataColumnNames().length;
-  const model = buildModel(
-      args.modelType, Math.floor(args.lookBack / args.step), numFeatures);
+  if (args.modelType === 'baseline') {
+    console.log('Calculating commonsense baseline mean absolute error...');
+    const baselineError = await getBaselineMeanAbsoluteError(
+        jenaWeatherData, args.normalize, args.includeDateTime, args.lookBack,
+        args.step, args.delay);
+    console.log(
+        `Commonsense baseline mean absolute error: ` +
+        `${baselineError.toFixed(6)}`);
+  } else {
+    let numFeatures = jenaWeatherData.getDataColumnNames().length;
+    const model = buildModel(
+        args.modelType, Math.floor(args.lookBack / args.step), numFeatures);
 
-  await trainModel(
-      model, jenaWeatherData, args.normalize, args.includeDateTime,
-      args.lookBack, args.step, args.delay, args.batchSize, args.epochs,
-      args.displayEvery);
+    await trainModel(
+        model, jenaWeatherData, args.normalize, args.includeDateTime,
+        args.lookBack, args.step, args.delay, args.batchSize, args.epochs,
+        args.displayEvery);
+  }
 }
 
 main();

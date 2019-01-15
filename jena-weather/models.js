@@ -17,14 +17,63 @@
 
 /**
  * Creating and training `tf.Model`s for the temperature prediction problem.
- * 
+ *
  * This file is used to create models for both
- * - the browser: see [index.js](./index.js), and 
+ * - the browser: see [index.js](./index.js), and
  * - the Node.js backend environment: see [train-rnn.js](./train-rnn.js).
  */
 
 import * as tf from '@tensorflow/tfjs';
 import {JenaWeatherData} from './data';
+
+/**
+ * Calculate the commonsense baseline temperture-prediction accuracy.
+ *
+ * The latest value in the temperature feature column is used as the
+ * prediction.
+ *
+ * @param {boolean} normalize Whether to used normalized data for training.
+ * @param {boolean} includeDateTime Whether to include date and time features
+ *   in training.
+ * @param {number} lookBack Number of look-back time steps.
+ * @param {number} step Step size used to generate the input features.
+ * @param {number} delay How many steps in the future to make the prediction
+ *   for.
+ * @returns {number} The mean absolute error of the commonsense baseline
+ *   prediction.
+ */
+export async function getBaselineMeanAbsoluteError(
+    jenaWeatherData, normalize, includeDateTime, lookBack, step, delay) {
+  const valMinIndex = 200001;
+  const valMaxIndex = 300000;
+  const batchSize = 128;
+  const nextBatchFn = jenaWeatherData.getNextBatchFunction(
+      false, lookBack, delay, batchSize, step, valMinIndex, valMaxIndex,
+      normalize, includeDateTime);
+  const dataset = tf.data.generator(nextBatchFn);
+
+  const batchMeanAbsoluteErrors = [];
+  const batchSizes = [];
+  await dataset.forEach(dataItem => {
+    const features = dataItem[0];
+    const targets = dataItem[1];
+    batchSizes.push(features.shape[0]);
+    batchMeanAbsoluteErrors.push(tf.tidy(
+        () => tf.losses.absoluteDifference(
+            targets,
+            features.gather([features.shape[1] - 1], 1).gather([1], 2).squeeze([
+              2
+            ]))));
+  });
+  const meanAbsoluteError = tf.tidy(() => {
+    const batchSizesTensor = tf.tensor1d(batchSizes);
+    const batchMeanAbsoluteErrorsTensor = tf.stack(batchMeanAbsoluteErrors);
+    return batchMeanAbsoluteErrorsTensor.mul(batchSizesTensor)
+        .sum().div(batchSizesTensor.sum());
+  });
+  tf.dispose(batchMeanAbsoluteErrors);
+  return meanAbsoluteError.dataSync()[0];
+}
 
 /**
  * Build a linear-regression model for the temperature-prediction problem.
@@ -80,11 +129,11 @@ function buildGRUModel(inputShape, dropout, recurrentDropout) {
   const model = tf.sequential();
   const rnnUnits = 32;
   model.add(tf.layers.gru({
-      units: rnnUnits,
-      inputShape,
-      dropout: dropout || 0,
-      recurrentDropout: recurrentDropout || 0
-    }));
+    units: rnnUnits,
+    inputShape,
+    dropout: dropout || 0,
+    recurrentDropout: recurrentDropout || 0
+  }));
   model.add(tf.layers.dense({units: 1}));
   return model;
 }
@@ -127,7 +176,7 @@ export function buildModel(modelType, numTimeSteps, numFeatures) {
 
 /**
  * Train a model on the Jena weather data.
- * 
+ *
  * @param {tf.Model} model A compiled tf.Model object.
  * @param {JenaWeatherData} jenaWeatherData A JenaWeatherData object.
  * @param {boolean} shuffle Whether the data is to be shuffled.
@@ -146,9 +195,8 @@ export function buildModel(modelType, numTimeSteps, numFeatures) {
  *   fields.
  */
 export async function trainModel(
-    model, jenaWeatherData, normalize, includeDateTime, lookBack,
-    step, delay, batchSize, epochs, displayEvery = 100,
-    customCallbacks) {
+    model, jenaWeatherData, normalize, includeDateTime, lookBack, step, delay,
+    batchSize, epochs, displayEvery = 100, customCallbacks) {
   const shuffle = true;
   const minIndex = 0;
   const maxIndex = 200000;
@@ -192,7 +240,8 @@ export async function trainModel(
             normalize, includeDateTime);
         const valDataset = tf.data.generator(valNextBatchFn);
         console.log(`epoch ${epoch + 1}/${epochs}: Performing validation...`);
-        // TODO(cais): Remove the second arg (empty object), when the bug is fixed:
+        // TODO(cais): Remove the second arg (empty object), when the bug is
+        // fixed:
         //   https://github.com/tensorflow/tfjs/issues/1096
         const evalOut = await model.evaluateDataset(valDataset, {});
         logs.val_loss = (await evalOut.data())[0];

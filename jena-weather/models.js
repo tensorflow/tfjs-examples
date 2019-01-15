@@ -141,13 +141,14 @@ export function buildModel(modelType, numTimeSteps, numFeatures) {
  * @param {number} batchSize batchSize for training.
  * @param {number} epochs Number of training epochs.
  * @param {number} displayEvery Log info to console every _ batches.
- * @param {number} epochEndCallback Optional callback to invoke at the
- *   end of every epoch.
+ * @param {number} customCallbacks Optional callback args to invoke at the
+ *   end of every epoch. Can optionally have `onBatchEnd` and `onEpochEnd`
+ *   fields.
  */
 export async function trainModel(
     model, jenaWeatherData, normalize, includeDateTime, lookBack,
     step, delay, batchSize, epochs, displayEvery = 100,
-    epochEndCallback) {
+    customCallbacks) {
   const shuffle = true;
   const minIndex = 0;
   const maxIndex = 200000;
@@ -184,6 +185,9 @@ export async function trainModel(
               `batch ${batch + 1}/${batchesPerEpoch}: ` +
               `loss=${logs.loss.toFixed(6)} ` +
               `(${millisPerBatch.toFixed(1)} ms/batch)`);
+          if (customCallbacks.onBatchEnd) {
+            customCallbacks.onBatchEnd(batch, logs);
+          }
         }
       },
       onEpochEnd: async (epoch, logs) => {
@@ -191,14 +195,14 @@ export async function trainModel(
         const evalOut = await model.evaluateDataset(valDataset, {
           batches: 700  // TODO(cais): Do not hard code.
         });
-        const valLoss = (await evalOut.data())[0];
+        logs.val_loss = (await evalOut.data())[0];
         tf.dispose(evalOut);
         console.log(
             `epoch ${epoch + 1}/${epochs}: ` +
             `trainLoss=${logs.loss.toFixed(6)}; ` +
-            `valLoss=${valLoss.toFixed(6)}`);
-        if (epochEndCallback) {
-          epochEndCallback(epoch + 1, logs.loss, valLoss);
+            `valLoss=${logs.val_loss.toFixed(6)}`);
+        if (customCallbacks.onEpochEnd) {
+          customCallbacks.onEpochEnd(epoch, logs);
         }
       }
     }

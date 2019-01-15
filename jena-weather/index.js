@@ -177,8 +177,10 @@ trainModelButton.addEventListener('click', async () => {
   trainModelButton.disabled = true;
   trainModelButton.textContent = 'Training model. Please wait...'
   // Test iteratorFn.
-  const lookBack = 10 * 24 * 6;  // Look back 10 days.
-  const step = 6;                // 1-hour steps.
+  // const lookBack = 10 * 24 * 6;  // Look back 10 days.  // TODO(cais): DEBUG. DO NOT SUBMIT.
+  // const step = 6;                // 1-hour steps.
+  const lookBack = 1 * 24 * 6;  // Look back 10 days.  
+  const step = 12;  // DEBUG
   const delay = 24 * 6;          // Predict the weather 1 day later.
   const batchSize = 128;
   const normalize = true;
@@ -195,15 +197,20 @@ trainModelButton.addEventListener('click', async () => {
       tfvis.visor().surface({tab: modelType, name: 'Model Summary'});
   tfvis.show.modelSummary(surface, model);
 
+  const trainingSurface =
+      tfvis.visor().surface({tab: modelType, name: 'Model Training'});
+
   console.log('Starting model training...');
   const epochs = +epochsInput.value;
   const displayEvery = 100;
   await trainModel(
       model, jenaWeatherData, normalize, includeDateTime,
       lookBack, step, delay, batchSize, epochs,
-      displayEvery, (epoch, loss, valLoss) => plotLoss(modelType, epoch, loss, valLoss));
+      displayEvery,
+      tfvis.show.fitCallbacks(trainingSurface, ['loss', 'val_loss'], {
+        callbacks: ['onBatchEnd', 'onEpochEnd']
+      }));
 
-  
   logStatus('Model training complete...');
 
   if (modelType.indexOf('mlp') === 0) {

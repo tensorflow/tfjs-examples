@@ -181,7 +181,7 @@ export async function trainModel(
               `batch ${batch + 1}/${batchesPerEpoch}: ` +
               `loss=${logs.loss.toFixed(6)} ` +
               `(${millisPerBatch.toFixed(1)} ms/batch)`);
-          if (customCallbacks.onBatchEnd) {
+          if (customCallbacks && customCallbacks.onBatchEnd) {
             customCallbacks.onBatchEnd(batch, logs);
           }
         }
@@ -201,7 +201,7 @@ export async function trainModel(
             `epoch ${epoch + 1}/${epochs}: ` +
             `trainLoss=${logs.loss.toFixed(6)}; ` +
             `valLoss=${logs.val_loss.toFixed(6)}`);
-        if (customCallbacks.onEpochEnd) {
+        if (customCallbacks && customCallbacks.onEpochEnd) {
           customCallbacks.onEpochEnd(epoch, logs);
         }
       }

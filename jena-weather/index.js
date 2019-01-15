@@ -180,8 +180,7 @@ trainModelButton.addEventListener('click', async () => {
   const displayEvery = 100;
   await trainModel(
       model, jenaWeatherData, normalize, includeDateTime,
-      lookBack, step, delay, batchSize, epochs,
-      displayEvery,
+      lookBack, step, delay, batchSize, epochs, displayEvery,
       tfvis.show.fitCallbacks(trainingSurface, ['loss', 'val_loss'], {
         callbacks: ['onBatchEnd', 'onEpochEnd']
       }));

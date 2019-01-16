@@ -41,7 +41,7 @@ function parseArguments() {
     defaultValue: 'gru',
     optionStrings: ['gru'],
     // TODO(cais): Add more model types, e.g., gru with recurrent dropout.
-    help: 'Type of the model to train. Use "baselin" to compute the ' +
+    help: 'Type of the model to train. Use "baseline" to compute the ' +
     'commonsense baseline prediction error.'
   });
   parser.addArgument('--gpu', {

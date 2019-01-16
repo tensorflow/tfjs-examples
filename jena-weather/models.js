@@ -26,6 +26,12 @@
 import * as tf from '@tensorflow/tfjs';
 import {JenaWeatherData} from './data';
 
+// Row ranges of the training and validation data subsets.
+const TRAIN_MIN_ROW = 0;
+const TRAIN_MAX_ROW = 200000;
+const VAL_MIN_ROW = 200001;
+const VAL_MAX_ROW = 300000;
+
 /**
  * Calculate the commonsense baseline temperture-prediction accuracy.
  *
@@ -44,11 +50,9 @@ import {JenaWeatherData} from './data';
  */
 export async function getBaselineMeanAbsoluteError(
     jenaWeatherData, normalize, includeDateTime, lookBack, step, delay) {
-  const valMinIndex = 200001;
-  const valMaxIndex = 300000;
   const batchSize = 128;
   const nextBatchFn = jenaWeatherData.getNextBatchFunction(
-      false, lookBack, delay, batchSize, step, valMinIndex, valMaxIndex,
+      false, lookBack, delay, batchSize, step, VAL_MIN_ROW, VAL_MAX_ROW,
       normalize, includeDateTime);
   const dataset = tf.data.generator(nextBatchFn);
 
@@ -115,9 +119,6 @@ function buildMLPModel(inputShape, kernelRegularizer, dropoutRate) {
 /**
  * Build a GRU model for the temperature-prediction problem.
  *
- * TODO(cais): Move this to a tfjs-node training script, as training
- *  the GRU in the browser turns out to be too slow.
- *
  * @param {tf.Shape} inputShape Input shape (without the batch dimenson).
  * @param {number} dropout Optional input dropout rate
  * @param {number} recurrentDropout Optional recurrent dropout rate.
@@ -177,9 +178,10 @@ export function buildModel(modelType, numTimeSteps, numFeatures) {
 /**
  * Train a model on the Jena weather data.
  *
- * @param {tf.Model} model A compiled tf.Model object.
+ * @param {tf.Model} model A compiled tf.Model object. It is expected to
+ *   have a 3D input shape `[numExamples, timeSteps, numFeatures].` and an
+ *   output shape `[numExamples, 1]` for predicting the temperature value.
  * @param {JenaWeatherData} jenaWeatherData A JenaWeatherData object.
- * @param {boolean} shuffle Whether the data is to be shuffled.
  * @param {boolean} normalize Whether to used normalized data for training.
  * @param {boolean} includeDateTime Whether to include date and time features
  *   in training.
@@ -198,16 +200,11 @@ export async function trainModel(
     model, jenaWeatherData, normalize, includeDateTime, lookBack, step, delay,
     batchSize, epochs, displayEvery = 100, customCallbacks) {
   const shuffle = true;
-  const minIndex = 0;
-  const maxIndex = 200000;
 
   const trainNextBatchFn = jenaWeatherData.getNextBatchFunction(
-      shuffle, lookBack, delay, batchSize, step, minIndex, maxIndex, normalize,
-      includeDateTime);
+      shuffle, lookBack, delay, batchSize, step, TRAIN_MIN_ROW, TRAIN_MAX_ROW,
+      normalize, includeDateTime);
   const trainDataset = tf.data.generator(trainNextBatchFn).prefetch(8);
-
-  const valMinIndex = 200001;
-  const valMaxIndex = 300000;
 
   const batchesPerEpoch = 500;
   let t0;
@@ -236,7 +233,7 @@ export async function trainModel(
       },
       onEpochEnd: async (epoch, logs) => {
         const valNextBatchFn = jenaWeatherData.getNextBatchFunction(
-            false, lookBack, delay, batchSize, step, valMinIndex, valMaxIndex,
+            false, lookBack, delay, batchSize, step, VAL_MIN_ROW, VAL_MAX_ROW,
             normalize, includeDateTime);
         const valDataset = tf.data.generator(valNextBatchFn);
         console.log(`epoch ${epoch + 1}/${epochs}: Performing validation...`);

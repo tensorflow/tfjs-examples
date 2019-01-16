@@ -15,19 +15,44 @@
  * =============================================================================
  */
 
-//
-// TODO(kreeger): write me
-//
-import {readFileSync} from 'fs';
+const fs = require('fs');
+const path = require('path');
 
 /**
  * Loads a JSON training file and the content to a Pitch array.
  */
-export function loadPitchData(filename) {
+function loadPitchData(filename) {
   const pitches = [];
-  const content = readFileSync(filename, 'utf-8').split('\n');
+  const content =
+      fs.readFileSync(path.join('data', filename), 'utf-8').split('\n');
   for (let i = 0; i < content.length; ++i) {
-    pitches.push(JSON.parse(content[i]));
+    if (content[i].length > 0) {
+      pitches.push(JSON.parse(content[i]));
+    }
   }
   return pitches;
 }
+
+//
+// TODO(kreeger): Let's convert this data to CSV - need a test helper script for
+// this. Remove normalized constants?
+//
+
+class PitchData {
+  constructor(trainingDataFilename, testDataFilename) {
+    this.trainingDataFilename = trainingDataFilename;
+    this.testDataFilename = testDataFilename;
+  }
+
+  /**
+   * Loads training and test data.
+   */
+  async loadData() {
+    //
+    // TODO(kreeger): Let's use the tf.data API!!
+    //
+  }
+}
+
+// TODO(kreeger): Fix data download location
+module.exports = {loadPitchData};

@@ -50,4 +50,7 @@ model.compile({
   metrics: ['accuracy']
 });
 
-module.exports = {model};
+module.exports = {
+  model,
+  fields
+};

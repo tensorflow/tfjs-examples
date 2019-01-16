@@ -1,5 +1,5 @@
 {
-  "name": "tfjs-examples-polynomial-regression-core",
+  "name": "tfjs-examples-iris",
   "version": "0.1.0",
   "description": "",
   "main": "index.js",
@@ -10,20 +10,22 @@
   },
   "dependencies": {
     "@tensorflow/tfjs": "^0.14.2",
-    "vega-embed": "^3.2.0"
+    "@tensorflow/tfjs-vis": "^0.4.0"
   },
   "scripts": {
-    "watch": "cross-env NODE_ENV=development parcel index.html --no-hmr --open",
     "build": "cross-env NODE_ENV=production parcel build index.html --no-minify --public-url ./",
+    "watch": "./serve.sh",
     "link-local": "yalc link",
     "postinstall": "yarn upgrade --pattern @tensorflow"
   },
   "devDependencies": {
-    "@babel/core": "^7.0.0-0",
-    "@babel/plugin-transform-runtime": "^7.1.0",
+    "babel-core": "^6.26.3",
+    "babel-plugin-transform-runtime": "~6.23.0",
+    "babel-polyfill": "~6.26.0",
     "babel-preset-env": "~1.6.1",
     "clang-format": "~1.2.2",
     "cross-env": "^5.1.6",
+    "http-server": "~0.10.0",
     "parcel-bundler": "~1.10.3",
     "yalc": "~1.0.0-pre.22"
   }

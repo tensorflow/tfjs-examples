@@ -31,8 +31,8 @@ import io
 import json
 import os
 
-from keras.models import Model
-from keras.layers import Input, LSTM, Dense
+from tensorflow.keras.models import Model
+from tensorflow.keras.layers import Input, LSTM, Dense
 import numpy as np
 import tensorflowjs as tfjs
 
@@ -143,8 +143,7 @@ def seq2seq_model(num_encoder_tokens, num_decoder_tokens, latent_dim):
   # Define an input sequence and process it.
   encoder_inputs = Input(shape=(None, num_encoder_tokens))
   encoder = LSTM(latent_dim,
-                 return_state=True,
-                 recurrent_initializer=FLAGS.recurrent_initializer)
+                 return_state=True)
   _, state_h, state_c = encoder(encoder_inputs)
   # We discard `encoder_outputs` and only keep the states.
   encoder_states = [state_h, state_c]
@@ -156,8 +155,7 @@ def seq2seq_model(num_encoder_tokens, num_decoder_tokens, latent_dim):
   # return states in the training model, but we will use them in inference.
   decoder_lstm = LSTM(FLAGS.latent_dim,
                       return_sequences=True,
-                      return_state=True,
-                      recurrent_initializer=FLAGS.recurrent_initializer)
+                      return_state=True)
   decoder_outputs, _, _ = decoder_lstm(decoder_inputs,
                                        initial_state=encoder_states)
   decoder_dense = Dense(num_decoder_tokens, activation='softmax')
@@ -285,11 +283,20 @@ def main():
     # Take one sequence (part of the training set)
     # for trying out decoding.
     input_seq = encoder_input_data[seq_index: seq_index + 1]
+    # Get expected output
+    target_seq = decoder_target_data[seq_index]
+    # One-hot to index
+    target_seq = [
+      reverse_target_char_index[np.argmax(c)] for c in target_seq
+    ]
+    # Array to string
+    target_seq = ''.join(target_seq).replace('\n', '')
     decoded_sentence = decode_sequence(
         input_seq, encoder_model, decoder_model, num_decoder_tokens,
         target_begin_index, reverse_target_char_index, max_decoder_seq_length)
     print('-')
     print('Input sentence:', input_texts[seq_index])
+    print('Target sentence:', target_seq)
     print('Decoded sentence:', decoded_sentence)
 
 
@@ -308,7 +315,7 @@ if __name__ == '__main__':
   parser.add_argument(
       '--epochs',
       type=int,
-      default=100,
+      default=20,
       help='Number of training epochs.')
   parser.add_argument(
       '--latent_dim',
@@ -325,15 +332,6 @@ if __name__ == '__main__':
       type=int,
       default=100,
       help='Number of example sentences to test at the end of the training.')
-  # TODO(cais): This is a workaround for the limitation in TF.js Layers that the
-  # default recurrent initializer "Orthogonal" is currently not supported.
-  # Remove this once "Orthogonal" becomes available.
-  parser.add_argument(
-      '--recurrent_initializer',
-      type=str,
-      default='orthogonal',
-      help='Custom initializer for recurrent kernels of LSTMs (e.g., '
-      'glorot_uniform)')
   parser.add_argument(
       '--artifacts_dir',
       type=str,

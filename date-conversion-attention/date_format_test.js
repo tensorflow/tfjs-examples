@@ -15,12 +15,12 @@
  * =============================================================================
  */
 
-const dateFormats = require('./date_formats');
+const dateFormat = require('./date_format');
 
 describe('Date formats', () => {
   it('generateRandomDateTuple', () => {
     for (let i = 0; i < 100; ++i) {
-      const [year, month, day] = dateFormats.generateRandomDateTuple();
+      const [year, month, day] = dateFormat.generateRandomDateTuple();
       expect(Number.isInteger(year)).toEqual(true);
       expect(year).toBeGreaterThanOrEqual(1950);
       expect(year).toBeLessThan(2050);
@@ -35,41 +35,54 @@ describe('Date formats', () => {
 
   it('DDMMMYYYY', () => {
     for (let i = 0; i < 10; ++i) {
-      const str = dateFormats.dateTupleToDDMMMYYYY(
-          dateFormats.generateRandomDateTuple());
+      const str = dateFormat.dateTupleToDDMMMYYYY(
+          dateFormat.generateRandomDateTuple());
       expect(str).toMatch(/[0-3]\d[A-Z][A-Z][A-Z][1-2]\d\d\d/);
     }
   });
 
   it('MM/DD/YYYY', () => {
     for (let i = 0; i < 10; ++i) {
-      const str = dateFormats.dateTupleToMMSlashDDSlashYYYY(
-          dateFormats.generateRandomDateTuple());
+      const str = dateFormat.dateTupleToMMSlashDDSlashYYYY(
+          dateFormat.generateRandomDateTuple());
       expect(str).toMatch(/[0-1]\d\/[0-3]\d\/[1-2]\d\d\d/);
     }
   });
 
   it('MM/DD/YY', () => {
     for (let i = 0; i < 10; ++i) {
-      const str = dateFormats.dateTupleToMMSlashDDSlashYY(
-          dateFormats.generateRandomDateTuple());
+      const str = dateFormat.dateTupleToMMSlashDDSlashYY(
+          dateFormat.generateRandomDateTuple());
       expect(str).toMatch(/[0-1]\d\/[0-3]\d\/\d\d/);
     }
   });
 
   it('MMDDYY', () => {
     for (let i = 0; i < 10; ++i) {
-      const str = dateFormats.dateTupleToMMDDYY(
-          dateFormats.generateRandomDateTuple());
+      const str = dateFormat.dateTupleToMMDDYY(
+          dateFormat.generateRandomDateTuple());
       expect(str).toMatch(/[0-1]\d[0-3]\d\d\d/);
     }
   });
 
   it('YYYY-MM-DD', () => {
     for (let i = 0; i < 10; ++i) {
-      const str = dateFormats.dateTupleToYYYYDashMMDashDD(
-          dateFormats.generateRandomDateTuple());
+      const str = dateFormat.dateTupleToYYYYDashMMDashDD(
+          dateFormat.generateRandomDateTuple());
       expect(str).toMatch(/[1-2]\d\d\d-[0-1]\d-[0-3]\d/);
     }
+  });
+
+  it('Encode input string', () => {
+    const str1 = dateFormat.dateTupleToDDMMMYYYY(
+        dateFormat.generateRandomDateTuple());
+    const str2 = dateFormat.dateTupleToMMSlashDDSlashYYYY(
+        dateFormat.generateRandomDateTuple());
+    const str3 = dateFormat.dateTupleToYYYYDashMMDashDD(
+        dateFormat.generateRandomDateTuple());
+    const encoded = dateFormat.encodeInputDateStrings([str1, str2, str3]);
+    expect(encoded.min().dataSync()[0]).toEqual(0);
+    expect(encoded.max().dataSync()[0]).toBeLessThan(
+        dateFormat.INPUT_VOCAB.length);
   });
 });

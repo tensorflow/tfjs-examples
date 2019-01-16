@@ -15,14 +15,30 @@
  * =============================================================================
  */
 
+const tf = require('@tensorflow/tfjs');
+
 const MONTH_NAMES_FULL = [
-    'January', 'February', 'March', 'April', 'May', 'June',
-    'July', 'August', 'September', 'October', 'November', 'December'];
+  'January', 'February', 'March', 'April', 'May', 'June', 'July', 'August',
+  'September', 'October', 'November', 'December'
+];
 const MONTH_NAMES_3LETTER =
     MONTH_NAMES_FULL.map(name => name.slice(0, 3).toUpperCase());
 
 const MIN_DATE = new Date('1950-01-01').getTime();
 const MAX_DATE = new Date('2050-01-01').getTime();
+
+const INPUT_LENGTH = 10   // Maximum of all input formats.
+const OUTPUT_LENGTH = 10  // Length of 'YYYY-MM-DD'.
+
+// Use "\n" for padding for both input and output. It has to be at the
+// beginning so that `mask_zero=True` can be used in the keras model.
+const INPUT_VOCAB = '\n0123456789/-' +
+    MONTH_NAMES_3LETTER.join('')
+        .split('')
+        .filter(function(item, i, ar) {
+          return ar.indexOf(item) === i;
+        })
+        .join('');
 
 // randomInt(min, max) {
 //   return Math.floor(Math.random() * (max - min) + min);
@@ -30,7 +46,7 @@ const MAX_DATE = new Date('2050-01-01').getTime();
 
 /**
  * Generate a random date.
- * 
+ *
  * @return {[number, number, number]} Year as an integer, month as an
  *   integer >= 1 and <= 12, day as an integer >= 1.
  */
@@ -44,11 +60,11 @@ function toTwoDigitString(num) {
 }
 
 function dateTupleToDDMMMYYYY(dateTuple) {
-    const monthStr = MONTH_NAMES_3LETTER[dateTuple[1] - 1];
-    const dayStr = toTwoDigitString(dateTuple[2]);
-    return `${dayStr}${monthStr}${dateTuple[0]}`;
-  }
-  
+  const monthStr = MONTH_NAMES_3LETTER[dateTuple[1] - 1];
+  const dayStr = toTwoDigitString(dateTuple[2]);
+  return `${dayStr}${monthStr}${dateTuple[0]}`;
+}
+
 
 function dateTupleToMMSlashDDSlashYYYY(dateTuple) {
   const monthStr = toTwoDigitString(dateTuple[1]);
@@ -71,10 +87,24 @@ function dateTupleToMMDDYY(dateTuple) {
 }
 
 function dateTupleToYYYYDashMMDashDD(dateTuple) {
-    const monthStr = toTwoDigitString(dateTuple[1]);
-    const dayStr = toTwoDigitString(dateTuple[2]);
-    return `${dateTuple[0]}-${monthStr}-${dayStr}`;
+  const monthStr = toTwoDigitString(dateTuple[1]);
+  const dayStr = toTwoDigitString(dateTuple[2]);
+  return `${dateTuple[0]}-${monthStr}-${dayStr}`;
+}
+
+function encodeInputDateStrings(inputStrs) {
+  const n = inputStrs.length;
+  const x = tf.buffer([n, INPUT_LENGTH], 'float32');
+  for (let i = 0; i < n; ++i) {
+    for (let j = 0; j < INPUT_LENGTH; ++j) {
+      if (j < inputStrs[i].length) {
+        const char = inputStrs[i][j];
+        x.set(INPUT_VOCAB.indexOf(char), i, j);
+      }
+    }
   }
+  return x.toTensor();
+}
 
 module.exports = {
   dateTupleToDDMMMYYYY,
@@ -82,5 +112,7 @@ module.exports = {
   dateTupleToMMSlashDDSlashYY,
   dateTupleToMMDDYY,
   dateTupleToYYYYDashMMDashDD,
-  generateRandomDateTuple
+  encodeInputDateStrings,
+  generateRandomDateTuple,
+  INPUT_VOCAB
 };

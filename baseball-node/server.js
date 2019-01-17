@@ -39,7 +39,14 @@ async function run() {
   await sleep(TIMEOUT_BETWEEN_EPOCHS_MS);
 
   while (true) {
-    // Fit one epoch...
+    await pitch_type.model.fitDataset(pitch_type.trainingData, {
+      epochs: 1,
+      callbacks: {
+        onEpochEnd: async (epoch, logs) => {
+          io.emit('logs', logs)
+        }
+      }
+    });
 
     //     -    await pitchModel.train(1, progress =>
     //     socket.sendProgress(progress));
@@ -49,8 +56,6 @@ async function run() {
     // io.emit('accuracyPerClass', {});
 
     await sleep(TIMEOUT_BETWEEN_EPOCHS_MS);
-    // console.log('tick');
-    // io.emit('hi', 'hello');
   }
 }
 

@@ -41,7 +41,6 @@ const START_SPEED_MAX = 104.4;
 
 const TRAINING_DATA_LENGTH = 7000;
 const TEST_DATA_LENGTH = 700;
-const NUM_PITCH_CLASSES = 7;
 
 // Converts a row from the CSV into features and labels.
 // Each feature field is normalized within training data constants:
@@ -68,7 +67,7 @@ const trainingData =
 const testData =
     tf.data.csv(TEST_DATA_PATH, {columnConfigs: {pitch_code: {isLabel: true}}})
         .map(csvTransform)
-        .shuffle(TEST_DATA_PATH)
+        .shuffle(TEST_DATA_LENGTH)
         .batch(100);
 
 const model = tf.sequential();
@@ -82,7 +81,15 @@ model.compile({
   metrics: ['accuracy']
 });
 
+// Returns pitch class evaluation percentages for training data with an option
+// to include validation data.
+async function evaluate() {
+  // Use validation data?
+  return null;
+}
+
 module.exports = {
+  evaluate,
   model,
   testData,
   trainingData

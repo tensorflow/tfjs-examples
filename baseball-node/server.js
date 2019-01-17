@@ -19,7 +19,7 @@ require('@tensorflow/tfjs-node');
 
 const http = require('http');
 const socketio = require('socket.io');
-const model = require('./pitch_type_model');
+const pitch_type = require('./pitch_type_model');
 const sleep = require('./utils').sleep;
 
 const TIMEOUT_BETWEEN_EPOCHS_MS = 500;
@@ -49,8 +49,15 @@ class Socket {
 }
 
 async function run() {
-  const socket = new Socket();
-  socket.listen();
+  const port = process.env.PORT || PORT;
+  const server = http.createServer();
+  const io = socketio(this.server);
+
+  this.server.listen(this.port, () => {
+    console.log(`  > Running socket on port: ${this.port}`);
+  });
+
+  this.io.emit('accuracyPerClass', await pitch_type.evaluate());
   // socket.sendAccuracyPerClass(await pitchModel.evaluate());
   await sleep(TIMEOUT_BETWEEN_EPOCHS_MS);
 

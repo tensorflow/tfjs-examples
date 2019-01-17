@@ -136,5 +136,20 @@ describe('Date formats', () => {
         [2, dateFormat.OUTPUT_LENGTH, dateFormat.OUTPUT_VOCAB.length]);
     expect(encoded.min().dataSync()[0]).toEqual(0);
     expect(encoded.max().dataSync()[0]).toEqual(1);
+
+    const values = encoded.argMax(-1).dataSync();
+    
+    let strPrime = '';
+    for (let i = 0; i < dateFormat.OUTPUT_LENGTH; ++i) {
+      strPrime += dateFormat.OUTPUT_VOCAB[values[i]];
+    }
+    expect(strPrime.trim()).toEqual(str1);
+
+    strPrime = '';
+    for (let i = 0; i < dateFormat.OUTPUT_LENGTH; ++i) {
+      strPrime +=
+          dateFormat.OUTPUT_VOCAB[values[i + dateFormat.OUTPUT_LENGTH]];
+    }
+    expect(strPrime.trim()).toEqual(str2);
   });
 });

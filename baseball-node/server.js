@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2018 Google LLC. All Rights Reserved.
+ * Copyright 2019 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,43 +15,52 @@
  * =============================================================================
  */
 
-import {createServer, Server} from 'http';
-import * as socketio from 'socket.io';
+require('@tensorflow/tfjs-node');
 
-import {AccuracyPerClass, TrainProgress} from '../types';
+const http = require('http');
+const socketio = require('socket.io');
+const model = require('./pitch_type_model');
+const sleep = require('./utils').sleep;
 
+const TIMEOUT_BETWEEN_EPOCHS_MS = 500;
 const PORT = 8001;
 
-export class Socket {
-  server: Server;
-  io: socketio.Server;
-  port: string|number;
-  useTrainingData: boolean;
-
+class Socket {
   constructor() {
     this.port = process.env.PORT || PORT;
-    this.server = createServer();
+    this.server = http.createServer();
     this.io = socketio(this.server);
     this.useTrainingData = false;
   }
 
-  listen(): void {
+  listen() {
     this.server.listen(this.port, () => {
       console.log(`  > Running socket on port: ${this.port}`);
     });
-
-    this.io.on('connection', (socket: socketio.Socket) => {
-      socket.on('live_data', (value: boolean) => {
-        this.useTrainingData = value;
-      });
-    });
   }
 
-  sendAccuracyPerClass(accPerClass: AccuracyPerClass) {
+  sendAccuracyPerClass(accPerClass) {
     this.io.emit('accuracyPerClass', accPerClass);
   }
 
-  sendProgress(progress: TrainProgress) {
+  sendProgress(progress) {
     this.io.emit('progress', progress);
   }
 }
+
+async function run() {
+  const socket = new Socket();
+  socket.listen();
+  // socket.sendAccuracyPerClass(await pitchModel.evaluate());
+  await sleep(TIMEOUT_BETWEEN_EPOCHS_MS);
+
+  while (true) {
+    // Fit one epoch...
+
+    // Send accuracy
+
+    await sleep(TIMEOUT_BETWEEN_EPOCHS_MS);
+  }
+}
+
+run();

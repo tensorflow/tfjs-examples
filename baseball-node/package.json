@@ -1,16 +1,11 @@
 {
   "name": "tfjs-examples-baseball-node",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Deep learning models for classifying baseball metrics",
   "scripts": {
-    "build": "tsc",
     "build-client": "webpack",
-    "link-local": "yalc link",
     "download-data": "./scripts/download-data.sh",
-    "start-client": "webpack-dev-server --content-base src/client",
-    "start-server": "ts-node src/server/server.ts",
-    "train-pitch-model": "ts-node src/train/pitch-model.ts",
-    "train-strike-model": "ts-node src/train/strike-model.ts"
+    "start-client": "webpack-dev-server --content-base src/client"
   },
   "license": "Apache-2.0",
   "devDependencies": {
@@ -29,12 +24,10 @@
     "webpack": "~4.16.5",
     "webpack-cli": "~3.1.0",
     "webpack-dev-server": "~3.1.5",
-    "yalc": "~1.0.0-pre.22"
   },
   "dependencies": {
     "@tensorflow/tfjs-node": "^0.2.3",
     "baseball-pitchfx-types": "~0.0.4",
-    "node-simple-timer": "~0.0.1",
     "socket.io": "~2.1.0",
     "vue": "~2.5.16"
   }

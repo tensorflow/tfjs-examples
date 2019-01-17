@@ -15,9 +15,7 @@
  * =============================================================================
  */
 
-/**
- * Normalize a value between a given range.
- */
+// Normalize a value between a given range.
 function normalize(value, min, max) {
   if (min === undefined || max === undefined) {
     return value;
@@ -25,4 +23,12 @@ function normalize(value, min, max) {
   return (value - min) / (max - min);
 }
 
-module.exports = {normalize};
+// Sleeps for a given ms.
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+module.exports = {
+  normalize,
+  sleep
+};

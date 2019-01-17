@@ -22,8 +22,6 @@ const TRAIN_DATA_PATH =
     'https://storage.googleapis.com/mlb-pitch-data/pitch_type_training_data.csv';
 const TEST_DATA_PATH =
     'https://storage.googleapis.com/mlb-pitch-data/pitch_type_test_data.csv';
-const VALIDATION_DATA_PATH =
-    'https://storage.googleapis.com/mlb-pitch-data/pitch_type_validation_data.csv';
 
 // Constants from training data:
 const VX0_MIN = -18.885;
@@ -42,10 +40,8 @@ const START_SPEED_MIN = 59;
 const START_SPEED_MAX = 104.4;
 
 const NUM_PITCH_CLASSES = 7;
-
 const TRAINING_DATA_LENGTH = 7000;
 const TEST_DATA_LENGTH = 700;
-const VALIDATION_DATA_LENGTH = 700;
 
 // Converts a row from the CSV into features and labels.
 // Each feature field is normalized within training data constants:
@@ -75,21 +71,17 @@ const testData =
         .shuffle(TEST_DATA_LENGTH)
         .batch(100);
 
-// Load all training data in one batch to use for evaluation:
+// Load all training data in one batch to use for eval:
 const trainingValidationData =
     tf.data.csv(TRAIN_DATA_PATH, {columnConfigs: {pitch_code: {isLabel: true}}})
         .map(csvTransform)
         .batch(TRAINING_DATA_LENGTH);
 
-// TODO(kreeger): write me - needs data.
-// const validationData = tf.data
-//                            .csv(
-//                                VALIDATION_DATA_PATH,
-//                                {columnConfigs: {pitch_code: {isLabel:
-//                                true}}})
-//                            .map(csvTransform)
-//                            .shuffle(VALIDATION_DATA_LENGTH)
-//                            .batch(100);
+// Load all test data in one batch to use for eval:
+const testDataValidationData =
+    tf.data.csv(TEST_DATA_PATH, {columnConfigs: {pitch_code: {isLabel: true}}})
+        .map(csvTransform)
+        .batch(TEST_DATA_LENGTH);
 
 const model = tf.sequential();
 model.add(tf.layers.dense({units: 250, activation: 'relu', inputShape: [8]}));
@@ -103,14 +95,12 @@ model.compile({
 });
 
 // Returns pitch class evaluation percentages for training data with an option
-// to include validation data.
-async function evaluate(useTrainingData) {
+// to include test data.
+async function evaluate(useTestData) {
   let results = {};
 
   await trainingValidationData.forEach((pitchTypeBatch) => {
     const values = model.predict(pitchTypeBatch[0]).dataSync();
-
-    // TODO - this will need to work with eval data too:
     const classSize = TRAINING_DATA_LENGTH / NUM_PITCH_CLASSES;
 
     for (let i = 0; i < NUM_PITCH_CLASSES; i++) {
@@ -124,14 +114,28 @@ async function evaluate(useTrainingData) {
       }
 
       results[pitchFromClassNum(i)] = {training: total / classSize};
-
-      // if (includeValidation) {
-      //   result[pitchFromType(i)].validation = this.calculateClassAccuracy(
-      //       this.validationClassTensors[i], i,
-      //       VALIDATION_DATA_PITCH_CLASS_SIZE);
-      // }
     }
   });
+
+  if (useTestData) {
+    await testDataValidationData.forEach((pitchTypeBatch) => {
+      const values = model.predict(pitchTypeBatch[0]).dataSync();
+      const classSize = TEST_DATA_LENGTH / NUM_PITCH_CLASSES;
+
+      for (let i = 0; i < NUM_PITCH_CLASSES; i++) {
+        // Output has 7 different class values for each pitch, offset based on
+        // which pitch class (ordered by i):
+        let index = i * classSize + i;
+        let total = 0;
+        for (let j = 0; j < classSize; j++) {
+          total += values[index];
+          index += NUM_PITCH_CLASSES;
+        }
+
+        results[pitchFromClassNum(i)].validation = total / classSize;
+      }
+    });
+  }
   return results;
 }
 
@@ -152,13 +156,6 @@ function pitchFromClassNum(classNum) {
       return 'Changeup';
     case 6:
       return 'Curveball';
-      // TODO fix this:
-    case 7:
-      return 'Knuckle-curve';
-    case 8:
-      return 'Knuckleball';
-    case 9:
-      return 'Eephus';
     default:
       return 'Unknown';
   }

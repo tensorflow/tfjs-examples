@@ -16,7 +16,7 @@
  */
 
 import io from 'socket.io-client';
-const liveButton = document.getElementById('live-button');
+const evalTestButton = document.getElementById('eval-test-button');
 
 const socket =
     io('http://localhost:8001',
@@ -24,14 +24,14 @@ const socket =
 
 const BAR_WIDTH_PX = 300;
 
-liveButton.onclick = () => {
-  liveButton.textContent = 'Loading...';
-  socket.emit('live_data', '' + true);
+evalTestButton.onclick = () => {
+  evalTestButton.textContent = 'Loading...';
+  socket.emit('test_data', '' + true);
 };
 
 socket.on('connect', () => {
-  liveButton.style.display = 'block';
-  liveButton.textContent = 'Test Live';
+  evalTestButton.style.display = 'block';
+  evalTestButton.textContent = 'Eval Test';
 });
 
 socket.on('accuracyPerClass', (accPerClass) => {
@@ -39,7 +39,7 @@ socket.on('accuracyPerClass', (accPerClass) => {
 });
 
 socket.on('disconnect', () => {
-  liveButton.style.display = 'block';
+  evalTestButton.style.display = 'block';
   document.getElementById('waiting-msg').style.display = 'block';
   document.getElementById('table').style.display = 'none';
 });
@@ -75,7 +75,7 @@ function plotAccuracyPerClass(accPerClass) {
 
     plotScoreBar(scores.training, scoreContainer);
     if (scores.validation) {
-      document.getElementById('live-button').style.display = 'none';
+      document.getElementById('eval-test-button').style.display = 'none';
       plotScoreBar(scores.validation, scoreContainer, 'validation');
     }
   });

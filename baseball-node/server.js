@@ -29,24 +29,24 @@ async function run() {
   const port = process.env.PORT || PORT;
   const server = http.createServer();
   const io = socketio(server);
-  let useTrainingData = false;
+  let useTestData = false;
 
   server.listen(port, () => {
     console.log(`  > Running socket on port: ${port}`);
   });
 
   io.on('connection', (socket) => {
-    socket.on('live_data', (value) => {
-      useTrainingData = value;
+    socket.on('test_data', (value) => {
+      useTestData = value === 'true' ? true : false;
     });
   });
 
-  // io.emit('accuracyPerClass', await pitch_type.evaluate(useTrainingData));
-  // await sleep(TIMEOUT_BETWEEN_EPOCHS_MS);
+  io.emit('accuracyPerClass', await pitch_type.evaluate(useTestData));
+  await sleep(TIMEOUT_BETWEEN_EPOCHS_MS);
 
   while (true) {
     await pitch_type.model.fitDataset(pitch_type.trainingData, {epochs: 1});
-    io.emit('accuracyPerClass', await pitch_type.evaluate(useTrainingData));
+    io.emit('accuracyPerClass', await pitch_type.evaluate(useTestData));
     await sleep(TIMEOUT_BETWEEN_EPOCHS_MS);
   }
 }

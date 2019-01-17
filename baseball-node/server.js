@@ -29,7 +29,7 @@ async function run() {
   const port = process.env.PORT || PORT;
   const server = http.createServer();
   const io = socketio(server);
-  const useTrainingData = false;
+  let useTrainingData = false;
 
   server.listen(port, () => {
     console.log(`  > Running socket on port: ${port}`);
@@ -41,19 +41,11 @@ async function run() {
     });
   });
 
-  io.emit('accuracyPerClass', await pitch_type.evaluate(useTrainingData));
-  await sleep(TIMEOUT_BETWEEN_EPOCHS_MS);
+  // io.emit('accuracyPerClass', await pitch_type.evaluate(useTrainingData));
+  // await sleep(TIMEOUT_BETWEEN_EPOCHS_MS);
 
   while (true) {
-    await pitch_type.model.fitDataset(pitch_type.trainingData, {
-      epochs: 1,
-      callbacks: {
-        onEpochEnd: async (epoch, logs) => {
-          io.emit('logs', logs)
-        }
-      }
-    });
-
+    await pitch_type.model.fitDataset(pitch_type.trainingData, {epochs: 1});
     io.emit('accuracyPerClass', await pitch_type.evaluate(useTrainingData));
     await sleep(TIMEOUT_BETWEEN_EPOCHS_MS);
   }

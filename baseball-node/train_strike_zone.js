@@ -1,5 +1,5 @@
 const tf = require('@tensorflow/tfjs-node');
-const sz_model = require('./strike_zone_model');
+const sz_model = require('./strike_zone');
 
 async function run() {
   // TODO - add test/eval metrics!

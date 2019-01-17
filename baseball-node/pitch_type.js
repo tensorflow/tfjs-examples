@@ -108,11 +108,7 @@ async function evaluate(useTrainingData) {
   let results = {};
 
   await trainingValidationData.forEach((pitchTypeBatch) => {
-    const inputs = pitchTypeBatch[0];
-    const result = model.predict(inputs);
-    const values = result.dataSync();
-
-    const labels = pitchTypeBatch[1].dataSync();
+    const values = model.predict(pitchTypeBatch[0]).dataSync();
 
     // TODO - this will need to work with eval data too:
     const classSize = TRAINING_DATA_LENGTH / NUM_PITCH_CLASSES;
@@ -156,6 +152,7 @@ function pitchFromClassNum(classNum) {
       return 'Changeup';
     case 6:
       return 'Curveball';
+      // TODO fix this:
     case 7:
       return 'Knuckle-curve';
     case 8:

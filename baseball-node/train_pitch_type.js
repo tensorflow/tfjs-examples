@@ -1,10 +1,10 @@
 const tf = require('@tensorflow/tfjs-node');
-const pitch_model = require('./pitch_type');
+const pitch_type = require('./pitch_type');
 
 async function run() {
   // TODO - add test/eval metrics!
-  pitch_model.model.summary();
-  await pitch_model.model.fitDataset(pitch_model.trainingData, {
+  pitch_type.model.summary();
+  await pitch_type.model.fitDataset(pitch_type.trainingData, {
     epochs: 2,
     callbacks: {
       onEpochEnd: async (epoch, logs) => {
@@ -13,7 +13,7 @@ async function run() {
     }
   });
 
-  pitch_model.evaluate(false);
+  // pitch_model.evaluate(false);
 }
 
 run();

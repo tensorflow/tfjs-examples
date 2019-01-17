@@ -34,10 +34,6 @@ socket.on('connect', () => {
   liveButton.textContent = 'Test Live';
 });
 
-socket.on('logs', (logs) => {
-  console.log(logs);
-});
-
 socket.on('accuracyPerClass', (accPerClass) => {
   plotAccuracyPerClass(accPerClass);
 });

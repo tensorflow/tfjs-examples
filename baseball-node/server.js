@@ -25,46 +25,29 @@ const sleep = require('./utils').sleep;
 const TIMEOUT_BETWEEN_EPOCHS_MS = 500;
 const PORT = 8001;
 
-class Socket {
-  constructor() {
-    this.port = process.env.PORT || PORT;
-    this.server = http.createServer();
-    this.io = socketio(this.server);
-    this.useTrainingData = false;
-  }
-
-  listen() {
-    this.server.listen(this.port, () => {
-      console.log(`  > Running socket on port: ${this.port}`);
-    });
-  }
-
-  sendAccuracyPerClass(accPerClass) {
-    this.io.emit('accuracyPerClass', accPerClass);
-  }
-
-  sendProgress(progress) {
-    this.io.emit('progress', progress);
-  }
-}
-
 async function run() {
   const port = process.env.PORT || PORT;
   const server = http.createServer();
   const io = socketio(this.server);
 
-  this.server.listen(this.port, () => {
-    console.log(`  > Running socket on port: ${this.port}`);
+  server.listen(port, () => {
+    console.log(`  > Running socket on port: ${port}`);
   });
 
-  this.io.emit('accuracyPerClass', await pitch_type.evaluate());
+  io.emit('accuracyPerClass', await pitch_type.evaluate());
   // socket.sendAccuracyPerClass(await pitchModel.evaluate());
   await sleep(TIMEOUT_BETWEEN_EPOCHS_MS);
 
   while (true) {
     // Fit one epoch...
 
-    // Send accuracy
+    //     -    await pitchModel.train(1, progress =>
+    //     socket.sendProgress(progress));
+    // -    socket.sendAccuracyPerClass(
+    // -        await pitchModel.evaluate(socket.useTrainingData));
+
+    // io.emit('progress', progress);
+    // this.io.emit('accuracyPerClass', accPerClass);
 
     await sleep(TIMEOUT_BETWEEN_EPOCHS_MS);
   }

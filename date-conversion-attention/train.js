@@ -119,6 +119,84 @@ function createModel(inputDictSize, outputDictSize, inputLength, outputLength) {
   return model;
 }
 
+// TODO(cais): Need unit test for this.
+function generateBatchesForTraining(trainSplit = 0.8, valSplit = 0.15) {
+  const dateTuples = [];
+  const MIN_YEAR = 1950;
+  const MAX_YEAR = 2050;
+  for (let year = MIN_YEAR; year < MAX_YEAR; ++year) {
+    for (let month = 1; month <= 12; ++month) {
+      for (let day = 1; day <= 28; ++day) {
+        dateTuples.push([year, month, day]);
+      }
+    }
+  }
+  tf.util.shuffle(dateTuples);
+  console.log(dateTuples.length);
+
+  const numTrain = Math.floor(dateTuples.length * trainSplit);
+  const numVal = Math.floor(dateTuples.length * valSplit);
+  console.log(`numTrain = ${numTrain}`);  // DEBUG
+
+  const inputFns = [
+    dateFormat.dateTupleToDDMMMYYYY,
+    dateFormat.dateTupleToMMDDYY,
+    dateFormat.dateTupleToMMSlashDDSlashYY,
+    dateFormat.dateTupleToMMSlashDDSlashYYYY
+  ];
+
+  // TODO(cais): Use tf.tidy().
+  function dateTuplesToTensor(dateTuples) {
+    const inputs = inputFns.map(fn => dateTuples.map(tuple => fn(tuple)));
+    const inputStrings = [];
+    inputs.forEach(inputs => inputStrings.push(...inputs));
+    const encoderInput =
+        dateFormat.encodeInputDateStrings(inputStrings);
+    const trainTargetStrings = dateTuples.map(
+        tuple => dateFormat.dateTupleToYYYYDashMMDashDD(tuple));
+    let decoderInput = dateFormat.encodeOutputDateStrings(trainTargetStrings);
+    decoderInput = tf.concat([
+      tf.ones([decoderInput.shape[0], 1]).mul(dateFormat.START_CODE),
+      decoderInput.slice(
+          [0, 1], [decoderInput.shape[0], decoderInput.shape[1] - 1])
+    ], 1).tile([inputFns.length, 1]);  // One-step time shift.
+    const decoderOutput =
+        dateFormat.encodeOutputDateStrings(trainTargetStrings, true)
+        .tile([inputFns.length, 1, 1]);
+    return {encoderInput, decoderInput, decoderOutput};
+  }
+
+  const {
+    encoderInput: trainEncoderInput,
+    decoderInput: trainDecoderInput,
+    decoderOutput: trainDecoderOutput
+  } = dateTuplesToTensor(dateTuples.slice(0, numTrain));
+  const {
+    encoderInput: valEncoderInput,
+    decoderInput: valDecoderInput,
+    decoderOutput: valDecoderOutput
+  } = dateTuplesToTensor(dateTuples.slice(numTrain, numTrain + numVal));
+
+  return {
+    trainEncoderInput,
+    trainDecoderInput,
+    trainDecoderOutput,
+    valEncoderInput,
+    valDecoderInput,
+    valDecoderOutput,
+    testDateTuples: dateTuples.slice(numTrain + numVal)
+  };
+
+  // const trainInputTensors = trainInputs.map(
+  //     strings => dateFormat.encodeInputDateStrings(strings));
+  // console.log(trainInputTensors.length);
+  // const
+  // console.log(trainInputs[0].length);
+  // console.log(trainInputs[0][0]);
+  // console.log(trainInputs[1].length);
+  // console.log(trainInputs[1][0]);
+}
+
 // DEBUG
 async function run() {
   const model = createModel(
@@ -126,17 +204,57 @@ async function run() {
       dateFormat.INPUT_LENGTH, dateFormat.OUTPUT_LENGTH);
   model.summary();
 
-  const numExamples = 1024;
-  const encoderInput = tf.ones([numExamples, dateFormat.INPUT_LENGTH]);
-  const decoderInput = tf.ones([numExamples, dateFormat.OUTPUT_LENGTH]);
-  const decoderOutput = tf.ones(
-      [numExamples, dateFormat.OUTPUT_LENGTH, dateFormat.OUTPUT_VOCAB.length]);
-  // const out = model.predict([x, y]);
-  // out.print();
-  // console.log(out.shape);
+  const {
+    trainEncoderInput,
+    trainDecoderInput,
+    trainDecoderOutput,
+    valEncoderInput,
+    valDecoderInput,
+    valDecoderOutput,
+    testDateTuples
+  } = generateBatchesForTraining();
+  console.log(trainEncoderInput.shape);  // DEBUG
+  console.log(trainDecoderInput.shape);  // DEBUG
+
   const history = await model.fit(
-      [encoderInput, decoderInput], decoderOutput, {epochs: 10});
+      [trainEncoderInput, trainDecoderInput], trainDecoderOutput, {
+        epochs: 1,  // TODO(cais): Make this a command-line arg.
+        batchSize: 1024,  // TODO(cais): Make this a command-line arg.
+        validationData: [[valEncoderInput, valDecoderInput], valDecoderOutput]
+      });
   console.log(history.history);
+
+  // Run inference.
+  const numTests = 10;
+  for (let n = 0; n < numTests; ++n) {
+    const inputStr = dateFormat.dateTupleToDDMMMYYYY(testDateTuples[n]);
+    console.log('\n-----------------------');
+    console.log(`Input string: ${inputStr}`);  // DEBUG
+    const correctAnswer =
+        dateFormat.dateTupleToYYYYDashMMDashDD(testDateTuples[n]);
+    console.log(`Correct answer: ${correctAnswer}`);  // DEBUG
+
+    const testEncoderInput = dateFormat.encodeInputDateStrings([inputStr]);
+    const testDecoderInput = tf.buffer([1, dateFormat.OUTPUT_LENGTH]);
+    testDecoderInput.set(dateFormat.START_CODE, 0, 0);
+
+    for (let i = 1; i < dateFormat.OUTPUT_LENGTH; ++i) {
+      const output = model.predict(
+          [testEncoderInput, testDecoderInput.toTensor()])
+          .argMax(2).dataSync();
+      testDecoderInput.set(output[i], 0, i);
+    }
+    const finalOutput = model.predict(
+        [testEncoderInput, testDecoderInput.toTensor()])
+        .argMax(2).dataSync()[0];
+    console.log(finalOutput);  // DEBUG
+
+    let outputStr = '';
+    for (let i = 1; i < testDecoderInput.shape[1]; ++i) {
+      outputStr += dateFormat.OUTPUT_VOCAB[testDecoderInput.get(0, i)];
+    }
+    console.log(`Model output: ${outputStr}`);
+  }
 }
 
 run();

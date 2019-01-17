@@ -44,6 +44,8 @@ const INPUT_VOCAB = '\n0123456789/' +
 // "\t".
 const OUTPUT_VOCAB = '\n\t0123456789-';
 
+const START_CODE = 1;
+
 // randomInt(min, max) {
 //   return Math.floor(Math.random() * (max - min) + min);
 // }
@@ -151,5 +153,6 @@ module.exports = {
   INPUT_LENGTH,
   INPUT_VOCAB,
   OUTPUT_LENGTH,
-  OUTPUT_VOCAB
+  OUTPUT_VOCAB,
+  START_CODE
 };

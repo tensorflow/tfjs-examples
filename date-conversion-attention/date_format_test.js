@@ -78,12 +78,32 @@ describe('Date formats', () => {
         dateFormat.generateRandomDateTuple());
     const str2 = dateFormat.dateTupleToMMSlashDDSlashYYYY(
         dateFormat.generateRandomDateTuple());
-    const str3 = dateFormat.dateTupleToYYYYDashMMDashDD(
+    const str3 = dateFormat.dateTupleToMMSlashDDSlashYY(
         dateFormat.generateRandomDateTuple());
     const encoded = dateFormat.encodeInputDateStrings([str1, str2, str3]);
     expect(encoded.min().dataSync()[0]).toEqual(0);
     expect(encoded.max().dataSync()[0]).toBeLessThan(
         dateFormat.INPUT_VOCAB.length);
+
+    const values = encoded.dataSync();
+    let strPrime = '';
+    for (let i = 0; i < dateFormat.INPUT_LENGTH; ++i) {
+      strPrime += dateFormat.INPUT_VOCAB[values[i]];
+    }
+    expect(strPrime.trim()).toEqual(str1);
+
+    strPrime = '';
+    for (let i = 0; i < dateFormat.INPUT_LENGTH; ++i) {
+      strPrime += dateFormat.INPUT_VOCAB[values[i + dateFormat.INPUT_LENGTH]];
+    }
+    expect(strPrime.trim()).toEqual(str2);
+
+    strPrime = '';
+    for (let i = 0; i < dateFormat.INPUT_LENGTH; ++i) {
+      strPrime +=
+          dateFormat.INPUT_VOCAB[values[i + dateFormat.INPUT_LENGTH * 2]];
+    }
+    expect(strPrime.trim()).toEqual(str3);
   });
 
   it('Encode output string', () => {
@@ -91,5 +111,30 @@ describe('Date formats', () => {
     const str2 = '1983-08-30';
     const encoded = dateFormat.encodeOutputDateStrings([str1, str2]);
     expect(encoded.shape).toEqual([2, dateFormat.OUTPUT_LENGTH]);
+
+    const values = encoded.dataSync();
+    let strPrime = '';
+    for (let i = 0; i < dateFormat.OUTPUT_LENGTH; ++i) {
+      strPrime += dateFormat.OUTPUT_VOCAB[values[i]];
+    }
+    expect(strPrime.trim()).toEqual(str1);
+
+    strPrime = '';
+    for (let i = 0; i < dateFormat.OUTPUT_LENGTH; ++i) {
+      strPrime +=
+          dateFormat.OUTPUT_VOCAB[values[i + dateFormat.OUTPUT_LENGTH]];
+    }
+    expect(strPrime.trim()).toEqual(str2);
+  });
+
+  it('Encode output string: oneHot', () => {
+    const str1 = '2000-01-02';
+    const str2 = '1983-08-30';
+    const oneHot = true;
+    const encoded = dateFormat.encodeOutputDateStrings([str1, str2], oneHot);
+    expect(encoded.shape).toEqual(
+        [2, dateFormat.OUTPUT_LENGTH, dateFormat.OUTPUT_VOCAB.length]);
+    expect(encoded.min().dataSync()[0]).toEqual(0);
+    expect(encoded.max().dataSync()[0]).toEqual(1);
   });
 });

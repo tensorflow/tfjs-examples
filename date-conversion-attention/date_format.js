@@ -103,23 +103,37 @@ function encodeInputDateStrings(dateStrings) {
     for (let j = 0; j < INPUT_LENGTH; ++j) {
       if (j < dateStrings[i].length) {
         const char = dateStrings[i][j];
-        x.set(INPUT_VOCAB.indexOf(char), i, j);
+        const index = INPUT_VOCAB.indexOf(char);
+        if (index === -1) {
+          throw new Error(`Unknown char: ${char}`);
+        }
+        x.set(index, i, j);
       }
     }
   }
   return x.toTensor();
 }
 
-function encodeOutputDateStrings(dateStrings) {
+function encodeOutputDateStrings(dateStrings, oneHot = false) {
   const n = dateStrings.length;
-  const x = tf.buffer([n, OUTPUT_LENGTH], 'float32');
+  const x =
+      oneHot ? tf.buffer([n, OUTPUT_LENGTH, OUTPUT_VOCAB.length], 'float32') :
+      tf.buffer([n, OUTPUT_LENGTH], 'float32');
   for (let i = 0; i < n; ++i) {
     tf.util.assert(
         dateStrings[i].length === OUTPUT_LENGTH,
         `Date string is not in ISO format: "${dateStrings[i]}"`);
     for (let j = 0; j < OUTPUT_LENGTH; ++j) {
       const char = dateStrings[i][j];
-      x.set(OUTPUT_VOCAB.indexOf(char), i, j);
+      const index = OUTPUT_VOCAB.indexOf(char);
+      if (index === -1) {
+        throw new Error(`Unknown char: ${char}`);
+      }
+      if (oneHot) {
+        x.set(1, i, j, index);
+      } else {
+        x.set(index, i, j);
+      }
     }
   }
   return x.toTensor();

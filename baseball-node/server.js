@@ -28,7 +28,7 @@ const PORT = 8001;
 async function run() {
   const port = process.env.PORT || PORT;
   const server = http.createServer();
-  const io = socketio(this.server);
+  const io = socketio(server);
 
   server.listen(port, () => {
     console.log(`  > Running socket on port: ${port}`);
@@ -46,8 +46,7 @@ async function run() {
     // -    socket.sendAccuracyPerClass(
     // -        await pitchModel.evaluate(socket.useTrainingData));
 
-    // io.emit('progress', progress);
-    // this.io.emit('accuracyPerClass', accPerClass);
+    // io.emit('accuracyPerClass', {});
 
     await sleep(TIMEOUT_BETWEEN_EPOCHS_MS);
     // console.log('tick');

@@ -17,31 +17,74 @@
 
 
 import io from 'socket.io-client';
+const liveButton = document.getElementById('live-button');
 
-const socket = io('localhost:8001');
+const socket =
+    io('http://localhost:8001',
+       {reconnectionDelay: 300, reconnectionDelayMax: 300});
 
-// const socket = socketioClient(
-//     SOCKET_URL, {reconnectionDelay: 300, reconnectionDelayMax: 300});
+liveButton.onclick = () => {
+  liveButton.textContent = 'Loading...';
+  socket.emit('live_data', '' + true);
+};
 
-// socket.on('hi', (msg) => {
-//   console.log(msg);
-// });
-
-console.log('yo', socket);
-socket.on('connect', function() {
-  console.log('connect()');
-  // liveButton.style.display = 'block';
-  // liveButton.textContent = 'Test Live';
+socket.on('connect', () => {
+  console.log('connect');
+  liveButton.style.display = 'block';
+  liveButton.textContent = 'Test Live';
 });
 
 socket.on('accuracyPerClass', (accPerClass) => {
-  console.log('...');
-  // plotAccuracyPerClass(accPerClass);
+  plotAccuracyPerClass(accPerClass);
 });
 
 socket.on('disconnect', () => {
-  console.log('disconnect()');
-  // liveButton.style.display = 'block';
-  // document.getElementById('waiting-msg').style.display = 'block';
-  // document.getElementById('table').style.display = 'none';
+  console.log('disconnnect');
+  liveButton.style.display = 'block';
+  document.getElementById('waiting-msg').style.display = 'block';
+  document.getElementById('table').style.display = 'none';
 });
+
+function plotAccuracyPerClass(accPerClass) {
+  document.getElementById('table').style.display = 'block';
+  document.getElementById('waiting-msg').style.display = 'none';
+
+  const table = document.getElementById('table-rows');
+  table.innerHTML = '';
+
+  // Sort class names before displaying.
+  const sortedClasses = Object.keys(accPerClass).sort();
+  sortedClasses.forEach(label => {
+    const scores = accPerClass[label];
+    // Row.
+    const rowDiv = document.createElement('div');
+    rowDiv.className = 'row';
+    table.appendChild(rowDiv);
+
+    // Label.
+    const labelDiv = document.createElement('div');
+    labelDiv.innerText = label;
+    labelDiv.className = 'label';
+    rowDiv.appendChild(labelDiv);
+
+    // Score.
+    const scoreContainer = document.createElement('div');
+    scoreContainer.className = 'score-container';
+    scoreContainer.style.width = BAR_WIDTH_PX + 'px';
+    rowDiv.appendChild(scoreContainer);
+
+    plotScoreBar(scores.training, scoreContainer);
+    if (scores.validation) {
+      document.getElementById('live-button').style.display = 'none';
+      plotScoreBar(scores.validation, scoreContainer, 'validation');
+    }
+  });
+}
+
+function plotScoreBar(score, container, className = '') {
+  const scoreDiv = document.createElement('div');
+  scoreDiv.className = 'score ' + className;
+  scoreDiv.style.width = (score * BAR_WIDTH_PX) + 'px';
+  scoreDiv.innerHTML = (score * 100).toFixed(1);
+  container.appendChild(scoreDiv);
+}

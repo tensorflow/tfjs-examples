@@ -19,7 +19,7 @@ require('@tensorflow/tfjs-node');
 
 const http = require('http');
 const socketio = require('socket.io');
-const pitch_type = require('./pitch_type_model');
+const pitch_type = require('./pitch_type');
 const sleep = require('./utils').sleep;
 
 const TIMEOUT_BETWEEN_EPOCHS_MS = 500;

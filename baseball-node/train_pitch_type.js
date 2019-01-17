@@ -1,5 +1,5 @@
 const tf = require('@tensorflow/tfjs-node');
-const pitch_model = require('./pitch_type_model');
+const pitch_model = require('./pitch_type');
 
 async function run() {
   // TODO - add test/eval metrics!

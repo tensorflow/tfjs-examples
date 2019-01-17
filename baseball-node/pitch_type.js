@@ -99,6 +99,7 @@ model.compile({
 async function evaluate(useTestData) {
   let results = {};
 
+  // TODO(kreger): Refactor and clean this up:
   await trainingValidationData.forEach((pitchTypeBatch) => {
     const values = model.predict(pitchTypeBatch[0]).dataSync();
     const classSize = TRAINING_DATA_LENGTH / NUM_PITCH_CLASSES;
@@ -106,7 +107,7 @@ async function evaluate(useTestData) {
     for (let i = 0; i < NUM_PITCH_CLASSES; i++) {
       // Output has 7 different class values for each pitch, offset based on
       // which pitch class (ordered by i):
-      let index = i * classSize + i;
+      let index = (i * classSize * NUM_PITCH_CLASSES) + i;
       let total = 0;
       for (let j = 0; j < classSize; j++) {
         total += values[index];
@@ -121,12 +122,14 @@ async function evaluate(useTestData) {
     await testDataValidationData.forEach((pitchTypeBatch) => {
       const values = model.predict(pitchTypeBatch[0]).dataSync();
       const classSize = TEST_DATA_LENGTH / NUM_PITCH_CLASSES;
+      const labels = pitchTypeBatch[1].dataSync();
 
       for (let i = 0; i < NUM_PITCH_CLASSES; i++) {
         // Output has 7 different class values for each pitch, offset based on
         // which pitch class (ordered by i):
-        let index = i * classSize + i;
+        let index = (i * classSize * NUM_PITCH_CLASSES) + i;
         let total = 0;
+        const test = labels[index];
         for (let j = 0; j < classSize; j++) {
           total += values[index];
           index += NUM_PITCH_CLASSES;

@@ -21,7 +21,17 @@ import {Pitch, PitchClass, pitchFromType} from 'baseball-pitchfx-types';
 import {PitchModel} from './abstract-pitch-model';
 // tslint:disable-next-line:max-line-length
 import {concatPitchClassTensors, createPitchTensor, PitchData} from './pitch-data';
-import {AccuracyPerClass} from './types';
+
+/** Contains accuracy numbers for each pitch class. */
+export type AccuracyPerClass = {
+  [label: string]: {training: number, validation?: number};
+};
+
+/** Info about progress during training. */
+export interface TrainProgress {
+  accuracy: number;
+  loss: number;
+}
 
 // min/max constants from training data:
 const VX0_MIN = -18.885;

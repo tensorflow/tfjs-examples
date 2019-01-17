@@ -50,6 +50,8 @@ async function run() {
     // this.io.emit('accuracyPerClass', accPerClass);
 
     await sleep(TIMEOUT_BETWEEN_EPOCHS_MS);
+    // console.log('tick');
+    // io.emit('hi', 'hello');
   }
 }
 

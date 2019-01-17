@@ -40,6 +40,10 @@ const INPUT_VOCAB = '\n0123456789/-' +
         })
         .join('');
 
+// OUTPUT_VOCAB includes an start-of-sequence (SOS) token, represented as
+// "\t".
+const OUTPUT_VOCAB = '\n\t0123456789-';
+
 // randomInt(min, max) {
 //   return Math.floor(Math.random() * (max - min) + min);
 // }
@@ -92,15 +96,30 @@ function dateTupleToYYYYDashMMDashDD(dateTuple) {
   return `${dateTuple[0]}-${monthStr}-${dayStr}`;
 }
 
-function encodeInputDateStrings(inputStrs) {
-  const n = inputStrs.length;
+function encodeInputDateStrings(dateStrings) {
+  const n = dateStrings.length;
   const x = tf.buffer([n, INPUT_LENGTH], 'float32');
   for (let i = 0; i < n; ++i) {
     for (let j = 0; j < INPUT_LENGTH; ++j) {
-      if (j < inputStrs[i].length) {
-        const char = inputStrs[i][j];
+      if (j < dateStrings[i].length) {
+        const char = dateStrings[i][j];
         x.set(INPUT_VOCAB.indexOf(char), i, j);
       }
+    }
+  }
+  return x.toTensor();
+}
+
+function encodeOutputDateStrings(dateStrings) {
+  const n = dateStrings.length;
+  const x = tf.buffer([n, OUTPUT_LENGTH], 'float32');
+  for (let i = 0; i < n; ++i) {
+    tf.util.assert(
+        dateStrings[i].length === OUTPUT_LENGTH,
+        `Date string is not in ISO format: "${dateStrings[i]}"`);
+    for (let j = 0; j < OUTPUT_LENGTH; ++j) {
+      const char = dateStrings[i][j];
+      x.set(OUTPUT_VOCAB.indexOf(char), i, j);
     }
   }
   return x.toTensor();
@@ -113,6 +132,10 @@ module.exports = {
   dateTupleToMMDDYY,
   dateTupleToYYYYDashMMDashDD,
   encodeInputDateStrings,
+  encodeOutputDateStrings,
   generateRandomDateTuple,
-  INPUT_VOCAB
+  INPUT_LENGTH,
+  INPUT_VOCAB,
+  OUTPUT_LENGTH,
+  OUTPUT_VOCAB
 };

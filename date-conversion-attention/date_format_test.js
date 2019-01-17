@@ -85,4 +85,11 @@ describe('Date formats', () => {
     expect(encoded.max().dataSync()[0]).toBeLessThan(
         dateFormat.INPUT_VOCAB.length);
   });
+
+  it('Encode output string', () => {
+    const str1 = '2000-01-02';
+    const str2 = '1983-08-30';
+    const encoded = dateFormat.encodeOutputDateStrings([str1, str2]);
+    expect(encoded.shape).toEqual([2, dateFormat.OUTPUT_LENGTH]);
+  });
 });

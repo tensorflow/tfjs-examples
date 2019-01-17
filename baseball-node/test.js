@@ -1,33 +1,16 @@
-const pitchData = require('./pitch_data');
-const strikeZoneModel = require('./strike_zone_model');
 const tf = require('@tensorflow/tfjs-node');
-const fs = require('fs');
+const sz_model = require('./strike_zone_model');
 
-
-function convertSZData(filename) {
-  // Write training data:
-  const file = fs.createWriteStream(filename + '.csv');
-  const data = pitchData.loadPitchData(filename + '.json');
-  data.forEach((pitch) => {
-    const line = `${pitch.px},${pitch.pz},${pitch.sz_top},${pitch.sz_bot},${
-        pitch.left_handed_batter}\n`;
-    file.write(line);
-  });
-  file.close();
+async function run() {
+  sz_model.model.summary();
+  sz_model.model.fitDataset(sz_model.trainingData, {
+    epochs: 20,
+    callbacks: {
+      onEpochEnd: async (epoch, logs) => {
+        console.log(epoch, logs.loss);
+      }
+    }
+  })
 }
 
-function convertPTData(filename) {
-  const file = fs.createWriteStream(filename + '.csv');
-  const data = pitchData.loadPitchData(filename + '.json');
-  data.forEach((pitch) => {
-    const line = `${pitch.px},${pitch.pz},${pitch.sz_top},${pitch.sz_bot},${
-        pitch.left_handed_batter}\n`;
-    file.write(line);
-  });
-  file.close();
-}
-
-convertSZData('strike_zone_training_data');
-convertSZData('strike_zone_test_data');
-convertPTData('pitch_type_training_data');
-convertPTData('pitch_type_test_data');
+run().then(() => console.log('Done'));

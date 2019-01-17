@@ -15,44 +15,32 @@
  * =============================================================================
  */
 
-const fs = require('fs');
-const path = require('path');
+const tf = require('@tensorflow/tfjs');
 
-/**
- * Loads a JSON training file and the content to a Pitch array.
- */
-function loadPitchData(filename) {
-  const pitches = [];
-  const content =
-      fs.readFileSync(path.join('data', filename), 'utf-8').split('\n');
-  for (let i = 0; i < content.length; ++i) {
-    if (content[i].length > 0) {
-      pitches.push(JSON.parse(content[i]));
-    }
-  }
-  return pitches;
-}
-
-//
-// TODO(kreeger): Let's convert this data to CSV - need a test helper script for
-// this. Remove normalized constants?
-//
-
+// Provides a wrapper for Pitch data serving
 class PitchData {
-  constructor(trainingDataFilename, testDataFilename) {
-    this.trainingDataFilename = trainingDataFilename;
-    this.testDataFilename = testDataFilename;
-  }
+  constructor(
+      trainingDataPath, testDataPath, columnConfigs, trainingDataLength,
+      testDataLength, batchSize) {
+    this.trainingData =
+        tf.data.csv(trainingDataPath, columnConfigs)
+            .map(([features,
+                   labels]) => [Object.values(features), Object.values(labels)])
+            .shuffle(trainingDataLength)
+            .batch(batchSize)
+            .repeat();
 
-  /**
-   * Loads training and test data.
-   */
-  async loadData() {
-    //
-    // TODO(kreeger): Let's use the tf.data API!!
-    //
+    this.testData =
+        tf.data.csv(testDataPath, columnConfigs)
+            .map(([features,
+                   labels]) => [Object.values(features), Object.values(labels)])
+            .shuffle(testDataLength)
+            .batch(batchSize)
+            .repeat();
   }
 }
 
-// TODO(kreeger): Fix data download location
-module.exports = {loadPitchData};
+module.exports = {
+  PitchData,
+  loadPitchData
+};

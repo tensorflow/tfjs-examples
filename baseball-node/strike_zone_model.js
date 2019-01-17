@@ -17,6 +17,11 @@
 
 const tf = require('@tensorflow/tfjs');
 
+const TRAIN_DATA_PATH =
+    'https://storage.googleapis.com/mlb-pitch-data/strike_zone_training_data.csv';
+const TEST_DATA_PATH =
+    'https://storage.googleapis.com/mlb-pitch-data/strike_zone_test_data.csv';
+
 // Constants from training data:
 const PX_MIN = -2.65170604056843;
 const PX_MAX = 2.842899614;
@@ -26,31 +31,54 @@ const SZ_TOP_MIN = 2.85;
 const SZ_TOP_MAX = 4.241794863019148;
 const SZ_BOT_MIN = 1.248894636863092;
 const SZ_BOT_MAX = 2.2130980270561516;
+const TRAINING_DATA_LENGTH = 10000;
+const TEST_DATA_LENGTH = 200;
 
-// Build model...
-const fields = [
-  {key: 'px', min: PX_MIN, max: PX_MAX}, {key: 'pz', min: PZ_MIN, max: PZ_MAX},
-  {key: 'sz_top', min: SZ_TOP_MIN, max: SZ_TOP_MAX},
-  {key: 'sz_bot', min: SZ_BOT_MIN, max: SZ_BOT_MAX}, {key: 'left_handed_batter'}
-];
+// TODO - move to a utilty class:
+function normalize(value, min, max) {
+  if (min === undefined || max === undefined) {
+    return value;
+  }
+  return (value - min) / (max - min);
+}
 
-// TODO - figure out pitch data.
-// const data = new Pitch
+// Converts entries from the CSV into features and labels.
+// Each feature field is normalized within training data constants:
+const csvTransform = ([features, labels]) => {
+  const values = [
+    normalize(features.px, PX_MIN, PX_MAX),
+    normalize(features.pz, PZ_MIN, PZ_MAX),
+    normalize(features.sz_top, SZ_TOP_MIN, SZ_TOP_MAX),
+    normalize(features.sz_bot, SZ_BOT_MIN, SZ_BOT_MAX),
+    features.left_handed_batter
+  ];
+  return [values, [labels.is_strike]]
+};
+
+const trainingData =
+    tf.data.csv(TRAIN_DATA_PATH, {columnConfigs: {is_strike: {isLabel: true}}})
+        .map(csvTransform)
+        .shuffle(TRAINING_DATA_LENGTH)
+        .batch(50);
+
+const testData =
+    tf.data.csv(TEST_DATA_PATH, {columnConfigs: {is_strike: {isLabel: true}}})
+        .map(csvTransform)
+        .shuffle(TEST_DATA_LENGTH)
+        .batch(10);
 
 const model = tf.sequential();
-
-model.add(tf.layers.dense(
-    {units: 20, activation: 'relu', inputShape: [fields.length]}));
+model.add(tf.layers.dense({units: 20, activation: 'relu', inputShape: [5]}));
 model.add(tf.layers.dense({units: 10, activation: 'relu'}));
 model.add(tf.layers.dense({units: 2, activation: 'softmax'}));
-
 model.compile({
   optimizer: tf.train.adam(),
-  loss: 'categoricalCrossentropy',
+  loss: 'sparseCategoricalCrossentropy',
   metrics: ['accuracy']
 });
 
 module.exports = {
   model,
-  fields
+  testData,
+  trainingData,
 };

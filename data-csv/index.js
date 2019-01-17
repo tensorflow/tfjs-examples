@@ -22,41 +22,43 @@ import * as ui from './ui';
 
 // Boston Housing CSV
 const BOSTON_HOUSING_CSV_URL =
-    'https://storage.googleapis.com/tfjs-examples/multivariate-linear-regression/data/train-data.csv'
+    'https://storage.googleapis.com/tfjs-examples/multivariate-linear-regression/data/train-data.csv';
 // Amazon consumer reviews from Kaggle
 const PRODUCT_REVIEW_CSV_URL =
-    'https://storage.googleapis.com/learnjs-data/csv-datasets/1429_1.csv'
+    'https://storage.googleapis.com/learnjs-data/csv-datasets/1429_1.csv';
 // Banking from Kaggle
 const BANKING_CSV_URL =
-    'https://storage.googleapis.com/learnjs-data/csv-datasets/banking.csv'
+    'https://storage.googleapis.com/learnjs-data/csv-datasets/banking.csv';
 // ML Survey data from Kaggle
 // https://www.kaggle.com/kaggle/kaggle-survey-2018#multipleChoiceResponses.csv
 const KAGGLE_2018_SURVEY_CSV_URL =
-    'https://storage.googleapis.com/learnjs-data/csv-datasets/multipleChoiceResponses.csv'
+    'https://storage.googleapis.com/learnjs-data/csv-datasets/multipleChoiceResponses.csv';
 
 
-// Builds a CSV Dataset object using the URL specified in the UI.  Then iterates
-// over all eleemnts in that dataset to count them.  Updates the UI accordingly.
-const countRowsHandler = async () => {
+/**
+ * Builds a CSV Dataset object using the URL specified in the UI.  Then iterates
+ * over all eleemnts in that dataset to count them.  Updates the UI accordingly.
+ */
+async function countRowsHandler() {
   const url = ui.getQueryElement().value;
   ui.updateStatus(`Building data object to connect to ${url}`);
   const myData = tf.data.csv(url);
   let i = 0;
   ui.updateRowCountOutput(`counting...`);
-  const updateFn = (x) => {
+  const updateFn = x => {
     i += 1;
-    if ((i % 1000) === 0) {
+    if (i % 1000 === 0) {
       ui.updateStatus(`Counting ... ${i} rows of data in the CSV so far...`);
     }
   };
   try {
     ui.updateStatus('Attempting to count records in CSV.');
-    await myData.forEach((x) => updateFn(x));
+    await myData.forEach(x => updateFn(x));
   } catch (e) {
-    let errorMsg = `Caught an error iterating over ${url}.  `
+    let errorMsg = `Caught an error iterating over ${url}.  `;
     errorMsg +=
-        'This URL might not be valid or might not support CORS requests.'
-    errorMsg += '  Check the developer console for CORS errors.'
+        'This URL might not be valid or might not support CORS requests.';
+    errorMsg += '  Check the developer console for CORS errors.';
     errorMsg += e;
     ui.updateRowCountOutput(errorMsg);
     return;
@@ -65,10 +67,12 @@ const countRowsHandler = async () => {
   ui.updateRowCountOutput(`Counted ${i} rows of data in the CSV.`);
 };
 
-// Builds a CSV Dataset object using the URL specified in the UI.  Then connects
-// with the dataset object to retrieve the column names.  Updates the UI
-// accordingly.
-const getColumnNamesHandler = async () => {
+/**
+ * Builds a CSV Dataset object using the URL specified in the UI.  Then connects
+ * with the dataset object to retrieve the column names.  Updates the UI
+ * accordingly.
+ */
+async function getColumnNamesHandler() {
   ui.updateColumnNamesOutput([]);
   const url = ui.getQueryElement().value;
   ui.updateStatus(`Attempting to connect to CSV resource at ${url}`);
@@ -78,22 +82,22 @@ const getColumnNamesHandler = async () => {
   try {
     const columnNames = await myData.columnNames();
     ui.updateStatus('Done getting column names.');
-    ui.updateColumnNamesMessage('Done getting column names.');
+    ui.updateColumnNamesMessage('');
     ui.updateColumnNamesOutput(columnNames);
   } catch (e) {
-    let errorMsg = `Caught an error retrieving column names from ${url}.  `
-    errorMsg +=
-        'This URL might not be valid or might not support CORS requests.'
-    errorMsg += '  Check the developer console for CORS errors.'
-    errorMsg += e;
+    const errorMsg = `Caught an error retrieving column names from ${url}.  ` +
+        `This URL might not be valid or might not support CORS requests.` +
+        `  Check the developer console for CORS errors.` + e;
     ui.updateColumnNamesMessage(errorMsg);
     return;
   }
 };
 
-// Accesses the CSV to collect a single specified row.  The row index
-// is specified by the UI element managed in the ui library.
-const getSampleRowHandler = async () => {
+/**
+ * Accesses the CSV to collect a single specified row.  The row index
+ * is specified by the UI element managed in the ui library.
+ */
+async function getSampleRowHandler() {
   const url = ui.getQueryElement().value;
   ui.updateStatus(`Attempting to connect to CSV resource at ${url}`);
   const myData = tf.data.csv(url);
@@ -101,7 +105,7 @@ const getSampleRowHandler = async () => {
   const sampleIndex = ui.getSampleIndex();
   if (sampleIndex < 0 || isNaN(sampleIndex)) {
     const msg = `Can not get samples with negative or NaN index.  (Requested ${
-        sampleIndex}).`
+        sampleIndex}).`;
     ui.updateStatus(msg);
     ui.updateSampleRowMessage(msg);
     ui.updateSampleRowOutput([]);
@@ -111,10 +115,10 @@ const getSampleRowHandler = async () => {
   try {
     sample = await myData.skip(sampleIndex).take(1).toArray();
   } catch (e) {
-    let errorMsg = `Caught an error retrieving sample from ${url}.  `
+    let errorMsg = `Caught an error retrieving sample from ${url}.  `;
     errorMsg +=
-        'This URL might not be valid or might not support CORS requests.'
-    errorMsg += '  Check the developer console for CORS errors.'
+        'This URL might not be valid or might not support CORS requests.';
+    errorMsg += '  Check the developer console for CORS errors.';
     errorMsg += e;
     ui.updateSampleRowMessage(errorMsg);
     return;
@@ -123,7 +127,7 @@ const getSampleRowHandler = async () => {
     // When samples are requested beyond the end of the CSV, the data will
     // return empty.
     const msg = `Can not get sample index ${
-        sampleIndex}.  This may be beyond the end of the dataset.`
+        sampleIndex}.  This may be beyond the end of the dataset.`;
     ui.updateStatus(msg);
     ui.updateSampleRowMessage(msg);
     ui.updateSampleRowOutput([]);
@@ -134,7 +138,7 @@ const getSampleRowHandler = async () => {
   ui.updateSampleRowOutput(sample[0]);
 };
 
-// Clears output messages and tables.
+/**Clears output messages and tables. */
 const resetOutputMessages = () => {
   ui.updateRowCountOutput('click "Count rows"');
   ui.updateColumnNamesMessage('click "Get column names"');
@@ -143,7 +147,7 @@ const resetOutputMessages = () => {
   ui.updateSampleRowOutput([]);
 };
 
-// Sets up handlers for the user affordences, including all buttons.
+/** Sets up handlers for the user affordences, including all buttons. */
 document.addEventListener('DOMContentLoaded', async () => {
   resetOutputMessages();
 

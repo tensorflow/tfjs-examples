@@ -25,28 +25,30 @@ const sampleRowOutputContainerElement =
     document.getElementById('sampleRowOutputContainer');
 const whichSampleInputElement = document.getElementById('whichSampleInput');
 
-// Updates the large message at the top of the info table
-export const updateStatus = (message) => {
+/** Updates the large message at the top of the info table */
+export function updateStatus(message) {
   console.log(message);
   statusElement.value = message;
 };
 
-// Updates the message in the "count rows" output row.
-export const updateRowCountOutput = (message) => {
+/** Updates the message in the "count rows" output row. */
+export function updateRowCountOutput(message) {
   console.log(message);
   rowCountOutputElement.textContent = message;
 };
 
-// Updates the message in the "column names" output row.
-export const updateColumnNamesMessage = (message) => {
+/** Updates the message in the "column names" output row. */
+export function updateColumnNamesMessage(message) {
   console.log(message);
   columnNamesMessageElement.textContent = message;
 };
 
 
-// Creates an HTML ordered list to display the column names, represented in the
-// `colNames` argument as a list of strings.
-export const updateColumnNamesOutput = (colNames) => {
+/**
+ *  Creates an HTML ordered list to display the column names, represented in the
+ * `colNames` argument as a list of strings.
+ */
+export function updateColumnNamesOutput(colNames) {
   const container = columnNamesOutputContainerElement;
   container.align = 'left';
   while (container.firstChild) {
@@ -62,15 +64,17 @@ export const updateColumnNamesOutput = (colNames) => {
 };
 
 // Updates the message in the "sample" output row.
-export const updateSampleRowMessage = (message) => {
+export function updateSampleRowMessage(message) {
   console.log(message);
   sampleRowMessageElement.textContent = message;
 };
 
-// Creates an HTML table, using div elements, to display the key-value pairs
-// represented in the input `rawRow`. This HTML table is inserted into the
-// sample row.
-export const updateSampleRowOutput = (rawRow) => {
+/**
+ * Creates an HTML table, using div elements, to display the key-value pairs
+ *  represented in the input `rawRow`. This HTML table is inserted into the
+ * sample row.
+ */
+export function updateSampleRowOutput(rawRow) {
   sampleRowOutputContainerElement.textContent = '';
   const row = rawRow;
   for (const key in row) {
@@ -94,10 +98,11 @@ export const updateSampleRowOutput = (rawRow) => {
 };
 
 // Returns current value of the selected sample index as a number.
-export const getSampleIndex =
-    () => {
-      return whichSampleInputElement.valueAsNumber;
-    }
+export function getSampleIndex() {
+  return whichSampleInputElement.valueAsNumber;
+}
 
 // Returns the currently specified URL, from which to access the CSV file.
-export const getQueryElement = () => document.getElementById('queryURL');
+export const getQueryElement = () => {
+  return document.getElementById('query-url');
+}

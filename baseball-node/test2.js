@@ -1,10 +1,10 @@
 const tf = require('@tensorflow/tfjs-node');
-const sz_model = require('./strike_zone_model');
+const pitch_model = require('./pitch_type_model');
 
 async function run() {
   // TODO - add test/eval metrics!
-  sz_model.model.summary();
-  sz_model.model.fitDataset(sz_model.trainingData, {
+  pitch_model.model.summary();
+  pitch_model.model.fitDataset(pitch_model.trainingData, {
     epochs: 20,
     callbacks: {
       onEpochEnd: async (epoch, logs) => {

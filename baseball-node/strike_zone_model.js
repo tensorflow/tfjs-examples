@@ -16,6 +16,7 @@
  */
 
 const tf = require('@tensorflow/tfjs');
+const normalize = require('./utils').normalize;
 
 const TRAIN_DATA_PATH =
     'https://storage.googleapis.com/mlb-pitch-data/strike_zone_training_data.csv';
@@ -31,18 +32,11 @@ const SZ_TOP_MIN = 2.85;
 const SZ_TOP_MAX = 4.241794863019148;
 const SZ_BOT_MIN = 1.248894636863092;
 const SZ_BOT_MAX = 2.2130980270561516;
+
 const TRAINING_DATA_LENGTH = 10000;
 const TEST_DATA_LENGTH = 200;
 
-// TODO - move to a utilty class:
-function normalize(value, min, max) {
-  if (min === undefined || max === undefined) {
-    return value;
-  }
-  return (value - min) / (max - min);
-}
-
-// Converts entries from the CSV into features and labels.
+// Converts a row from the CSV into features and labels.
 // Each feature field is normalized within training data constants:
 const csvTransform = ([features, labels]) => {
   const values = [

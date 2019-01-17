@@ -126,13 +126,15 @@ async function evaluate(useTrainingData) {
         total += values[index];
         index += NUM_PITCH_CLASSES;
       }
-      // console.log('pitch code: ' + i + ' = ' + (total / classSize) + '%');
 
-      const acc = total / classSize;
-      console.log(`${pitchFromClassNum(i)} = ${acc}`);
-      results[pitchFromClassNum(i)] = {training: acc};
+      results[pitchFromClassNum(i)] = {training: total / classSize};
+
+      // if (includeValidation) {
+      //   result[pitchFromType(i)].validation = this.calculateClassAccuracy(
+      //       this.validationClassTensors[i], i,
+      //       VALIDATION_DATA_PITCH_CLASS_SIZE);
+      // }
     }
-    console.log('');
   });
   return results;
 }

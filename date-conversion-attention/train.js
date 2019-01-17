@@ -34,9 +34,13 @@ class GetLastTimestepLayer extends tf.layers.Layer {
   }
 
   call(input, kwargs) {
-    console.log('In GetLastTimestepLayer.call():', input.rank);  // DEBUG
-    tf.util.assert(input.rank === 4, 'Invalid input rank');
-    return tf.gather(input, [input.shape[2] - 1], 2);
+    if (Array.isArray(input)) {
+      input = input[0];
+    }
+    // console.log('In GetLastTimestepLayer.call():', input);  // DEBUG
+    const inputRank = input.shape.length;
+    tf.util.assert(inputRank === 3, `Invalid input rank: ${inputRank}`);
+    return tf.squeeze(tf.gather(input, [input.shape[1] - 1], 1), [1]);
   }
 
   static get className() {
@@ -106,6 +110,7 @@ function createModel(inputDictSize, outputDictSize, inputLength, outputLength) {
   const model = tf.model({
     inputs: [encoderInput, decoderInput],
     outputs: output
+    // outputs: attention
   });
   model.compile({
     loss: 'categoricalCrossentropy',
@@ -115,7 +120,23 @@ function createModel(inputDictSize, outputDictSize, inputLength, outputLength) {
 }
 
 // DEBUG
-const model = createModel(
-    dateFormat.INPUT_VOCAB.length, dateFormat.OUTPUT_VOCAB.length,
-    dateFormat.INPUT_LENGTH, dateFormat.OUTPUT_LENGTH);
-model.summary();
+async function run() {
+  const model = createModel(
+      dateFormat.INPUT_VOCAB.length, dateFormat.OUTPUT_VOCAB.length,
+      dateFormat.INPUT_LENGTH, dateFormat.OUTPUT_LENGTH);
+  model.summary();
+
+  const numExamples = 1024;
+  const encoderInput = tf.ones([numExamples, dateFormat.INPUT_LENGTH]);
+  const decoderInput = tf.ones([numExamples, dateFormat.OUTPUT_LENGTH]);
+  const decoderOutput = tf.ones(
+      [numExamples, dateFormat.OUTPUT_LENGTH, dateFormat.OUTPUT_VOCAB.length]);
+  // const out = model.predict([x, y]);
+  // out.print();
+  // console.log(out.shape);
+  const history = await model.fit(
+      [encoderInput, decoderInput], decoderOutput, {epochs: 10});
+  console.log(history.history);
+}
+
+run();

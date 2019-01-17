@@ -29,13 +29,19 @@ async function run() {
   const port = process.env.PORT || PORT;
   const server = http.createServer();
   const io = socketio(server);
+  const useTrainingData = false;
 
   server.listen(port, () => {
     console.log(`  > Running socket on port: ${port}`);
   });
 
-  io.emit('accuracyPerClass', await pitch_type.evaluate());
-  // socket.sendAccuracyPerClass(await pitchModel.evaluate());
+  io.on('connection', (socket) => {
+    socket.on('live_data', (value) => {
+      useTrainingData = value;
+    });
+  });
+
+  io.emit('accuracyPerClass', await pitch_type.evaluate(useTrainingData));
   await sleep(TIMEOUT_BETWEEN_EPOCHS_MS);
 
   while (true) {
@@ -48,13 +54,7 @@ async function run() {
       }
     });
 
-    //     -    await pitchModel.train(1, progress =>
-    //     socket.sendProgress(progress));
-    // -    socket.sendAccuracyPerClass(
-    // -        await pitchModel.evaluate(socket.useTrainingData));
-
-    // io.emit('accuracyPerClass', {});
-
+    io.emit('accuracyPerClass', await pitch_type.evaluate(useTrainingData));
     await sleep(TIMEOUT_BETWEEN_EPOCHS_MS);
   }
 }

@@ -15,7 +15,6 @@
  * =============================================================================
  */
 
-
 import io from 'socket.io-client';
 const liveButton = document.getElementById('live-button');
 
@@ -23,13 +22,14 @@ const socket =
     io('http://localhost:8001',
        {reconnectionDelay: 300, reconnectionDelayMax: 300});
 
+const BAR_WIDTH_PX = 300;
+
 liveButton.onclick = () => {
   liveButton.textContent = 'Loading...';
   socket.emit('live_data', '' + true);
 };
 
 socket.on('connect', () => {
-  console.log('connect');
   liveButton.style.display = 'block';
   liveButton.textContent = 'Test Live';
 });
@@ -43,13 +43,13 @@ socket.on('accuracyPerClass', (accPerClass) => {
 });
 
 socket.on('disconnect', () => {
-  console.log('disconnnect');
   liveButton.style.display = 'block';
   document.getElementById('waiting-msg').style.display = 'block';
   document.getElementById('table').style.display = 'none';
 });
 
 function plotAccuracyPerClass(accPerClass) {
+  console.log(accPerClass);
   document.getElementById('table').style.display = 'block';
   document.getElementById('waiting-msg').style.display = 'none';
 

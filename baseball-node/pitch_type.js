@@ -22,6 +22,8 @@ const TRAIN_DATA_PATH =
     'https://storage.googleapis.com/mlb-pitch-data/pitch_type_training_data.csv';
 const TEST_DATA_PATH =
     'https://storage.googleapis.com/mlb-pitch-data/pitch_type_test_data.csv';
+const VALIDATION_DATA_PATH =
+    'https://storage.googleapis.com/mlb-pitch-data/pitch_type_validation_data.csv';
 
 // Constants from training data:
 const VX0_MIN = -18.885;
@@ -39,8 +41,11 @@ const AZ_MAX = 2.95522851438373;
 const START_SPEED_MIN = 59;
 const START_SPEED_MAX = 104.4;
 
+const NUM_PITCH_CLASSES = 7;
+
 const TRAINING_DATA_LENGTH = 7000;
 const TEST_DATA_LENGTH = 700;
+const VALIDATION_DATA_LENGTH = 700;
 
 // Converts a row from the CSV into features and labels.
 // Each feature field is normalized within training data constants:
@@ -70,11 +75,27 @@ const testData =
         .shuffle(TEST_DATA_LENGTH)
         .batch(100);
 
+// Load all training data in one batch to use for evaluation:
+const trainingValidationData =
+    tf.data.csv(TRAIN_DATA_PATH, {columnConfigs: {pitch_code: {isLabel: true}}})
+        .map(csvTransform)
+        .batch(TRAINING_DATA_LENGTH);
+
+// TODO(kreeger): write me - needs data.
+// const validationData = tf.data
+//                            .csv(
+//                                VALIDATION_DATA_PATH,
+//                                {columnConfigs: {pitch_code: {isLabel:
+//                                true}}})
+//                            .map(csvTransform)
+//                            .shuffle(VALIDATION_DATA_LENGTH)
+//                            .batch(100);
+
 const model = tf.sequential();
 model.add(tf.layers.dense({units: 250, activation: 'relu', inputShape: [8]}));
 model.add(tf.layers.dense({units: 175, activation: 'relu'}));
 model.add(tf.layers.dense({units: 150, activation: 'relu'}));
-model.add(tf.layers.dense({units: 7, activation: 'softmax'}));
+model.add(tf.layers.dense({units: NUM_PITCH_CLASSES, activation: 'softmax'}));
 model.compile({
   optimizer: tf.train.adam(),
   loss: 'sparseCategoricalCrossentropy',
@@ -83,14 +104,71 @@ model.compile({
 
 // Returns pitch class evaluation percentages for training data with an option
 // to include validation data.
-async function evaluate() {
-  // Use validation data?
-  return null;
+async function evaluate(useTrainingData) {
+  let results = {};
+
+  await trainingValidationData.forEach((pitchTypeBatch) => {
+    const inputs = pitchTypeBatch[0];
+    const result = model.predict(inputs);
+    const values = result.dataSync();
+
+    const labels = pitchTypeBatch[1].dataSync();
+
+    // TODO - this will need to work with eval data too:
+    const classSize = TRAINING_DATA_LENGTH / NUM_PITCH_CLASSES;
+
+    for (let i = 0; i < NUM_PITCH_CLASSES; i++) {
+      // Output has 7 different class values for each pitch, offset based on
+      // which pitch class (ordered by i):
+      let index = i * classSize + i;
+      let total = 0;
+      for (let j = 0; j < classSize; j++) {
+        total += values[index];
+        index += NUM_PITCH_CLASSES;
+      }
+      // console.log('pitch code: ' + i + ' = ' + (total / classSize) + '%');
+
+      const acc = total / classSize;
+      console.log(`${pitchFromClassNum(i)} = ${acc}`);
+      results[pitchFromClassNum(i)] = {training: acc};
+    }
+    console.log('');
+  });
+  return results;
+}
+
+// Returns the string value for Baseball pitch labels
+function pitchFromClassNum(classNum) {
+  switch (classNum) {
+    case 0:
+      return 'Fastball (2-seam)';
+    case 1:
+      return 'Fastball (4-seam)';
+    case 2:
+      return 'Fastball (sinker)';
+    case 3:
+      return 'Fastball (cutter)';
+    case 4:
+      return 'Slider';
+    case 5:
+      return 'Changeup';
+    case 6:
+      return 'Curveball';
+    case 7:
+      return 'Knuckle-curve';
+    case 8:
+      return 'Knuckleball';
+    case 9:
+      return 'Eephus';
+    default:
+      return 'Unknown';
+  }
 }
 
 module.exports = {
   evaluate,
   model,
+  pitchFromClassNum,
   testData,
   trainingData
 }

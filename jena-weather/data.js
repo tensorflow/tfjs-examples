@@ -21,6 +21,10 @@
  * The data used in this demo is the
  * [Jena weather archive
  * dataset](https://www.kaggle.com/pankrzysiu/weather-archive-jena).
+ * 
+ * This file is used to load the Jena weather data in both
+ * - the browser: see [index.js](./index.js), and 
+ * - the Node.js backend environment: see [train-rnn.js](./train-rnn.js).
  */
 
 import * as tf from '@tensorflow/tfjs';
@@ -46,12 +50,18 @@ export class JenaWeatherData {
    * URL (`JENA_WEATHER_CSV_PATH`).
    */
   async load() {
-    let response = await fetch(LOCAL_JENA_WEATHER_CSV_PATH);
-    if (response.statusCode === 200 || response.statusCode === 304) {
+    let response;
+    try {
+      response = await fetch(LOCAL_JENA_WEATHER_CSV_PATH);
+    } catch (err) {}
+
+    if (response != null &&
+        (response.statusCode === 200 || response.statusCode === 304)) {
       console.log('Loading data from local path');
     } else {
       response = await fetch(REMOTE_JENA_WEATHER_CSV_PATH);
-      console.log('Loading data from remote path');
+      console.log(
+          `Loading data from remote path: ${REMOTE_JENA_WEATHER_CSV_PATH}`);
     }
     const csvData = await response.text();
 
@@ -267,6 +277,7 @@ export class JenaWeatherData {
 
     function nextBatchFn() {
       const rowIndices = [];
+      let done = false;  // Indicates whether the dataset has ended.
       if (shuffle) {
         // If `shuffle` is `true`, start from randomly chosen rows.
         const range = maxIndex - (minIndex + lookBack);
@@ -276,9 +287,12 @@ export class JenaWeatherData {
         }
       } else {
         // If `shuffle` is `false`, the starting row indices will be sequential.
-        for (let r = startIndex; r < startIndex + batchSize && r < maxIndex;
-             ++r) {
+        let r = startIndex;
+        for (; r < startIndex + batchSize && r < maxIndex; ++r) {
           rowIndices.push(r);
+        }
+        if (r >= maxIndex) {
+          done = true;
         }
       }
 
@@ -320,8 +334,8 @@ export class JenaWeatherData {
       }
       return {
         value: [samples.toTensor(), targets.toTensor()],
-        done: false
-      };  // TODO(cais): Return done = true when done.
+        done
+      };
     }
 
     return nextBatchFn.bind(this);

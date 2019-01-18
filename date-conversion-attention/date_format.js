@@ -27,12 +27,12 @@ const MONTH_NAMES_3LETTER =
 const MIN_DATE = new Date('1950-01-01').getTime();
 const MAX_DATE = new Date('2050-01-01').getTime();
 
-export const INPUT_LENGTH = 10   // Maximum of all input formats.
+export const INPUT_LENGTH = 10   // Maximum length of all input formats.
 export const OUTPUT_LENGTH = 10  // Length of 'YYYY-MM-DD'.
 
 // Use "\n" for padding for both input and output. It has to be at the
 // beginning so that `mask_zero=True` can be used in the keras model.
-export const INPUT_VOCAB = '\n0123456789/' +
+export const INPUT_VOCAB = '\n0123456789/-' +
     MONTH_NAMES_3LETTER.join('')
         .split('')
         .filter(function(item, i, ar) {

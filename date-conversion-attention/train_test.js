@@ -44,6 +44,7 @@ describe('generateBatchesForTraining', () => {
         [numVal, dateFormat.OUTPUT_LENGTH]);
     expect(valDecoderOutput.shape).toEqual(
         [numVal, dateFormat.OUTPUT_LENGTH, dateFormat.OUTPUT_VOCAB.length]);
-    expect(testDateTuples.length / numVal).toBeCloseTo(1);
+    expect(testDateTuples[0].length).toEqual(3);
+    expect(testDateTuples[testDateTuples.length - 1].length).toEqual(3);
   });
 });

@@ -71,10 +71,10 @@ export function generateDataForTraining(trainSplit = 0.8, valSplit = 0.15) {
     dateFormat.dateTupleToDDMMMYYYY,
     dateFormat.dateTupleToMMDDYY,
     dateFormat.dateTupleToMMSlashDDSlashYY,
-    dateFormat.dateTupleToMMSlashDDSlashYYYY
+    dateFormat.dateTupleToMMSlashDDSlashYYYY,
+    dateFormat.dateTupleToYYYYDashMMDashDD
   ];  // TODO(cais): Add more formats.
 
-  // TODO(cais): Use tf.tidy().
   function dateTuplesToTensor(dateTuples) {
     return tf.tidy(() => {
       const inputs = inputFns.map(fn => dateTuples.map(tuple => fn(tuple)));
@@ -111,6 +111,8 @@ export function generateDataForTraining(trainSplit = 0.8, valSplit = 0.15) {
     decoderInput: valDecoderInput,
     decoderOutput: valDecoderOutput
   } = dateTuplesToTensor(dateTuples.slice(numTrain, numTrain + numVal));
+  const testDateTuples =
+      dateTuples.slice(numTrain + numVal, dateTuples.length);
   return {
     trainEncoderInput,
     trainDecoderInput,
@@ -118,7 +120,7 @@ export function generateDataForTraining(trainSplit = 0.8, valSplit = 0.15) {
     valEncoderInput,
     valDecoderInput,
     valDecoderOutput,
-    testDateTuples: dateTuples.slice(numTrain + numVal)
+    testDateTuples
   };
 }
 

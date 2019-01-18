@@ -40,8 +40,7 @@ class GetLastTimestepLayer extends tf.layers.Layer {
     }
     const inputRank = input.shape.length;
     tf.util.assert(inputRank === 3, `Invalid input rank: ${inputRank}`);
-    // TODO(cais): Use chaining API.
-    return tf.squeeze(tf.gather(input, [input.shape[1] - 1], 1), [1]);
+    return input.gather([input.shape[1] - 1], 1).squeeze([1]);
   }
 
   static get className() {

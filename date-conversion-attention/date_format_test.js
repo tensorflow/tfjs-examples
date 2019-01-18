@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-const dateFormat = require('./date_format');
+import * as dateFormat from './date_format';
 
 describe('Date formats', () => {
   it('generateRandomDateTuple', () => {

@@ -27,12 +27,12 @@ const MONTH_NAMES_3LETTER =
 const MIN_DATE = new Date('1950-01-01').getTime();
 const MAX_DATE = new Date('2050-01-01').getTime();
 
-const INPUT_LENGTH = 10   // Maximum of all input formats.
-const OUTPUT_LENGTH = 10  // Length of 'YYYY-MM-DD'.
+export const INPUT_LENGTH = 10   // Maximum of all input formats.
+export const OUTPUT_LENGTH = 10  // Length of 'YYYY-MM-DD'.
 
 // Use "\n" for padding for both input and output. It has to be at the
 // beginning so that `mask_zero=True` can be used in the keras model.
-const INPUT_VOCAB = '\n0123456789/' +
+export const INPUT_VOCAB = '\n0123456789/' +
     MONTH_NAMES_3LETTER.join('')
         .split('')
         .filter(function(item, i, ar) {
@@ -42,9 +42,9 @@ const INPUT_VOCAB = '\n0123456789/' +
 
 // OUTPUT_VOCAB includes an start-of-sequence (SOS) token, represented as
 // "\t".
-const OUTPUT_VOCAB = '\n\t0123456789-';
+export const OUTPUT_VOCAB = '\n\t0123456789-';
 
-const START_CODE = 1;
+export const START_CODE = 1;
 
 // randomInt(min, max) {
 //   return Math.floor(Math.random() * (max - min) + min);
@@ -56,7 +56,7 @@ const START_CODE = 1;
  * @return {[number, number, number]} Year as an integer, month as an
  *   integer >= 1 and <= 12, day as an integer >= 1.
  */
-function generateRandomDateTuple() {
+export function generateRandomDateTuple() {
   const date = new Date(Math.random() * (MAX_DATE - MIN_DATE) + MIN_DATE);
   return [date.getFullYear(), date.getMonth() + 1, date.getDate()];
 }
@@ -65,40 +65,40 @@ function toTwoDigitString(num) {
   return num < 10 ? `0${num}` : `${num}`;
 }
 
-function dateTupleToDDMMMYYYY(dateTuple) {
+export function dateTupleToDDMMMYYYY(dateTuple) {
   const monthStr = MONTH_NAMES_3LETTER[dateTuple[1] - 1];
   const dayStr = toTwoDigitString(dateTuple[2]);
   return `${dayStr}${monthStr}${dateTuple[0]}`;
 }
 
 
-function dateTupleToMMSlashDDSlashYYYY(dateTuple) {
+export function dateTupleToMMSlashDDSlashYYYY(dateTuple) {
   const monthStr = toTwoDigitString(dateTuple[1]);
   const dayStr = toTwoDigitString(dateTuple[2]);
   return `${monthStr}/${dayStr}/${dateTuple[0]}`;
 }
 
-function dateTupleToMMSlashDDSlashYY(dateTuple) {
+export function dateTupleToMMSlashDDSlashYY(dateTuple) {
   const monthStr = toTwoDigitString(dateTuple[1]);
   const dayStr = toTwoDigitString(dateTuple[2]);
   const yearStr = `${dateTuple[0]}`.slice(2);
   return `${monthStr}/${dayStr}/${yearStr}`;
 }
 
-function dateTupleToMMDDYY(dateTuple) {
+export function dateTupleToMMDDYY(dateTuple) {
   const monthStr = toTwoDigitString(dateTuple[1]);
   const dayStr = toTwoDigitString(dateTuple[2]);
   const yearStr = `${dateTuple[0]}`.slice(2);
   return `${monthStr}${dayStr}${yearStr}`;
 }
 
-function dateTupleToYYYYDashMMDashDD(dateTuple) {
+export function dateTupleToYYYYDashMMDashDD(dateTuple) {
   const monthStr = toTwoDigitString(dateTuple[1]);
   const dayStr = toTwoDigitString(dateTuple[2]);
   return `${dateTuple[0]}-${monthStr}-${dayStr}`;
 }
 
-function encodeInputDateStrings(dateStrings) {
+export function encodeInputDateStrings(dateStrings) {
   const n = dateStrings.length;
   const x = tf.buffer([n, INPUT_LENGTH], 'float32');
   for (let i = 0; i < n; ++i) {
@@ -116,7 +116,7 @@ function encodeInputDateStrings(dateStrings) {
   return x.toTensor();
 }
 
-function encodeOutputDateStrings(dateStrings, oneHot = false) {
+export function encodeOutputDateStrings(dateStrings, oneHot = false) {
   const n = dateStrings.length;
   const x =
       oneHot ? tf.buffer([n, OUTPUT_LENGTH, OUTPUT_VOCAB.length], 'float32') :
@@ -140,19 +140,3 @@ function encodeOutputDateStrings(dateStrings, oneHot = false) {
   }
   return x.toTensor();
 }
-
-module.exports = {
-  dateTupleToDDMMMYYYY,
-  dateTupleToMMSlashDDSlashYYYY,
-  dateTupleToMMSlashDDSlashYY,
-  dateTupleToMMDDYY,
-  dateTupleToYYYYDashMMDashDD,
-  encodeInputDateStrings,
-  encodeOutputDateStrings,
-  generateRandomDateTuple,
-  INPUT_LENGTH,
-  INPUT_VOCAB,
-  OUTPUT_LENGTH,
-  OUTPUT_VOCAB,
-  START_CODE
-};

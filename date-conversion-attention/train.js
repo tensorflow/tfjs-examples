@@ -23,113 +23,10 @@
  * https://github.com/wanasit/katakana/blob/master/notebooks/Attention-based%20Sequence-to-Sequence%20in%20Keras.ipynb
  */
 
-const argparse = require('argparse');
-const tf = require('@tensorflow/tfjs');
-// TODO(cais): Put under a command-line arg.
-require('@tensorflow/tfjs-node');
-
-const dateFormat = require('./date_format');
-
-/**
- * A custom layer used to obtain the last time step of an RNN sequential
- * output.
- */
-class GetLastTimestepLayer extends tf.layers.Layer {
-  constructor(config) {
-    super(config || {});
-    this.supportMasking = true;
-  }
-
-  computeOutputShape(inputShape) {
-    const outputShape = inputShape.slice();
-    outputShape.splice(outputShape.length - 2, 1);
-    return outputShape;
-  }
-
-  call(input) {
-    if (Array.isArray(input)) {
-      input = input[0];
-    }
-    const inputRank = input.shape.length;
-    tf.util.assert(inputRank === 3, `Invalid input rank: ${inputRank}`);
-    // TODO(cais): Use chaining API.
-    return tf.squeeze(tf.gather(input, [input.shape[1] - 1], 1), [1]);
-  }
-
-  static get className() {
-    return 'GetLastTimestepLayer';
-  }
-}
-
-function createModel(inputDictSize, outputDictSize, inputLength, outputLength) {
-  const embeddingDims = 64;
-  const lstmUnits = 64;
-
-  const encoderInput = tf.input({shape: [inputLength]});
-  const decoderInput = tf.input({shape: [outputLength]});
-
-  let encoder = tf.layers.embedding({
-    inputDim: inputDictSize,
-    outputDim: embeddingDims,
-    inputLength,
-    maskZero: true
-  }).apply(encoderInput);
-  encoder = tf.layers.lstm({
-    units: lstmUnits,
-    returnSequences: true
-  }).apply(encoder);
-
-  const encoderLast = new GetLastTimestepLayer({
-    name: 'encoderLast'
-  }).apply(encoder);
-
-  let decoder = tf.layers.embedding({
-    inputDim: outputDictSize,
-    outputDim: embeddingDims,
-    inputLength: outputLength,
-    maskZero: true
-  }).apply(decoderInput);
-  decoder = tf.layers.lstm({
-    units: lstmUnits,
-    returnSequences: true
-  }).apply(decoder, {initialState: [encoderLast, encoderLast]});
-
-  let attention = tf.layers.dot({axes: [2, 2]}).apply([decoder, encoder]);
-  attention = tf.layers.activation({
-    activation: 'softmax',
-    name: 'attention'
-  }).apply(attention);
-
-  const context = tf.layers.dot({
-    axes: [2, 1],
-    name: 'context'
-  }).apply([attention, encoder]);
-  const deocderCombinedContext =
-      tf.layers.concatenate().apply([context, decoder]);
-  let output = tf.layers.timeDistributed({
-    layer: tf.layers.dense({
-      units: lstmUnits,
-      activation: 'tanh'
-    })
-  }).apply(deocderCombinedContext);
-  output = tf.layers.timeDistributed({
-    layer: tf.layers.dense({
-      units: outputDictSize,
-      activation: 'softmax'
-    })
-  }).apply(output);
-
-  const model = tf.model({
-    inputs: [encoderInput, decoderInput],
-    outputs: output
-    // outputs: attention
-  });
-  model.compile({
-    loss: 'categoricalCrossentropy',
-    optimizer: 'adam'
-  });
-  return model;
-}
+import * as argparse from 'argparse';
+import * as tf from '@tensorflow/tfjs';
+import * as dateFormat from './date_format';
+import {createModel} from './model';
 
 // TODO(cais): Need unit test for this.
 function generateBatchesForTraining(trainSplit = 0.8, valSplit = 0.15) {
@@ -154,7 +51,7 @@ function generateBatchesForTraining(trainSplit = 0.8, valSplit = 0.15) {
     dateFormat.dateTupleToMMDDYY,
     dateFormat.dateTupleToMMSlashDDSlashYY,
     dateFormat.dateTupleToMMSlashDDSlashYYYY
-  ];
+  ];  // TODO(cais): Add more formats.
 
   // TODO(cais): Use tf.tidy().
   function dateTuplesToTensor(dateTuples) {
@@ -245,6 +142,10 @@ function parseArguments() {
     description:
         'Train an attention-based date-conversion model in TensorFlow.js'
   });
+  argParser.addArgument('--gpu', {
+    action: 'storeTrue',
+    help: 'Use tfjs-node-gpu to train the model. Requires CUDA/CuDNN.'
+  });
   argParser.addArgument('--epochs', {
     type: 'int',
     defaultValue: 2,
@@ -260,6 +161,13 @@ function parseArguments() {
 
 async function run() {
   const args = parseArguments();
+  if (args.gpu) {
+    console.log('Using GPU');
+    require('@tensorflow/tfjs-node-gpu');
+  } else {
+    console.log('Using CPU');
+    require('@tensorflow/tfjs-node');
+  }
 
   const model = createModel(
       dateFormat.INPUT_VOCAB.length, dateFormat.OUTPUT_VOCAB.length,

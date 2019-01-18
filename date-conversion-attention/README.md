@@ -9,7 +9,7 @@ a task of converting various commonly seen date formats (e.g., 01/18/2019,
 
 We demonstrate the full machine-learning workflow, consisting of
 data engineering, server-side, model training, client-side inference,
-and model visualization in this example.
+model visualization, and unit testing in this example.
 
 The training data is syntheiszed programmatically.
 
@@ -42,3 +42,16 @@ TODO(cais): Implement it.
 ### Visualization of the attention mechanism
 
 TODO(cais): Implement it.
+
+## Running unit tests
+
+The data and model code in this example are covered by unit tests.
+To run the unit tests:
+
+```sh
+cd ../
+yarn
+cd date-conversion-attention
+yarn
+yarn test
+```

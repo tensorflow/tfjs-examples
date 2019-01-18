@@ -15,9 +15,12 @@
  * =============================================================================
  */
 
+import * as tmp from 'tmp';
 import * as tf from '@tensorflow/tfjs';
+import {expectArraysClose} from '@tensorflow/tfjs-core/dist/test_util';
 import * as dateFormat from './date_format';
 import {createModel, runSeq2SeqInference} from './model';
+require('@tensorflow/tfjs-node');
 
 describe('Model', () => {
   it('Created model can train', async () => {
@@ -45,6 +48,26 @@ describe('Model', () => {
           epochs: 2
         });
     expect(history.history.loss.length).toEqual(2);
+  });
+
+  it('Model save-load roundtrip', async () => {
+    const inputVocabSize = 16;
+    const outputVocabSize = 8;
+    const inputLength = 6;
+    const outputLength = 5;
+    const model = createModel(
+        inputVocabSize, outputVocabSize, inputLength, outputLength);
+    
+    const numExamples = 3;
+    const encoderInputs = tf.ones([numExamples, inputLength]);
+    const decoderInputs = tf.ones([numExamples, outputLength]);
+    const y = model.predict([encoderInputs, decoderInputs]);
+
+    const saveDir = tmp.dirSync();
+    await model.save(`file://${saveDir.name}`);
+    const modelPrime = await tf.loadModel(`file://${saveDir.name}/model.json`);
+    const yPrime = modelPrime.predict([encoderInputs, decoderInputs]);
+    expectArraysClose(yPrime, y);
   });
 
   it('seq2seq inference', async () => {

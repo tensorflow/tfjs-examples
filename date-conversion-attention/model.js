@@ -47,6 +47,7 @@ class GetLastTimestepLayer extends tf.layers.Layer {
     return 'GetLastTimestepLayer';
   }
 }
+tf.serialization.registerClass(GetLastTimestepLayer);
 
 /**
  * Create an LSTM-based attentin model for date conversion.

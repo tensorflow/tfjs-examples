@@ -18,7 +18,7 @@
 /**
  * Training an attention LSTM sequence-to-sequence decoder to translate
  * various date formats into the ISO date format.
- * 
+ *
  * Inspired by and loosely based on
  * https://github.com/wanasit/katakana/blob/master/notebooks/Attention-based%20Sequence-to-Sequence%20in%20Keras.ipynb
  */
@@ -27,6 +27,15 @@ import * as argparse from 'argparse';
 import * as tf from '@tensorflow/tfjs';
 import * as dateFormat from './date_format';
 import {createModel, runSeq2SeqInference} from './model';
+
+const INPUT_FNS = [
+  dateFormat.dateTupleToDDMMMYYYY,
+  dateFormat.dateTupleToMMDDYY,
+  dateFormat.dateTupleToMMSlashDDSlashYY,
+  dateFormat.dateTupleToMMSlashDDSlashYYYY,
+  dateFormat.dateTupleToDDDashMMDashYYYY,
+  dateFormat.dateTupleToYYYYDashMMDashDD
+];  // TODO(cais): Add more formats.
 
 /**
  * Generate sets of data for training.
@@ -67,17 +76,9 @@ export function generateDataForTraining(trainSplit = 0.8, valSplit = 0.15) {
   const numTrain = Math.floor(dateTuples.length * trainSplit);
   const numVal = Math.floor(dateTuples.length * valSplit);
 
-  const inputFns = [
-    dateFormat.dateTupleToDDMMMYYYY,
-    dateFormat.dateTupleToMMDDYY,
-    dateFormat.dateTupleToMMSlashDDSlashYY,
-    dateFormat.dateTupleToMMSlashDDSlashYYYY,
-    dateFormat.dateTupleToYYYYDashMMDashDD
-  ];  // TODO(cais): Add more formats.
-
   function dateTuplesToTensor(dateTuples) {
     return tf.tidy(() => {
-      const inputs = inputFns.map(fn => dateTuples.map(tuple => fn(tuple)));
+      const inputs = INPUT_FNS.map(fn => dateTuples.map(tuple => fn(tuple)));
       const inputStrings = [];
       inputs.forEach(inputs => inputStrings.push(...inputs));
       const encoderInput =
@@ -93,10 +94,10 @@ export function generateDataForTraining(trainSplit = 0.8, valSplit = 0.15) {
         tf.ones([decoderInput.shape[0], 1]).mul(dateFormat.START_CODE),
         decoderInput.slice(
             [0, 0], [decoderInput.shape[0], decoderInput.shape[1] - 1])
-      ], 1).tile([inputFns.length, 1]);  
+      ], 1).tile([INPUT_FNS.length, 1]);
       const decoderOutput =
           dateFormat.encodeOutputDateStrings(trainTargetStrings, true)
-          .tile([inputFns.length, 1, 1]);
+          .tile([INPUT_FNS.length, 1, 1]);
       return {encoderInput, decoderInput, decoderOutput};
     });
   }
@@ -182,14 +183,8 @@ async function run() {
 
   // Run seq2seq inference tests and print the results to console.
   const numTests = 10;
-  const testInputFns = [
-    dateFormat.dateTupleToDDMMMYYYY,
-    dateFormat.dateTupleToMMDDYY,
-    dateFormat.dateTupleToMMSlashDDSlashYY,
-    dateFormat.dateTupleToMMSlashDDSlashYYYY
-  ];
   for (let n = 0; n < numTests; ++n) {
-    for (const testInputFn of testInputFns) {
+    for (const testInputFn of INPUT_FNS) {
       const inputStr = testInputFn(testDateTuples[n]);
       console.log('\n-----------------------');
       console.log(`Input string: ${inputStr}`);

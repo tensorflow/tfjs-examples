@@ -65,6 +65,14 @@ describe('Date formats', () => {
     }
   });
 
+  it('MM-DD-YYYY', () => {
+    for (let i = 0; i < 10; ++i) {
+      const str = dateFormat.dateTupleToDDDashMMDashYYYY(
+          dateFormat.generateRandomDateTuple());
+      expect(str).toMatch(/[0-3]\d-[0-1]\d-[1-2]\d\d\d/);
+    }
+  });
+
   it('YYYY-MM-DD', () => {
     for (let i = 0; i < 10; ++i) {
       const str = dateFormat.dateTupleToYYYYDashMMDashDD(
@@ -138,7 +146,7 @@ describe('Date formats', () => {
     expect(encoded.max().dataSync()[0]).toEqual(1);
 
     const values = encoded.argMax(-1).dataSync();
-    
+
     let strPrime = '';
     for (let i = 0; i < dateFormat.OUTPUT_LENGTH; ++i) {
       strPrime += dateFormat.OUTPUT_VOCAB[values[i]];

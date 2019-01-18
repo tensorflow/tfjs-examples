@@ -67,7 +67,6 @@ export function dateTupleToDDMMMYYYY(dateTuple) {
   return `${dayStr}${monthStr}${dateTuple[0]}`;
 }
 
-
 export function dateTupleToMMSlashDDSlashYYYY(dateTuple) {
   const monthStr = toTwoDigitString(dateTuple[1]);
   const dayStr = toTwoDigitString(dateTuple[2]);
@@ -86,6 +85,12 @@ export function dateTupleToMMDDYY(dateTuple) {
   const dayStr = toTwoDigitString(dateTuple[2]);
   const yearStr = `${dateTuple[0]}`.slice(2);
   return `${monthStr}${dayStr}${yearStr}`;
+}
+
+export function dateTupleToDDDashMMDashYYYY(dateTuple) {
+  const monthStr = toTwoDigitString(dateTuple[1]);
+  const dayStr = toTwoDigitString(dateTuple[2]);
+  return `${dayStr}-${monthStr}-${dateTuple[0]}`;
 }
 
 export function dateTupleToYYYYDashMMDashDD(dateTuple) {

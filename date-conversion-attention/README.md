@@ -1,4 +1,4 @@
-# TensorFLow.js Example: Date Conversion Through an LSTM-Attention Model
+# TensorFlow.js Example: Date Conversion Through an LSTM-Attention Model
 
 ## Overview
 
@@ -11,7 +11,7 @@ We demonstrate the full machine-learning workflow, consisting of
 data engineering, server-side model training, client-side inference,
 model visualization, and unit testing in this example.
 
-The training data is syntheiszed programmatically.
+The training data is synthesized programmatically.
 
 ## Model training in Node.js
 
@@ -25,7 +25,7 @@ yarn
 yarn train
 ```
 
-By default, the training uses tfjs-node, which runs on the CUDA.
+By default, the training uses tfjs-node, which runs on the CPU.
 If you have a CUDA-enabled GPU and have the CUDA and CuDNN libraries
 set up properly on your system, you can run the training on the GPU
 by:

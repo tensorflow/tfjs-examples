@@ -8,7 +8,7 @@ a task of converting various commonly seen date formats (e.g., 01/18/2019,
 18JAN2019, 18-01-2019) to the ISO date format (i.e., 2019-01-18).
 
 We demonstrate the full machine-learning workflow, consisting of
-data engineering, server-side, model training, client-side inference,
+data engineering, server-side model training, client-side inference,
 model visualization, and unit testing in this example.
 
 The training data is syntheiszed programmatically.

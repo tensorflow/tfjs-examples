@@ -17,6 +17,7 @@
   },
   "dependencies": {
     "@tensorflow/tfjs-node": "^0.2.3",
+    "argparse": "^1.0.10",
     "socket.io": "~2.2.0"
   }
 }

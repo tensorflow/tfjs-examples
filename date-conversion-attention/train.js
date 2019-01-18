@@ -40,6 +40,7 @@ class GetLastTimestepLayer extends tf.layers.Layer {
     // console.log('In GetLastTimestepLayer.call():', input);  // DEBUG
     const inputRank = input.shape.length;
     tf.util.assert(inputRank === 3, `Invalid input rank: ${inputRank}`);
+    // TODO(cais): Use chaining API.
     return tf.squeeze(tf.gather(input, [input.shape[1] - 1], 1), [1]);
   }
 
@@ -158,7 +159,7 @@ function generateBatchesForTraining(trainSplit = 0.8, valSplit = 0.15) {
     decoderInput = tf.concat([
       tf.ones([decoderInput.shape[0], 1]).mul(dateFormat.START_CODE),
       decoderInput.slice(
-          [0, 1], [decoderInput.shape[0], decoderInput.shape[1] - 1])
+          [0, 0], [decoderInput.shape[0], decoderInput.shape[1] - 1])
     ], 1).tile([inputFns.length, 1]);  // One-step time shift.
     const decoderOutput =
         dateFormat.encodeOutputDateStrings(trainTargetStrings, true)
@@ -219,15 +220,26 @@ async function run() {
   const history = await model.fit(
       [trainEncoderInput, trainDecoderInput], trainDecoderOutput, {
         epochs: 1,  // TODO(cais): Make this a command-line arg.
-        batchSize: 1024,  // TODO(cais): Make this a command-line arg.
+        batchSize: 128,  // TODO(cais): Make this a command-line arg.
         validationData: [[valEncoderInput, valDecoderInput], valDecoderOutput]
       });
   console.log(history.history);
 
   // Run inference.
-  const numTests = 10;
+  // const y = model.predict([valEncoderInput.gather([0], 0), valDecoderInput.gather([0], 0)])
+  //     .argMax(2).dataSync();
+  // console.log(y);
+  // Array.from(y).forEach(x => console.log(dateFormat.OUTPUT_VOCAB[x]));
+
+  // TODO(cais): Refactor seq2seq inference code into a function.
+  // const testInputStr =
+  // Array.from(valEncoderInput.gather([0], 0).dataSync())
+  // .map(x => dateFormat.INPUT_VOCAB[x]).join('').trim();
+
+  const numTests = 1;
   for (let n = 0; n < numTests; ++n) {
     const inputStr = dateFormat.dateTupleToDDMMMYYYY(testDateTuples[n]);
+    // const inputStr = testInputStr;
     console.log('\n-----------------------');
     console.log(`Input string: ${inputStr}`);  // DEBUG
     const correctAnswer =
@@ -239,10 +251,14 @@ async function run() {
     testDecoderInput.set(dateFormat.START_CODE, 0, 0);
 
     for (let i = 1; i < dateFormat.OUTPUT_LENGTH; ++i) {
-      const output = model.predict(
-          [testEncoderInput, testDecoderInput.toTensor()])
-          .argMax(2).dataSync();
-      testDecoderInput.set(output[i], 0, i);
+      console.log(`=== i = ${i}`);  // DEBUG
+      testDecoderInput.toTensor().print();  // DEBUG
+      const predictOut = model.predict(
+          [testEncoderInput, testDecoderInput.toTensor()]);
+      predictOut.print();
+      predictOut.argMax(2).print();  // DEBUG
+      const output = predictOut.argMax(2).dataSync();
+      testDecoderInput.set(output[i - 1], 0, i);
     }
     const finalOutput = model.predict(
         [testEncoderInput, testDecoderInput.toTensor()])

@@ -23,16 +23,18 @@ import * as ui from './ui';
 // Boston Housing CSV
 const BOSTON_HOUSING_CSV_URL =
     'https://storage.googleapis.com/tfjs-examples/multivariate-linear-regression/data/train-data.csv';
-// Amazon consumer reviews from Kaggle
-const PRODUCT_REVIEW_CSV_URL =
-    'https://storage.googleapis.com/learnjs-data/csv-datasets/1429_1.csv';
-// Banking from Kaggle
-const BANKING_CSV_URL =
-    'https://storage.googleapis.com/learnjs-data/csv-datasets/banking.csv';
-// ML Survey data from Kaggle
-// https://www.kaggle.com/kaggle/kaggle-survey-2018#multipleChoiceResponses.csv
-const KAGGLE_2018_SURVEY_CSV_URL =
-    'https://storage.googleapis.com/learnjs-data/csv-datasets/multipleChoiceResponses.csv';
+// Jena Climate CSV
+const JENA_CLIMATE_CSV_URL =
+    'https://storage.googleapis.com/learnjs-data/jena_climate/jena_climate_2009_2016.csv';
+// Dresses Sales data
+// Originally from https://www.openml.org/d/23381
+const DRESSES_SALES_CSV_URL =
+    'https://storage.googleapis.com/learnjs-data/csv-datasets/dresses-sales-openml.csv';
+// State University of New York Campus Data from NYS.gov
+// Originally from
+// https://data.ny.gov/Education/State-University-of-New-York-SUNY-Campus-Locations/3cij-nwhw
+const SUNY_CSV_URL =
+    'https://storage.googleapis.com/learnjs-data/csv-datasets/State_University_of_New_York__SUNY__Campus_Locations_with_Websites__Enrollment_and_Select_Program_Offerings.csv';
 
 
 /**
@@ -152,17 +154,35 @@ document.addEventListener('DOMContentLoaded', async () => {
   resetOutputMessages();
 
   // Helper to connect preset URL buttons.
-  const connectURLButton = (buttonId, url) => {
+  const connectURLButton = (buttonId, url, statusMessage) => {
     document.getElementById(buttonId).addEventListener('click', async () => {
       ui.getQueryElement().value = url;
       resetOutputMessages();
+      ui.updateStatus(statusMessage);
     }, false);
   };
 
-  connectURLButton('productReviewButton', PRODUCT_REVIEW_CSV_URL);
-  connectURLButton('bostonButton', BOSTON_HOUSING_CSV_URL);
-  connectURLButton('bankingButton', BANKING_CSV_URL);
-  connectURLButton('kaggleSurveyButton', KAGGLE_2018_SURVEY_CSV_URL);
+  connectURLButton(
+      'jenaClimateButton', JENA_CLIMATE_CSV_URL,
+      `Jena climate data is a record of atmospheric conditions taken over a ` +
+          `period of time.  In this dataset, 14 different quantities (such ` +
+          `as air temperature, atmospheric pressure, humidity, wind ` +
+          `direction, and so on) were recorded every 10 minutes, over ` +
+          `several years. `);
+  connectURLButton(
+      'bostonButton', BOSTON_HOUSING_CSV_URL,
+      `"Boston Housing" is a commonly used dataset in introductory ML problems.`);
+  connectURLButton(
+      'dressesButton', DRESSES_SALES_CSV_URL,
+      `This dataset contain attributes of dresses and their recommendations ` +
+          `according to their sales. Provided courtesy of OpenML. Find more ` +
+          `curated ML datasets at https://www.openml.org/d/23381`);
+  connectURLButton(
+      'sunyButton', SUNY_CSV_URL,
+      `Campuses which comprise the State University of New York (SUNY) System. ` +
+          `Highlights information on Undergraduate and Graduate enrollment ` +
+          `as well as some program area offerings.  Find more datasets at ` +
+          `https://data.ny.gov/`);
 
   // Connect action buttons.
   document.getElementById('countRows')

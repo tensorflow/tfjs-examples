@@ -15,12 +15,25 @@
  * =============================================================================
  */
 
+/**
+ * Training an attention LSTM sequence-to-sequence decoder to translate
+ * various date formats into the ISO date format.
+ * 
+ * Inspired by and loosely based on
+ * https://github.com/wanasit/katakana/blob/master/notebooks/Attention-based%20Sequence-to-Sequence%20in%20Keras.ipynb
+ */
+
+const argparse = require('argparse');
 const tf = require('@tensorflow/tfjs');
 // TODO(cais): Put under a command-line arg.
 require('@tensorflow/tfjs-node');
 
 const dateFormat = require('./date_format');
 
+/**
+ * A custom layer used to obtain the last time step of an RNN sequential
+ * output.
+ */
 class GetLastTimestepLayer extends tf.layers.Layer {
   constructor(config) {
     super(config || {});
@@ -33,11 +46,10 @@ class GetLastTimestepLayer extends tf.layers.Layer {
     return outputShape;
   }
 
-  call(input, kwargs) {
+  call(input) {
     if (Array.isArray(input)) {
       input = input[0];
     }
-    // console.log('In GetLastTimestepLayer.call():', input);  // DEBUG
     const inputRank = input.shape.length;
     tf.util.assert(inputRank === 3, `Invalid input rank: ${inputRank}`);
     // TODO(cais): Use chaining API.
@@ -67,7 +79,6 @@ function createModel(inputDictSize, outputDictSize, inputLength, outputLength) {
     returnSequences: true
   }).apply(encoder);
 
-//   console.log(encoder);  // DEBUG
   const encoderLast = new GetLastTimestepLayer({
     name: 'encoderLast'
   }).apply(encoder);
@@ -137,7 +148,6 @@ function generateBatchesForTraining(trainSplit = 0.8, valSplit = 0.15) {
 
   const numTrain = Math.floor(dateTuples.length * trainSplit);
   const numVal = Math.floor(dateTuples.length * valSplit);
-  console.log(`numTrain = ${numTrain}`);  // DEBUG
 
   const inputFns = [
     dateFormat.dateTupleToDDMMMYYYY,
@@ -156,11 +166,14 @@ function generateBatchesForTraining(trainSplit = 0.8, valSplit = 0.15) {
     const trainTargetStrings = dateTuples.map(
         tuple => dateFormat.dateTupleToYYYYDashMMDashDD(tuple));
     let decoderInput = dateFormat.encodeOutputDateStrings(trainTargetStrings);
+    // One-step time shift: The decoder input is shifted to the left by
+    // one time step with respect to the encoder input. This accounts for
+    // the step-by-step decoding that happens during inference time.
     decoderInput = tf.concat([
       tf.ones([decoderInput.shape[0], 1]).mul(dateFormat.START_CODE),
       decoderInput.slice(
           [0, 0], [decoderInput.shape[0], decoderInput.shape[1] - 1])
-    ], 1).tile([inputFns.length, 1]);  // One-step time shift.
+    ], 1).tile([inputFns.length, 1]);  
     const decoderOutput =
         dateFormat.encodeOutputDateStrings(trainTargetStrings, true)
         .tile([inputFns.length, 1, 1]);
@@ -187,19 +200,67 @@ function generateBatchesForTraining(trainSplit = 0.8, valSplit = 0.15) {
     valDecoderOutput,
     testDateTuples: dateTuples.slice(numTrain + numVal)
   };
-
-  // const trainInputTensors = trainInputs.map(
-  //     strings => dateFormat.encodeInputDateStrings(strings));
-  // console.log(trainInputTensors.length);
-  // const
-  // console.log(trainInputs[0].length);
-  // console.log(trainInputs[0][0]);
-  // console.log(trainInputs[1].length);
-  // console.log(trainInputs[1][0]);
 }
 
-// DEBUG
+/**
+ * Perform sequence-to-sequence decoding for date conversion.
+ *
+ * @param {tf.Model} model The model to be used for the sequence-to-sequence
+ *   decoding, with two inputs: 
+ *   1. Encoder input of shape `[numExamples, inputLength]`
+ *   2. Decoder input of shape `[numExamples, outputLength]`
+ *   and one output:
+ *   1. Decoder softmax probability output of shape
+ *      `[numExamples, outputLength, outputVocabularySize]`
+ * @param {string} inputStr Input date string to be converted.
+ * @return {string} The converted date string.
+ */
+async function runSeq2SeqInference(model, inputStr) {
+  const encoderInput = dateFormat.encodeInputDateStrings([inputStr]);
+  const decoderInput = tf.buffer([1, dateFormat.OUTPUT_LENGTH]);
+  decoderInput.set(dateFormat.START_CODE, 0, 0);
+
+  for (let i = 1; i < dateFormat.OUTPUT_LENGTH; ++i) {
+    const predictOut = model.predict(
+        [encoderInput, decoderInput.toTensor()]);
+    const output = (await predictOut.argMax(2).data())[i - 1];
+    predictOut.dispose();
+    decoderInput.set(output, 0, i);
+  }
+  const predictOut = model.predict(
+      [encoderInput, decoderInput.toTensor()]);
+  const finalOutput =
+      (await predictOut.argMax(2).data())[dateFormat.OUTPUT_LENGTH - 1]
+
+  let outputStr = '';
+  for (let i = 1; i < decoderInput.shape[1]; ++i) {
+    outputStr += dateFormat.OUTPUT_VOCAB[decoderInput.get(0, i)];
+  }
+  outputStr += dateFormat.OUTPUT_VOCAB[finalOutput];
+  return outputStr;
+}
+
+function parseArguments() {
+  const argParser = new argparse.ArgumentParser({
+    description:
+        'Train an attention-based date-conversion model in TensorFlow.js'
+  });
+  argParser.addArgument('--epochs', {
+    type: 'int',
+    defaultValue: 2,
+    help: 'Number of epochs to train the model for'
+  });
+  argParser.addArgument('--batchSize', {
+    type: 'int',
+    defaultValue: 128,
+    help: 'Batch size to be used during model training'
+  });
+  return argParser.parseArgs();
+}
+
 async function run() {
+  const args = parseArguments();
+
   const model = createModel(
       dateFormat.INPUT_VOCAB.length, dateFormat.OUTPUT_VOCAB.length,
       dateFormat.INPUT_LENGTH, dateFormat.OUTPUT_LENGTH);
@@ -214,63 +275,41 @@ async function run() {
     valDecoderOutput,
     testDateTuples
   } = generateBatchesForTraining();
-  console.log(trainEncoderInput.shape);  // DEBUG
-  console.log(trainDecoderInput.shape);  // DEBUG
 
   const history = await model.fit(
       [trainEncoderInput, trainDecoderInput], trainDecoderOutput, {
-        epochs: 1,  // TODO(cais): Make this a command-line arg.
-        batchSize: 128,  // TODO(cais): Make this a command-line arg.
+        epochs: args.epochs,
+        batchSize: args.batchSize,
+        shuffle: true,
         validationData: [[valEncoderInput, valDecoderInput], valDecoderOutput]
       });
   console.log(history.history);
 
-  // Run inference.
-  // const y = model.predict([valEncoderInput.gather([0], 0), valDecoderInput.gather([0], 0)])
-  //     .argMax(2).dataSync();
-  // console.log(y);
-  // Array.from(y).forEach(x => console.log(dateFormat.OUTPUT_VOCAB[x]));
-
-  // TODO(cais): Refactor seq2seq inference code into a function.
-  // const testInputStr =
-  // Array.from(valEncoderInput.gather([0], 0).dataSync())
-  // .map(x => dateFormat.INPUT_VOCAB[x]).join('').trim();
-
-  const numTests = 1;
+  // Run seq2seq inference tests and print the results to console.
+  const numTests = 10;
+  const testInputFns = [
+    dateFormat.dateTupleToDDMMMYYYY,
+    dateFormat.dateTupleToMMDDYY,
+    dateFormat.dateTupleToMMSlashDDSlashYY,
+    dateFormat.dateTupleToMMSlashDDSlashYYYY
+  ];
   for (let n = 0; n < numTests; ++n) {
-    const inputStr = dateFormat.dateTupleToDDMMMYYYY(testDateTuples[n]);
-    // const inputStr = testInputStr;
-    console.log('\n-----------------------');
-    console.log(`Input string: ${inputStr}`);  // DEBUG
-    const correctAnswer =
-        dateFormat.dateTupleToYYYYDashMMDashDD(testDateTuples[n]);
-    console.log(`Correct answer: ${correctAnswer}`);  // DEBUG
+    for (const testInputFn of testInputFns) {
+      const inputStr = testInputFn(testDateTuples[n]);
+      console.log('\n-----------------------');
+      console.log(`Input string: ${inputStr}`);
+      const correctAnswer =
+          dateFormat.dateTupleToYYYYDashMMDashDD(testDateTuples[n]);
+      console.log(`Correct answer: ${correctAnswer}`);
 
-    const testEncoderInput = dateFormat.encodeInputDateStrings([inputStr]);
-    const testDecoderInput = tf.buffer([1, dateFormat.OUTPUT_LENGTH]);
-    testDecoderInput.set(dateFormat.START_CODE, 0, 0);
-
-    for (let i = 1; i < dateFormat.OUTPUT_LENGTH; ++i) {
-      console.log(`=== i = ${i}`);  // DEBUG
-      testDecoderInput.toTensor().print();  // DEBUG
-      const predictOut = model.predict(
-          [testEncoderInput, testDecoderInput.toTensor()]);
-      predictOut.print();
-      predictOut.argMax(2).print();  // DEBUG
-      const output = predictOut.argMax(2).dataSync();
-      testDecoderInput.set(output[i - 1], 0, i);
+      const outputStr = await runSeq2SeqInference(model, inputStr);
+      const isCorrect = outputStr === correctAnswer;
+      console.log(
+          `Model output: ${outputStr} (${isCorrect ? 'OK' : 'WRONG'})` );
     }
-    const finalOutput = model.predict(
-        [testEncoderInput, testDecoderInput.toTensor()])
-        .argMax(2).dataSync()[0];
-    console.log(finalOutput);  // DEBUG
-
-    let outputStr = '';
-    for (let i = 1; i < testDecoderInput.shape[1]; ++i) {
-      outputStr += dateFormat.OUTPUT_VOCAB[testDecoderInput.get(0, i)];
-    }
-    console.log(`Model output: ${outputStr}`);
   }
 }
 
-run();
+if (require.main === module) {
+  run();
+}

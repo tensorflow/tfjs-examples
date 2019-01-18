@@ -23,6 +23,8 @@
  * https://github.com/wanasit/katakana/blob/master/notebooks/Attention-based%20Sequence-to-Sequence%20in%20Keras.ipynb
  */
 
+import * as fs from 'fs';
+import * as shelljs from 'shelljs';
 import * as argparse from 'argparse';
 import * as tf from '@tensorflow/tfjs';
 import * as dateFormat from './date_format';
@@ -144,6 +146,10 @@ function parseArguments() {
     defaultValue: 128,
     help: 'Batch size to be used during model training'
   });
+  argParser.addArgument('--savePath', {
+    type: 'string',
+    defaultValue: './dist/model',
+  });
   return argParser.parseArgs();
 }
 
@@ -172,14 +178,23 @@ async function run() {
     testDateTuples
   } = generateDataForTraining();
 
-  const history = await model.fit(
+  await model.fit(
       [trainEncoderInput, trainDecoderInput], trainDecoderOutput, {
         epochs: args.epochs,
         batchSize: args.batchSize,
         shuffle: true,
         validationData: [[valEncoderInput, valDecoderInput], valDecoderOutput]
       });
-  console.log(history.history);
+
+  // Save the model.
+  if (args.savePath != null && args.savePath.length) {
+    if (!fs.existsSync(args.savePath)) {
+      shelljs.mkdir('-p', args.savePath);
+    }
+    const saveURL = `file://${args.savePath}`
+    await model.save(saveURL);
+    console.log(`Saved model to ${saveURL}`);
+  }
 
   // Run seq2seq inference tests and print the results to console.
   const numTests = 10;

@@ -1,0 +1,34 @@
+# TensorFLow.js Example: Date Conversion Through an LSTM-Attention Model
+
+## Overview
+
+This example shows how to use TensorFlow.js to train a model based on
+long short-term memory (LSTM) and the attention mechanism to achieve
+a task of converting various commonly seen date formats (e.g., 01/18/2019,
+18JAN2019, 18-01-2019) to the ISO date format (i.e., 2019-01-18).
+
+## Model training in Node.js
+
+For efficiency, the training of the model happens outside the browser
+in Node.js, using tfjs-node or tfjs-node-gpu.
+
+To run the training job, do
+
+```sh
+yarn
+yarn train
+```
+
+By default, the training uses tfjs-node, which runs on the CUDA.
+If you have a CUDA-enabled GPU and have the CUDA and CuDNN libraries
+set up properly on your system, you can run the training on the GPU
+by:
+
+```sh
+yarn
+yarn train --gpu
+```
+
+## Using the model in the browser
+
+TODO(cais): Implement it.

@@ -26,10 +26,32 @@
 import * as argparse from 'argparse';
 import * as tf from '@tensorflow/tfjs';
 import * as dateFormat from './date_format';
-import {createModel} from './model';
+import {createModel, runSeq2SeqInference} from './model';
 
-// TODO(cais): Need unit test for this.
-function generateBatchesForTraining(trainSplit = 0.8, valSplit = 0.15) {
+/**
+ * Generate sets of data for training.
+ *
+ * @param {number} trainSplit Trainining split. Must be >0 and <1.
+ * @param {number} valSplit Validatoin split. Must be >0 and <1.
+ * @return An `Object` consisting of
+ *   - trainEncoderInput, as a `tf.Tensor` of shape
+ *     `[numTrainExapmles, inputLength]`
+ *   - trainDecoderInput, as a `tf.Tensor` of shape
+ *     `[numTrainExapmles, outputLength]`. The first element of every
+ *     example has been set as START_CODE (the sequence-start symbol).
+ *   - trainDecoderOuptut, as a one-hot encoded `tf.Tensor` of shape
+ *     `[numTrainExamples, outputLength, outputVocabSize]`.
+ *   - valEncoderInput, same as trainEncoderInput, but for the validation set.
+ *   - valDecoderInput, same as trainDecoderInput, but for the validation set.
+ *   - valDecoderOutput, same as trainDecoderOuptut, but for the validation
+ *     set.
+ *   - testDateTuples, date tuples ([year, month, day]) for the test set.
+ */
+export function generateDataForTraining(trainSplit = 0.8, valSplit = 0.15) {
+  tf.util.assert(
+      trainSplit > 0 && valSplit > 0 && trainSplit + valSplit <= 1,
+      `Invalid trainSplit (${trainSplit}) and valSplit (${valSplit})`);
+
   const dateTuples = [];
   const MIN_YEAR = 1950;
   const MAX_YEAR = 2050;
@@ -41,7 +63,6 @@ function generateBatchesForTraining(trainSplit = 0.8, valSplit = 0.15) {
     }
   }
   tf.util.shuffle(dateTuples);
-  console.log(dateTuples.length);
 
   const numTrain = Math.floor(dateTuples.length * trainSplit);
   const numVal = Math.floor(dateTuples.length * valSplit);
@@ -55,26 +76,29 @@ function generateBatchesForTraining(trainSplit = 0.8, valSplit = 0.15) {
 
   // TODO(cais): Use tf.tidy().
   function dateTuplesToTensor(dateTuples) {
-    const inputs = inputFns.map(fn => dateTuples.map(tuple => fn(tuple)));
-    const inputStrings = [];
-    inputs.forEach(inputs => inputStrings.push(...inputs));
-    const encoderInput =
-        dateFormat.encodeInputDateStrings(inputStrings);
-    const trainTargetStrings = dateTuples.map(
-        tuple => dateFormat.dateTupleToYYYYDashMMDashDD(tuple));
-    let decoderInput = dateFormat.encodeOutputDateStrings(trainTargetStrings);
-    // One-step time shift: The decoder input is shifted to the left by
-    // one time step with respect to the encoder input. This accounts for
-    // the step-by-step decoding that happens during inference time.
-    decoderInput = tf.concat([
-      tf.ones([decoderInput.shape[0], 1]).mul(dateFormat.START_CODE),
-      decoderInput.slice(
-          [0, 0], [decoderInput.shape[0], decoderInput.shape[1] - 1])
-    ], 1).tile([inputFns.length, 1]);  
-    const decoderOutput =
-        dateFormat.encodeOutputDateStrings(trainTargetStrings, true)
-        .tile([inputFns.length, 1, 1]);
-    return {encoderInput, decoderInput, decoderOutput};
+    return tf.tidy(() => {
+      const inputs = inputFns.map(fn => dateTuples.map(tuple => fn(tuple)));
+      const inputStrings = [];
+      inputs.forEach(inputs => inputStrings.push(...inputs));
+      const encoderInput =
+          dateFormat.encodeInputDateStrings(inputStrings);
+      const trainTargetStrings = dateTuples.map(
+          tuple => dateFormat.dateTupleToYYYYDashMMDashDD(tuple));
+      let decoderInput =
+          dateFormat.encodeOutputDateStrings(trainTargetStrings);
+      // One-step time shift: The decoder input is shifted to the left by
+      // one time step with respect to the encoder input. This accounts for
+      // the step-by-step decoding that happens during inference time.
+      decoderInput = tf.concat([
+        tf.ones([decoderInput.shape[0], 1]).mul(dateFormat.START_CODE),
+        decoderInput.slice(
+            [0, 0], [decoderInput.shape[0], decoderInput.shape[1] - 1])
+      ], 1).tile([inputFns.length, 1]);  
+      const decoderOutput =
+          dateFormat.encodeOutputDateStrings(trainTargetStrings, true)
+          .tile([inputFns.length, 1, 1]);
+      return {encoderInput, decoderInput, decoderOutput};
+    });
   }
 
   const {
@@ -87,7 +111,6 @@ function generateBatchesForTraining(trainSplit = 0.8, valSplit = 0.15) {
     decoderInput: valDecoderInput,
     decoderOutput: valDecoderOutput
   } = dateTuplesToTensor(dateTuples.slice(numTrain, numTrain + numVal));
-
   return {
     trainEncoderInput,
     trainDecoderInput,
@@ -97,44 +120,6 @@ function generateBatchesForTraining(trainSplit = 0.8, valSplit = 0.15) {
     valDecoderOutput,
     testDateTuples: dateTuples.slice(numTrain + numVal)
   };
-}
-
-/**
- * Perform sequence-to-sequence decoding for date conversion.
- *
- * @param {tf.Model} model The model to be used for the sequence-to-sequence
- *   decoding, with two inputs: 
- *   1. Encoder input of shape `[numExamples, inputLength]`
- *   2. Decoder input of shape `[numExamples, outputLength]`
- *   and one output:
- *   1. Decoder softmax probability output of shape
- *      `[numExamples, outputLength, outputVocabularySize]`
- * @param {string} inputStr Input date string to be converted.
- * @return {string} The converted date string.
- */
-async function runSeq2SeqInference(model, inputStr) {
-  const encoderInput = dateFormat.encodeInputDateStrings([inputStr]);
-  const decoderInput = tf.buffer([1, dateFormat.OUTPUT_LENGTH]);
-  decoderInput.set(dateFormat.START_CODE, 0, 0);
-
-  for (let i = 1; i < dateFormat.OUTPUT_LENGTH; ++i) {
-    const predictOut = model.predict(
-        [encoderInput, decoderInput.toTensor()]);
-    const output = (await predictOut.argMax(2).data())[i - 1];
-    predictOut.dispose();
-    decoderInput.set(output, 0, i);
-  }
-  const predictOut = model.predict(
-      [encoderInput, decoderInput.toTensor()]);
-  const finalOutput =
-      (await predictOut.argMax(2).data())[dateFormat.OUTPUT_LENGTH - 1]
-
-  let outputStr = '';
-  for (let i = 1; i < decoderInput.shape[1]; ++i) {
-    outputStr += dateFormat.OUTPUT_VOCAB[decoderInput.get(0, i)];
-  }
-  outputStr += dateFormat.OUTPUT_VOCAB[finalOutput];
-  return outputStr;
 }
 
 function parseArguments() {
@@ -182,7 +167,7 @@ async function run() {
     valDecoderInput,
     valDecoderOutput,
     testDateTuples
-  } = generateBatchesForTraining();
+  } = generateDataForTraining();
 
   const history = await model.fit(
       [trainEncoderInput, trainDecoderInput], trainDecoderOutput, {

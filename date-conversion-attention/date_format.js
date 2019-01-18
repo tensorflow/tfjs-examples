@@ -41,14 +41,10 @@ export const INPUT_VOCAB = '\n0123456789/' +
         .join('');
 
 // OUTPUT_VOCAB includes an start-of-sequence (SOS) token, represented as
-// "\t".
+// '\t'.
 export const OUTPUT_VOCAB = '\n\t0123456789-';
 
 export const START_CODE = 1;
-
-// randomInt(min, max) {
-//   return Math.floor(Math.random() * (max - min) + min);
-// }
 
 /**
  * Generate a random date.

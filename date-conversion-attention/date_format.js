@@ -27,12 +27,12 @@ const MONTH_NAMES_3LETTER =
 const MIN_DATE = new Date('1950-01-01').getTime();
 const MAX_DATE = new Date('2050-01-01').getTime();
 
-export const INPUT_LENGTH = 10   // Maximum length of all input formats.
+export const INPUT_LENGTH = 12   // Maximum length of all input formats.
 export const OUTPUT_LENGTH = 10  // Length of 'YYYY-MM-DD'.
 
 // Use "\n" for padding for both input and output. It has to be at the
 // beginning so that `mask_zero=True` can be used in the keras model.
-export const INPUT_VOCAB = '\n0123456789/-' +
+export const INPUT_VOCAB = '\n0123456789/-, ' +
     MONTH_NAMES_3LETTER.join('')
         .split('')
         .filter(function(item, i, ar) {
@@ -85,6 +85,32 @@ export function dateTupleToMMDDYY(dateTuple) {
   const dayStr = toTwoDigitString(dateTuple[2]);
   const yearStr = `${dateTuple[0]}`.slice(2);
   return `${monthStr}${dayStr}${yearStr}`;
+}
+
+export function dateTupleToMMMSpaceDDSpaceYY(dateTuple) {
+  const monthStr = MONTH_NAMES_3LETTER[dateTuple[1] - 1];
+  const dayStr = toTwoDigitString(dateTuple[2]);
+  const yearStr = `${dateTuple[0]}`.slice(2);
+  return `${monthStr} ${dayStr} ${yearStr}`;
+}
+
+export function dateTupleToMMMSpaceDDSpaceYYYY(dateTuple) {
+  const monthStr = MONTH_NAMES_3LETTER[dateTuple[1] - 1];
+  const dayStr = toTwoDigitString(dateTuple[2]);
+  return `${monthStr} ${dayStr} ${dateTuple[0]}`;
+}
+
+export function dateTupleToMMMSpaceDDCommaSpaceYY(dateTuple) {
+  const monthStr = MONTH_NAMES_3LETTER[dateTuple[1] - 1];
+  const dayStr = toTwoDigitString(dateTuple[2]);
+  const yearStr = `${dateTuple[0]}`.slice(2);
+  return `${monthStr} ${dayStr}, ${yearStr}`;
+}
+
+export function dateTupleToMMMSpaceDDCommaSpaceYYYY(dateTuple) {
+  const monthStr = MONTH_NAMES_3LETTER[dateTuple[1] - 1];
+  const dayStr = toTwoDigitString(dateTuple[2]);
+  return `${monthStr} ${dayStr}, ${dateTuple[0]}`;
 }
 
 export function dateTupleToDDDashMMDashYYYY(dateTuple) {

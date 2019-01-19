@@ -37,7 +37,7 @@ describe('Date formats', () => {
     for (let i = 0; i < 10; ++i) {
       const str = dateFormat.dateTupleToDDMMMYYYY(
           dateFormat.generateRandomDateTuple());
-      expect(str).toMatch(/[0-3]\d[A-Z][A-Z][A-Z][1-2]\d\d\d/);
+      expect(str).toMatch(/^[0-3]\d[A-Z][A-Z][A-Z][1-2]\d\d\d$/);
     }
   });
 
@@ -45,7 +45,7 @@ describe('Date formats', () => {
     for (let i = 0; i < 10; ++i) {
       const str = dateFormat.dateTupleToMMSlashDDSlashYYYY(
           dateFormat.generateRandomDateTuple());
-      expect(str).toMatch(/[0-1]\d\/[0-3]\d\/[1-2]\d\d\d/);
+      expect(str).toMatch(/^[0-1]\d\/[0-3]\d\/[1-2]\d\d\d$/);
     }
   });
 
@@ -53,7 +53,7 @@ describe('Date formats', () => {
     for (let i = 0; i < 10; ++i) {
       const str = dateFormat.dateTupleToMMSlashDDSlashYY(
           dateFormat.generateRandomDateTuple());
-      expect(str).toMatch(/[0-1]\d\/[0-3]\d\/\d\d/);
+      expect(str).toMatch(/^[0-1]\d\/[0-3]\d\/\d\d$/);
     }
   });
 
@@ -61,7 +61,43 @@ describe('Date formats', () => {
     for (let i = 0; i < 10; ++i) {
       const str = dateFormat.dateTupleToMMDDYY(
           dateFormat.generateRandomDateTuple());
-      expect(str).toMatch(/[0-1]\d[0-3]\d\d\d/);
+      expect(str).toMatch(/^[0-1]\d[0-3]\d\d\d$/);
+    }
+  });
+
+  it('MMMSpaceDDSpaceYY', () => {
+    for (let i = 0; i < 10; ++i) {
+      const str = dateFormat.dateTupleToMMMSpaceDDSpaceYY(
+          dateFormat.generateRandomDateTuple());
+      expect(str).toMatch(
+          /^[A-Z][A-Z][A-Z] [0-3][0-9] [0-9][0-9]$/);
+    }
+  });
+
+  it('MMMSpaceDDSpaceYYYY', () => {
+    for (let i = 0; i < 10; ++i) {
+      const str = dateFormat.dateTupleToMMMSpaceDDSpaceYYYY(
+          dateFormat.generateRandomDateTuple());
+      expect(str).toMatch(
+          /^[A-Z][A-Z][A-Z] [0-3][0-9] [0-9][0-9][0-9][0-9]$/);
+    }
+  });
+
+  it('MMMSpaceDDCommaSpaceYY', () => {
+    for (let i = 0; i < 10; ++i) {
+      const str = dateFormat.dateTupleToMMMSpaceDDCommaSpaceYY(
+          dateFormat.generateRandomDateTuple());
+      expect(str).toMatch(
+          /^[A-Z][A-Z][A-Z] [0-3][0-9], [0-9][0-9]$/);
+    }
+  });
+
+  it('MMMSpaceDDCommaSpaceYYYY', () => {
+    for (let i = 0; i < 10; ++i) {
+      const str = dateFormat.dateTupleToMMMSpaceDDCommaSpaceYYYY(
+          dateFormat.generateRandomDateTuple());
+      expect(str).toMatch(
+          /^[A-Z][A-Z][A-Z] [0-3][0-9], [0-9][0-9][0-9][0-9]$/);
     }
   });
 
@@ -69,7 +105,7 @@ describe('Date formats', () => {
     for (let i = 0; i < 10; ++i) {
       const str = dateFormat.dateTupleToDDDashMMDashYYYY(
           dateFormat.generateRandomDateTuple());
-      expect(str).toMatch(/[0-3]\d-[0-1]\d-[1-2]\d\d\d/);
+      expect(str).toMatch(/^[0-3]\d-[0-1]\d-[1-2]\d\d\d$/);
     }
   });
 
@@ -77,7 +113,7 @@ describe('Date formats', () => {
     for (let i = 0; i < 10; ++i) {
       const str = dateFormat.dateTupleToYYYYDashMMDashDD(
           dateFormat.generateRandomDateTuple());
-      expect(str).toMatch(/[1-2]\d\d\d-[0-1]\d-[0-3]\d/);
+      expect(str).toMatch(/^[1-2]\d\d\d-[0-1]\d-[0-3]\d$/);
     }
   });
 

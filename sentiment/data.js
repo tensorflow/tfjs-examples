@@ -23,6 +23,7 @@ import * as path from 'path';
 
 import {OOV_CHAR, PAD_CHAR, padSequences} from './sequence_utils';
 
+// `import` doesn't seem to work with extract-zip.
 const extract = require('extract-zip');
 
 const DATA_ZIP_URL =

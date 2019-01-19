@@ -64,6 +64,6 @@ Other arguments of the `yarn train` command include:
 - `--embeddingSize` allows you to adjust the dimensionality of the embedding vectors.
 - `--epochs`, `--batchSize`, and `--validationSplit` are training-related settings.
 - `--modelSavePath` allows you to specify where to store the model and metadata after
-  training copmletes.
+  training completes.
 
 The detailed code for training are in the file [train.js](./train.js).

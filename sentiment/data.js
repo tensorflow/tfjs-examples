@@ -74,7 +74,7 @@ function loadFeatures(filePath, numWords, maxLen) {
 
 /**
  * Load IMDB targets from a file.
- * 
+ *
  * @param {string} filePath Path to the binary targets file.
  * @return {tf.Tensor} The targets as `tf.Tensor` of shape `[numExamples, 1]`
  *   and dtype `float32`. It has 0 or 1 values.
@@ -142,6 +142,8 @@ async function maybeExtract(sourcePath, destDir) {
   });
 }
 
+const ZIP_SUFFIX = '.zip';
+
 /**
  * Get the IMDB data through file downloading and extraction.
  *
@@ -152,7 +154,8 @@ async function maybeDownloadAndExtract() {
   const zipDownloadDest = path.join(os.tmpdir(), path.basename(DATA_ZIP_URL));
   await maybeDownload(DATA_ZIP_URL, zipDownloadDest);
 
-  const zipExtractDir = zipDownloadDest.slice(0, zipDownloadDest.length - 4);
+  const zipExtractDir =
+      zipDownloadDest.slice(0, zipDownloadDest.length - ZIP_SUFFIX.length);
   await maybeExtract(zipDownloadDest, zipExtractDir);
   return zipExtractDir;
 }
@@ -202,9 +205,11 @@ export async function loadMetadataTemplate() {
   const zipDownloadDest = path.join(os.tmpdir(), baseName);
   await maybeDownload(METADATA_TEMPLATE_URL, zipDownloadDest);
 
-  const zipExtractDir = zipDownloadDest.slice(0, zipDownloadDest.length - 4);
+  const zipExtractDir =
+      zipDownloadDest.slice(0, zipDownloadDest.length - ZIP_SUFFIX.length);
   await maybeExtract(zipDownloadDest, zipExtractDir);
 
   return JSON.parse(fs.readFileSync(
-      path.join(zipExtractDir, baseName.slice(0, baseName.length - 4))));
+      path.join(zipExtractDir,
+                baseName.slice(0, baseName.length - ZIP_SUFFIX.length))));
 }

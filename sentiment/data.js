@@ -108,9 +108,7 @@ async function maybeDownload(sourceURL, destPath) {
             return resolve();
           });
         });
-        localZipFile.on('error', err => {
-          return reject(err);
-        });
+        localZipFile.on('error', err => reject(err));
       });
     } else {
       return resolve();

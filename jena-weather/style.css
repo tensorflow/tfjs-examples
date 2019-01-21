@@ -1,0 +1,49 @@
+select {
+  font-family: Roboto, sans-serif;
+  margin: 2px;  
+}
+
+.setting {
+  padding: 6px;
+}
+
+#trainModel {
+  margin-top: 12px;
+}
+
+.setting-label {
+  display: inline-block;
+  width: 12em;
+}
+
+.answer-correct {
+  color: green;
+}
+
+.answer-wrong {
+  color: red;
+}
+
+.data-series {
+  display: inline-block;
+  width: 320px;
+  margin: 4px;
+}
+
+.data-options {
+  display: inline-block;
+  width: 320px;
+  margin: 4px;
+}
+
+.data-time-options {
+  width: 240px;
+}
+
+.data-nav {
+  margin: 4px;
+}
+
+.model-training {
+  margin: 4px;
+}

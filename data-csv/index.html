@@ -17,8 +17,11 @@
 
 <html>
 
+
 <head>
-  <link rel="stylesheet" href="https://code.getmdl.io/1.3.0/material.cyan-teal.min.css" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="../shared/tfjs-examples.css" />
   <style>
     .status {
       border: none;
@@ -37,12 +40,6 @@
     .textarea {
       font-size: 20px;
       text-align: center;
-      resize: none;
-    }
-
-    .textoutput {
-      font-size: 20px;
-      text-align: left;
       resize: none;
     }
 
@@ -111,7 +108,7 @@
     <p></p>
     Enter the URL of your csv file below, or click one of the above buttons to
     explore some CSVs we've hosted. Note that you may need to update your web
-    host to allow CORS requests in order to access your data this way.
+    host to allow CORS requests in order to access your data this way.<p></p>
     <textarea class="query" rows="3" cols="64" id="query-url">http://path/to/your.csv</textarea>
     <p></p>
     <div id="buttonDiv">

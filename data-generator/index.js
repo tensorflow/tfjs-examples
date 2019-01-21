@@ -29,11 +29,33 @@ export function generateRows(numRows) {
   return rows;
 }
 
+/**
+ * Takes the state of one complete game and returns features suitable for
+ * training.  Specifically it removes features identifying the opponent' hand
+ * and divides the training features(player 1's hand) from the target (whether
+ * player one wins).
+ * @param {*} gameState
+ */
+export function gameToFeatures(gameState) {
+  features = gameState[0];
+  label = gameState[1];
+  return {features, label};
+}
+
+
+
 /** Sets up handlers for the user affordences, including all buttons. */
 document.addEventListener('DOMContentLoaded', async () => {
-  console.log('content loaded');
-  document.getElementById('generateData')
+  console.log('content loaded... connecting buttons.');
+  document.getElementById('generate-data')
       .addEventListener('click', async () => {
         ui.updateSampleRowOutput(generateRows(ui.getBatchSize()));
       }, false);
+  document.getElementById('simulate-game')
+      .addEventListener('click', async () => {
+        ui.updateSimulationOutput(generateRows(1)[0]);
+      }, false);
+  document.getElementById('toArray').addEventListener('click', async () => {
+    ui.updatePipelineOutput(generateRows(1)[0]);
+  }, false);
 });

@@ -104,21 +104,51 @@
   <div class="divTable">
     <div class="divTableRow">
       <div class="divTableCell">
-        <div id="generateSampleDataMessage"></div>
-        batch?: <input type="checkbox" id="generatorBatch"><br/>
-        batchSize: <input type="number" id="batchSizeInput" value="32"><br/>
-        shuffle?: <input type="checkbox" id="generatorShuffle"><br/>
-        repeat?: <input type="number" id="generatorRepeat" value="1"><br/>
+        <h3>Game Simulation</h3>
+        <button id="simulate-game">Display one simulation</button>
         <p></p>
-        Sample Data Generation
-        <button id="generateData">Generate Sample Data</button><p></p>
-        <div class="container" id="generatedDataContainer">
+        <div class='divTable'>
+          <div class='divTableRow'>
+            <div class='divTableCell' id='sim-p1-1' style='width:12.5%'> </div>
+            <div class='divTableCell' id='sim-p1-2' style='width:12.5%'> </div>
+            <div class='divTableCell' id='sim-p1-3' style='width:12.5%'> </div>
+            <div class='divTableCell' style='width:5%'> </div>
+            <div class='divTableCell' id='sim-p2-1' style='width:12.5%'> </div>
+            <div class='divTableCell' id='sim-p2-2' style='width:12.5%'> </div>
+            <div class='divTableCell' id='sim-p2-3' style='width:12.5%'> </div>
+            <div class='divTableCell' style='width:5%'> </div>
+            <div class='divTableCell' id='sim-result' style='width:12.5%'>0</div>
+          </div>
+        </div>
+        <div class='divTable'>
+          <div class='divTableRow'>
+            <div class='divTableCell' style='width:37.5%'>player 1 </div>
+            <div class='divTableCell' style='width:5%'> </div>
+            <div class='divTableCell' style='width:37.5%'>opponent </div>
+            <div class='divTableCell' style='width:5%'> </div>
+            <div class='divTableCell' style='width:12.5%'>win? </div>
+          </div>
+        </div>
+        <div id="generated-sample-data-message"></div>
+        <h3>Data Pipeline</h3>
+        <h4>tf.dataFromGenerator(simulation↑)</h4>
+        <h4>.map(gameToFeatures)</h4>
+        <h4>.take(<input type="number" id="generator-take" value="32">)</h4>
+        <h4>.batch(<input type="number" id="generator-batch" value="8">)</h4>
+        <h4>.toArray()<button id="toArray">Go</button></h4>
+        <p></p>
+        <div class="container" id="to-array-container">
+          <button id="generate-data">Generate Sample Data</button>
+          <p></p>
+          <div class="container" id="generated-data-container"> </div>
 
         </div>
       </div>
       <div class="divTableCell">
-        <div id="trainModelMessage"></div>
+        <h3>Train Model</h3>
+        <div id="train-model-message"></div>
         Train & Evaluate Model
+        <h3>Use Trained Model</h3>
       </div>
     </div>
   </div>

@@ -168,7 +168,8 @@ document.addEventListener('DOMContentLoaded', async () => {
           `period of time.  In this dataset, 14 different quantities (such ` +
           `as air temperature, atmospheric pressure, humidity, wind ` +
           `direction, and so on) were recorded every 10 minutes, over ` +
-          `several years. `);
+          `several years.  Note that counting all the rows of this dataset` +
+          `might take a while`);
   connectURLButton(
       'bostonButton', BOSTON_HOUSING_CSV_URL,
       `"Boston Housing" is a commonly used dataset in introductory ML problems.`);

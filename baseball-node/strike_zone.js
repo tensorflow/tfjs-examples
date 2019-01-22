@@ -55,11 +55,10 @@ const trainingData =
         .shuffle(TRAINING_DATA_LENGTH)
         .batch(50);
 
-const testData =
+const testValidationData =
     tf.data.csv(TEST_DATA_PATH, {columnConfigs: {is_strike: {isLabel: true}}})
         .map(csvTransform)
-        .shuffle(TEST_DATA_LENGTH)
-        .batch(10);
+        .batch(TEST_DATA_LENGTH);
 
 const model = tf.sequential();
 model.add(tf.layers.dense({units: 20, activation: 'relu', inputShape: [5]}));
@@ -73,6 +72,7 @@ model.compile({
 
 module.exports = {
   model,
-  testData,
+  testValidationData,
   trainingData,
+  TEST_DATA_LENGTH
 };

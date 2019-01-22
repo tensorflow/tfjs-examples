@@ -16,7 +16,7 @@ async function run(epochCount, savePath) {
   // Eval against test data:
   await pitch_type.testValidationData.forEach((data) => {
     const evalOutput = pitch_type.model.evaluate(
-        data[0], data[1], pitch_type.TEST_DATA_LENGTH);  // Constant
+        data[0], data[1], pitch_type.TEST_DATA_LENGTH);
 
     console.log(
         `\nEvaluation result:\n` +

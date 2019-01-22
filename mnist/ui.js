@@ -85,7 +85,7 @@ export function plotAccuracy(batch, accuracy, set) {
       {values: accuracyValues, series: ['train', 'validation']},
       accuracyContainer, {
         xLabel: 'Batch #',
-        yLabel: 'Loss',
+        yLabel: 'Accuracy',
         width: 400,
         height: 300,
       });

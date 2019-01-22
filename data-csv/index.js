@@ -55,13 +55,15 @@ async function countRowsHandler() {
   };
   try {
     ui.updateStatus('Attempting to count records in CSV.');
+    // Note that `tf.data.Dataset.forEach()` is an async function.  Without the
+    // `await` here, there is no control over when the updataFn's will execute,
+    // thus, they will likely execute *after* we update the status with the
+    // final count, resulting in a display of "Counted 0 rows.".
     await myData.forEach(x => updateFn(x));
   } catch (e) {
-    let errorMsg = `Caught an error iterating over ${url}.  `;
-    errorMsg +=
-        'This URL might not be valid or might not support CORS requests.';
-    errorMsg += '  Check the developer console for CORS errors.';
-    errorMsg += e;
+    const errorMsg = `Caught an error iterating over ${url}.  ` +
+        `This URL might not be valid or might not support CORS requests.` +
+        `  Check the developer console for CORS errors.` + e;
     ui.updateRowCountOutput(errorMsg);
     return;
   }
@@ -163,7 +165,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   };
 
   connectURLButton(
-      'jenaClimateButton', JENA_CLIMATE_CSV_URL,
+      'jena-climate-button', JENA_CLIMATE_CSV_URL,
       `Jena climate data is a record of atmospheric conditions taken over a ` +
           `period of time.  In this dataset, 14 different quantities (such ` +
           `as air temperature, atmospheric pressure, humidity, wind ` +
@@ -171,29 +173,29 @@ document.addEventListener('DOMContentLoaded', async () => {
           `several years.  Note that counting all the rows of this dataset` +
           `might take a while`);
   connectURLButton(
-      'bostonButton', BOSTON_HOUSING_CSV_URL,
+      'boston-button', BOSTON_HOUSING_CSV_URL,
       `"Boston Housing" is a commonly used dataset in introductory ML problems.`);
   connectURLButton(
-      'dressesButton', DRESSES_SALES_CSV_URL,
-      `This dataset contain attributes of dresses and their recommendations ` +
+      'dresses-button', DRESSES_SALES_CSV_URL,
+      `This dataset contains attributes of dresses and their recommendations ` +
           `according to their sales. Provided courtesy of OpenML. Find more ` +
           `curated ML datasets at https://www.openml.org/d/23381`);
   connectURLButton(
-      'sunyButton', SUNY_CSV_URL,
+      'suny-button', SUNY_CSV_URL,
       `Campuses which comprise the State University of New York (SUNY) System. ` +
           `Highlights information on Undergraduate and Graduate enrollment ` +
           `as well as some program area offerings.  Find more datasets at ` +
           `https://data.ny.gov/`);
 
   // Connect action buttons.
-  document.getElementById('countRows')
+  document.getElementById('count-rows')
       .addEventListener('click', countRowsHandler, false);
-  document.getElementById('getColumnNames')
+  document.getElementById('get-column-names')
       .addEventListener('click', getColumnNamesHandler, false);
-  document.getElementById('getSampleRow')
+  document.getElementById('get-sample-row')
       .addEventListener('click', getSampleRowHandler, false);
 
   // Connect sample index to fetch on change.
-  document.getElementById('whichSampleInput')
+  document.getElementById('which-sample-input')
       .addEventListener('change', getSampleRowHandler, false);
 }, false);

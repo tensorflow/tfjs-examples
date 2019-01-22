@@ -16,30 +16,28 @@
  */
 
 const statusElement = document.getElementById('status');
-const rowCountOutputElement = document.getElementById('rowCountOutput');
-const columnNamesMessageElement = document.getElementById('columnNamesMessage');
+const rowCountOutputElement = document.getElementById('row-count-output');
+const columnNamesMessageElement =
+    document.getElementById('column-names-message');
 const columnNamesOutputContainerElement =
-    document.getElementById('columnNamesOutputContainer');
-const sampleRowMessageElement = document.getElementById('sampleRowMessage');
+    document.getElementById('column-names-output-container');
+const sampleRowMessageElement = document.getElementById('sample-row-message');
 const sampleRowOutputContainerElement =
-    document.getElementById('sampleRowOutputContainer');
-const whichSampleInputElement = document.getElementById('whichSampleInput');
+    document.getElementById('sample-row-output-container');
+const whichSampleInputElement = document.getElementById('which-sample-input');
 
 /** Updates the large message at the top of the info table */
 export function updateStatus(message) {
-  console.log(message);
   statusElement.value = message;
 };
 
 /** Updates the message in the "count rows" output row. */
 export function updateRowCountOutput(message) {
-  console.log(message);
   rowCountOutputElement.textContent = message;
 };
 
 /** Updates the message in the "column names" output row. */
 export function updateColumnNamesMessage(message) {
-  console.log(message);
   columnNamesMessageElement.textContent = message;
 };
 
@@ -65,7 +63,6 @@ export function updateColumnNamesOutput(colNames) {
 
 // Updates the message in the "sample" output row.
 export function updateSampleRowMessage(message) {
-  console.log(message);
   sampleRowMessageElement.textContent = message;
 };
 

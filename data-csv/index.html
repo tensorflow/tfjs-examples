@@ -100,10 +100,10 @@
   <div class="container">
     <h3>TensorFlow.js: Working with CSV files in tfjs-data</h3>
     <div id="Preset URL buttons">
-      <button id="bostonButton">Boston Housing CSV</button>
-      <button id="dressesButton">Dresses Sales OpenML CSV</button>
-      <button id="jenaClimateButton">Jena Climate CSV</button>
-      <button id="sunyButton">State University Of New York Campuses CSV</button>
+      <button id="boston-button">Boston Housing CSV</button>
+      <button id="dresses-button">Dresses Sales OpenML CSV</button>
+      <button id="jena-climate-button">Jena Climate CSV</button>
+      <button id="suny-button">State University Of New York Campuses CSV</button>
     </div>
     <p></p>
     Enter the URL of your csv file below, or click one of the above buttons to
@@ -111,7 +111,7 @@
     host to allow CORS requests in order to access your data this way.<p></p>
     <textarea class="query" rows="3" cols="64" id="query-url">http://path/to/your.csv</textarea>
     <p></p>
-    <div id="buttonDiv">
+    <div id="button-div">
     </div>
     <p></p>
     <textarea class="status" rows="6" cols="60" readonly="true" id="status">
@@ -122,20 +122,20 @@
       <div class="divTableBody">
         <div class="divTableRow">
           <div class="divTableCell">
-            <button id="countRows">Count rows</button>
+            <button id="count-rows">Count rows</button>
           </div>
-          <div class="divTableCell" id="rowCountOutput">
+          <div class="divTableCell" id="row-count-output">
           </div>
         </div>
       <!-- Get column names-->
       <div class="divTableRow">
           <div class="divTableCell">
-            <button id="getColumnNames">Get column names</button>
+            <button id="get-column-names">Get column names</button>
           </div>
-          <div class="divTableCell" id="columnNamesOutput">
-            <div id="columnNamesMessage">
+          <div class="divTableCell" id="column-names-output">
+            <div id="column-names-message">
             </div>
-            <div id="columnNamesOutputContainer">
+            <div id="column-names-output-container">
             </div>
           </div>
         </div>
@@ -143,13 +143,13 @@
       <!-- Get sample row-->
       <div class="divTableRow">
         <div class="divTableCell">
-          <button id="getSampleRow">Get a sample row</button><p></p>
-          sample index (zero-index): <input type="number" id="whichSampleInput" value="2">
+          <button id="get-sample-row">Get a sample row</button><p></p>
+          sample index (zero-index): <input type="number" id="which-sample-input" value="2">
         </div>
         <div class="divTableCell">
-          <div id="sampleRowMessage">
+          <div id="sample-row-message">
           </div>
-          <div id="sampleRowOutputContainer">
+          <div id="sample-row-output-container">
           </div>
         </div>
       </div>

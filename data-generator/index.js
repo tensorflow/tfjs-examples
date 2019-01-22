@@ -21,13 +21,22 @@ import * as tf from '@tensorflow/tfjs';
 import * as game from './game';
 import * as ui from './ui';
 
-export function generateRows(numRows) {
+export function playNTimes(numRows) {
   const rows = [];
   for (let i = 0; i < numRows; i++) {
     rows.push(game.generateOnePlay());
   }
   return rows;
 }
+
+/**
+ * Returns a dataset which will yield unlimited plays of the game.
+ */
+export const GAME_GENERATOR_DATASET = tf.data.generator(() => {
+  const value = game.generateOnePlay();
+  const done = false;
+  return {value, done};
+});
 
 /**
  * Takes the state of one complete game and returns features suitable for
@@ -47,15 +56,16 @@ export function gameToFeatures(gameState) {
 /** Sets up handlers for the user affordences, including all buttons. */
 document.addEventListener('DOMContentLoaded', async () => {
   console.log('content loaded... connecting buttons.');
-  document.getElementById('generate-data')
+  document.getElementById('generate-sample-data')
       .addEventListener('click', async () => {
-        ui.updateSampleRowOutput(generateRows(ui.getBatchSize()));
+        ui.updateSampleRowOutput(playNTimes(ui.getBatchSize()));
       }, false);
   document.getElementById('simulate-game')
       .addEventListener('click', async () => {
-        ui.updateSimulationOutput(generateRows(1)[0]);
+        ui.updateSimulationOutput(playNTimes(1)[0]);
       }, false);
-  document.getElementById('toArray').addEventListener('click', async () => {
-    ui.updatePipelineOutput(generateRows(1)[0]);
-  }, false);
+  document.getElementById('dataset-to-array')
+      .addEventListener('click', async () => {
+        ui.datasetToArrayHandler(GAME_GENERATOR_DATASET);
+      }, false);
 });

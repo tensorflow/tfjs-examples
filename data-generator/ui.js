@@ -21,6 +21,7 @@ const generatedDataContainerElement =
     document.getElementById('generated-data-container');
 const toArrayContainerElement = document.getElementById('to-array-container');
 const batchSizeElement = document.getElementById('generator-batch');
+const takeElement = document.getElementById('generator-take');
 
 /** Updates the message at the top of the sample data column. */
 export function updateSampleDataMessage(message) {
@@ -33,6 +34,10 @@ export function getBatchSize() {
   return batchSizeElement.valueAsNumber;
 }
 
+/** Returns current value of the number to take a number. */
+export function getTake() {
+  return takeElement.valueAsNumber;
+}
 
 
 /**
@@ -55,9 +60,11 @@ export function updateSimulationOutput(sample) {
  * data.
  * TODO(bileschi): describe the format of the input `generatedArray`
  */
-export function updatePipelineOutput(generatedArray) {
+export async function datasetToArrayHandler(dataset) {
   generatedDataContainerElement.textContent = '';
-  for (const sample of generatedArray) {
+  const arr = await dataset.take(getTake()).batch(getBatchSize()).toArray();
+  console.log(arr);
+  for (const sample of arr) {
     const oneKeyRow = document.createElement('div');
     oneKeyRow.className = 'divTableRow';
     oneKeyRow.align = 'left';

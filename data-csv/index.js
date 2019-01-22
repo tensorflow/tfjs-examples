@@ -142,7 +142,7 @@ async function getSampleRowHandler() {
   ui.updateSampleRowOutput(sample[0]);
 };
 
-/**Clears output messages and tables. */
+/** Clears output messages and tables. */
 const resetOutputMessages = () => {
   ui.updateRowCountOutput('click "Count rows"');
   ui.updateColumnNamesMessage('click "Get column names"');

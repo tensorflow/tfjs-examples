@@ -1,5 +1,5 @@
+require('@tensorflow/tfjs-node');
 const argparse = require('argparse');
-const tf = require('@tensorflow/tfjs-node');
 const pitch_type = require('./pitch_type');
 
 async function run(epochCount, savePath) {
@@ -8,22 +8,27 @@ async function run(epochCount, savePath) {
     epochs: epochCount,
     callbacks: {
       onEpochEnd: async (epoch, logs) => {
-        console.log(epoch, logs.loss);
+        console.log(`Epoch: ${epoch} - loss: ${logs.loss}`);
       }
     }
   });
 
   // Eval against test data:
-  console.log(pitch_type.model.evaluate(true /* useTestData */));
+  await pitch_type.testValidationData.forEach((data) => {
+    const evalOutput = pitch_type.model.evaluate(
+        data[0], data[1], pitch_type.TEST_DATA_LENGTH);  // Constant
+
+    console.log(
+        `\nEvaluation result:\n` +
+        `  Loss = ${evalOutput[0].dataSync()[0].toFixed(3)}; ` +
+        `Accuracy = ${evalOutput[1].dataSync()[0].toFixed(3)}`);
+  });
 
   if (savePath !== null) {
     await pitch_type.model.save(`file://${savePath}`);
     console.log(`Saved model to path: ${savePath}`);
   }
 }
-
-run();
-
 
 const parser = new argparse.ArgumentParser(
     {description: 'TensorFlow.js Pitch Type Training Example', addHelp: true});
@@ -38,6 +43,5 @@ parser.addArgument('--model_save_path', {
 });
 
 const args = parser.parseArgs();
-console.log('args', typeof (args.epochs));
 
 run(args.epochs, args.model_save_path)

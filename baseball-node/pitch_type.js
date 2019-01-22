@@ -65,12 +65,6 @@ const trainingData =
         .shuffle(TRAINING_DATA_LENGTH)
         .batch(100);
 
-const testData =
-    tf.data.csv(TEST_DATA_PATH, {columnConfigs: {pitch_code: {isLabel: true}}})
-        .map(csvTransform)
-        .shuffle(TEST_DATA_LENGTH)
-        .batch(100);
-
 // Load all training data in one batch to use for eval:
 const trainingValidationData =
     tf.data.csv(TRAIN_DATA_PATH, {columnConfigs: {pitch_code: {isLabel: true}}})
@@ -78,7 +72,7 @@ const trainingValidationData =
         .batch(TRAINING_DATA_LENGTH);
 
 // Load all test data in one batch to use for eval:
-const testDataValidationData =
+const testValidationData =
     tf.data.csv(TEST_DATA_PATH, {columnConfigs: {pitch_code: {isLabel: true}}})
         .map(csvTransform)
         .batch(TEST_DATA_LENGTH);
@@ -119,7 +113,7 @@ async function evaluate(useTestData) {
   });
 
   if (useTestData) {
-    await testDataValidationData.forEach((pitchTypeBatch) => {
+    await testValidationData.forEach((pitchTypeBatch) => {
       const values = model.predict(pitchTypeBatch[0]).dataSync();
       const classSize = TEST_DATA_LENGTH / NUM_PITCH_CLASSES;
       const labels = pitchTypeBatch[1].dataSync();
@@ -168,6 +162,7 @@ module.exports = {
   evaluate,
   model,
   pitchFromClassNum,
-  testData,
-  trainingData
+  testValidationData,
+  trainingData,
+  TEST_DATA_LENGTH
 }

@@ -92,23 +92,13 @@ model.compile({
 // to include test data.
 async function evaluate(useTestData) {
   let results = {};
-
-  // TODO(kreger): Refactor and clean this up:
   await trainingValidationData.forEach((pitchTypeBatch) => {
     const values = model.predict(pitchTypeBatch[0]).dataSync();
     const classSize = TRAINING_DATA_LENGTH / NUM_PITCH_CLASSES;
-
     for (let i = 0; i < NUM_PITCH_CLASSES; i++) {
-      // Output has 7 different class values for each pitch, offset based on
-      // which pitch class (ordered by i):
-      let index = (i * classSize * NUM_PITCH_CLASSES) + i;
-      let total = 0;
-      for (let j = 0; j < classSize; j++) {
-        total += values[index];
-        index += NUM_PITCH_CLASSES;
-      }
-
-      results[pitchFromClassNum(i)] = {training: total / classSize};
+      results[pitchFromClassNum(i)] = {
+        training: calcPitchClassEval(i, classSize, values)
+      };
     }
   });
 
@@ -116,24 +106,26 @@ async function evaluate(useTestData) {
     await testValidationData.forEach((pitchTypeBatch) => {
       const values = model.predict(pitchTypeBatch[0]).dataSync();
       const classSize = TEST_DATA_LENGTH / NUM_PITCH_CLASSES;
-      const labels = pitchTypeBatch[1].dataSync();
-
       for (let i = 0; i < NUM_PITCH_CLASSES; i++) {
-        // Output has 7 different class values for each pitch, offset based on
-        // which pitch class (ordered by i):
-        let index = (i * classSize * NUM_PITCH_CLASSES) + i;
-        let total = 0;
-        const test = labels[index];
-        for (let j = 0; j < classSize; j++) {
-          total += values[index];
-          index += NUM_PITCH_CLASSES;
-        }
-
-        results[pitchFromClassNum(i)].validation = total / classSize;
+        results[pitchFromClassNum(i)].validation =
+            calcPitchClassEval(i, classSize, values);
       }
     });
   }
   return results;
+}
+
+// Determines accuracy evaluation for a given pitch class by index:
+function calcPitchClassEval(pitchIndex, classSize, values) {
+  // Output has 7 different class values for each pitch, offset based on
+  // which pitch class (ordered by i):
+  let index = (pitchIndex * classSize * NUM_PITCH_CLASSES) + pitchIndex;
+  let total = 0;
+  for (let i = 0; i < classSize; i++) {
+    total += values[index];
+    index += NUM_PITCH_CLASSES;
+  }
+  return total / classSize;
 }
 
 // Returns the string value for Baseball pitch labels

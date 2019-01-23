@@ -26,7 +26,7 @@ const BAR_WIDTH_PX = 300;
 
 evalTestButton.onclick = () => {
   evalTestButton.textContent = 'Loading...';
-  socket.emit('test_data', '' + true);
+  socket.emit('test_data', 'true');
 };
 
 socket.on('connect', () => {

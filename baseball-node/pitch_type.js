@@ -91,6 +91,7 @@ model.compile({
 // Returns pitch class evaluation percentages for training data with an option
 // to include test data.
 async function evaluate(useTestData) {
+  // TODO(kreeger): Consider using model.evaluateDataset()
   let results = {};
   await trainingValidationData.forEach((pitchTypeBatch) => {
     const values = model.predict(pitchTypeBatch[0]).dataSync();

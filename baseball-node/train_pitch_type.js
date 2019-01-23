@@ -25,7 +25,7 @@ async function run(epochCount, savePath) {
     epochs: epochCount,
     callbacks: {
       onEpochEnd: async (epoch, logs) => {
-        console.log(`Epoch: ${epoch} - loss: ${logs.loss}`);
+        console.log(`Epoch: ${epoch} - loss: ${logs.loss.toFixed(3)}`);
       }
     }
   });

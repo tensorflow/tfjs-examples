@@ -1,4 +1,4 @@
-# TensorFlow.js Example: Training a baseball model in Node.js 
+# TensorFlow.js Example: Training a baseball model in Node.js
 
 This demo demonstrates how to train a server-side model to classify baseball pitch types using [Node.js](https://github.com/tensorflow/tfjs-node).
 
@@ -12,29 +12,39 @@ It has four parts:
 
 
 ## Running the Demo
-First, prepare the environment and download the baseball training and test data:
+First, prepare the environment:
 ```sh
-yarn && yarn download-data
+$ npm install
+# or
+$ yarn
 ```
 
 Next, start the client:
 ```sh
-yarn start-client
+$ npm run start-client
+# or
+$ yarn start-client
 ```
 
 Open the client running at: http://localhost:8080/
 
 In a new shell, start the server:
 ```sh
-yarn start-server
+$ npm run start-server
+# or
+$ yarn start-server
 ```
 
-If you are interested in testing out the training, without running a web server:
+Two small scripts are provided to test training both of the baseball models without running the client/server demo:
+
+* Pitch Type model:
 ```sh
-yarn train-pitch-model
+$ node train_pitch_type.js
 ```
+
+* Strike Zone model:
 ```sh
-yarn train-strike-model
+$ node train_strike_zone.js
 ```
 
 ## Baseball Models

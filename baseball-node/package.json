@@ -3,8 +3,7 @@
   "version": "0.2.0",
   "description": "Deep learning models for classifying baseball metrics",
   "scripts": {
-    "download-data": "./scripts/download-data.sh",
-    "start-client": "webpack-dev-server",
+    "start-client": "webpack && webpack-dev-server",
     "start-server": "node server.js"
   },
   "license": "Apache-2.0",

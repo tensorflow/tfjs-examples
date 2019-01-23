@@ -109,6 +109,11 @@
         <p></p>
         <div class='divTable'>
           <div class='divTableRow'>
+            <div class='divTableCell' style='width:100%'>Simulation Results </div>
+          </div>
+        </div>
+        <div class='divTable'>
+          <div class='divTableRow'>
             <div class='divTableCell' id='sim-p1-1' style='width:12.5%'> </div>
             <div class='divTableCell' id='sim-p1-2' style='width:12.5%'> </div>
             <div class='divTableCell' id='sim-p1-3' style='width:12.5%'> </div>
@@ -129,19 +134,30 @@
             <div class='divTableCell' style='width:12.5%'>win? </div>
           </div>
         </div>
+        <div class='divTable'>
+          <div class='divTableRow'>
+            <div class='divTableCell' style='width:100%'>
+              <b>Game to features and label.</b> Note that the features fed into the model only include values visible to player 1, since we want
+              to predict player 1's probability of winning.
+            </div>
+          </div>
+          <div class='divTableRow'>
+            <div class='divTableCell' style='width:100%' id='sim-features-and-label'>Click "sample" to run</div>
+          </div>
+        </div>
         <div id="generated-sample-data-message"></div>
         <h3>Data Pipeline</h3>
         <h4>tf.dataFromGenerator(simulation↑)</h4>
         <h4>.map(gameToFeatures)</h4>
-        <h4>.take(<input type="number" id="generator-take" value="32">)</h4>
-        <h4>.batch(<input type="number" id="generator-batch" value="8">)</h4>
-        <h4>.toArray()<button id="dataset-to-array">dataset-to-array</button></h4>
+        <h4>.take(
+          <input type="number" id="generator-take" value="32">)</h4>
+        <h4>.batch(
+          <input type="number" id="generator-batch" value="8">)</h4>
+        <h4>.toArray()
+          <button id="dataset-to-array">dataset-to-array</button>
+        </h4>
         <p></p>
         <div class="container" id="to-array-container">
-          <button id="generate-sample-data">generate-sample-data</button>
-          <p></p>
-          <div class="container" id="generated-data-container"> </div>
-
         </div>
       </div>
       <div class="divTableCell">

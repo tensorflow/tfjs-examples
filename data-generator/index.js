@@ -45,27 +45,23 @@ export const GAME_GENERATOR_DATASET = tf.data.generator(() => {
  * player one wins).
  * @param {*} gameState
  */
-export function gameToFeatures(gameState) {
-  features = gameState[0];
-  label = gameState[1];
+export function gameToFeaturesAndLabel(gameState) {
+  const features = gameState[0];
+  const label = gameState[2];
   return {features, label};
 }
-
-
 
 /** Sets up handlers for the user affordences, including all buttons. */
 document.addEventListener('DOMContentLoaded', async () => {
   console.log('content loaded... connecting buttons.');
-  document.getElementById('generate-sample-data')
-      .addEventListener('click', async () => {
-        ui.updateSampleRowOutput(playNTimes(ui.getBatchSize()));
-      }, false);
   document.getElementById('simulate-game')
-      .addEventListener('click', async () => {
-        ui.updateSimulationOutput(playNTimes(1)[0]);
+    .addEventListener('click', async () => {
+      const sample = playNTimes(1)[0];
+      const featuresAndLabel = gameToFeaturesAndLabel(sample);
+        ui.updateSimulationOutput(sample, featuresAndLabel);
       }, false);
   document.getElementById('dataset-to-array')
       .addEventListener('click', async () => {
-        ui.datasetToArrayHandler(GAME_GENERATOR_DATASET);
+        ui.datasetToArrayHandler(GAME_GENERATOR_DATASET.map(gameToFeaturesAndLabel));
       }, false);
 });

@@ -57,10 +57,10 @@ async function simulateGameHandler() {
 
 /** @see datasetToArrayHandler */
 async function datasetToArray() {
-  const arr = await GAME_GENERATOR_DATASET.map(gameToFeaturesAndLabel)
-                  .take(ui.getTake())
-                  .batch(ui.getBatchSize())
-                  .toArray();
+  return GAME_GENERATOR_DATASET.map(gameToFeaturesAndLabel)
+      .take(ui.getTake())
+      .batch(ui.getBatchSize())
+      .toArray();
 }
 
 /**
@@ -73,38 +73,44 @@ async function datasetToArray() {
  * array to the UI to render in a table.
  */
 async function datasetToArrayHandler() {
-  ui.displayBatches(datasetToArray());
+  const arr = await datasetToArray();
+  ui.displayBatches(arr);
 }
 
 function createLinearModel() {
   const model = tf.sequential();
-  model.add(tf.layers.dense({ units: 1 }));
+  model.add(tf.layers.dense({inputShape: 3, units: 1}));
   return model;
 }
 
 async function trainModelUsingFitDataset(model, dataset) {
-  const fitDatasetConfig = {
-    epochs: params.epochs,
-    validationData: validationDataset,
+  const EPOCHS = 10;
+  const BATCHES_PER_EPOCH = 100;
+  const VALIDATION_BATCHES = 10;
+  const trainLogs = [];
+  const fitDatasetArgs = {
+    batchesPerEpoch: BATCHES_PER_EPOCH,
+    epochs: EPOCHS,
+    validationData: dataset,
+    validationBatches: VALIDATION_BATCHES,
     callbacks: {
       onEpochEnd: async (epoch, logs) => {
         // Plot the loss and accuracy values at the end of every training epoch.
         const secPerEpoch =
-          (performance.now() - beginMs) / (1000 * (epoch + 1));
-        ui.status(
-          `Training model... Approximately ` +
-          `${secPerEpoch.toFixed(4)} seconds per epoch`);
+            (performance.now() - beginMs) / (1000 * (epoch + 1));
+        ui.logStatus(
+            `Training model... Approximately ` +
+            `${secPerEpoch.toFixed(4)} seconds per epoch`);
         trainLogs.push(logs);
-        tfvis.show.history(lossContainer, trainLogs, ['loss', 'val_loss'])
-        tfvis.show.history(accContainer, trainLogs, ['acc', 'val_acc'])
-        const [[xTest, yTest]] = await validationDataset.toArray();
-        calculateAndDrawConfusionMatrix(model, xTest, yTest);
+        tfvis.show.history(
+            ui.getLossContainer(), trainLogs, ['loss', 'val_loss'])
+        tfvis.show.history(
+            ui.getAccurcyContainer(), trainLogs, ['acc', 'val_acc'])
       },
     }
   };
-  await model.fitDataset(dataset, fitDatasetConfig);
+  await model.fitDataset(dataset, fitDatasetArgs);
 }
-
 
 
 
@@ -113,10 +119,11 @@ async function trainModelUsingFitDatasetHandler() {
   const model = createLinearModel();
   model.compile({
     optimizer: 'rmsprop',
-    loss: 'mse',
+    loss: 'meanSquaredError',
     metrics: ['accuracy'],
   });
-  trainModelUsingFitDataset(model, GAME_GENERATOR_DATASET);
+  trainModelUsingFitDataset(
+      model, GAME_GENERATOR_DATASET.map(gameToFeaturesAndLabel));
 }
 
 /** Sets up handlers for the user affordences, including all buttons. */

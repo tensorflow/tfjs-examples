@@ -22,6 +22,17 @@ const generatedDataContainerElement =
 const toArrayContainerElement = document.getElementById('to-array-container');
 const batchSizeElement = document.getElementById('generator-batch');
 const takeElement = document.getElementById('generator-take');
+const statusElement = document.getElementById('train-model-message');
+const lossContainerElement = document.getElementById('training-loss-canvas');
+const accuracyContainerElement =
+    document.getElementById('training-accuracy-canvas');
+
+/** borrowd from mnist.  probably remove */
+export function logStatus(message) {
+  statusElement.innerText = message;
+}
+
+
 
 /** Returns current value of the batchSize a number. */
 export function getBatchSize() {
@@ -31,6 +42,14 @@ export function getBatchSize() {
 /** Returns current value of the number to take a number. */
 export function getTake() {
   return takeElement.valueAsNumber;
+}
+
+export function getLossContainer() {
+  return lossContainerElement;
+}
+
+export function getAccuracyContainer() {
+  return accuracyContainerElement;
 }
 
 /**
@@ -45,7 +64,8 @@ export function displaySimulation(sample, featuresAndLabel) {
   document.getElementById('sim-p2-2').innerText = sample[1][1];
   document.getElementById('sim-p2-3').innerText = sample[1][2];
   document.getElementById('sim-result').innerText = sample[2];
-  document.getElementById('sim-features-and-label').innerText = JSON.stringify(featuresAndLabel);
+  document.getElementById('sim-features-and-label').innerText =
+      JSON.stringify(featuresAndLabel);
 };
 
 /**

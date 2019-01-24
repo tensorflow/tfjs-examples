@@ -32,6 +32,9 @@ export function randomHand() {
   return [getRandomDigit(), getRandomDigit(), getRandomDigit()];
 }
 
+/**
+ * Returns face value of any matching triple in the hand, or zero if no triple exists.
+ */
 function tripleVal(hand) {
   if ((hand[0] === hand[1]) && (hand[1] === hand[2])) {
     return 100 * hand[0];
@@ -39,6 +42,9 @@ function tripleVal(hand) {
   return 0;
 }
 
+/**
+ * Returns face value of any matching pair in the hand, or zero if no pair exists.
+ */
 function doubleVal(hand) {
   if (hand[0] === hand[1]) {
     return 10 * hand[0];
@@ -52,6 +58,9 @@ function doubleVal(hand) {
   return 0;
 }
 
+/**
+ * Returns the highest number in the hand.
+ */
 function singleVal(hand) {
   return Math.max(...hand);
 }

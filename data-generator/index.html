@@ -16,8 +16,23 @@
 <html>
 
 <head>
-  <link rel="stylesheet" href="https://code.getmdl.io/1.3.0/material.cyan-teal.min.css" />
+  <link rel="stylesheet" href="../shared/tfjs-examples.css" />
   <style>
+    #train {
+      margin-top: 10px;
+    }
+
+    label {
+      display: inline-block;
+      width: 250px;
+      padding: 6px 0 6px 0;
+    }
+
+    .canvases {
+      display: inline-block;
+    }
+
+
     .status {
       border: none;
       font-size: 20px;
@@ -98,13 +113,29 @@
 
 <body>
   <div class="container">
-    <h3>TensorFlow.js: tfjs-data basics</h3>
-    This is some text.
+    <section class='title-area'>
+      <h3>TensorFlow.js: tfjs-data basics</h3>
+      This is some text.
+    </section>
   </div>
   <div class="divTable">
     <div class="divTableRow">
-      <div class="divTableCell">
-        <h3>Game Simulation</h3>
+      <div class="divTableCell" style='width:50%'>
+        <p class='section-head'>Game Simulation</p>
+        Click "Simulate Game" to run one play of the game. Three numbers will be randomly selected for each player. The
+        "win" status
+        will indicate whether player one's numbers beat the opponent's numbers.
+        <p></p>
+        Rules:
+        <ul>
+          <li>Any triple beats any double.</li>
+          <li>Any double beats any single.</li>
+          <li>If both players have a triple, the higher triple wins.</li>
+          <li>If both players have a double, the higher double wins.</li>
+          <li>If neither player has a double, the player with the highest individual number wins.</li>
+          <li> Ties go to the opponenet.</li>
+        </ul>
+        <p></p>
         <button id="simulate-game">simulate-game</button>
         <p></p>
         <div class='divTable'>
@@ -137,8 +168,9 @@
         <div class='divTable'>
           <div class='divTableRow'>
             <div class='divTableCell' style='width:100%'>
-              <b>Game to features and label.</b> Note that the features fed into the model only include values visible to player 1, since we want
-              to predict player 1's probability of winning.
+              <b>Game to features and label.</b> Note that the features fed into the model only include values visible
+              to player
+              1, since we want to predict player 1's probability of winning.
             </div>
           </div>
           <div class='divTableRow'>
@@ -146,7 +178,7 @@
           </div>
         </div>
         <div id="generated-sample-data-message"></div>
-        <h3>Data Pipeline</h3>
+        <p class='section-head'>Data Pipeline</p>
         <h4>tf.dataFromGenerator(simulation↑)</h4>
         <h4>.map(gameToFeatures)</h4>
         <h4>.take(
@@ -160,13 +192,29 @@
         <div class="container" id="to-array-container">
         </div>
       </div>
-      <div class="divTableCell">
-        <h3>Train Model</h3>
+      <div class="divTableCell" style='width:50%'>
+        <p class='section-head'>Train Model</p>
         <div id="train-model-message"></div>
         Train & Evaluate Model
-        <button id="train-model-using-fit">train-model-using-fit</button>
         <button id="train-model-using-fit-dataset">train-model-using-fit-dataset</button>
-        <h3>Use Trained Model</h3>
+        <section>
+          <p class='section-head'>Training Progress</p>
+          <p id="training-status"></p>
+          <p id="training-message"></p>
+
+          <div id="training-stats">
+            <div class="canvases">
+              <label id="training-loss-label"></label>
+              <div id="training-loss-canvas"></div>
+            </div>
+            <div class="canvases">
+              <label id="training-accuracy-label"></label>
+              <div id="training-accuracy-canvas"></div>
+            </div>
+          </div>
+        </section>
+
+        <p class='section-head'>Use Trained Model</p>
       </div>
     </div>
   </div>

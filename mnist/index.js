@@ -105,10 +105,21 @@ function createDenseModel() {
 }
 
 /**
+ * This callback type is used by the `train` function for insertion into
+ * the model.fit callback loop.
+ *
+ * @callback onIterationCallback
+ * @param {string} eventType Selector for which type of event to fire on.
+ * @param {number} batchOrEpochNumber The current epoch / batch number
+ * @param {tf.Logs} logs Logs to append to
+ */
+
+/**
  * Compile and train the given model.
  *
  * @param {tf.Model} model The model to train.
- * @param {} onIteration A callback to execute every 10 batches & epoch end.
+ * @param {onIterationCallback} onIteration A callback to execute every 10
+ *     batches & epoch end.
  */
 async function train(model, onIteration) {
   ui.logStatus('Training model...');

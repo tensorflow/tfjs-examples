@@ -33,7 +33,7 @@ function getRandomDigit() {
  * is an integer randomly selected within the range [1, 9].
  */
 export function randomHand() {
-  return [getRandomDigit(), getRandomDigit(), getRandomDigit()];
+  return [getRandomDigit(), getRandomDigit(), getRandomDigit()].sort();
 }
 
 /**

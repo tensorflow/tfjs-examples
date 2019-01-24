@@ -181,11 +181,11 @@
         </div>
         <div class='divTable'>
           <div class='divTableRow'>
-              <div class='divTableCell' style='width:20%'>Features: </div>
-              <div class='divTableCell' style='width:80%' id='sim-features'>Click "sample" to run</div>
-            </div>
+            <div class='divTableCell' style='width:20%'>Features: </div>
+            <div class='divTableCell' style='width:80%' id='sim-features'>Click "sample" to run</div>
+          </div>
           <div class='divTableRow'>
-              <div class='divTableCell' style='width:20%'>Label: </div>
+            <div class='divTableCell' style='width:20%'>Label: </div>
             <div class='divTableCell' style='width:80%' id='sim-label'></div>
           </div>
         </div>
@@ -232,7 +232,22 @@
             </div>
           </section>
 
-          <p class='section-head'>Use Trained Model</p>
+          <section>
+            <p class='section-head'>Use Trained Model</p>
+            <h4>card 1
+              <input type="number" id="input-card-1" value="2"></h4>
+            <h4>card 2(
+              <input type="number" id="input-card-2" value="7"></h4>
+            <h4>card 3(
+              <input type="number" id="input-card-3" value="7"></h4>
+              <button id="predict">predict</button>
+              predicted liklihood of winning:
+              <div class="container" id="prediction">
+
+              </div>
+
+          </section>
+
       </div>
     </div>
   </div>

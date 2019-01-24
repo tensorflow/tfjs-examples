@@ -39,6 +39,11 @@ export const GAME_GENERATOR_DATASET = tf.data.generator(() => {
 let SAMPLE_GAME_STATE;
 
 /**
+ * Holds the model to be trained & evaluated.
+ */
+let GLOBAL_MODEL;
+
+/**
  * Takes the state of one complete game and returns features suitable for
  * training.  Specifically it removes features identifying the opponent' hand
  * and divides the training features(player 1's hand) from the target (whether
@@ -46,7 +51,6 @@ let SAMPLE_GAME_STATE;
  * @param {*} gameState
  */
 export function gameToFeaturesAndLabelOneHot(gameState) {
-  // const features = gameState[0];
   const features = tf.concat([
     tf.oneHot(tf.scalar(gameState[0][0] - 1, 'int32'), game.MAX_CARD_VALUE),
     tf.oneHot(tf.scalar(gameState[0][1] - 1, 'int32'), game.MAX_CARD_VALUE),
@@ -107,27 +111,17 @@ async function datasetToArrayHandler() {
   ui.displayNumSimulationsSoFar(game.NUM_SIMULATIONS_SO_FAR);
 }
 
-function getInputWidth() {
-  if (ui.getUseOneHot()) {
-    return 27;
-  }
-  return 3;
-}
-
-function createLinearModel() {
-  const model = tf.sequential();
-  model.add(tf.layers.dense(
-      {inputShape: [getInputWidth()], units: 1, activation: 'sigmoid'}));
-  return model;
-}
-
 function createDNNModel() {
-  const model = tf.sequential();
-  model.add(tf.layers.dense(
-      {inputShape: [getInputWidth()], units: 10, activation: 'relu'}));
-  model.add(tf.layers.dense({units: 10, activation: 'relu'}));
-  model.add(tf.layers.dense({units: 1, activation: 'sigmoid'}));
-  return model;
+  GLOBAL_MODEL = tf.sequential();
+  GLOBAL_MODEL.add(tf.layers.dense({
+    inputShape: [ui.getUseOneHot() ? 27 : 3],
+    units: 10,
+    activation: 'relu'
+  }));
+  GLOBAL_MODEL.add(tf.layers.dense({units: 10, activation: 'relu'}));
+  GLOBAL_MODEL.add(tf.layers.dense({units: 10, activation: 'relu'}));
+  GLOBAL_MODEL.add(tf.layers.dense({units: 1, activation: 'sigmoid'}));
+  return GLOBAL_MODEL;
 }
 
 async function trainModelUsingFitDataset(model, dataset) {
@@ -161,9 +155,9 @@ async function trainModelUsingFitDataset(model, dataset) {
   await model.fitDataset(dataset, fitDatasetArgs);
 }
 
+const LEARNING_RATE = 0.001;
+
 async function trainModelUsingFitDatasetHandler() {
-  console.log('I am train model using fit DATASET handler');
-  // const model = createLinearModel();
   const model = createDNNModel();
   model.compile({
     optimizer: 'rmsprop',
@@ -174,19 +168,6 @@ async function trainModelUsingFitDatasetHandler() {
                       .map(gameToFeaturesAndLabel)  // {F: vector, L: scalar}
                       .map(a => [a.features, a.label])  // [vector, scalar]
                       .batch(ui.getBatchSize());
-  console.log('SOURCE');
-  console.log(await GAME_GENERATOR_DATASET.take(1).toArray());
-  console.log('FEAT LABEL');
-  console.log(await GAME_GENERATOR_DATASET.map(gameToFeaturesAndLabel)
-                  .take(1)
-                  .toArray());
-  console.log('MAP TO ARRAY');
-  console.log(await GAME_GENERATOR_DATASET.map(gameToFeaturesAndLabel)
-                  .map(a => [a.features, a.label])
-                  .take(1)
-                  .toArray());
-  console.log('WHAT IS IT');
-  console.log(await dataset.take(1).toArray());
   trainModelUsingFitDataset(model, dataset);
 }
 
@@ -197,6 +178,15 @@ function featureTypeClickHandler() {
     simulateGameHandler(false);
   }
 }
+
+function predictHandler() {
+  const cards =
+      [ui.getInputCard1(), ui.getInputCard2(), ui.getInputCard3()].sort();
+  const features = gameToFeaturesAndLabel([cards, [1, 2, 3], 1]).features;
+  const output = GLOBAL_MODEL.predict(features.expandDims(0));
+  ui.displayPrediction(output);
+}
+
 
 /** Sets up handlers for the user affordences, including all buttons. */
 document.addEventListener('DOMContentLoaded', async () => {
@@ -216,5 +206,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       .addEventListener('change', ui.displayExpectedSimulations, false);
   document.getElementById('use-one-hot')
       .addEventListener('click', featureTypeClickHandler, false);
+  document.getElementById('predict').addEventListener(
+      'click', predictHandler, false);
   ui.displayExpectedSimulations();
 });

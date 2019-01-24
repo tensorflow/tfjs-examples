@@ -15,10 +15,6 @@
  * =============================================================================
  */
 
-const generateSampleDataMessageElement =
-    document.getElementById('generated-sample-data-message');
-const generatedDataContainerElement =
-    document.getElementById('generated-data-container');
 const toArrayContainerElement = document.getElementById('to-array-container');
 const batchSizeElement = document.getElementById('generator-batch');
 const takeElement = document.getElementById('generator-take');
@@ -32,6 +28,11 @@ const batchesPerEpochElement = document.getElementById('batches-per-epoch');
 const epochsToTrainElement = document.getElementById('epochs-to-train');
 const expectedSimulationsElement =
     document.getElementById('expected-simulations');
+const inputCard1Element = document.getElementById('input-card-1');
+const inputCard2Element = document.getElementById('input-card-2');
+const inputCard3Element = document.getElementById('input-card-3');
+
+
 export const useOneHotElement = document.getElementById('use-one-hot');
 
 /** borrowd from mnist.  probably remove */
@@ -65,6 +66,18 @@ export function getEpochsToTrain() {
   return epochsToTrainElement.valueAsNumber;
 }
 
+export function getInputCard1() {
+  return inputCard1Element.valueAsNumber;
+}
+
+export function getInputCard2() {
+  return inputCard2Element.valueAsNumber;
+}
+
+export function getInputCard3() {
+  return inputCard3Element.valueAsNumber;
+}
+
 export function displayNumSimulationsSoFar(numSimulationsSoFar) {
   numSimulationsSoFarElement.innerText = numSimulationsSoFar;
 }
@@ -77,6 +90,10 @@ export function displayExpectedSimulations() {
   const expectedSimulations =
       getBatchSize() * getBatchesPerEpoch() * getEpochsToTrain();
   expectedSimulationsElement.innerText = expectedSimulations;
+}
+
+export function displayPrediction(prediction) {
+  document.getElementById('prediction').innerText = prediction;
 }
 
 function featuresAndLabelsToPrettyString(features) {

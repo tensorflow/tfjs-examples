@@ -6,7 +6,8 @@
   "license": "Apache-2.0",
   "dependencies": {
     "@babel/plugin-transform-runtime": "^7.2.0",
-    "@tensorflow/tfjs": "^0.14.2"
+    "@tensorflow/tfjs": ">= 0.12.7",
+    "@tensorflow/tfjs-vis": "^0.4.2"
   },
   "scripts": {
     "link-local": "yalc link",

@@ -26,13 +26,18 @@ const statusElement = document.getElementById('train-model-message');
 const lossContainerElement = document.getElementById('training-loss-canvas');
 const accuracyContainerElement =
     document.getElementById('training-accuracy-canvas');
+const numSimulationsSoFarElement =
+    document.getElementById('num-simulations-so-far');
+const batchesPerEpochElement = document.getElementById('batches-per-epoch');
+const epochsToTrainElement = document.getElementById('epochs-to-train');
+const expectedSimulationsElement =
+    document.getElementById('expected-simulations');
+export const useOneHotElement = document.getElementById('use-one-hot');
 
 /** borrowd from mnist.  probably remove */
 export function logStatus(message) {
   statusElement.innerText = message;
 }
-
-
 
 /** Returns current value of the batchSize a number. */
 export function getBatchSize() {
@@ -52,6 +57,36 @@ export function getAccuracyContainer() {
   return accuracyContainerElement;
 }
 
+export function getBatchesPerEpoch() {
+  return batchesPerEpochElement.valueAsNumber;
+}
+
+export function getEpochsToTrain() {
+  return epochsToTrainElement.valueAsNumber;
+}
+
+export function displayNumSimulationsSoFar(numSimulationsSoFar) {
+  numSimulationsSoFarElement.innerText = numSimulationsSoFar;
+}
+
+export function getUseOneHot() {
+  return useOneHotElement.checked;
+}
+
+export function displayExpectedSimulations() {
+  const expectedSimulations =
+      getBatchSize() * getBatchesPerEpoch() * getEpochsToTrain();
+  expectedSimulationsElement.innerText = expectedSimulations;
+}
+
+function featuresAndLabelsToPrettyString(features) {
+  const basicArray = [];
+  for (const value of features) {
+    basicArray.push(value);
+  }
+  return basicArray;
+}
+
 /**
  * Fills in the data in the Game Simulation.
  * TODO(bileschi): describe the format of the input `generatedArray`
@@ -64,8 +99,11 @@ export function displaySimulation(sample, featuresAndLabel) {
   document.getElementById('sim-p2-2').innerText = sample[1][1];
   document.getElementById('sim-p2-3').innerText = sample[1][2];
   document.getElementById('sim-result').innerText = sample[2];
-  document.getElementById('sim-features-and-label').innerText =
-      JSON.stringify(featuresAndLabel);
+  const features = featuresAndLabel.features.dataSync();
+  const label = featuresAndLabel.label.dataSync();
+  document.getElementById('sim-features').innerText =
+      JSON.stringify(featuresAndLabelsToPrettyString(features));
+  document.getElementById('sim-label').innerText = label;
 };
 
 /**

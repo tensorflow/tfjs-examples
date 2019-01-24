@@ -133,10 +133,13 @@
           <li>If both players have a triple, the higher triple wins.</li>
           <li>If both players have a double, the higher double wins.</li>
           <li>If neither player has a double, the player with the highest individual number wins.</li>
-          <li> Ties go to the opponenet.</li>
+          <li>Ties are settled randomly, 50/50.</li>
         </ul>
         <p></p>
         <button id="simulate-game">simulate-game</button>
+        <div>Num simulations so far:
+          <div id=num-simulations-so-far>0</div>
+        </div>
         <p></p>
         <div class='divTable'>
           <div class='divTableRow'>
@@ -170,21 +173,30 @@
             <div class='divTableCell' style='width:100%'>
               <b>Game to features and label.</b> Note that the features fed into the model only include values visible
               to player
-              1, since we want to predict player 1's probability of winning.
+              1, since we want to predict player 1's probability of winning.<p></p>
+              Select to use oneHot representation of input.
+              <input type="checkbox" id="use-one-hot">
             </div>
           </div>
+        </div>
+        <div class='divTable'>
           <div class='divTableRow'>
-            <div class='divTableCell' style='width:100%' id='sim-features-and-label'>Click "sample" to run</div>
+              <div class='divTableCell' style='width:20%'>Features: </div>
+              <div class='divTableCell' style='width:80%' id='sim-features'>Click "sample" to run</div>
+            </div>
+          <div class='divTableRow'>
+              <div class='divTableCell' style='width:20%'>Label: </div>
+            <div class='divTableCell' style='width:80%' id='sim-label'></div>
           </div>
         </div>
         <div id="generated-sample-data-message"></div>
         <p class='section-head'>Data Pipeline</p>
         <h4>tf.dataFromGenerator(simulation↑)</h4>
-        <h4>.map(gameToFeatures)</h4>
-        <h4>.take(
-          <input type="number" id="generator-take" value="32">)</h4>
+        <h4>.map(gameToFeaturesAndLabel)</h4>
         <h4>.batch(
-          <input type="number" id="generator-batch" value="8">)</h4>
+          <input type="number" id="generator-batch" value="20">)</h4>
+        <h4>.take(
+          <input type="number" id="generator-take" value="5">)</h4>
         <h4>.toArray()
           <button id="dataset-to-array">dataset-to-array</button>
         </h4>
@@ -196,25 +208,31 @@
         <p class='section-head'>Train Model</p>
         <div id="train-model-message"></div>
         Train & Evaluate Model
-        <button id="train-model-using-fit-dataset">train-model-using-fit-dataset</button>
-        <section>
-          <p class='section-head'>Training Progress</p>
-          <p id="training-status"></p>
-          <p id="training-message"></p>
+        <h4>batchesPerEpoch
+          <input type="number" id="batches-per-epoch" value="50">
+          <h4>Epochs to train
+            <input type="number" id="epochs-to-train" value="50">
+          </h4>
+          Expected simulations = batchSize * batchesPerEpoch * epochs = <div id='expected-simulations'></div>
+          <button id="train-model-using-fit-dataset">train-model-using-fit-dataset</button>
+          <section>
+            <p class='section-head'>Training Progress</p>
+            <p id="training-status"></p>
+            <p id="training-message"></p>
 
-          <div id="training-stats">
-            <div class="canvases">
-              <label id="training-loss-label"></label>
-              <div id="training-loss-canvas"></div>
+            <div id="training-stats">
+              <div class="canvases">
+                <label id="training-loss-label"></label>
+                <div id="training-loss-canvas"></div>
+              </div>
+              <div class="canvases">
+                <label id="training-accuracy-label"></label>
+                <div id="training-accuracy-canvas"></div>
+              </div>
             </div>
-            <div class="canvases">
-              <label id="training-accuracy-label"></label>
-              <div id="training-accuracy-canvas"></div>
-            </div>
-          </div>
-        </section>
+          </section>
 
-        <p class='section-head'>Use Trained Model</p>
+          <p class='section-head'>Use Trained Model</p>
       </div>
     </div>
   </div>

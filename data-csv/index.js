@@ -22,7 +22,7 @@ import * as ui from './ui';
 
 // Boston Housing CSV
 const BOSTON_HOUSING_CSV_URL =
-    'https://storage.googleapis.com/tfjs-examples/multivariate-linear-regression/data/train-data.csv';
+    'https://storage.googleapis.com/tfjs-examples/multivariate-linear-regression/data/boston-housing-train.csv';
 // Jena Climate CSV
 const JENA_CLIMATE_CSV_URL =
     'https://storage.googleapis.com/learnjs-data/jena_climate/jena_climate_2009_2016.csv';

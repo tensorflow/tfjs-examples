@@ -23,12 +23,6 @@ const toArrayContainerElement = document.getElementById('to-array-container');
 const batchSizeElement = document.getElementById('generator-batch');
 const takeElement = document.getElementById('generator-take');
 
-/** Updates the message at the top of the sample data column. */
-export function updateSampleDataMessage(message) {
-  console.log(message);
-  generateSampleDataMessageElement.textContent = message;
-};
-
 /** Returns current value of the batchSize a number. */
 export function getBatchSize() {
   return batchSizeElement.valueAsNumber;
@@ -39,12 +33,11 @@ export function getTake() {
   return takeElement.valueAsNumber;
 }
 
-
 /**
  * Fills in the data in the Game Simulation.
  * TODO(bileschi): describe the format of the input `generatedArray`
  */
-export function updateSimulationOutput(sample, featuresAndLabel) {
+export function displaySimulation(sample, featuresAndLabel) {
   document.getElementById('sim-p1-1').innerText = sample[0][0];
   document.getElementById('sim-p1-2').innerText = sample[0][1];
   document.getElementById('sim-p1-3').innerText = sample[0][2];
@@ -60,10 +53,8 @@ export function updateSimulationOutput(sample, featuresAndLabel) {
  * data.
  * TODO(bileschi): describe the format of the input `generatedArray`
  */
-export async function datasetToArrayHandler(dataset) {
+export async function displayBatches(arr) {
   toArrayContainerElement.textContent = '';
-  const arr = await dataset.take(getTake()).batch(getBatchSize()).toArray();
-  console.log(arr);
   let i = 0;
   for (const batch of arr) {
     const oneKeyRow = document.createElement('div');
@@ -80,6 +71,5 @@ export async function datasetToArrayHandler(dataset) {
     oneKeyRow.appendChild(labelDiv);
     // add the div child to updateSampleRowOutput
     toArrayContainerElement.appendChild(oneKeyRow);
-    console.log(`added sample ${i++}`);
   }
 };

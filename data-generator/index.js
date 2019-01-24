@@ -21,13 +21,6 @@ import * as tf from '@tensorflow/tfjs';
 import * as game from './game';
 import * as ui from './ui';
 
-export function playNTimes(numRows) {
-  const rows = [];
-  for (let i = 0; i < numRows; i++) {
-    rows.push(game.generateOnePlay());
-  }
-  return rows;
-}
 
 /**
  * Returns a dataset which will yield unlimited plays of the game.
@@ -51,17 +44,39 @@ export function gameToFeaturesAndLabel(gameState) {
   return {features, label};
 }
 
+/**
+ * Collects one random play of the game.  Processes the sample to generate  features and labels representation
+ * of the play.  Calls a UI method to render the sample and the processed sample.
+ */
+async function simulateGameHandler() {
+  const sample = game.generateOnePlay();
+  const featuresAndLabel = gameToFeaturesAndLabel(sample);
+    ui.displaySimulation(sample, featuresAndLabel);
+}
+
+/**
+ * Creates a dataset pipeline from GAME_GENERATOR_DATASET by:
+ * 1) Applying the function gameToFeaturesAndlabel
+ * 2) Taking the first N samples of the dataset
+ * 3) Batching the dataset to batches of size B
+ * 
+ * It then executes the dataset by filling an array.  Finally, it passes this array
+ * to the UI to render in a table.
+ */
+async function datasetToArrayHandler() {
+  const arr = await GAME_GENERATOR_DATASET
+    .map(gameToFeaturesAndLabel)
+    .take(ui.getTake())
+    .batch(ui.getBatchSize())
+    .toArray();
+  ui.displayBatches(arr);
+}
+
 /** Sets up handlers for the user affordences, including all buttons. */
 document.addEventListener('DOMContentLoaded', async () => {
   console.log('content loaded... connecting buttons.');
   document.getElementById('simulate-game')
-    .addEventListener('click', async () => {
-      const sample = playNTimes(1)[0];
-      const featuresAndLabel = gameToFeaturesAndLabel(sample);
-        ui.updateSimulationOutput(sample, featuresAndLabel);
-      }, false);
+    .addEventListener('click', simulateGameHandler, false);
   document.getElementById('dataset-to-array')
-      .addEventListener('click', async () => {
-        ui.datasetToArrayHandler(GAME_GENERATOR_DATASET.map(gameToFeaturesAndLabel));
-      }, false);
+      .addEventListener('click', datasetToArrayHandler, false);
 });

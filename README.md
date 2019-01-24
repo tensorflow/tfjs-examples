@@ -188,12 +188,12 @@ to another project.
     <td><a href="./sentiment">sentiment</a></td>
     <td><a href="https://storage.googleapis.com/tfjs-examples/sentiment/dist/index.html">🔗</a></td>
     <td>Text</td>
-    <td>Sequence-to-regression</td>
+    <td>Sequence-to-binary-prediction</td>
     <td>LSTM, 1D convnet</td>
-    <td></td>
+    <td>Node.js</td>
     <td>Browser</td>
     <td>Layers</td>
-    <td>Loading model converted from Keras</td>
+    <td>Loading model converted from Keras and tfjs-node</td>
   </tr>
   <tr>
     <td><a href="./simple-object-detection">simple-object-detection</a></td>

@@ -48,17 +48,17 @@ let SAMPLE_GAME_STATE;
 export function gameToFeaturesAndLabelOneHot(gameState) {
   // const features = gameState[0];
   const features = tf.concat([
-    tf.oneHot(tf.scalar(gameState[0][0], 'int32'), game.MAX_CARD_VALUE),
-    tf.oneHot(tf.scalar(gameState[0][1], 'int32'), game.MAX_CARD_VALUE),
-    tf.oneHot(tf.scalar(gameState[0][2], 'int32'), game.MAX_CARD_VALUE)
+    tf.oneHot(tf.scalar(gameState[0][0] - 1, 'int32'), game.MAX_CARD_VALUE),
+    tf.oneHot(tf.scalar(gameState[0][1] - 1, 'int32'), game.MAX_CARD_VALUE),
+    tf.oneHot(tf.scalar(gameState[0][2] - 1, 'int32'), game.MAX_CARD_VALUE)
   ]);
-  const label = tf.scalar(gameState[2]);
+  const label = tf.tensor1d([gameState[2]]);
   return {features, label};
 }
 
 export function gameToFeaturesAndLabelRaw(gameState) {
   const features = tf.tensor1d(gameState[0]);
-  const label = tf.scalar(gameState[2]);
+  const label = tf.tensor1d([gameState[2]]);
   return {features, label};
 }
 
@@ -107,15 +107,24 @@ async function datasetToArrayHandler() {
   ui.displayNumSimulationsSoFar(game.NUM_SIMULATIONS_SO_FAR);
 }
 
+function getInputWidth() {
+  if (ui.getUseOneHot()) {
+    return 27;
+  }
+  return 3;
+}
+
 function createLinearModel() {
   const model = tf.sequential();
-  model.add(tf.layers.dense({inputShape: 3, units: 1, activation: 'sigmoid'}));
+  model.add(tf.layers.dense(
+      {inputShape: [getInputWidth()], units: 1, activation: 'sigmoid'}));
   return model;
 }
 
 function createDNNModel() {
   const model = tf.sequential();
-  model.add(tf.layers.dense({inputShape: 30, units: 10, activation: 'relu'}));
+  model.add(tf.layers.dense(
+      {inputShape: [getInputWidth()], units: 10, activation: 'relu'}));
   model.add(tf.layers.dense({units: 10, activation: 'relu'}));
   model.add(tf.layers.dense({units: 1, activation: 'sigmoid'}));
   return model;
@@ -161,10 +170,23 @@ async function trainModelUsingFitDatasetHandler() {
     loss: 'binaryCrossentropy',
     metrics: ['accuracy'],
   });
-  const dataset =
-      GAME_GENERATOR_DATASET.map(gameToFeaturesAndLabel)
-          .map(a => [tf.tensor1d(a.features), tf.tensor1d([a.label])])
-          .batch(ui.getBatchSize());
+  const dataset = GAME_GENERATOR_DATASET
+                      .map(gameToFeaturesAndLabel)  // {F: vector, L: scalar}
+                      .map(a => [a.features, a.label])  // [vector, scalar]
+                      .batch(ui.getBatchSize());
+  console.log('SOURCE');
+  console.log(await GAME_GENERATOR_DATASET.take(1).toArray());
+  console.log('FEAT LABEL');
+  console.log(await GAME_GENERATOR_DATASET.map(gameToFeaturesAndLabel)
+                  .take(1)
+                  .toArray());
+  console.log('MAP TO ARRAY');
+  console.log(await GAME_GENERATOR_DATASET.map(gameToFeaturesAndLabel)
+                  .map(a => [a.features, a.label])
+                  .take(1)
+                  .toArray());
+  console.log('WHAT IS IT');
+  console.log(await dataset.take(1).toArray());
   trainModelUsingFitDataset(model, dataset);
 }
 

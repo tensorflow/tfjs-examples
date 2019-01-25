@@ -1,5 +1,5 @@
 {
-  "name": "tfjs-examples-sentiment",
+  "name": "tfjs-examples-visualize-convnet",
   "version": "0.1.0",
   "description": "",
   "main": "index.js",
@@ -9,31 +9,28 @@
     "node": ">=8.9.0"
   },
   "dependencies": {
-    "@tensorflow/tfjs": "0.14.2",
-    "vega-embed": "^3.0.0"
+    "@tensorflow/tfjs": "0.14.1"
   },
   "scripts": {
-    "watch": "./serve.sh",
+    "watch": "cross-env NODE_ENV=development parcel index.html --no-hmr --open",
     "build": "cross-env NODE_ENV=production parcel build index.html  --no-minify --public-url ./",
+    "visualize": "./main.sh",
     "link-local": "yalc link",
-    "postinstall": "yarn upgrade --pattern @tensorflow",
-    "train": "babel-node train.js"
+    "postinstall": "yarn upgrade --pattern @tensorflow"
   },
   "devDependencies": {
-    "@tensorflow/tfjs-node": "0.2.3",
-    "@tensorflow/tfjs-node-gpu": "0.2.3",
-    "argparse": "^1.0.10",
-    "babel-cli": "^6.26.0",
+    "@tensorflow/tfjs-node": "0.2.1",
+    "@tensorflow/tfjs-node-gpu": "0.2.1",
+    "argparse": "~1.0.10",
     "babel-core": "^6.26.3",
     "babel-plugin-transform-runtime": "~6.23.0",
     "babel-polyfill": "~6.26.0",
     "babel-preset-env": "~1.6.1",
     "clang-format": "~1.2.2",
     "cross-env": "^5.1.6",
-    "extract-zip": "^1.6.7",
-    "http-server": "~0.10.0",
+    "jimp": "0.6.0",
     "parcel-bundler": "~1.10.3",
-    "shelljs": "^0.8.3",
+    "shelljs": "~0.8.3",
     "yalc": "~1.0.0-pre.22"
   }
 }

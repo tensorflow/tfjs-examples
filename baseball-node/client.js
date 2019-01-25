@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2018 Google LLC. All Rights Reserved.
+ * Copyright 2019 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,45 +15,37 @@
  * =============================================================================
  */
 
-import * as socketioClient from 'socket.io-client';
-import Vue from 'vue';
-import {AccuracyPerClass} from '../types';
+import io from 'socket.io-client';
+const evalTestButton = document.getElementById('eval-test-button');
 
-const SOCKET = 'http://localhost:8001/';
-
-// tslint:disable-next-line:no-default-export
-export default Vue.extend({
-  mounted: () => {
-    const liveButton = document.getElementById('live-button');
-    const socket = socketioClient(
-        SOCKET, {reconnectionDelay: 300, reconnectionDelayMax: 300});
-    socket.connect();
-
-    socket.on('connect', () => {
-      liveButton.style.display = 'block';
-      liveButton.textContent = 'Test Live';
-    });
-
-    socket.on('accuracyPerClass', (accPerClass: AccuracyPerClass) => {
-      plotAccuracyPerClass(accPerClass);
-    });
-
-    socket.on('disconnect', () => {
-      liveButton.style.display = 'block';
-      document.getElementById('waiting-msg').style.display = 'block';
-      document.getElementById('table').style.display = 'none';
-    });
-
-    liveButton.onclick = () => {
-      liveButton.textContent = 'Loading...';
-      socket.emit('live_data', '' + true);
-    };
-  },
-});
+const socket =
+    io('http://localhost:8001',
+       {reconnectionDelay: 300, reconnectionDelayMax: 300});
 
 const BAR_WIDTH_PX = 300;
 
-function plotAccuracyPerClass(accPerClass: AccuracyPerClass) {
+evalTestButton.onclick = () => {
+  evalTestButton.textContent = 'Loading...';
+  socket.emit('test_data', 'true');
+};
+
+socket.on('connect', () => {
+  evalTestButton.style.display = 'block';
+  evalTestButton.textContent = 'Eval Test';
+});
+
+socket.on('accuracyPerClass', (accPerClass) => {
+  plotAccuracyPerClass(accPerClass);
+});
+
+socket.on('disconnect', () => {
+  evalTestButton.style.display = 'block';
+  document.getElementById('waiting-msg').style.display = 'block';
+  document.getElementById('table').style.display = 'none';
+});
+
+function plotAccuracyPerClass(accPerClass) {
+  console.log(accPerClass);
   document.getElementById('table').style.display = 'block';
   document.getElementById('waiting-msg').style.display = 'none';
 
@@ -83,14 +75,13 @@ function plotAccuracyPerClass(accPerClass: AccuracyPerClass) {
 
     plotScoreBar(scores.training, scoreContainer);
     if (scores.validation) {
-      document.getElementById('live-button').style.display = 'none';
+      document.getElementById('eval-test-button').style.display = 'none';
       plotScoreBar(scores.validation, scoreContainer, 'validation');
     }
   });
 }
 
-function plotScoreBar(
-    score: number, container: HTMLDivElement, className = '') {
+function plotScoreBar(score, container, className = '') {
   const scoreDiv = document.createElement('div');
   scoreDiv.className = 'score ' + className;
   scoreDiv.style.width = (score * BAR_WIDTH_PX) + 'px';

@@ -1,0 +1,164 @@
+<!--
+ @license
+ Copyright 2019 Google LLC. All Rights Reserved.
+ Licensed under the Apache License, Version 2.0 (the "License");
+ you may not use this file except in compliance with the License.
+ You may obtain a copy of the License at
+
+ http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+ =============================================================================
+-->
+
+<html>
+
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="../shared/tfjs-examples.css" />
+  <style>
+    .status {
+      border: none;
+      font-size: 20px;
+      text-align: center;
+      resize: none;
+    }
+
+    .query {
+      font-size: 20px;
+      text-align: left;
+      resize: none;
+
+    }
+
+    .textarea {
+      font-size: 20px;
+      text-align: center;
+      resize: none;
+    }
+
+    .container {
+      width: 80%;
+      margin-left: auto;
+      margin-right: auto;
+      text-align: center;
+    }
+
+    .divTable {
+      display: table;
+      width: 100%;
+    }
+
+    .divTableRow {
+      display: table-row;
+    }
+
+    .divTableHeading {
+      background-color: #EEE;
+      display: table-header-group;
+    }
+
+    .divTableCell,
+    .divTableHead {
+      border: 1px solid #999999;
+      display: table-cell;
+      padding: 3px 10px;
+    }
+
+    .divTableCellKey {
+      border: 1px solid #999999;
+      display: table-cell;
+      padding: 3px 10px;
+      font-weight: bold;
+    }
+
+    .divTableHeading {
+      background-color: #EEE;
+      display: table-header-group;
+      font-weight: bold;
+    }
+
+    .divTableFoot {
+      background-color: #EEE;
+      display: table-footer-group;
+      font-weight: bold;
+    }
+
+    .divTableBody {
+      display: table-row-group;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <h3>TensorFlow.js: Working with CSV files in tfjs-data</h3>
+    <div id="Preset URL buttons">
+      <button id="boston-button">Boston Housing CSV</button>
+      <button id="dresses-button">Dresses Sales OpenML CSV</button>
+      <button id="jena-climate-button">Jena Climate CSV</button>
+      <button id="suny-button">State University Of New York Campuses CSV</button>
+    </div>
+    <p></p>
+    Enter the URL of your csv file below, or click one of the above buttons to
+    explore some CSVs we've hosted. Note that you may need to update your web
+    host to allow CORS requests in order to access your data this way.<p></p>
+    <textarea class="query" rows="3" cols="64" id="query-url">http://path/to/your.csv</textarea>
+    <p></p>
+    <div id="button-div">
+    </div>
+    <p></p>
+    <textarea class="status" rows="6" cols="60" readonly="true" id="status">
+      Select a CSV URL and begin by counting the number of rows in the CSV.
+    </textarea>
+    <div class="divTable">
+      <!-- Count rows-->
+      <div class="divTableBody">
+        <div class="divTableRow">
+          <div class="divTableCell">
+            <button id="count-rows">Count rows</button>
+          </div>
+          <div class="divTableCell" id="row-count-output">
+          </div>
+        </div>
+      <!-- Get column names-->
+      <div class="divTableRow">
+          <div class="divTableCell">
+            <button id="get-column-names">Get column names</button>
+          </div>
+          <div class="divTableCell" id="column-names-output">
+            <div id="column-names-message">
+            </div>
+            <div id="column-names-output-container">
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- Get sample row-->
+      <div class="divTableRow">
+        <div class="divTableCell">
+          <button id="get-sample-row">Get a sample row</button><p></p>
+          sample index (zero-index): <input type="number" id="which-sample-input" value="2">
+        </div>
+        <div class="divTableCell">
+          <div id="sample-row-message">
+          </div>
+          <div id="sample-row-output-container">
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  </div>
+
+  </div>
+  <script src="./index.js"></script>
+</body>
+
+</html>

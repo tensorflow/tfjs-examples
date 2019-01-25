@@ -15,13 +15,15 @@
  * =============================================================================
  */
 
+export const lossContainerElement =
+    document.getElementById('training-loss-canvas');
+export const accuracyContainerElement =
+    document.getElementById('training-accuracy-canvas');
+
 const toArrayContainerElement = document.getElementById('to-array-container');
 const batchSizeElement = document.getElementById('generator-batch');
 const takeElement = document.getElementById('generator-take');
 const statusElement = document.getElementById('train-model-message');
-const lossContainerElement = document.getElementById('training-loss-canvas');
-const accuracyContainerElement =
-    document.getElementById('training-accuracy-canvas');
 const numSimulationsSoFarElement =
     document.getElementById('num-simulations-so-far');
 const batchesPerEpochElement = document.getElementById('batches-per-epoch');
@@ -35,27 +37,12 @@ const inputCard3Element = document.getElementById('input-card-3');
 
 export const useOneHotElement = document.getElementById('use-one-hot');
 
-/** borrowd from mnist.  probably remove */
-export function logStatus(message) {
-  statusElement.innerText = message;
-}
-
-/** Returns current value of the batchSize a number. */
 export function getBatchSize() {
   return batchSizeElement.valueAsNumber;
 }
 
-/** Returns current value of the number to take a number. */
 export function getTake() {
   return takeElement.valueAsNumber;
-}
-
-export function getLossContainer() {
-  return lossContainerElement;
-}
-
-export function getAccuracyContainer() {
-  return accuracyContainerElement;
 }
 
 export function getBatchesPerEpoch() {
@@ -78,24 +65,34 @@ export function getInputCard3() {
   return inputCard3Element.valueAsNumber;
 }
 
-export function displayNumSimulationsSoFar(numSimulationsSoFar) {
-  numSimulationsSoFarElement.innerText = numSimulationsSoFar;
-}
-
 export function getUseOneHot() {
   return useOneHotElement.checked;
 }
 
+/** Updates display of simulation count. */
+export function displayNumSimulationsSoFar(numSimulationsSoFar) {
+  numSimulationsSoFarElement.innerText = numSimulationsSoFar;
+}
+
+/** Updates message for training results.  Used for training speed. */
+export function displayTrainLogMessage(message) {
+  statusElement.innerText = message;
+}
+
+/** Updates display of expected number of simulations to train model. */
 export function displayExpectedSimulations() {
   const expectedSimulations =
       getBatchSize() * getBatchesPerEpoch() * getEpochsToTrain();
   expectedSimulationsElement.innerText = expectedSimulations;
 }
 
+/** Updates display of prediction from model. */
 export function displayPrediction(prediction) {
-  document.getElementById('prediction').innerText = prediction;
+  document.getElementById('prediction').innerText =
+      `${prediction.dataSync()[0].toFixed(3)}`;
 }
 
+/** Helper to display processed version of game state. */
 function featuresAndLabelsToPrettyString(features) {
   const basicArray = [];
   for (const value of features) {
@@ -106,7 +103,12 @@ function featuresAndLabelsToPrettyString(features) {
 
 /**
  * Fills in the data in the Game Simulation.
- * TODO(bileschi): describe the format of the input `generatedArray`
+ * @param {[number[], number[], number]} sample  A game state.  The first
+ *     element the sample is an array of player 1's hand.  The second element is
+ *     an array of player 2's hand.  The third element is 1 if player 1 wins, 0
+ *     otherwise.
+ * @param {features, label} featuresAndLabel The processed version of the
+ *     sample, suitable to feed into the model.
  */
 export function displaySimulation(sample, featuresAndLabel) {
   document.getElementById('sim-p1-1').innerText = sample[0][0];
@@ -126,7 +128,11 @@ export function displaySimulation(sample, featuresAndLabel) {
 /**
  * Creates an HTML table, using div elements, to display the generated sample
  * data.
- * TODO(bileschi): describe the format of the input `generatedArray`
+ *
+ * @param {[number[], number[], number][]} arr A list of game states, each
+ *     element a triple.  The first element of each game state is an array of
+ *     player 1's hand.  The second element is an array of player 2's hand.  The
+ *     third element is 1 if player 1 wins, 0 otherwise.
  */
 export async function displayBatches(arr) {
   toArrayContainerElement.textContent = '';

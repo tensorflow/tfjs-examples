@@ -105,13 +105,9 @@ async function maybeDownload(sourceURL, destPath) {
       https.get(sourceURL, response => {
         response.pipe(localZipFile);
         localZipFile.on('finish', () => {
-          localZipFile.close(async () => {
-            return resolve();
-          });
+          localZipFile.close(() => resolve());
         });
-        localZipFile.on('error', err => {
-          return reject(err);
-        });
+        localZipFile.on('error', err => reject(err));
       });
     } else {
       return resolve();

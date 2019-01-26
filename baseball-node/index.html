@@ -1,0 +1,97 @@
+<!doctype html>
+<html>
+  <head>
+    <title>Pitch Training Accuracy</title>
+  </head>
+  <body>
+    <h3 id="waiting-msg">Waiting for server...</h3>
+    <div id="table">
+      <h2 style="text-align:center;">Pitch accuracy (%)</h2>
+      <div id="legend">
+        <div class="legend-item">
+          <div class="score"></div>
+          <div>Train set</div>
+        </div>
+        <div class="legend-item">
+          <div class="score validation"></div>
+          <div>Live set</div>
+        </div>
+      </div>
+      <div id="table-rows"></div>
+      <button id="eval-test-button">Eval Test</button>
+    </div>
+    <script src="dist/bundle.js"></script>
+    <style>
+        #table {
+          width: 660px;
+          display: none;
+        }
+        #table-rows {
+          border-right: 2px solid #bbb;
+        }
+        #table .row {
+          display: flex;
+          align-items: center;
+          margin: 25px 0;
+        }
+        #legend {
+          position: absolute;
+        }
+        .legend-item {
+          display: flex;
+          align-items: center;
+          margin-bottom: 20px;
+        }
+
+        .legend-item .score {
+          width: 30px;
+          margin-right: 10px;
+        }
+
+        .label {
+          text-align: center;
+          font-family: "Google Sans", sans-serif;
+          font-size: 24px;
+          color: #5f6368;
+          line-height: 24px;
+          font-weight: 500;
+        }
+        #table .label {
+          margin-right: 20px;
+          width: 360px;
+          text-align: right;
+        }
+        #table .score {
+          background-color: #0277bd;
+          height: 30px;
+          text-align: right;
+          line-height: 30px;
+          color: white;
+          padding-right: 10px;
+          box-sizing: border-box;
+        }
+        #table .score.validation {
+          background-color: #ef6c00;
+        }
+
+        html,
+        body {
+          font-family: Roboto, sans-serif;
+          color: #5f6368;
+        }
+
+        body {
+          background-color: rgb(248, 249, 250);
+        }
+
+        #accuracyCanvas > div {
+          display: none;
+        }
+
+        #eval-test-button {
+          padding: 10px;
+          font-size: 24px;
+        }
+        </style>
+  </body>
+</html>

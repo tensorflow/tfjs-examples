@@ -17,7 +17,7 @@
 
 import * as dateFormat from './date_format';
 
-describe('Date formats', () => {
+fdescribe('Date formats', () => {
   it('generateRandomDateTuple', () => {
     for (let i = 0; i < 100; ++i) {
       const [year, month, day] = dateFormat.generateRandomDateTuple();
@@ -106,6 +106,30 @@ describe('Date formats', () => {
       const str = dateFormat.dateTupleToDDDashMMDashYYYY(
           dateFormat.generateRandomDateTuple());
       expect(str).toMatch(/^[0-3]\d-[0-1]\d-[1-2]\d\d\d$/);
+    }
+  });
+
+  it('YYYY.MM.DD', () => {
+    for (let i = 0; i < 10; ++i) {
+      const str = dateFormat.dateTupleToYYYYDotMMDotDD(
+          dateFormat.generateRandomDateTuple());
+      expect(str).toMatch(/^[1-2]\d\d\d\.[0-1]\d\.[0-3]\d$/);
+    }
+  });
+
+  it('DD.MM.YYYY', () => {
+    for (let i = 0; i < 10; ++i) {
+      const str = dateFormat.dateTupleToDDDotMMDotYYYY(
+          dateFormat.generateRandomDateTuple());
+      expect(str).toMatch(/^[0-3]\d\.[0-1]\d\.[1-2]\d\d\d$/);
+    }
+  });
+
+  it('YYYYMMDD', () => {
+    for (let i = 0; i < 10; ++i) {
+      const str = dateFormat.dateTupleToYYYYMMDD(
+          dateFormat.generateRandomDateTuple());
+      expect(str).toMatch(/^[1-2]\d\d\d[0-1]\d[0-3]\d$/);
     }
   });
 

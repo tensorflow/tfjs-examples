@@ -134,11 +134,33 @@ export function dateTupleToMMMSpaceDDCommaSpaceYYYY(dateTuple) {
   return `${monthStr} ${dayStr}, ${dateTuple[0]}`;
 }
 
-/** Date format such as 20-01-2019 */
+/** Date format such as 20-01-2019. */
 export function dateTupleToDDDashMMDashYYYY(dateTuple) {
   const monthStr = toTwoDigitString(dateTuple[1]);
   const dayStr = toTwoDigitString(dateTuple[2]);
   return `${dayStr}-${monthStr}-${dateTuple[0]}`;
+}
+
+/** Date format such as 20.01.2019. */
+export function dateTupleToDDDotMMDotYYYY(dateTuple) {
+  const monthStr = toTwoDigitString(dateTuple[1]);
+  const dayStr = toTwoDigitString(dateTuple[2]);
+  return `${dayStr}.${monthStr}.${dateTuple[0]}`;
+}
+
+/** Date format such as 2019.01.20. */
+export function dateTupleToYYYYDotMMDotDD(dateTuple) {
+  const monthStr = toTwoDigitString(dateTuple[1]);
+  const dayStr = toTwoDigitString(dateTuple[2]);
+  return `${dateTuple[0]}.${monthStr}.${dayStr}`;
+}
+
+
+/** Date format such as 20190120 */
+export function dateTupleToYYYYMMDD(dateTuple) {
+  const monthStr = toTwoDigitString(dateTuple[1]);
+  const dayStr = toTwoDigitString(dateTuple[2]);
+  return `${dateTuple[0]}${monthStr}${dayStr}`;
 }
 
 /**

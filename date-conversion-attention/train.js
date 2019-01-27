@@ -40,8 +40,11 @@ const INPUT_FNS = [
   dateFormat.dateTupleToMMMSpaceDDSpaceYYYY,
   dateFormat.dateTupleToMMMSpaceDDCommaSpaceYY,
   dateFormat.dateTupleToMMMSpaceDDCommaSpaceYYYY,
+  dateFormat.dateTupleToDDDotMMDotYYYY,
+  dateFormat.dateTupleToYYYYDotMMDotDD,
+  dateFormat.dateTupleToYYYYMMDD,
   dateFormat.dateTupleToYYYYDashMMDashDD
-];  // TODO(cais): Add more formats.
+];  // TODO(cais): Add more formats if necessary.
 
 /**
  * Generate sets of data for training.

@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2018 Google LLC. All Rights Reserved.
+ * Copyright 2019 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,8 +15,20 @@
  * =============================================================================
  */
 
-import Vue from 'vue';
-import App from './App.vue';
+// Normalize a value between a given range.
+function normalize(value, min, max) {
+  if (min === undefined || max === undefined) {
+    return value;
+  }
+  return (value - min) / (max - min);
+}
 
-// tslint:disable-next-line:no-unused-expression
-new Vue({el: '#app', render: h => h(App)});
+// Sleeps for a given ms.
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+module.exports = {
+  normalize,
+  sleep
+};

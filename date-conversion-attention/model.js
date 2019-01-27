@@ -69,10 +69,10 @@ export function createModel(
     inputVocabSize, outputVocabSize, inputLength, outputLength) {
   const embeddingDims = 64;
   const lstmUnits = 64;
-  
+
   const encoderInput = tf.input({shape: [inputLength]});
   const decoderInput = tf.input({shape: [outputLength]});
-  
+
   let encoder = tf.layers.embedding({
     inputDim: inputVocabSize,
     outputDim: embeddingDims,
@@ -83,11 +83,11 @@ export function createModel(
     units: lstmUnits,
     returnSequences: true
   }).apply(encoder);
-  
+
   const encoderLast = new GetLastTimestepLayer({
     name: 'encoderLast'
   }).apply(encoder);
-  
+
   let decoder = tf.layers.embedding({
     inputDim: outputVocabSize,
     outputDim: embeddingDims,
@@ -98,13 +98,13 @@ export function createModel(
     units: lstmUnits,
     returnSequences: true
   }).apply(decoder, {initialState: [encoderLast, encoderLast]});
-  
+
   let attention = tf.layers.dot({axes: [2, 2]}).apply([decoder, encoder]);
   attention = tf.layers.activation({
     activation: 'softmax',
     name: 'attention'
   }).apply(attention);
-  
+
   const context = tf.layers.dot({
     axes: [2, 1],
     name: 'context'
@@ -123,7 +123,7 @@ export function createModel(
       activation: 'softmax'
     })
   }).apply(output);
-  
+
   const model = tf.model({
     inputs: [encoderInput, decoderInput],
     outputs: output
@@ -139,7 +139,7 @@ export function createModel(
  * Perform sequence-to-sequence decoding for date conversion.
  *
  * @param {tf.Model} model The model to be used for the sequence-to-sequence
- *   decoding, with two inputs: 
+ *   decoding, with two inputs:
  *   1. Encoder input of shape `[numExamples, inputLength]`
  *   2. Decoder input of shape `[numExamples, outputLength]`
  *   and one output:

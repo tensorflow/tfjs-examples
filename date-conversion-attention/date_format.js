@@ -173,6 +173,19 @@ export function dateTupleToYYYYDashMMDashDD(dateTuple) {
   return `${dateTuple[0]}-${monthStr}-${dayStr}`;
 }
 
+/**
+ * Encode a number of input date strings as a `tf.Tensor`.
+ *
+ * The encoding is a sequence of one-hot vectors. The sequence is
+ * padded at the end to the maximum possible length of any valid
+ * input date strings. The paddin value is zero.
+ *
+ * @param {string[]} dateStrings Input date strings. Must be one
+ *   of the formats as listed above.
+ * @returns {tf.Tensor} One-hot encoded characters as a `tf.Tensor`, of dtype
+ *   `flota32` and shape `[numExamples, maxInputLength]`, where `maxInputLength`
+ *   is the maximum possible input length of all valid iput date-string formats.
+ */
 export function encodeInputDateStrings(dateStrings) {
   const n = dateStrings.length;
   const x = tf.buffer([n, INPUT_LENGTH], 'float32');
@@ -191,6 +204,17 @@ export function encodeInputDateStrings(dateStrings) {
   return x.toTensor();
 }
 
+/**
+ * Encode a number of output date strings as a `tf.Tensor`.
+ *
+ * The encoding is a sequence of one-hot vectors.
+ *
+ * @param {string[]} dateStrings Output date string, must be in the ISO date
+ *   format (YYYY-MM-DD).
+ * @returns {tf.Tensor} One-hot encoded characters as a `tf.Tensor`, of dtype
+ *   `flota32` and shape `[numExamples, outputLength]`, where `outputLength`
+ *   is the length of the standard output format (i.e., 10).
+ */
 export function encodeOutputDateStrings(dateStrings, oneHot = false) {
   const n = dateStrings.length;
   const x =

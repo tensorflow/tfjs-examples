@@ -15,6 +15,18 @@
  * =============================================================================
  */
 
+/**
+ * Date formats and conversion utility functions.
+ *
+ * This file is used for the training of the date-conversion model and
+ * date conversions based on the trained model.
+ *
+ * It contains functions that generate random dates and represent them in
+ * several different formats such as (2019-01-20 and 20JAN19).
+ * It also contains function that can convert the text representation of
+ * the dates into one-hot `tf.Tensor` representations.
+ */
+
 const tf = require('@tensorflow/tfjs');
 
 const MONTH_NAMES_FULL = [
@@ -41,7 +53,8 @@ export const INPUT_VOCAB = '\n0123456789/-, ' +
         .join('');
 
 // OUTPUT_VOCAB includes an start-of-sequence (SOS) token, represented as
-// '\t'.
+// '\t'. Note that the date strings are represented in terms of their
+// constituent characters, not words or anything else.
 export const OUTPUT_VOCAB = '\n\t0123456789-';
 
 export const START_CODE = 1;
@@ -61,18 +74,21 @@ function toTwoDigitString(num) {
   return num < 10 ? `0${num}` : `${num}`;
 }
 
+/** Date format such as 01202019. */
 export function dateTupleToDDMMMYYYY(dateTuple) {
   const monthStr = MONTH_NAMES_3LETTER[dateTuple[1] - 1];
   const dayStr = toTwoDigitString(dateTuple[2]);
   return `${dayStr}${monthStr}${dateTuple[0]}`;
 }
 
+/** Date format such as 01/20/2019. */
 export function dateTupleToMMSlashDDSlashYYYY(dateTuple) {
   const monthStr = toTwoDigitString(dateTuple[1]);
   const dayStr = toTwoDigitString(dateTuple[2]);
   return `${monthStr}/${dayStr}/${dateTuple[0]}`;
 }
 
+/** Date format such as 01/20/19. */
 export function dateTupleToMMSlashDDSlashYY(dateTuple) {
   const monthStr = toTwoDigitString(dateTuple[1]);
   const dayStr = toTwoDigitString(dateTuple[2]);
@@ -80,6 +96,7 @@ export function dateTupleToMMSlashDDSlashYY(dateTuple) {
   return `${monthStr}/${dayStr}/${yearStr}`;
 }
 
+/** Date format such as 012019. */
 export function dateTupleToMMDDYY(dateTuple) {
   const monthStr = toTwoDigitString(dateTuple[1]);
   const dayStr = toTwoDigitString(dateTuple[2]);
@@ -87,6 +104,7 @@ export function dateTupleToMMDDYY(dateTuple) {
   return `${monthStr}${dayStr}${yearStr}`;
 }
 
+/** Date format such as JAN 20 19. */
 export function dateTupleToMMMSpaceDDSpaceYY(dateTuple) {
   const monthStr = MONTH_NAMES_3LETTER[dateTuple[1] - 1];
   const dayStr = toTwoDigitString(dateTuple[2]);
@@ -94,12 +112,14 @@ export function dateTupleToMMMSpaceDDSpaceYY(dateTuple) {
   return `${monthStr} ${dayStr} ${yearStr}`;
 }
 
+/** Date format such as JAN 20 2019. */
 export function dateTupleToMMMSpaceDDSpaceYYYY(dateTuple) {
   const monthStr = MONTH_NAMES_3LETTER[dateTuple[1] - 1];
   const dayStr = toTwoDigitString(dateTuple[2]);
   return `${monthStr} ${dayStr} ${dateTuple[0]}`;
 }
 
+/** Date format such as JAN 20, 19. */
 export function dateTupleToMMMSpaceDDCommaSpaceYY(dateTuple) {
   const monthStr = MONTH_NAMES_3LETTER[dateTuple[1] - 1];
   const dayStr = toTwoDigitString(dateTuple[2]);
@@ -107,18 +127,24 @@ export function dateTupleToMMMSpaceDDCommaSpaceYY(dateTuple) {
   return `${monthStr} ${dayStr}, ${yearStr}`;
 }
 
+/** Date format such as JAN 20, 2019. */
 export function dateTupleToMMMSpaceDDCommaSpaceYYYY(dateTuple) {
   const monthStr = MONTH_NAMES_3LETTER[dateTuple[1] - 1];
   const dayStr = toTwoDigitString(dateTuple[2]);
   return `${monthStr} ${dayStr}, ${dateTuple[0]}`;
 }
 
+/** Date format such as 20-01-2019 */
 export function dateTupleToDDDashMMDashYYYY(dateTuple) {
   const monthStr = toTwoDigitString(dateTuple[1]);
   const dayStr = toTwoDigitString(dateTuple[2]);
   return `${dayStr}-${monthStr}-${dateTuple[0]}`;
 }
 
+/**
+ * Date format such as 2019-01-20
+ * (i.e.,  the ISO format and the conversion target).
+ * */
 export function dateTupleToYYYYDashMMDashDD(dateTuple) {
   const monthStr = toTwoDigitString(dateTuple[1]);
   const dayStr = toTwoDigitString(dateTuple[2]);

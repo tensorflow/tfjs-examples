@@ -130,24 +130,24 @@ describe('Date formats', () => {
         dateFormat.INPUT_VOCAB.length);
 
     const values = encoded.dataSync();
-    let strPrime = '';
+    let decodedStr = '';
     for (let i = 0; i < dateFormat.INPUT_LENGTH; ++i) {
-      strPrime += dateFormat.INPUT_VOCAB[values[i]];
+      decodedStr += dateFormat.INPUT_VOCAB[values[i]];
     }
-    expect(strPrime.trim()).toEqual(str1);
+    expect(decodedStr.trim()).toEqual(str1);
 
-    strPrime = '';
+    decodedStr = '';
     for (let i = 0; i < dateFormat.INPUT_LENGTH; ++i) {
-      strPrime += dateFormat.INPUT_VOCAB[values[i + dateFormat.INPUT_LENGTH]];
+      decodedStr += dateFormat.INPUT_VOCAB[values[i + dateFormat.INPUT_LENGTH]];
     }
-    expect(strPrime.trim()).toEqual(str2);
+    expect(decodedStr.trim()).toEqual(str2);
 
-    strPrime = '';
+    decodedStr = '';
     for (let i = 0; i < dateFormat.INPUT_LENGTH; ++i) {
-      strPrime +=
+      decodedStr +=
           dateFormat.INPUT_VOCAB[values[i + dateFormat.INPUT_LENGTH * 2]];
     }
-    expect(strPrime.trim()).toEqual(str3);
+    expect(decodedStr.trim()).toEqual(str3);
   });
 
   it('Encode output string', () => {

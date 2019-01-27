@@ -50,15 +50,19 @@ class GetLastTimestepLayer extends tf.layers.Layer {
 tf.serialization.registerClass(GetLastTimestepLayer);
 
 /**
- * Create an LSTM-based attentin model for date conversion.
+ * Create an LSTM-based attention model for date conversion.
  *
  * @param {number} inputVocabSize Input vocabulary size. This includes
- *   the padding symbol.
- * @param {number} outputVocabSize Ouptut vocabulary size. This includes
- *   the padding and starting symbols.
- * @param {number} inputLength Maximum input length. Input sequences shorter
- *   than the length must be padded at the end.
- * @param {number} outputLength Output length.
+ *   the padding symbol. In the context of this model, "vocabulary" means
+ *   the set of all unique characters that might appear in the input date
+ *   string.
+ * @param {number} outputVocabSize Output vocabulary size. This includes
+ *   the padding and starting symbols. In the context of this model,
+ *   "vocabulary" means the set of all unique characters that might appear in
+ *   the output date string.
+ * @param {number} inputLength Maximum input length (# of characters). Input
+ *   sequences shorter than the length must be padded at the end.
+ * @param {number} outputLength Output length (# of characters).
  * @return {tf.Model} A compiled model instance.
  */
 export function createModel(

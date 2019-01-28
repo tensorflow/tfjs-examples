@@ -95,7 +95,8 @@ export function generateDataForTraining(trainSplit = 0.8, valSplit = 0.15) {
       const trainTargetStrings = dateTuples.map(
           tuple => dateFormat.dateTupleToYYYYDashMMDashDD(tuple));
       let decoderInput =
-          dateFormat.encodeOutputDateStrings(trainTargetStrings);
+          dateFormat.encodeOutputDateStrings(trainTargetStrings)
+          .asType('float32');
       // One-step time shift: The decoder input is shifted to the left by
       // one time step with respect to the encoder input. This accounts for
       // the step-by-step decoding that happens during inference time.
@@ -104,9 +105,9 @@ export function generateDataForTraining(trainSplit = 0.8, valSplit = 0.15) {
         decoderInput.slice(
             [0, 0], [decoderInput.shape[0], decoderInput.shape[1] - 1])
       ], 1).tile([INPUT_FNS.length, 1]);
-      const decoderOutput =
-          dateFormat.encodeOutputDateStrings(trainTargetStrings, true)
-          .tile([INPUT_FNS.length, 1, 1]);
+      const decoderOutput = tf.oneHot(
+          dateFormat.encodeOutputDateStrings(trainTargetStrings),
+          dateFormat.OUTPUT_VOCAB.length).tile([INPUT_FNS.length, 1, 1]);
       return {encoderInput, decoderInput, decoderOutput};
     });
   }

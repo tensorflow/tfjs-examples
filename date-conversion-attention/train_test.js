@@ -19,7 +19,7 @@ import * as dateFormat from './date_format';
 import {generateDataForTraining} from './train';
 
 describe('generateBatchesForTraining', () => {
-  it('generateDataForTraining', () => {
+  fit('generateDataForTraining', () => {
     const {
       trainEncoderInput,
       trainDecoderInput,

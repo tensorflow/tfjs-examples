@@ -15,9 +15,10 @@
  * =============================================================================
  */
 
+import * as tf from '@tensorflow/tfjs';
 import * as dateFormat from './date_format';
 
-fdescribe('Date formats', () => {
+describe('Date formats', () => {
   it('generateRandomDateTuple', () => {
     for (let i = 0; i < 100; ++i) {
       const [year, month, day] = dateFormat.generateRandomDateTuple();
@@ -198,8 +199,9 @@ fdescribe('Date formats', () => {
   it('Encode output string: oneHot', () => {
     const str1 = '2000-01-02';
     const str2 = '1983-08-30';
-    const oneHot = true;
-    const encoded = dateFormat.encodeOutputDateStrings([str1, str2], oneHot);
+    const encoded = tf.oneHot(
+        dateFormat.encodeOutputDateStrings([str1, str2]),
+        dateFormat.OUTPUT_VOCAB.length);
     expect(encoded.shape).toEqual(
         [2, dateFormat.OUTPUT_LENGTH, dateFormat.OUTPUT_VOCAB.length]);
     expect(encoded.min().dataSync()[0]).toEqual(0);

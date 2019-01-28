@@ -23,7 +23,7 @@
  *
  * It contains functions that generate random dates and represent them in
  * several different formats such as (2019-01-20 and 20JAN19).
- * It also contains function that can convert the text representation of
+ * It also contains functions that convert the text representation of
  * the dates into one-hot `tf.Tensor` representations.
  */
 
@@ -178,13 +178,14 @@ export function dateTupleToYYYYDashMMDashDD(dateTuple) {
  *
  * The encoding is a sequence of one-hot vectors. The sequence is
  * padded at the end to the maximum possible length of any valid
- * input date strings. The paddin value is zero.
+ * input date strings. The padding value is zero.
  *
- * @param {string[]} dateStrings Input date strings. Must be one
- *   of the formats as listed above.
+ * @param {string[]} dateStrings Input date strings. Each element of the array
+ *   must be one of the formats listed above. It is okay to mix multiple formats
+ *   in the array.
  * @returns {tf.Tensor} One-hot encoded characters as a `tf.Tensor`, of dtype
- *   `flota32` and shape `[numExamples, maxInputLength]`, where `maxInputLength`
- *   is the maximum possible input length of all valid iput date-string formats.
+ *   `float32` and shape `[numExamples, maxInputLength]`, where `maxInputLength`
+ *   is the maximum possible input length of all valid input date-string formats.
  */
 export function encodeInputDateStrings(dateStrings) {
   const n = dateStrings.length;
@@ -207,19 +208,17 @@ export function encodeInputDateStrings(dateStrings) {
 /**
  * Encode a number of output date strings as a `tf.Tensor`.
  *
- * The encoding is a sequence of one-hot vectors.
+ * The encoding is a sequence of integer indices.
  *
- * @param {string[]} dateStrings Output date string, must be in the ISO date
- *   format (YYYY-MM-DD).
- * @returns {tf.Tensor} One-hot encoded characters as a `tf.Tensor`, of dtype
- *   `flota32` and shape `[numExamples, outputLength]`, where `outputLength`
- *   is the length of the standard output format (i.e., 10).
+ * @param {string[]} dateStrings An array of output date strings, must be in the
+ *   ISO date format (YYYY-MM-DD).
+ * @returns {tf.Tensor} Integer indices of the characters as a `tf.Tensor`, of
+ *   dtype `int32` and shape `[numExamples, outputLength]`, where `outputLength`
+ *   is the length of the standard output format (i.e., `10`).
  */
 export function encodeOutputDateStrings(dateStrings, oneHot = false) {
   const n = dateStrings.length;
-  const x =
-      oneHot ? tf.buffer([n, OUTPUT_LENGTH, OUTPUT_VOCAB.length], 'float32') :
-      tf.buffer([n, OUTPUT_LENGTH], 'float32');
+  const x = tf.buffer([n, OUTPUT_LENGTH], 'int32');
   for (let i = 0; i < n; ++i) {
     tf.util.assert(
         dateStrings[i].length === OUTPUT_LENGTH,
@@ -230,11 +229,7 @@ export function encodeOutputDateStrings(dateStrings, oneHot = false) {
       if (index === -1) {
         throw new Error(`Unknown char: ${char}`);
       }
-      if (oneHot) {
-        x.set(1, i, j, index);
-      } else {
-        x.set(index, i, j);
-      }
+      x.set(index, i, j);
     }
   }
   return x.toTensor();

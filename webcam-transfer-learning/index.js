@@ -114,7 +114,7 @@ async function train() {
   }
 
   // Train the model! Model.fit() will shuffle xs & ys so we don't have to.
-  model.fit(controllerDataset.xs, controllerDataset.ys, {
+  await model.fit(controllerDataset.xs, controllerDataset.ys, {
     batchSize,
     epochs: ui.getEpochs(),
     callbacks: {
@@ -127,7 +127,8 @@ async function train() {
   const jointModel = tf.sequential();
   jointModel.add(truncatedMobileNet);
   jointModel.add(model);
-  await model('indexeddb://tfjs-exapmles/webcam-transfer-learning/joint-model-v1');
+  await model.save(
+      'indexeddb://tfjs-exapmles/webcam-transfer-learning/joint-model-v1');
   console.log('Saved joint model');
 }
 

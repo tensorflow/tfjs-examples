@@ -182,18 +182,18 @@ describe('Date formats', () => {
     expect(encoded.shape).toEqual([2, dateFormat.OUTPUT_LENGTH]);
 
     const values = encoded.dataSync();
-    let strPrime = '';
+    let decodedStr = '';
     for (let i = 0; i < dateFormat.OUTPUT_LENGTH; ++i) {
-      strPrime += dateFormat.OUTPUT_VOCAB[values[i]];
+      decodedStr += dateFormat.OUTPUT_VOCAB[values[i]];
     }
-    expect(strPrime.trim()).toEqual(str1);
+    expect(decodedStr.trim()).toEqual(str1);
 
-    strPrime = '';
+    decodedStr = '';
     for (let i = 0; i < dateFormat.OUTPUT_LENGTH; ++i) {
-      strPrime +=
+      decodedStr +=
           dateFormat.OUTPUT_VOCAB[values[i + dateFormat.OUTPUT_LENGTH]];
     }
-    expect(strPrime.trim()).toEqual(str2);
+    expect(decodedStr.trim()).toEqual(str2);
   });
 
   it('Encode output string: oneHot', () => {
@@ -209,17 +209,17 @@ describe('Date formats', () => {
 
     const values = encoded.argMax(-1).dataSync();
 
-    let strPrime = '';
+    let decodedStr = '';
     for (let i = 0; i < dateFormat.OUTPUT_LENGTH; ++i) {
-      strPrime += dateFormat.OUTPUT_VOCAB[values[i]];
+      decodedStr += dateFormat.OUTPUT_VOCAB[values[i]];
     }
-    expect(strPrime.trim()).toEqual(str1);
+    expect(decodedStr.trim()).toEqual(str1);
 
-    strPrime = '';
+    decodedStr = '';
     for (let i = 0; i < dateFormat.OUTPUT_LENGTH; ++i) {
-      strPrime +=
+      decodedStr +=
           dateFormat.OUTPUT_VOCAB[values[i + dateFormat.OUTPUT_LENGTH]];
     }
-    expect(strPrime.trim()).toEqual(str2);
+    expect(decodedStr.trim()).toEqual(str2);
   });
 });

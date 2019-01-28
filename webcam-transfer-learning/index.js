@@ -127,7 +127,7 @@ async function train() {
   const jointModel = tf.sequential();
   jointModel.add(truncatedMobileNet);
   jointModel.add(model);
-  await model('indexedb://tfjs-exapmles/webcam-transfer-learning/joint-model-v1');
+  await model('indexeddb://tfjs-exapmles/webcam-transfer-learning/joint-model-v1');
   console.log('Saved joint model');
 }
 

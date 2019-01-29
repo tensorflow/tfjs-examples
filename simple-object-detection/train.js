@@ -145,7 +145,7 @@ async function buildObjectDetectionModel() {
   const parser = new argparse.ArgumentParser();
   parser.addArgument('--gpu', {
     action: 'storeTrue',
-    help: "Use tfjs-node-gpu for training (required CUDA and CudNN)"
+    help: "Use tfjs-node-gpu for training (required CUDA and CuDNN)"
   });
   parser.addArgument(
       '--numExamples',

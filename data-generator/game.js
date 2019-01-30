@@ -1,5 +1,3 @@
-import {resolveTripleslashReference} from 'typescript';
-
 /**
  * @license
  * Copyright 2019 Google LLC. All Rights Reserved.
@@ -16,6 +14,8 @@ import {resolveTripleslashReference} from 'typescript';
  * limitations under the License.
  * =============================================================================
  */
+
+import {resolveTripleslashReference} from 'typescript';
 
 /**
  * This file implements a two player card game similar to a much simplified game
@@ -40,6 +40,7 @@ export let NUM_SIMULATIONS_SO_FAR = 0;
 // Constants defining the range of card values.
 export const MIN_CARD_VALUE = 1;
 export const MAX_CARD_VALUE = 9;
+export const NUM_CARDS_PER_HAND = 3;
 
 /**
  * Returns a random integer in the range [MIN_CARD_VALUE, MAX_CARD_VALUE]
@@ -53,12 +54,12 @@ function getRandomDigit() {
  * is an integer randomly selected within the range [1, 9].
  */
 export function randomHand() {
-  return [getRandomDigit(), getRandomDigit(), getRandomDigit()].sort();
+  return [getRandomDigit(), getRandomDigit(), getRandomDigit()];
 }
 
 /**
- * Returns the face value of any matching triple in the hand, or zero if no triple
- * exists.
+ * Returns the face value of any matching triple in the hand, or zero if no
+ * triple exists.
  */
 function tripleVal(hand) {
   if ((hand[0] === hand[1]) && (hand[1] === hand[2])) {
@@ -99,7 +100,7 @@ function singleVal(hand) {
  *
  * This assures the rules are met, assuming the highest card value is
  *   less than 10, and the lowest is greater than 0.
- * 
+ *
  * For instance:
  *   [1, 9, 1] -> 19
  *   [2, 8, 4] -> 8

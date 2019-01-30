@@ -119,7 +119,7 @@
     </section>
   </div>
   <p class='section-head'>How to use this demo.</p>
-  This demo is meant to illustrate how to train a model to predict the liklihood of winning a game. The game
+  This demo is meant to illustrate how to train a model to predict the likelihood of winning a game. The game
   itself is described below, and implmented in game.js. The game exports a function we will use as a "generator"
   function to create a dataset. We will then fit a model to this dataset, with the goal of predicting the "win"
   state from features calculated from Player 1's hand.
@@ -214,7 +214,7 @@
         <h4>tf.dataFromGenerator(simulation↑)</h4>
         <h4>.map(gameToFeaturesAndLabel)</h4>
         <h4>.batch(
-          <input type="number" id="generator-batch" value="20">)</h4>
+          <input type="number" id="generator-batch" value="100">)</h4>
         <h4>.take(
           <input type="number" id="generator-take" value="5">)</h4>
         <h4>.toArray()

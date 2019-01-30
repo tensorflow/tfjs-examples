@@ -48,13 +48,14 @@ let GLOBAL_MODEL;
  * @param {*} gameState
  */
 function gameToFeaturesAndLabelOneHot(gameState) {
-  const features = tf.concat([
-    tf.oneHot(tf.scalar(gameState[0][0] - 1, 'int32'), game.MAX_CARD_VALUE),
-    tf.oneHot(tf.scalar(gameState[0][1] - 1, 'int32'), game.MAX_CARD_VALUE),
-    tf.oneHot(tf.scalar(gameState[0][2] - 1, 'int32'), game.MAX_CARD_VALUE)
-  ]);
-  const label = tf.tensor1d([gameState[2]]);
-  return {features, label};
+  return tf.tidy(() => {
+    const player1Hand = tf.tensor1d(gameState[0], 'int32');
+    const handOneHot = tf.oneHot(
+        tf.sub(player1Hand, tf.scalar(1, 'int32')), game.MAX_CARD_VALUE);
+    const features = tf.sum(handOneHot, 0);
+    const label = tf.tensor1d([gameState[2]]);
+    return {features, label};
+  });
 }
 
 /**
@@ -131,7 +132,8 @@ async function datasetToArrayHandler() {
 function createDNNModel() {
   GLOBAL_MODEL = tf.sequential();
   GLOBAL_MODEL.add(tf.layers.dense({
-    inputShape: [ui.getUseOneHot() ? 27 : 3],
+    inputShape:
+        [ui.getUseOneHot() ? game.MAX_CARD_VALUE : game.NUM_CARDS_PER_HAND],
     units: 10,
     activation: 'relu'
   }));
@@ -216,8 +218,7 @@ function featureTypeClickHandler() {
  * the model's prediction.
  */
 function predictHandler() {
-  const cards =
-      [ui.getInputCard1(), ui.getInputCard2(), ui.getInputCard3()].sort();
+  const cards = [ui.getInputCard1(), ui.getInputCard2(), ui.getInputCard3()];
   const features = gameToFeaturesAndLabel([cards, [1, 2, 3], 1]).features;
   const output = GLOBAL_MODEL.predict(features.expandDims(0));
   ui.displayPrediction(output);

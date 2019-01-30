@@ -114,17 +114,37 @@
 <body>
   <div class="container">
     <section class='title-area'>
-      <h3>TensorFlow.js: tfjs-data basics</h3>
-      This is some text.
+      <h3>TensorFlow.js: tfjs-data</h3>
+      Building a tf.data.Dataset from a generator function.
     </section>
   </div>
+  <p class='section-head'>How to use this demo.</p>
+  This demo is meant to illustrate how to train a model to predict the liklihood of winning a game. The game
+  itself is described below, and implmented in game.js. The game exports a function we will use as a "generator"
+  function to create a dataset. We will then fit a model to this dataset, with the goal of predicting the "win"
+  state from features calculated from Player 1's hand.
+
+  <ol>
+    <li>Familiarize yourself with the rules of the game below.</li>
+    <li> Simulate the game by pressing the simulate button.</li>
+    <li> See how games are generated, wins are calculated, and notice that the simulation count increases.</li>
+    <li> See that we also produce tensor-valued features suitable for training a model to predict win status from
+      Player 1's hand.</li>
+    <li> Switch between raw and oneHot features by clicking the checkbox in the simulation results. One hot
+      representation seems to train a bit better.</li>
+    <li> See what batches of data looks like by clicking dataset-to-array.</li>
+    <li> Before training a model, select a batchSize, the number of batchesPerEpoch, and how many epochs to train on.</li>
+    <li> When you are ready, train a model on the generated features by clicking 'train-model-using-fit-dataset'.</li>
+    <li> Once the model is trained, make predictions by entering values for the user's hand, and clicking predict.</li>
+  </ol>
   <div class="divTable">
     <div class="divTableRow">
+      <!-- Left hand pane -->
       <div class="divTableCell" style='width:50%'>
+        <p></p>
         <p class='section-head'>Game Simulation</p>
         Click "Simulate Game" to run one play of the game. Three numbers will be randomly selected for each player. The
-        "win" status
-        will indicate whether player one's numbers beat the opponent's numbers.
+        "win" status will indicate whether player one's 'win' status according to the following rules..
         <p></p>
         Rules:
         <ul>
@@ -204,10 +224,10 @@
         <div class="container" id="to-array-container">
         </div>
       </div>
+      <!-- Right hand pane -->
       <div class="divTableCell" style='width:50%'>
-        <p class='section-head'>Train Model</p>
+        <p class='section-head'>Train & Evaluate Model</p>
         <div id="train-model-message"></div>
-        Train & Evaluate Model
         <h4>batchesPerEpoch
           <input type="number" id="batches-per-epoch" value="50">
           <h4>Epochs to train
@@ -215,11 +235,11 @@
           </h4>
           Expected simulations = batchSize * batchesPerEpoch * epochs = <div id='expected-simulations'></div>
           <button id="train-model-using-fit-dataset">train-model-using-fit-dataset</button>
+
           <section>
             <p class='section-head'>Training Progress</p>
             <p id="training-status"></p>
             <p id="training-message"></p>
-
             <div id="training-stats">
               <div class="canvases">
                 <label id="training-loss-label"></label>
@@ -240,12 +260,9 @@
               <input type="number" id="input-card-2" value="7"></h4>
             <h4>card 3(
               <input type="number" id="input-card-3" value="7"></h4>
-              <button id="predict">predict</button>
-              predicted liklihood of winning:
-              <div class="container" id="prediction">
-
-              </div>
-
+            <button id="predict">predict</button>
+            predicted liklihood of winning:
+            <div class="container" id="prediction"> </div>
           </section>
 
       </div>

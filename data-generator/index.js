@@ -18,8 +18,6 @@
 
 import * as tf from '@tensorflow/tfjs';
 import * as tfvis from '@tensorflow/tfjs-vis';
-
-
 import * as game from './game';
 import * as ui from './ui';
 
@@ -45,12 +43,11 @@ let GLOBAL_MODEL;
 
 /**
  * Takes the state of one complete game and returns features suitable for
- * training.  Specifically it removes features identifying the opponent' hand
- * and divides the training features(player 1's hand) from the target (whether
- * player one wins).
+ * training.  Returns an object containing features = player1's hand represented
+ * using oneHot encoding, and label = whether player 1 won.
  * @param {*} gameState
  */
-export function gameToFeaturesAndLabelOneHot(gameState) {
+function gameToFeaturesAndLabelOneHot(gameState) {
   const features = tf.concat([
     tf.oneHot(tf.scalar(gameState[0][0] - 1, 'int32'), game.MAX_CARD_VALUE),
     tf.oneHot(tf.scalar(gameState[0][1] - 1, 'int32'), game.MAX_CARD_VALUE),
@@ -60,12 +57,24 @@ export function gameToFeaturesAndLabelOneHot(gameState) {
   return {features, label};
 }
 
-export function gameToFeaturesAndLabelRaw(gameState) {
+/**
+ * Takes the state of one complete game and returns features suitable for
+ * training.  Returns an object containing features = player1's hand
+ * and label = whether player 1 won.
+ * @param {*} gameState
+ */
+function gameToFeaturesAndLabelRaw(gameState) {
   const features = tf.tensor1d(gameState[0]);
   const label = tf.tensor1d([gameState[2]]);
   return {features, label};
 }
 
+/**
+ * Takes the state of one complete game and returns features suitable for
+ * training.  Depending if 'oneHot' is selected, Player 1's hand is represented
+ * either literally, as an array of three numbers or using oneHotRepresentation.
+ * @param {*} gameState
+ */
 export function gameToFeaturesAndLabel(gameState) {
   if (ui.getUseOneHot()) {
     return gameToFeaturesAndLabelOneHot(gameState);
@@ -88,7 +97,10 @@ async function simulateGameHandler(wantNewGame) {
   ui.displayNumSimulationsSoFar(game.NUM_SIMULATIONS_SO_FAR);
 }
 
-/** @see datasetToArrayHandler */
+/**
+ * This is pulled into a separate function to isolate the async code.
+ *  @see datasetToArrayHandler
+ */
 async function datasetToArray() {
   return GAME_GENERATOR_DATASET.map(gameToFeaturesAndLabel)
       .batch(ui.getBatchSize())
@@ -111,6 +123,11 @@ async function datasetToArrayHandler() {
   ui.displayNumSimulationsSoFar(game.NUM_SIMULATIONS_SO_FAR);
 }
 
+/**
+ * Returns a three layer sequential model suitable for predicting win state from
+ * feature representation.  The input shape depends on whether oneHot
+ * representation is used.
+ */
 function createDNNModel() {
   GLOBAL_MODEL = tf.sequential();
   GLOBAL_MODEL.add(tf.layers.dense({
@@ -124,39 +141,51 @@ function createDNNModel() {
   return GLOBAL_MODEL;
 }
 
+
+/**
+ * Trains a the provided model on the provided dataset using model.fitDataset.
+ * Schedules a callback at the end of every epoch to update the UI with
+ * graphs showing loss and accuracy, as well as training speed and the current
+ * prediction for the manually entered hand.
+ * @param {tf.Model} model
+ * @param {tf.data.Dataset} dataset
+ */
 async function trainModelUsingFitDataset(model, dataset) {
-  const EPOCHS = ui.getEpochsToTrain();
-  const BATCHES_PER_EPOCH = ui.getBatchesPerEpoch();
-  const VALIDATION_BATCHES = 10;
   const trainLogs = [];
   const beginMs = performance.now();
   const fitDatasetArgs = {
-    batchesPerEpoch: BATCHES_PER_EPOCH,
-    epochs: EPOCHS,
+    batchesPerEpoch: ui.getBatchesPerEpoch(),
+    epochs: ui.getEpochsToTrain(),
     validationData: dataset,
-    validationBatches: VALIDATION_BATCHES,
+    validationBatches: 10,
     callbacks: {
       onEpochEnd: async (epoch, logs) => {
         // Plot the loss and accuracy values at the end of every training epoch.
         const secPerEpoch =
             (performance.now() - beginMs) / (1000 * (epoch + 1));
-        ui.logStatus(
+        ui.displayTrainLogMessage(
             `Training model... Approximately ` +
             `${secPerEpoch.toFixed(4)} seconds per epoch`);
         trainLogs.push(logs);
         tfvis.show.history(
-            ui.getLossContainer(), trainLogs, ['loss', 'val_loss'])
+            ui.lossContainerElement, trainLogs, ['loss', 'val_loss'])
         tfvis.show.history(
-            ui.getAccuracyContainer(), trainLogs, ['acc', 'val_acc'])
+            ui.accuracyContainerElement, trainLogs, ['acc', 'val_acc'])
         ui.displayNumSimulationsSoFar(game.NUM_SIMULATIONS_SO_FAR);
+        // Update the prediction.
+        predictHandler();
       },
     }
   };
   await model.fitDataset(dataset, fitDatasetArgs);
 }
 
-const LEARNING_RATE = 0.001;
-
+/**
+ * Constructs a new model and trains it on a dataset pipeline built off of
+ * GAME_GENERATOR_DATASET.  The dataset pipeline performs feature calculation
+ * and batching.
+ * @see trainModelUsingFitDataset for training details.
+ */
 async function trainModelUsingFitDatasetHandler() {
   const model = createDNNModel();
   model.compile({
@@ -164,13 +193,16 @@ async function trainModelUsingFitDatasetHandler() {
     loss: 'binaryCrossentropy',
     metrics: ['accuracy'],
   });
-  const dataset = GAME_GENERATOR_DATASET
-                      .map(gameToFeaturesAndLabel)  // {F: vector, L: scalar}
-                      .map(a => [a.features, a.label])  // [vector, scalar]
+  const dataset = GAME_GENERATOR_DATASET.map(gameToFeaturesAndLabel)
+                      .map(a => [a.features, a.label])
                       .batch(ui.getBatchSize());
   trainModelUsingFitDataset(model, dataset);
 }
 
+/**
+ * Handler for changing the feature representation between raw and oneHot.
+ * Updates the simulation output and clears a batch sample, if it exists.
+ */
 function featureTypeClickHandler() {
   ui.displayBatches([]);
   // Only update the sample game features if there is already a sample game.
@@ -179,6 +211,10 @@ function featureTypeClickHandler() {
   }
 }
 
+/**
+ * Applies the model to the manually entered hand value and updates the UI with
+ * the model's prediction.
+ */
 function predictHandler() {
   const cards =
       [ui.getInputCard1(), ui.getInputCard2(), ui.getInputCard3()].sort();

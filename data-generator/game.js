@@ -17,12 +17,32 @@ import {resolveTripleslashReference} from 'typescript';
  * =============================================================================
  */
 
+/**
+ * This file implements a two player card game similar to a much simplified game
+ * of Poker. The cards range in value from 1 to 9, and each player receives
+ * three cards, drawn uniformly from the integers in the range [1, 9].
+ * One player wins by having a better hand.
+ *
+ *    Any triple (three of the same card) beats any double.
+ *    Any double (two of the same card) beats any single.
+ *    If both players have a triple, the higher triple wins.
+ *    If both players have a double, the higher double wins.
+ *    If neither player has a double, the player with the highest
+ *       individual number wins.
+ *    Ties are settled randomly, 50/50.
+ */
+
+
+// Global exported count of the number of times the game has been played. Useful
+// for illustrating how many simulations it takes to train the model.
 export let NUM_SIMULATIONS_SO_FAR = 0;
+
+// Constants defining the range of card values.
 export const MIN_CARD_VALUE = 1;
 export const MAX_CARD_VALUE = 9;
 
 /**
- * Returns a random integer in the range [1, MAX_CARD_VALUE]
+ * Returns a random integer in the range [MIN_CARD_VALUE, MAX_CARD_VALUE]
  */
 function getRandomDigit() {
   return Math.floor(MIN_CARD_VALUE + Math.random() * MAX_CARD_VALUE);
@@ -37,23 +57,23 @@ export function randomHand() {
 }
 
 /**
- * Returns face value of any matching triple in the hand, or zero if no triple
+ * Returns the face value of any matching triple in the hand, or zero if no triple
  * exists.
  */
 function tripleVal(hand) {
   if ((hand[0] === hand[1]) && (hand[1] === hand[2])) {
-    return (MAX_CARD_VALUE * MAX_CARD_VALUE + 1) * hand[0];
+    return hand[0];
   }
   return 0;
 }
 
 /**
- * Returns face value of any matching pair in the hand, or zero if no pair
+ * Returns the face value of any matching pair in the hand, or zero if no pair
  * exists.
  */
 function doubleVal(hand) {
   if (hand[0] === hand[1]) {
-    return (MAX_CARD_VALUE + 1) * hand[0];
+    return hand[0];
   }
   if (hand[0] === hand[2]) {
     return (MAX_CARD_VALUE + 1) * hand[0];
@@ -77,6 +97,9 @@ function singleVal(hand) {
  *   + 10 times the paired element, if there is one.
  *   + the value of the largest element of the hand.
  *
+ * This assures the rules are met, assuming the highest card value is
+ *   less than 10, and the lowest is greater than 0.
+ * 
  * For instance:
  *   [1, 9, 1] -> 19
  *   [2, 8, 4] -> 8
@@ -86,7 +109,7 @@ function singleVal(hand) {
  * @param hand An array of three integers in the range [1, 9]
  */
 export function handVal(hand) {
-  return tripleVal(hand) + doubleVal(hand) + singleVal(hand);
+  return 100 * tripleVal(hand) + 10 * doubleVal(hand) + singleVal(hand);
 }
 
 /**

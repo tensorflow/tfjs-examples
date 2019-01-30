@@ -49,11 +49,11 @@ let GLOBAL_MODEL;
  */
 function gameToFeaturesAndLabelOneHot(gameState) {
   return tf.tidy(() => {
-    const player1Hand = tf.tensor1d(gameState[0], 'int32');
+    const player1Hand = tf.tensor1d(gameState.player1Hand, 'int32');
     const handOneHot = tf.oneHot(
         tf.sub(player1Hand, tf.scalar(1, 'int32')), game.MAX_CARD_VALUE);
     const features = tf.sum(handOneHot, 0);
-    const label = tf.tensor1d([gameState[2]]);
+    const label = tf.tensor1d([gameState.player1Win]);
     return {features, label};
   });
 }
@@ -65,8 +65,8 @@ function gameToFeaturesAndLabelOneHot(gameState) {
  * @param {*} gameState
  */
 function gameToFeaturesAndLabelRaw(gameState) {
-  const features = tf.tensor1d(gameState[0]);
-  const label = tf.tensor1d([gameState[2]]);
+  const features = tf.tensor1d(gameState.player1Hand);
+  const label = tf.tensor1d([gameState.player1Win]);
   return {features, label};
 }
 

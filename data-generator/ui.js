@@ -1,3 +1,5 @@
+import {gameToFeaturesAndLabel} from '.';
+
 /**
  * @license
  * Copyright 2019 Google LLC. All Rights Reserved.
@@ -14,6 +16,8 @@
  * limitations under the License.
  * =============================================================================
  */
+
+import * as game from './game';
 
 export const lossContainerElement =
     document.getElementById('training-loss-canvas');
@@ -103,7 +107,7 @@ function featuresAndLabelsToPrettyString(features) {
 
 /**
  * Fills in the data in the Game Simulation.
- * @param {[number[], number[], number]} sample  A game state.  The first
+ * @param {player1, player2, win]} sample  A game state.  The first
  *     element the sample is an array of player 1's hand.  The second element is
  *     an array of player 2's hand.  The third element is 1 if player 1 wins, 0
  *     otherwise.
@@ -111,13 +115,37 @@ function featuresAndLabelsToPrettyString(features) {
  *     sample, suitable to feed into the model.
  */
 export function displaySimulation(sample, featuresAndLabel) {
-  document.getElementById('sim-p1-1').innerText = sample[0][0];
-  document.getElementById('sim-p1-2').innerText = sample[0][1];
-  document.getElementById('sim-p1-3').innerText = sample[0][2];
-  document.getElementById('sim-p2-1').innerText = sample[1][0];
-  document.getElementById('sim-p2-2').innerText = sample[1][1];
-  document.getElementById('sim-p2-3').innerText = sample[1][2];
-  document.getElementById('sim-result').innerText = sample[2];
+  const simRawRowElement = document.getElementById('sim-raw-row');
+  // DOING DOING DOING DOIGN DOING.
+  // FIGURE THIS OUT
+  // STOPPED HERE Wed 1-30 6PM.
+  simRawRowElement.innerHTML = '';
+  // Player 1 simulation cells.
+  for (let i = 0; i < game.NUM_CARDS_PER_HAND; i++) {
+    const newDiv = document.createElement('div');
+    newDiv.style = 'width:12.5%';
+    newDiv.id = `sim-p1-${i}`;
+    simRawRowElement.appendChild(newDiv);
+  }
+  const spacerDiv = document.createElement('div');
+  spacerDiv.style = '5%';
+  simRawRowElement.appendChild(spacerDiv);
+  // Player 2 simulation cells.
+  for (let i = 0; i < game.NUM_CARDS_PER_HAND; i++) {
+    const newDiv = document.createElement('div');
+    newDiv.style = 'width:12.5%';
+    newDiv.id = `sim-p2-${i}`;
+    simRawRowElement.appendChild(newDiv);
+  }
+  const resultDiv = document.createElement('div');
+  resultDiv.style = '5%';
+  simRawRowElement.appendChild(resultDiv);
+
+  for (let i = 0; i < game.NUM_CARDS_PER_HAND; i++) {
+    document.getElementById(`sim-p1-${i}`).innerText = sample.player1Hand[i];
+    document.getElementById(`sim-p2-${i}`).innerText = sample.player2Hand[i];
+  }
+  document.getElementById('sim-result').innerText = sample.player1Win;
   const features = featuresAndLabel.features.dataSync();
   const label = featuresAndLabel.label.dataSync();
   document.getElementById('sim-features').innerText =

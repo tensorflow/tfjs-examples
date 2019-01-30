@@ -81,7 +81,7 @@ async function handler(label) {
   while (mouseDown) {
     addExampleHandler(label);
     document.body.setAttribute('data-active', CONTROLS[label]);
-    total.innerText = totals[label]++;
+    total.innerText = ++totals[label];
     await tf.nextFrame();
   }
   document.body.removeAttribute('data-active');

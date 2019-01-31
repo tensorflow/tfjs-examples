@@ -210,7 +210,7 @@ function predictHandler() {
  */
 function selectCardsPerHandHandler() {
   game.GAME_STATE.num_cards_per_hand =
-      document.getElementById('select-cards-per-hand').value;
+      Number.parseInt(document.getElementById('select-cards-per-hand').value);
   simulateGameHandler(true);
   ui.updatePredictionInputs();
   ui.displayBatches([]);

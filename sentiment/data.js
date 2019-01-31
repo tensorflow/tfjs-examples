@@ -71,15 +71,27 @@ function loadFeatures(filePath, numWords, maxLen, multihot = false) {
   if (seq.length > 0) {
     sequences.push(seq);
   }
-  const paddedSequences =
-      padSequences(sequences, maxLen, 'pre', 'pre');
+
+  // Get some sequence length stats.
+  let minLength = Infinity;
+  let maxLength = -Infinity;
+  sequences.forEach(seq => {
+    const length = seq.length;
+    if (length < minLength) {
+      minLength = length;
+    }
+    if (length > maxLength) {
+      maxLength = length;
+    }
+  });
+  console.log(`Sequence length: min = ${minLength}; max = ${maxLength}`);
 
   if (multihot) {
     // If requested by the arg, encode the sequences as multi-hot
     // vectors.
-    const buffer = tf.buffer([paddedSequences.length, numWords]);
-    paddedSequences.forEach((sequence, i) => {
-      sequence.forEach(wordIndex => {
+    const buffer = tf.buffer([sequences.length, numWords]);
+    sequences.forEach((seq, i) => {
+      seq.forEach(wordIndex => {
         if (wordIndex !== OOV_CHAR && wordIndex !== PAD_CHAR) {
           buffer.set(1, i, wordIndex);
         }
@@ -87,6 +99,8 @@ function loadFeatures(filePath, numWords, maxLen, multihot = false) {
     });
     return buffer.toTensor();
   } else {
+    const paddedSequences =
+        padSequences(sequences, maxLen, 'pre', 'pre');
     return tf.tensor2d(
         paddedSequences, [paddedSequences.length, maxLen], 'int32');
   }
@@ -103,10 +117,23 @@ function loadTargets(filePath) {
   const buffer = fs.readFileSync(filePath);
   const numBytes = buffer.byteLength;
 
+  let numPositive = 0;
+  let numNegative = 0;
+
   let ys = [];
   for (let i = 0; i < numBytes; ++i) {
-    ys.push(buffer.readUInt8(i));
+    const y = buffer.readUInt8(i);
+    if (y === 1) {
+      numPositive++;
+    } else {
+      numNegative++;
+    }
+    ys.push(y);
   }
+
+  console.log(
+      `Loaded ${numPositive} positive examples and ` +
+      `${numNegative} negative examples.`);
   return tf.tensor2d(ys, [ys.length, 1], 'float32');
 }
 

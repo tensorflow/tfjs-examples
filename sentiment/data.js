@@ -92,7 +92,7 @@ function loadFeatures(filePath, numWords, maxLen, multihot = false) {
     const buffer = tf.buffer([sequences.length, numWords]);
     sequences.forEach((seq, i) => {
       seq.forEach(wordIndex => {
-        if (wordIndex !== OOV_CHAR && wordIndex !== PAD_CHAR) {
+        if (wordIndex !== OOV_CHAR) {
           buffer.set(1, i, wordIndex);
         }
       });

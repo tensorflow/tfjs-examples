@@ -15,8 +15,6 @@
  * =============================================================================
  */
 
-import {resolveTripleslashReference} from 'typescript';
-
 /**
  * This file implements a two player card game similar to a much simplified game
  * of Poker. The cards range in value from 1 to GAME_STATE.max_card_value, and

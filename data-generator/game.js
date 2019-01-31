@@ -86,7 +86,11 @@ export function randomHand() {
  *     the hand, if, for instance, there are no triples.
  */
 export function handScoringHelper(hand) {
-  const faceValOfEachGroup = new Array(GAME_STATE.num_cards_per_hand).fill(0);
+  // Create an array of all zeros of the appropriate size.
+  const faceValOfEachGroup = [];
+  for (let i = 0; i < GAME_STATE.num_cards_per_hand; i++) {
+    faceValOfEachGroup.push(0);
+  }
   let runLength = 0;
   let prevVal = 0;
   for (let i = 0; i < GAME_STATE.num_cards_per_hand; i++) {

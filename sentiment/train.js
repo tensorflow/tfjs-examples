@@ -46,10 +46,8 @@ function buildModel(modelType, maxLen, vocabularySize, embeddingSize) {
     }));
     model.add(tf.layers.dense({
       units: 16,
-      activation: 'relu',
-      inputShape: [vocabularySize]
+      activation: 'relu'
     }));
-    model.add(tf.layers.dropout({rate: 0.5}));
   } else {
     // All other model types use word embedding.
     model.add(tf.layers.embedding({
@@ -61,14 +59,6 @@ function buildModel(modelType, maxLen, vocabularySize, embeddingSize) {
       model.add(tf.layers.flatten());
     } else if (modelType === 'cnn') {
       model.add(tf.layers.dropout({rate: 0.5}));
-      model.add(tf.layers.conv1d({
-        filters: 250,
-        kernelSize: 5,
-        strides: 1,
-        padding: 'valid',
-        activation: 'relu'
-      }));
-      model.add(tf.layers.maxPooling1d({}));
       model.add(tf.layers.conv1d({
         filters: 250,
         kernelSize: 5,

@@ -177,7 +177,7 @@ export function updatePredictionInputs() {
     const newInput = document.createElement('input');
     newInput.type = 'number';
     newInput.id = `input-card-${i}`;
-    newInput.value = game.getRandomDigit();
+    newInput.value = 13;
     newH4.appendChild(newInput);
     container.appendChild(newH4);
   }

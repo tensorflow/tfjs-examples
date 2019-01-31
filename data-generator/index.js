@@ -152,7 +152,8 @@ async function trainModelUsingFitDataset(model, dataset) {
         tfvis.show.history(
             ui.lossContainerElement, trainLogs, ['loss', 'val_loss'])
         tfvis.show.history(
-            ui.accuracyContainerElement, trainLogs, ['acc', 'val_acc'])
+            ui.accuracyContainerElement, trainLogs, ['acc', 'val_acc'],
+            {zoomToFitAccuracy: true})
         ui.displayNumSimulationsSoFar();
         // Update the prediction.
         predictHandler();

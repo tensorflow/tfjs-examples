@@ -120,23 +120,29 @@
   </div>
   <p class='section-head'>How to use this demo.</p>
 
-
-  This demo is meant to illustrate how to train a model using data from a generator.
-  In this case, we will predict the likelihood of winning a game. The game
-  itself is described below, and implmented in game.js. The game exports a function we will use as a "generator"
-  function to create a dataset. We will then fit a model to this dataset, with the goal of predicting the "win"
-  state from features calculated from Player 1's hand.
+  This demo is meant to illustrate how to train a model using a tf.data.Dataset
+  constructed from a generator. In this case, we will predict the likelihood of
+  winning a game. The game itself is described below, and implmented in game.js.
+  The game exports a function we will use as a "generator" function to create a
+  dataset. We will then fit a model to this dataset, with the goal of predicting
+  the "win"state from features calculated from Player 1's hand.
 
   <p class='section-head'>How to use this app.</p>
   <ol>
-    <li>Familiarize yourself with the rules of the game below.</li>
+    <li> Familiarize yourself with the rules of the game below.</li>
     <li> Simulate the game by pressing the <i>simulate-game</i> button.</li>
-    <li> See how games are generated, wins are calculated, and notice that the simulation count increases.</li>
-    <li> Familiarize yourself with the tensor-valued features calculated from player 1's hand.</li>
+    <li> Select how many cards each player gets using the drop-down menu.</li>
+    <li> See how games are generated, wins are calculated, and notice that the
+      simulation count increases.</li>
+    <li> Familiarize yourself with the tensor-valued features calculated from
+      player 1's hand.</li>
     <li> See what batches of data looks like by clicking dataset-to-array.</li>
-    <li> Before training a model, select a batchSize, the number of batchesPerEpoch, and how many epochs to train on.</li>
-    <li> When you are ready, train a model on the generated features by clicking <i>'train-model-using-fit-dataset'</i>.</li>
-    <li> Once the model is trained, make predictions by entering values for the user's hand, and clicking predict.</li>
+    <li> Before training a model, select a batchSize, the number of
+      batchesPerEpoch, and how many epochs to train on.</li>
+    <li> When you are ready, train a model on the generated features by
+      clicking <i>'train-model-using-fit-dataset'</i>.</li>
+    <li> Once the model is trained, make predictions by entering values
+      for the user's hand, and clicking predict.</li>
   </ol>
   <div class="divTable">
     <div class="divTableRow">
@@ -149,8 +155,10 @@
         <p></p>
         Rules:
         <ul>
-          <li>The player with the largest group of same-valued cards wins.  E.g., if player 1 has three-of-a-kind, and player 2 only has a pair, player 1 wins.</li>
-          <li>If both players have the same sized maximal group, then the player with the group with the largest face value wins.  E.g., A pair of 5s beats a pair of 4s.</li>
+          <li>The player with the largest group of same-valued cards wins. E.g., if player 1 has three-of-a-kind, and
+            player 2 only has a pair, player 1 wins.</li>
+          <li>If both players have the same sized maximal group, then the player with the group with the largest face
+            value wins. E.g., A pair of 5s beats a pair of 4s.</li>
           <li>If neither player even has a pair, the player with the highest single card wins.</li>
           <li>Ties are settled randomly, 50/50.</li>
         </ul>
@@ -255,18 +263,15 @@
                 <div id="training-accuracy-canvas"></div>
               </div>
             </div>
+            Note that since each player has an equal chance of winning, we
+            expect that a completely naive estimator will have an accuracy of
+            0.5.  An estimator with perfect accuracy is not possible, since the
+            estimator does not have access to the opponent player's hand.
           </section>
 
           <section>
             <p class='section-head'>Use Trained Model</p>
-            <div id='prediction-input'>
-              <h4>card 1
-                <input type="number" id="input-card-1" value="2"></h4>
-              <h4>card 2(
-                <input type="number" id="input-card-2" value="7"></h4>
-              <h4>card 3(
-                <input type="number" id="input-card-3" value="7"></h4>
-            </div>
+            <div id='prediction-input'></div>
             <button id="predict" disabled="true">predict</button>
             predicted liklihood of winning:
             <div class="container" id="prediction"> </div>

@@ -150,16 +150,20 @@
       <div class="divTableCell" style='width:50%'>
         <p></p>
         <p class='section-head'>Game Simulation</p>
-        Click "Simulate Game" to run one play of the game. Three numbers will be randomly selected for each player. The
-        "win" status will indicate whether player one's 'win' status according to the following rules..
+        Click "Simulate Game" to run one play of the game. Three numbers will be
+        randomly selected for each player. The "win" status will indicate
+        whether player one's 'win' status according to the following rules..
         <p></p>
         Rules:
         <ul>
-          <li>The player with the largest group of same-valued cards wins. E.g., if player 1 has three-of-a-kind, and
-            player 2 only has a pair, player 1 wins.</li>
-          <li>If both players have the same sized maximal group, then the player with the group with the largest face
+          <li>The player with the largest group of same-valued cards wins. E.g.,
+            if player 1 has three-of-a-kind, and player 2 only has a pair,
+            player 1 wins.</li>
+          <li>If both players have the same sized maximal group, then the player
+            with the group with the largest face
             value wins. E.g., A pair of 5s beats a pair of 4s.</li>
-          <li>If neither player even has a pair, the player with the highest single card wins.</li>
+          <li>If neither player even has a pair, the player with the highest
+            single card wins.</li>
           <li>Ties are settled randomly, 50/50.</li>
         </ul>
         Number of cards per hand
@@ -205,16 +209,19 @@
         <div class='divTable'>
           <div class='divTableRow'>
             <div class='divTableCell' style='width:100%'>
-              <b>Game to features and label.</b> Note that the features fed into the model only include values visible
-              to player
-              1, since we want to predict player 1's probability of winning.<p></p>
+              <b>Game to features and label.</b> Note that the features fed into
+              the model only include values visible to player
+              1, since we want to predict player 1's probability of winning.
+              <p></p>
             </div>
           </div>
         </div>
         <div class='divTable'>
           <div class='divTableRow'>
             <div class='divTableCell' style='width:20%'><b>Features:</b> </div>
-            <div class='divTableCell' style='width:80%' id='sim-features'>Click "sample" to run</div>
+            <div class='divTableCell' style='width:80%' id='sim-features'>
+              Click "sample" to run
+            </div>
           </div>
           <div class='divTableRow'>
             <div class='divTableCell' style='width:20%'><b>Label:</b> </div>
@@ -245,8 +252,11 @@
           <h4>Epochs to train
             <input type="number" id="epochs-to-train" value="50">
           </h4>
-          Expected simulations = batchSize * batchesPerEpoch * epochs = <div id='expected-simulations'></div>
-          <button id="train-model-using-fit-dataset">train-model-using-fit-dataset</button>
+          Expected simulations = batchSize * batchesPerEpoch * epochs =
+          <div id='expected-simulations' style='display:inline'></div>
+          <button id="train-model-using-fit-dataset">
+            train-model-using-fit-dataset
+          </button>
           <button id="stop-training" disabled="true">stop-training</button>
 
           <section>
@@ -265,7 +275,7 @@
             </div>
             Note that since each player has an equal chance of winning, we
             expect that a completely naive estimator will have an accuracy of
-            0.5.  An estimator with perfect accuracy is not possible, since the
+            0.5. An estimator with perfect accuracy is not possible, since the
             estimator does not have access to the opponent player's hand.
           </section>
 
@@ -274,7 +284,7 @@
             <div id='prediction-input'></div>
             <button id="predict" disabled="true">predict</button>
             predicted liklihood of winning:
-            <div class="container" id="prediction"> </div>
+            <div class="container" id="prediction" style='display:inline'> </div>
           </section>
 
       </div>

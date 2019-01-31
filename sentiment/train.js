@@ -187,7 +187,8 @@ async function main() {
   // Save model.
   if (args.modelSaveDir != null && args.modelSaveDir.length > 0) {
     if (multihot) {
-      throw new Error('Saving multihot model is not supported.');
+      console.warn(
+          'Skipping saving of multihot model, which is not supported.');
     } else {
       // Create base directory first.
       shelljs.mkdir('-p', args.modelSaveDir);

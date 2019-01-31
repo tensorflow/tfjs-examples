@@ -188,28 +188,29 @@ async function main() {
   if (args.modelSaveDir != null && args.modelSaveDir.length > 0) {
     if (multihot) {
       throw new Error('Saving multihot model is not supported.');
+    } else {
+      // Create base directory first.
+      shelljs.mkdir('-p', args.modelSaveDir);
+
+      // Load metadata template.
+      console.log('Loading metadata template...');
+      const metadata = await loadMetadataTemplate();
+
+      // Save metadata.
+      metadata.epochs = args.epochs;
+      metadata.embedding_size = args.embeddingSize;
+      metadata.max_len = args.maxLen;
+      metadata.model_type = args.modelType;
+      metadata.batch_size = args.batchSize;
+      metadata.vocabulary_size = args.numWords;
+      const metadataPath = path.join(args.modelSaveDir, 'metadata.json');
+      fs.writeFileSync(metadataPath, JSON.stringify(metadata));
+      console.log(`Saved metadata to ${metadataPath}`);
+
+      // Save model artifacts.
+      await model.save(`file://${args.modelSaveDir}`);
+      console.log(`Saved model to ${args.modelSaveDir}`);
     }
-    // Create base directory first.
-    shelljs.mkdir('-p', args.modelSaveDir);
-
-    // Load metadata template.
-    console.log('Loading metadata template...');
-    const metadata = await loadMetadataTemplate();
-
-    // Save metadata.
-    metadata.epochs = args.epochs;
-    metadata.embedding_size = args.embeddingSize;
-    metadata.max_len = args.maxLen;
-    metadata.model_type = args.modelType;
-    metadata.batch_size = args.batchSize;
-    metadata.vocabulary_size = args.numWords;
-    const metadataPath = path.join(args.modelSaveDir, 'metadata.json');
-    fs.writeFileSync(metadataPath, JSON.stringify(metadata));
-    console.log(`Saved metadata to ${metadataPath}`);
-
-    // Save model artifacts.
-    await model.save(`file://${args.modelSaveDir}`);
-    console.log(`Saved model to ${args.modelSaveDir}`);
   }
 }
 

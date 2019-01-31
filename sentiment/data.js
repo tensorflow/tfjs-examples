@@ -78,15 +78,13 @@ function loadFeatures(filePath, numWords, maxLen, multihot = false) {
     // If requested by the arg, encode the sequences as multi-hot
     // vectors.
     const buffer = tf.buffer([paddedSequences.length, numWords]);
-    for (let i = 0; i < paddedSequences.length; ++i) {
-      const length = paddedSequences[i].length;
-      for (let j = 0; j < length; ++j) {
-        const wordIndex = paddedSequences[i][j];
+    paddedSequences.forEach((sequence, i) => {
+      sequence.forEach(wordIndex => {
         if (wordIndex !== OOV_CHAR && wordIndex !== PAD_CHAR) {
           buffer.set(1, i, wordIndex);
         }
-      }
-    }
+      });
+    });
     return buffer.toTensor();
   } else {
     return tf.tensor2d(

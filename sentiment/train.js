@@ -35,33 +35,59 @@ import {loadData, loadMetadataTemplate} from './data';
 function buildModel(modelType, maxLen, vocabularySize, embeddingSize) {
   // TODO(cais): Bidirectional and dense-only.
   const model = tf.sequential();
-  model.add(tf.layers.embedding({
-    inputDim: vocabularySize,
-    outputDim: embeddingSize,
-    inputLength: maxLen
-  }));
-  if (modelType === 'flatten') {
-    model.add(tf.layers.flatten());
-  } else if (modelType === 'cnn') {
-    model.add(tf.layers.dropout({rate: 0.2}));
-    model.add(tf.layers.conv1d({
-      filters: 250,
-      kernelSize: 3,
-      strides: 1,
-      padding: 'valid',
-      activation: 'relu'
+  if (modelType === 'multihot') {
+    // A 'multihot' model takes a multi-hot encoding of all words in the
+    // sentence and uses dense layers with relu and sigmoid activation functions
+    // to classify the sentence.
+    model.add(tf.layers.dense({
+      units: 16,
+      activation: 'relu',
+      inputShape: [vocabularySize]
     }));
-    model.add(tf.layers.globalMaxPool1d({}));
-    model.add(tf.layers.dense({units: 250, activation: 'relu'}));
-  } else if (modelType === 'simpleRNN') {
-    model.add(tf.layers.simpleRNN({units: 32}));
-  } else if (modelType === 'lstm') {
-    model.add(tf.layers.lstm({units: 32}));
-  } else if (modelType === 'bidirectionalLSTM') {
-    model.add(tf.layers.bidirectional(
-        {layer: tf.layers.lstm({units: 32}), mergeMode: 'concat'}));
+    model.add(tf.layers.dense({
+      units: 16,
+      activation: 'relu',
+      inputShape: [vocabularySize]
+    }));
+    model.add(tf.layers.dropout({rate: 0.5}));
   } else {
-    throw new Error(`Unsupported model type: ${modelType}`);
+    // All other model types use word embedding.
+    model.add(tf.layers.embedding({
+      inputDim: vocabularySize,
+      outputDim: embeddingSize,
+      inputLength: maxLen
+    }));
+    if (modelType === 'flatten') {
+      model.add(tf.layers.flatten());
+    } else if (modelType === 'cnn') {
+      model.add(tf.layers.dropout({rate: 0.5}));
+      model.add(tf.layers.conv1d({
+        filters: 250,
+        kernelSize: 5,
+        strides: 1,
+        padding: 'valid',
+        activation: 'relu'
+      }));
+      model.add(tf.layers.maxPooling1d({}));
+      model.add(tf.layers.conv1d({
+        filters: 250,
+        kernelSize: 5,
+        strides: 1,
+        padding: 'valid',
+        activation: 'relu'
+      }));
+      model.add(tf.layers.globalMaxPool1d({}));
+      model.add(tf.layers.dense({units: 250, activation: 'relu'}));
+    } else if (modelType === 'simpleRNN') {
+      model.add(tf.layers.simpleRNN({units: 32}));
+    } else if (modelType === 'lstm') {
+      model.add(tf.layers.lstm({units: 32}));
+    } else if (modelType === 'bidirectionalLSTM') {
+      model.add(tf.layers.bidirectional(
+          {layer: tf.layers.lstm({units: 32}), mergeMode: 'concat'}));
+    } else {
+      throw new Error(`Unsupported model type: ${modelType}`);
+    }
   }
   model.add(tf.layers.dense({units: 1, activation: 'sigmoid'}));
   return model;
@@ -72,7 +98,8 @@ function parseArguments() {
       {description: 'Train a model for IMDB sentiment analysis'});
   parser.addArgument('modelType', {
     type: 'string',
-    optionStrings: ['flatten', 'cnn', 'simpleRNN', 'lstm', 'bidirectionalLSTM'],
+    optionStrings: [
+       'multihot', 'flatten', 'cnn', 'simpleRNN', 'lstm', 'bidirectionalLSTM'],
     help: 'Model type'
   });
   parser.addArgument('--numWords', {
@@ -100,7 +127,7 @@ function parseArguments() {
   });
   parser.addArgument(
       '--epochs',
-      {type: 'int', defaultValue: 5, help: 'Number of training epochs'});
+      {type: 'int', defaultValue: 10, help: 'Number of training epochs'});
   parser.addArgument(
       '--batchSize',
       {type: 'int', defaultValue: 128, help: 'Batch size for training'});
@@ -129,8 +156,9 @@ async function main() {
   }
 
   console.log('Loading data...');
+  const multihot = args.modelType === 'multihot';
   const {xTrain, yTrain, xTest, yTest} =
-      await loadData(args.numWords, args.maxLen);
+      await loadData(args.numWords, args.maxLen, multihot);
 
   console.log('Building model...');
   const model = buildModel(
@@ -158,6 +186,9 @@ async function main() {
 
   // Save model.
   if (args.modelSaveDir != null && args.modelSaveDir.length > 0) {
+    if (multihot) {
+      throw new Error('Saving multihot model is not supported.');
+    }
     // Create base directory first.
     shelljs.mkdir('-p', args.modelSaveDir);
 

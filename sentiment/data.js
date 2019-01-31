@@ -39,10 +39,14 @@ const METADATA_TEMPLATE_URL =
  *   that exceed this limit will be marked as `OOV_CHAR`.
  * @param {string} maxLen Length of each sequence. Longer sequences will be
  *   pre-truncated; shorter ones will be pre-padded.
- * @return {tf.Tensor} The dataset represented as a 2D `tf.Tensor` of shape
- *   `[]` and dtype `int32` .
+ * @param {string} multihot Whether to use multi-hot encoding of the words.
+ *   Default: `false`.
+ * @return {tf.Tensor} If `multihot` is `false` (default), the dataset
+ *   represented as a 2D `tf.Tensor` of shape `[numExamples, maxLen]` and
+ *   dtype `int32`. Else, the dataset represented as a 2D `tf.Tensor` of
+ *   shape `[numExamples, numWords]` and dtype `float32`.
  */
-function loadFeatures(filePath, numWords, maxLen) {
+function loadFeatures(filePath, numWords, maxLen, multihot = false) {
   const buffer = fs.readFileSync(filePath);
   const numBytes = buffer.byteLength;
 
@@ -69,8 +73,25 @@ function loadFeatures(filePath, numWords, maxLen) {
   }
   const paddedSequences =
       padSequences(sequences, maxLen, 'pre', 'pre');
-  return tf.tensor2d(
-      paddedSequences, [paddedSequences.length, maxLen], 'int32');
+
+  if (multihot) {
+    // If requested by the arg, encode the sequences as multi-hot
+    // vectors.
+    const buffer = tf.buffer([paddedSequences.length, numWords]);
+    for (let i = 0; i < paddedSequences.length; ++i) {
+      const length = paddedSequences[i].length;
+      for (let j = 0; j < length; ++j) {
+        const wordIndex = paddedSequences[i][j];
+        if (wordIndex !== OOV_CHAR && wordIndex !== PAD_CHAR) {
+          buffer.set(1, i, wordIndex);
+        }
+      }
+    }
+    return buffer.toTensor();
+  } else {
+    return tf.tensor2d(
+        paddedSequences, [paddedSequences.length, maxLen], 'int32');
+  }
 }
 
 /**
@@ -171,13 +192,13 @@ async function maybeDownloadAndExtract() {
  *   xTest: The same as `xTrain`, but for the test dataset.
  *   yTest: The same as `yTrain`, but for the test dataset.
  */
-export async function loadData(numWords, len) {
+export async function loadData(numWords, len, multihot = false) {
   const dataDir = await maybeDownloadAndExtract();
 
   const trainFeaturePath = path.join(dataDir, 'imdb_train_data.bin');
-  const xTrain = loadFeatures(trainFeaturePath, numWords, len);
+  const xTrain = loadFeatures(trainFeaturePath, numWords, len, multihot);
   const testFeaturePath = path.join(dataDir, 'imdb_test_data.bin');
-  const xTest = loadFeatures(testFeaturePath, numWords, len);
+  const xTest = loadFeatures(testFeaturePath, numWords, len, multihot);
   const trainTargetsPath = path.join(dataDir, 'imdb_train_targets.bin');
   const yTrain = loadTargets(trainTargetsPath);
   const testTargetsPath = path.join(dataDir, 'imdb_test_targets.bin');

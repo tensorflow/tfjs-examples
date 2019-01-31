@@ -37,8 +37,11 @@ yarn train <MODEL_TYPE>
 where `MODEL_TYPE` is a required argument that specifies what type of model is to be
 trained. The available options are:
 
+- `multihot`: A model that takes a multi-hot encoding of the words in the sequence.
+  In terms of data representation and model complexity, this is the simplest model
+  in this example.
 - `flatten`: A model that flattens the embedding vectors of all words in the sequence.
-- `cnn`: A 1D convolutional model.
+- `conv1d`: A 1D convolutional model.
 - `simpleRNN`: A model that uses a SimpleRNN layer (`tf.layers.simpleRNN`)
 - `lstm`: A model that uses a LSTM laayer (`tf.layers.lstm`)
 - `bidirectionalLSTM`: A model that uses a bidirectional LSTM layer

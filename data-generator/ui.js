@@ -34,9 +34,6 @@ const batchesPerEpochElement = document.getElementById('batches-per-epoch');
 const epochsToTrainElement = document.getElementById('epochs-to-train');
 const expectedSimulationsElement =
     document.getElementById('expected-simulations');
-const inputCard1Element = document.getElementById('input-card-1');
-const inputCard2Element = document.getElementById('input-card-2');
-const inputCard3Element = document.getElementById('input-card-3');
 
 
 export const useOneHotElement = document.getElementById('use-one-hot');
@@ -57,25 +54,17 @@ export function getEpochsToTrain() {
   return epochsToTrainElement.valueAsNumber;
 }
 
-export function getInputCard1() {
-  return inputCard1Element.valueAsNumber;
-}
-
-export function getInputCard2() {
-  return inputCard2Element.valueAsNumber;
-}
-
-export function getInputCard3() {
-  return inputCard3Element.valueAsNumber;
-}
-
-export function getUseOneHot() {
-  return useOneHotElement.checked;
+export function getInputCards() {
+  const cards = [];
+  for (let i = 0; i < game.GAME_STATE.num_cards_per_hand; i++) {
+    cards.push(document.getElementById(`input-card-${i}`).valueAsNumber);
+  }
+  return cards;
 }
 
 /** Updates display of simulation count. */
-export function displayNumSimulationsSoFar(numSimulationsSoFar) {
-  numSimulationsSoFarElement.innerText = numSimulationsSoFar;
+export function displayNumSimulationsSoFar() {
+  numSimulationsSoFarElement.innerText = game.GAME_STATE.num_simulations_so_far;
 }
 
 /** Updates message for training results.  Used for training speed. */
@@ -91,9 +80,8 @@ export function displayExpectedSimulations() {
 }
 
 /** Updates display of prediction from model. */
-export function displayPrediction(prediction) {
-  document.getElementById('prediction').innerText =
-      `${prediction.dataSync()[0].toFixed(3)}`;
+export function displayPrediction(text) {
+  document.getElementById('prediction').innerText = text;
 }
 
 /** Helper to display processed version of game state. */
@@ -115,37 +103,34 @@ function featuresAndLabelsToPrettyString(features) {
  *     sample, suitable to feed into the model.
  */
 export function displaySimulation(sample, featuresAndLabel) {
-  const simRawRowElement = document.getElementById('sim-raw-row');
-  // DOING DOING DOING DOIGN DOING.
-  // FIGURE THIS OUT
-  // STOPPED HERE Wed 1-30 6PM.
-  simRawRowElement.innerHTML = '';
+  const player1Row = document.getElementById('player1-row');
+  player1Row.innerHTML = '';
   // Player 1 simulation cells.
-  for (let i = 0; i < game.NUM_CARDS_PER_HAND; i++) {
+  for (let i = 0; i < game.GAME_STATE.num_cards_per_hand; i++) {
     const newDiv = document.createElement('div');
-    newDiv.style = 'width:12.5%';
-    newDiv.id = `sim-p1-${i}`;
-    simRawRowElement.appendChild(newDiv);
+    newDiv.className = 'divTableCell';
+    newDiv.innerText = sample.player1Hand[i];
+    player1Row.appendChild(newDiv);
   }
-  const spacerDiv = document.createElement('div');
-  spacerDiv.style = '5%';
-  simRawRowElement.appendChild(spacerDiv);
-  // Player 2 simulation cells.
-  for (let i = 0; i < game.NUM_CARDS_PER_HAND; i++) {
-    const newDiv = document.createElement('div');
-    newDiv.style = 'width:12.5%';
-    newDiv.id = `sim-p2-${i}`;
-    simRawRowElement.appendChild(newDiv);
-  }
-  const resultDiv = document.createElement('div');
-  resultDiv.style = '5%';
-  simRawRowElement.appendChild(resultDiv);
 
-  for (let i = 0; i < game.NUM_CARDS_PER_HAND; i++) {
-    document.getElementById(`sim-p1-${i}`).innerText = sample.player1Hand[i];
-    document.getElementById(`sim-p2-${i}`).innerText = sample.player2Hand[i];
+  const player2Row = document.getElementById('player2-row');
+  player2Row.innerHTML = '';
+  // Player 2 simulation cells.
+  for (let i = 0; i < game.GAME_STATE.num_cards_per_hand; i++) {
+    const newDiv = document.createElement('div');
+    newDiv.className = 'divTableCell';
+    newDiv.innerText = sample.player2Hand[i];
+    player2Row.appendChild(newDiv);
   }
-  document.getElementById('sim-result').innerText = sample.player1Win;
+
+  const resultRow = document.getElementById('result-row');
+  resultRow.innerHTML = '';
+  // Result row.
+  const newDiv = document.createElement('div');
+  newDiv.className = 'divTableCell';
+  newDiv.innerText = sample.player1Win;
+  resultRow.appendChild(newDiv);
+
   const features = featuresAndLabel.features.dataSync();
   const label = featuresAndLabel.label.dataSync();
   document.getElementById('sim-features').innerText =
@@ -182,3 +167,44 @@ export async function displayBatches(arr) {
     toArrayContainerElement.appendChild(oneKeyRow);
   }
 };
+
+export function updatePredictionInputs() {
+  const container = document.getElementById('prediction-input');
+  container.innerHTML = '';
+  for (let i = 0; i < game.GAME_STATE.num_cards_per_hand; i++) {
+    const newH4 = document.createElement('h4');
+    newH4.innerText = `card ${i} `;
+    const newInput = document.createElement('input');
+    newInput.type = 'number';
+    newInput.id = `input-card-${i}`;
+    newInput.value = game.getRandomDigit();
+    newH4.appendChild(newInput);
+    container.appendChild(newH4);
+  }
+}
+
+export function enableTrainButton() {
+  document.getElementById('train-model-using-fit-dataset')
+      .removeAttribute('disabled');
+}
+
+export function disableTrainButton() {
+  document.getElementById('train-model-using-fit-dataset')
+      .setAttribute('disabled', true);
+}
+
+export function enableStopButton() {
+  document.getElementById('stop-training').removeAttribute('disabled');
+}
+
+export function disableStopButton() {
+  document.getElementById('stop-training').setAttribute('disabled', true);
+}
+
+export function enablePredictButton() {
+  document.getElementById('predict').removeAttribute('disabled');
+}
+
+export function disablePredictButton() {
+  document.getElementById('predict').setAttribute('disabled', true);
+}

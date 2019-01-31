@@ -126,12 +126,10 @@
 
   <ol>
     <li>Familiarize yourself with the rules of the game below.</li>
-    <li> Simulate the game by pressing the simulate button.</li>
+    <li> Simulate the game by pressing the <i>simulate-game</i> button.</li>
     <li> See how games are generated, wins are calculated, and notice that the simulation count increases.</li>
     <li> See that we also produce tensor-valued features suitable for training a model to predict win status from
       Player 1's hand.</li>
-    <li> Switch between raw and oneHot features by clicking the checkbox in the simulation results. One hot
-      representation seems to train a bit better.</li>
     <li> See what batches of data looks like by clicking dataset-to-array.</li>
     <li> Before training a model, select a batchSize, the number of batchesPerEpoch, and how many epochs to train on.</li>
     <li> When you are ready, train a model on the generated features by clicking 'train-model-using-fit-dataset'.</li>
@@ -155,47 +153,62 @@
           <li>If neither player has a double, the player with the highest individual number wins.</li>
           <li>Ties are settled randomly, 50/50.</li>
         </ul>
+        Number of cards per hand
+        <select id='select-cards-per-hand'>
+          <option value="3">3</option>
+          <option value="4">4</option>
+          <option value="5">5</option>
+          <option value="6">6</option>
+          <option value="7">7</option>
+          <option value="8">8</option>
+        </select>
         <p></p>
-        <button id="simulate-game">simulate-game</button>
-        <div>Num simulations so far:
-          <div id=num-simulations-so-far>0</div>
-        </div>
+        <button id='simulate-game'>simulate-game</button>
+        <h3>Simulation Results (Simulations so far =
+          <div style=display:inline id=num-simulations-so-far>0</div>)
+        </h3>
         <p></p>
-        <div class='divTable'>
-          <div class='divTableRow'>
-            <div class='divTableCell' style='width:100%'>Simulation Results </div>
-          </div>
-        </div>
-        <div class='divTable'>
-          <div class='divTableRow' id='sim-raw-row'></div>
-        </div>
         <div class='divTable'>
           <div class='divTableRow' id='sim-features-row'>
-            <div class='divTableCell' style='width:37.5%'>player 1 </div>
-            <div class='divTableCell' style='width:5%'> </div>
-            <div class='divTableCell' style='width:37.5%'>opponent </div>
-            <div class='divTableCell' style='width:5%'> </div>
-            <div class='divTableCell' style='width:12.5%'>win? </div>
+            <div id='player1Cell' , class='divTableCell' style='width:40%'>
+              <b>player 1</b>
+              <div class='divTable'>
+                <div class='divTableRow' id='player1-row'>
+                </div>
+              </div>
+            </div>
+            <div id='player2Cell' , class='divTableCell' style='width:40%'>
+              <b>opponent</b>
+              <div class='divTable'>
+                <div class='divTableRow' id='player2-row'>
+                </div>
+              </div>
+            </div>
+            <div class='divTableCell' style='width:10%'><b>win?</b>
+              <div class='divTable'>
+                <div class='divTableRow' id='result-row'>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
+        <p></p>
         <div class='divTable'>
           <div class='divTableRow'>
             <div class='divTableCell' style='width:100%'>
               <b>Game to features and label.</b> Note that the features fed into the model only include values visible
               to player
               1, since we want to predict player 1's probability of winning.<p></p>
-              Select to use oneHot representation of input.
-              <input type="checkbox" id="use-one-hot">
             </div>
           </div>
         </div>
         <div class='divTable'>
           <div class='divTableRow'>
-            <div class='divTableCell' style='width:20%'>Features: </div>
+            <div class='divTableCell' style='width:20%'><b>Features:</b> </div>
             <div class='divTableCell' style='width:80%' id='sim-features'>Click "sample" to run</div>
           </div>
           <div class='divTableRow'>
-            <div class='divTableCell' style='width:20%'>Label: </div>
+            <div class='divTableCell' style='width:20%'><b>Label:</b> </div>
             <div class='divTableCell' style='width:80%' id='sim-label'></div>
           </div>
         </div>
@@ -225,6 +238,7 @@
           </h4>
           Expected simulations = batchSize * batchesPerEpoch * epochs = <div id='expected-simulations'></div>
           <button id="train-model-using-fit-dataset">train-model-using-fit-dataset</button>
+          <button id="stop-training" disabled="true">stop-training</button>
 
           <section>
             <p class='section-head'>Training Progress</p>
@@ -244,13 +258,15 @@
 
           <section>
             <p class='section-head'>Use Trained Model</p>
-            <h4>card 1
-              <input type="number" id="input-card-1" value="2"></h4>
-            <h4>card 2(
-              <input type="number" id="input-card-2" value="7"></h4>
-            <h4>card 3(
-              <input type="number" id="input-card-3" value="7"></h4>
-            <button id="predict">predict</button>
+            <div id='prediction-input'>
+              <h4>card 1
+                <input type="number" id="input-card-1" value="2"></h4>
+              <h4>card 2(
+                <input type="number" id="input-card-2" value="7"></h4>
+              <h4>card 3(
+                <input type="number" id="input-card-3" value="7"></h4>
+            </div>
+            <button id="predict" disabled="true">predict</button>
             predicted liklihood of winning:
             <div class="container" id="prediction"> </div>
           </section>

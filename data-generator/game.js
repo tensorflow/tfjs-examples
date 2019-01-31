@@ -19,9 +19,10 @@ import {resolveTripleslashReference} from 'typescript';
 
 /**
  * This file implements a two player card game similar to a much simplified game
- * of Poker. The cards range in value from 1 to MAX_CARD_VALUE, and each player
- * receives three cards, drawn uniformly from the integers in the range [1,
- * MAX_CARD_VALUE]. One player wins by having a better hand.
+ * of Poker. The cards range in value from 1 to GAME_STATE.max_card_value, and
+ * each player receives three cards, drawn uniformly from the integers in the
+ * range [1, GAME_STATE.max_card_value]. One player wins by having a better
+ * hand.
  *
  *    Any triple (three of the same card) beats any double.
  *    Any double (two of the same card) beats any single.
@@ -32,21 +33,27 @@ import {resolveTripleslashReference} from 'typescript';
  *    Ties are settled randomly, 50/50.
  */
 
-
-// Global exported count of the number of times the game has been played. Useful
-// for illustrating how many simulations it takes to train the model.
-export let NUM_SIMULATIONS_SO_FAR = 0;
-
-// Constants defining the range of card values.
-export const MIN_CARD_VALUE = 1;
-export const MAX_CARD_VALUE = 13;
-export const NUM_CARDS_PER_HAND = 3;
+// Global exported state tracking the rules of the game and how many games have
+// been played so far. Individual fields may be read / changed by external
+// control.
+export const GAME_STATE = {
+  // The number of times the game has been played. Useful
+  // for illustrating how many simulations it takes to train the model.
+  num_simulations_so_far: 0,
+  // Constants defining the range of card values.
+  min_card_value: 1,
+  max_card_value: 13,
+  // Controls how many cards per hand.  Controlable from a UI element.
+  num_cards_per_hand: 3
+};
 
 /**
- * Returns a random integer in the range [MIN_CARD_VALUE, MAX_CARD_VALUE]
+ * Returns a random integer in the range [GAME_STATE.min_card_value,
+ * GAME_STATE.max_card_value]
  */
-function getRandomDigit() {
-  return Math.floor(MIN_CARD_VALUE + Math.random() * MAX_CARD_VALUE);
+export function getRandomDigit() {
+  return Math.floor(
+      GAME_STATE.min_card_value + Math.random() * GAME_STATE.max_card_value);
 }
 
 /**
@@ -56,7 +63,7 @@ function getRandomDigit() {
  */
 export function randomHand() {
   const hand = [];
-  for (let i = 0; i < NUM_CARDS_PER_HAND; i++) {
+  for (let i = 0; i < GAME_STATE.num_cards_per_hand; i++) {
     hand.push(getRandomDigit());
   }
   return hand.sort((a, b) => a - b);
@@ -74,16 +81,17 @@ export function randomHand() {
  *
  * This could result if the hand were, e.g,  [1, 2, 2, 3, 3, 9]
  *
- * @param {number[]} hand A sorted integer array of length NUM_CARDS_PER_HAND
+ * @param {number[]} hand A sorted integer array of length
+ *     GAME_STATE.num_cards_per_hand
  * @returns {number[]} An array of the face value of the largest value for each
  *     group size.  Zero indicates there are no examples of that group size in
  *     the hand, if, for instance, there are no triples.
  */
 export function handScoringHelper(hand) {
-  const faceValOfEachGroup = new Array(NUM_CARDS_PER_HAND).fill(0);
+  const faceValOfEachGroup = new Array(GAME_STATE.num_cards_per_hand).fill(0);
   let runLength = 0;
   let prevVal = 0;
-  for (let i = 0; i < NUM_CARDS_PER_HAND; i++) {
+  for (let i = 0; i < GAME_STATE.num_cards_per_hand; i++) {
     const card = hand[i];
     if (card == prevVal) {
       runLength += 1;
@@ -105,7 +113,7 @@ export function compareHands(hand1, hand2) {
   const handScore1 = handScoringHelper(hand1);
   const handScore2 = handScoringHelper(hand2);
   // In descending order of group size, decide if one hand is better.
-  for (let group = NUM_CARDS_PER_HAND - 1; group >= 0; group--) {
+  for (let group = GAME_STATE.num_cards_per_hand - 1; group >= 0; group--) {
     if (handScore1[group] > handScore2[group]) {
       return 1;
     }
@@ -129,6 +137,6 @@ export function generateOnePlay() {
   const player1Hand = randomHand();
   const player2Hand = randomHand();
   const player1Win = compareHands(player1Hand, player2Hand);
-  NUM_SIMULATIONS_SO_FAR++;
+  GAME_STATE.num_simulations_so_far++;
   return {player1Hand, player2Hand, player1Win};
 }

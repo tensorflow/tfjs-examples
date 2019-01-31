@@ -31,6 +31,12 @@ export const GAME_GENERATOR_DATASET = tf.data.generator(() => {
 });
 
 /**
+ * Module global boolean to indicate whether the model should stop training at
+ * the end of this epoch.
+ */
+let STOP_REQUESTED = false;
+
+/**
  * Holds game state of most recent simulation to allow for re-calculation
  * of feature representation.
  */
@@ -47,40 +53,16 @@ let GLOBAL_MODEL;
  * using oneHot encoding, and label = whether player 1 won.
  * @param {*} gameState
  */
-function gameToFeaturesAndLabelOneHot(gameState) {
+function gameToFeaturesAndLabel(gameState) {
   return tf.tidy(() => {
     const player1Hand = tf.tensor1d(gameState.player1Hand, 'int32');
     const handOneHot = tf.oneHot(
-        tf.sub(player1Hand, tf.scalar(1, 'int32')), game.MAX_CARD_VALUE);
+        tf.sub(player1Hand, tf.scalar(1, 'int32')),
+        game.GAME_STATE.max_card_value);
     const features = tf.sum(handOneHot, 0);
     const label = tf.tensor1d([gameState.player1Win]);
     return {features, label};
   });
-}
-
-/**
- * Takes the state of one complete game and returns features suitable for
- * training.  Returns an object containing features = player1's hand
- * and label = whether player 1 won.
- * @param {*} gameState
- */
-function gameToFeaturesAndLabelRaw(gameState) {
-  const features = tf.tensor1d(gameState.player1Hand);
-  const label = tf.tensor1d([gameState.player1Win]);
-  return {features, label};
-}
-
-/**
- * Takes the state of one complete game and returns features suitable for
- * training.  Depending if 'oneHot' is selected, Player 1's hand is represented
- * either literally, as an array of three numbers or using oneHotRepresentation.
- * @param {*} gameState
- */
-export function gameToFeaturesAndLabel(gameState) {
-  if (ui.getUseOneHot()) {
-    return gameToFeaturesAndLabelOneHot(gameState);
-  }
-  return gameToFeaturesAndLabelRaw(gameState);
 }
 
 /**
@@ -95,7 +77,7 @@ async function simulateGameHandler(wantNewGame) {
   }
   const featuresAndLabel = gameToFeaturesAndLabel(SAMPLE_GAME_STATE);
   ui.displaySimulation(SAMPLE_GAME_STATE, featuresAndLabel);
-  ui.displayNumSimulationsSoFar(game.NUM_SIMULATIONS_SO_FAR);
+  ui.displayNumSimulationsSoFar();
 }
 
 /**
@@ -121,7 +103,7 @@ async function datasetToArray() {
 async function datasetToArrayHandler() {
   const arr = await datasetToArray();
   ui.displayBatches(arr);
-  ui.displayNumSimulationsSoFar(game.NUM_SIMULATIONS_SO_FAR);
+  ui.displayNumSimulationsSoFar();
 }
 
 /**
@@ -132,13 +114,11 @@ async function datasetToArrayHandler() {
 function createDNNModel() {
   GLOBAL_MODEL = tf.sequential();
   GLOBAL_MODEL.add(tf.layers.dense({
-    inputShape:
-        [ui.getUseOneHot() ? game.MAX_CARD_VALUE : game.NUM_CARDS_PER_HAND],
-    units: 10,
+    inputShape: [game.GAME_STATE.max_card_value],
+    units: 20,
     activation: 'relu'
   }));
-  GLOBAL_MODEL.add(tf.layers.dense({units: 10, activation: 'relu'}));
-  GLOBAL_MODEL.add(tf.layers.dense({units: 10, activation: 'relu'}));
+  GLOBAL_MODEL.add(tf.layers.dense({units: 20, activation: 'relu'}));
   GLOBAL_MODEL.add(tf.layers.dense({units: 1, activation: 'sigmoid'}));
   return GLOBAL_MODEL;
 }
@@ -173,13 +153,22 @@ async function trainModelUsingFitDataset(model, dataset) {
             ui.lossContainerElement, trainLogs, ['loss', 'val_loss'])
         tfvis.show.history(
             ui.accuracyContainerElement, trainLogs, ['acc', 'val_acc'])
-        ui.displayNumSimulationsSoFar(game.NUM_SIMULATIONS_SO_FAR);
+        ui.displayNumSimulationsSoFar();
         // Update the prediction.
         predictHandler();
+        // Stop the training if stop requested.
+        if (STOP_REQUESTED) {
+          model.stopTraining = true;
+        }
       },
     }
   };
+  ui.disableTrainButton();
+  ui.enableStopButton();
+  ui.enablePredictButton();
   await model.fitDataset(dataset, fitDatasetArgs);
+  ui.enableTrainButton();
+  ui.disableStopButton();
 }
 
 /**
@@ -189,6 +178,7 @@ async function trainModelUsingFitDataset(model, dataset) {
  * @see trainModelUsingFitDataset for training details.
  */
 async function trainModelUsingFitDatasetHandler() {
+  STOP_REQUESTED = false;
   const model = createDNNModel();
   model.compile({
     optimizer: 'rmsprop',
@@ -202,48 +192,60 @@ async function trainModelUsingFitDatasetHandler() {
 }
 
 /**
- * Handler for changing the feature representation between raw and oneHot.
- * Updates the simulation output and clears a batch sample, if it exists.
- */
-function featureTypeClickHandler() {
-  ui.displayBatches([]);
-  // Only update the sample game features if there is already a sample game.
-  if (SAMPLE_GAME_STATE != null) {
-    simulateGameHandler(false);
-  }
-}
-
-/**
  * Applies the model to the manually entered hand value and updates the UI with
  * the model's prediction.
  */
 function predictHandler() {
-  const cards = [ui.getInputCard1(), ui.getInputCard2(), ui.getInputCard3()];
-  const features = gameToFeaturesAndLabel([cards, [1, 2, 3], 1]).features;
+  const cards = ui.getInputCards();
+  const features =
+      gameToFeaturesAndLabel({player1Hand: cards, player1Win: 1}).features;
   const output = GLOBAL_MODEL.predict(features.expandDims(0));
-  ui.displayPrediction(output);
+  ui.displayPrediction(`${output.dataSync()[0].toFixed(3)}`);
 }
 
+/**
+ * Updates the game constant controlling the number of cards per hand and
+ * clears UI.
+ */
+function selectCardsPerHandHandler() {
+  game.GAME_STATE.num_cards_per_hand =
+      document.getElementById('select-cards-per-hand').value;
+  simulateGameHandler(true);
+  ui.updatePredictionInputs();
+  ui.displayBatches([]);
+  ui.disablePredictButton();
+  ui.displayPrediction('New model needs to be trained');
+}
 
 /** Sets up handlers for the user affordences, including all buttons. */
 document.addEventListener('DOMContentLoaded', async () => {
   console.log('content loaded... connecting buttons.');
+  document.getElementById('select-cards-per-hand')
+      .addEventListener('change', selectCardsPerHandHandler, false);
   document.getElementById('simulate-game')
       .addEventListener('click', () => simulateGameHandler(true), false);
   document.getElementById('dataset-to-array')
       .addEventListener('click', datasetToArrayHandler, false);
+  document.getElementById('dataset-to-array')
+      .addEventListener('click', datasetToArrayHandler, false);
   document.getElementById('train-model-using-fit-dataset')
       .addEventListener('click', trainModelUsingFitDatasetHandler, false);
-  ui.displayNumSimulationsSoFar(game.NUM_SIMULATIONS_SO_FAR);
-  document.getElementById('generator-batch')
-      .addEventListener('change', ui.displayExpectedSimulations, false);
+  document.getElementById('stop-training')
+      .addEventListener('click', () => STOP_REQUESTED = true);
+  document.getElementById('generator-batch').addEventListener('change', () => {
+    ui.displayExpectedSimulations();
+    ui.displayBatches([]);
+  }, false);
+  document.getElementById('generator-take').addEventListener('change', () => {
+    ui.displayBatches([]);
+  }, false);
   document.getElementById('batches-per-epoch')
       .addEventListener('change', ui.displayExpectedSimulations, false);
   document.getElementById('epochs-to-train')
       .addEventListener('change', ui.displayExpectedSimulations, false);
-  document.getElementById('use-one-hot')
-      .addEventListener('click', featureTypeClickHandler, false);
   document.getElementById('predict').addEventListener(
       'click', predictHandler, false);
+  ui.displayNumSimulationsSoFar();
   ui.displayExpectedSimulations();
+  ui.updatePredictionInputs();
 });

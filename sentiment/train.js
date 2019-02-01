@@ -105,7 +105,7 @@ function parseArguments() {
   });
   parser.addArgument('--embeddingSize', {
     type: 'int',
-    defaultValue: 32,
+    defaultValue: 128,
     help: 'Number of word embedding dimensions'
   });
   parser.addArgument(

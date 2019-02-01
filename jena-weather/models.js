@@ -117,6 +117,23 @@ function buildMLPModel(inputShape, kernelRegularizer, dropoutRate) {
 }
 
 /**
+ * Build a simpleRNN-based model for the temperature-prediction problem.
+ *
+ * @param {tf.Shape} inputShape Input shape (without the batch dimenson).
+ * @returns {tf.Model} A TensorFlow.js model consisting of a simpleRNN layer.
+ */
+function buildSimpleRNNModel(inputShape) {
+  const model = tf.sequential();
+  const rnnUnits = 32;
+  model.add(tf.layers.simpleRNN({
+    units: rnnUnits,
+    inputShape
+  }));
+  model.add(tf.layers.dense({units: 1}));
+  return model;
+}
+
+/**
  * Build a GRU model for the temperature-prediction problem.
  *
  * @param {tf.Shape} inputShape Input shape (without the batch dimenson).
@@ -163,6 +180,8 @@ export function buildModel(modelType, numTimeSteps, numFeatures) {
     const regularizer = null;
     const dropoutRate = 0.25;
     model = buildMLPModel(inputShape, regularizer, dropoutRate);
+  } else if (modelType === 'simpleRNN') {
+    model = buildSimpleRNNModel(inputShape);
   } else if (modelType === 'gru') {
     model = buildGRUModel(inputShape);
     // TODO(cais): Add gru-dropout with recurrentDropout.

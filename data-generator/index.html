@@ -121,11 +121,15 @@
   <p class='section-head'>How to use this demo.</p>
 
   This demo is meant to illustrate how to train a model using a tf.data.Dataset
-  constructed from a generator. In this case, we will predict the likelihood of
+  constructed from a generator using <pre>tf.data.generator()</pre>.
+  In this case, we will predict the likelihood of
   winning a game. The game itself is described below, and implmented in game.js.
   The game exports a function we will use as a "generator" function to create a
-  dataset. We will then fit a model to this dataset, with the goal of predicting
-  the "win"state from features calculated from Player 1's hand.
+  dataset. We will then fit a model to this dataset using
+  <pre>model.fitDataset()</pre>, with the goal of predicting
+  the "win" state from features calculated from Player 1's hand.  The output
+  logit value will be larger for hands which the model considers more likely
+  to win.
 
   <p class='section-head'>How to use this app.</p>
   <ol>
@@ -283,7 +287,7 @@
             <p class='section-head'>Use Trained Model</p>
             <div id='prediction-input'></div>
             <button id="predict" disabled="true">predict</button>
-            predicted liklihood of winning:
+            predicted likelihood of winning:
             <div class="container" id="prediction" style='display:inline'> </div>
           </section>
 

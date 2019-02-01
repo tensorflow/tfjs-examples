@@ -110,6 +110,9 @@ export function handScoringHelper(hand) {
  * Returns 1 if hand1 beats hand2, in terms of hand value.
  * Returns 0 if hand1 is less than hand2.
  * In the event of a tie, return 0 or 1 randomly with even odds.
+ * @param {number[]} hand1 ordered list of numbers representing Player 1's hand.
+ * @param {number[]} hand2 ordered list of numbers representing Player 2's hand.
+ * @returns {number} 1 or 0 indicating Player 1's win or loss, respectively.
  */
 export function compareHands(hand1, hand2) {
   const handScore1 = handScoringHelper(hand1);
@@ -123,7 +126,7 @@ export function compareHands(hand1, hand2) {
       return 0;
     }
   }
-  // Tie.
+  // Break a tie by flipping a fair coin.
   if (Math.random() > 0.5) {
     return 1;
   }

@@ -22,6 +22,7 @@ import * as path from 'path';
 import * as shelljs from 'shelljs';
 
 import {loadData, loadMetadataTemplate} from './data';
+import {writeEmbeddingMatrixAndLabels} from './embedding';
 
 /**
  * Create a model for IMDB sentiment analysis.
@@ -131,6 +132,16 @@ function parseArguments() {
     defaultValue: 'dist/resources',
     help: 'Optional path for model saving.'
   });
+  parser.addArgument('--embeddingFilesPrefix', {
+    type: 'string',
+    defaultValue: '',
+    help: 'Optional path prefix for saving embedding files that ' +
+    'can be loaded in the Embedding Projector ' +
+    '(https://projector.tensorflow.org/). For example, if this flag '  +
+    'is configured to the value /tmp/embed, then the embedding vectors ' +
+    'file will be written to /tmp/embed_vectors.tsv and the labels ' +
+    'file will be written to /tmp/embed_label.tsv'
+  });
   return parser.parseArgs();
 }
 
@@ -175,6 +186,7 @@ async function main() {
   console.log(`Evaluation accuracy: ${(await testAcc.data())[0].toFixed(4)}`);
 
   // Save model.
+  let metadata;
   if (args.modelSaveDir != null && args.modelSaveDir.length > 0) {
     if (multihot) {
       console.warn(
@@ -185,7 +197,7 @@ async function main() {
 
       // Load metadata template.
       console.log('Loading metadata template...');
-      const metadata = await loadMetadataTemplate();
+      metadata = await loadMetadataTemplate();
 
       // Save metadata.
       metadata.epochs = args.epochs;
@@ -202,6 +214,16 @@ async function main() {
       await model.save(`file://${args.modelSaveDir}`);
       console.log(`Saved model to ${args.modelSaveDir}`);
     }
+  }
+
+  if (args.embeddingFilesPrefix != null &&
+      args.embeddingFilesPrefix.length > 0) {
+    if (metadata == null) {
+      metadata = await loadMetadataTemplate();
+    }
+    await writeEmbeddingMatrixAndLabels(
+        model, args.embeddingFilesPrefix, metadata.word_index,
+        metadata.index_from);
   }
 }
 

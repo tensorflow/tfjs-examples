@@ -215,7 +215,7 @@
             <div class='divTableCell' style='width:100%'>
               <b>Game to features and label.</b> Note that the features fed into
               the model only include values visible to player
-              1, since we want to predict player 1's probability of winning.
+              1, since we want to predict whether player 1 will win.
               <p></p>
             </div>
           </div>
@@ -287,8 +287,11 @@
             <p class='section-head'>Use Trained Model</p>
             <div id='prediction-input'></div>
             <button id="predict" disabled="true">predict</button>
-            predicted likelihood of winning:
+            Output of model:
             <div class="container" id="prediction" style='display:inline'> </div>
+            <p></p>
+            Note that this prediction is larger for hands that the model
+            considers more likely to win, but are not calibrated probabilities.
           </section>
 
       </div>

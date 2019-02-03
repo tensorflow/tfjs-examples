@@ -146,9 +146,15 @@ export function createModel(
  *   1. Decoder softmax probability output of shape
  *      `[numExamples, outputLength, outputVocabularySize]`
  * @param {string} inputStr Input date string to be converted.
- * @return {string} The converted date string.
+ * @return {{outputStr: string, attentinon?: tf.Tensor}}
+ *   - The `outputStr` field is the output date string.
+ *   - If and only if `getAttention` is `true`, the `attention` field will
+ *     be populated by attention matrix as a `tf.Tensor` of
+ *     dtype `float32` and shape `[]`.
  */
-export async function runSeq2SeqInference(model, inputStr) {
+export async function runSeq2SeqInference(model,
+                                          inputStr,
+                                          getAttention = false) {
   return tf.tidy(() => {
     const encoderInput = dateFormat.encodeInputDateStrings([inputStr]);
     const decoderInput = tf.buffer([1, dateFormat.OUTPUT_LENGTH]);
@@ -171,6 +177,21 @@ export async function runSeq2SeqInference(model, inputStr) {
       outputStr += dateFormat.OUTPUT_VOCAB[decoderInput.get(0, i)];
     }
     outputStr += dateFormat.OUTPUT_VOCAB[finalOutput];
-    return outputStr;
+
+    const output = {outputStr};
+
+    if (getAttention) {
+      const attentionLayer = model.getLayer('attention');
+      const attentionModel = tf.model({
+        inputs: model.inputs,
+        outputs: attentionLayer.output
+      });
+      output.attention =
+          attentionModel.predict([encoderInput, decoderInput.toTensor()]);
+    } else {
+      inferenceModel = model;
+    }
+
+    return output;
   });
 }

@@ -9,7 +9,7 @@
     "node": ">=8.9.0"
   },
   "dependencies": {
-    "@tensorflow/tfjs-node": "0.2.1",
+    "@tensorflow/tfjs": "0.14.2",
     "argparse": "^1.0.10",
     "canvas": "2.0.1",
     "node-fetch": "2.2.1"
@@ -22,6 +22,8 @@
     "train": "node train.js"
   },
   "devDependencies": {
+    "@tensorflow/tfjs-node": "0.2.1",
+    "@tensorflow/tfjs-node-gpu": "0.2.1",
     "babel-core": "^6.26.3",
     "babel-plugin-transform-runtime": "~6.23.0",
     "babel-polyfill": "~6.26.0",

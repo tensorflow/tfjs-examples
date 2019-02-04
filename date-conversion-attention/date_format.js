@@ -152,11 +152,21 @@ export function dateTupleToDDDashMMDashYYYY(dateTuple) {
   return `${dayStr}-${monthStr}-${dateTuple[0]}`;
 }
 
+/** Date format such as 20-1-2019. */
+export function dateTupleToDDashMDashYYYY(dateTuple) {
+  return `${dateTuple[2]}-${dateTuple[1]}-${dateTuple[0]}`;
+}
+
 /** Date format such as 20.01.2019. */
 export function dateTupleToDDDotMMDotYYYY(dateTuple) {
   const monthStr = toTwoDigitString(dateTuple[1]);
   const dayStr = toTwoDigitString(dateTuple[2]);
   return `${dayStr}.${monthStr}.${dateTuple[0]}`;
+}
+
+/** Date format such as 20.1.2019. */
+export function dateTupleToDDotMDotYYYY(dateTuple) {
+  return `${dateTuple[2]}.${dateTuple[1]}.${dateTuple[0]}`;
 }
 
 /** Date format such as 2019.01.20. */
@@ -166,6 +176,10 @@ export function dateTupleToYYYYDotMMDotDD(dateTuple) {
   return `${dateTuple[0]}.${monthStr}.${dayStr}`;
 }
 
+/** Date format such as 2019.1.20. */
+export function dateTupleToYYYYDotMDotD(dateTuple) {
+  return `${dateTuple[0]}.${dateTuple[1]}.${dateTuple[2]}`;
+}
 
 /** Date format such as 20190120 */
 export function dateTupleToYYYYMMDD(dateTuple) {
@@ -191,13 +205,16 @@ export const INPUT_FNS = [
   dateTupleToMMSlashDDSlashYYYY,
   dateTupleToMSlashDSlashYYYY,
   dateTupleToDDDashMMDashYYYY,
+  dateTupleToDDashMDashYYYY,
   dateTupleToMMMSpaceDDSpaceYY,
   dateTupleToMSlashDSlashYY,
   dateTupleToMMMSpaceDDSpaceYYYY,
   dateTupleToMMMSpaceDDCommaSpaceYY,
   dateTupleToMMMSpaceDDCommaSpaceYYYY,
   dateTupleToDDDotMMDotYYYY,
+  dateTupleToDDotMDotYYYY,
   dateTupleToYYYYDotMMDotDD,
+  dateTupleToYYYYDotMDotD,
   dateTupleToYYYYMMDD,
   dateTupleToYYYYDashMMDashDD
 ];  // TODO(cais): Add more formats if necessary.

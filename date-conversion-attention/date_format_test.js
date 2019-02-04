@@ -126,6 +126,14 @@ describe('Date formats', () => {
     }
   });
 
+  it('M-D-YYYY', () => {
+    for (let i = 0; i < 10; ++i) {
+      const str = dateFormat.dateTupleToDDashMDashYYYY(
+          dateFormat.generateRandomDateTuple());
+      expect(str).toMatch(/^\d{1,2}-\d{1,2}-[1-2]\d\d\d$/);
+    }
+  });
+
   it('YYYY.MM.DD', () => {
     for (let i = 0; i < 10; ++i) {
       const str = dateFormat.dateTupleToYYYYDotMMDotDD(
@@ -134,11 +142,27 @@ describe('Date formats', () => {
     }
   });
 
+  it('YYYY.M.D', () => {
+    for (let i = 0; i < 10; ++i) {
+      const str = dateFormat.dateTupleToYYYYDotMDotD(
+          dateFormat.generateRandomDateTuple());
+      expect(str).toMatch(/^[1-2]\d\d\d\.\d{1,2}\.\d{1,2}$/);
+    }
+  });
+
   it('DD.MM.YYYY', () => {
     for (let i = 0; i < 10; ++i) {
       const str = dateFormat.dateTupleToDDDotMMDotYYYY(
           dateFormat.generateRandomDateTuple());
       expect(str).toMatch(/^[0-3]\d\.[0-1]\d\.[1-2]\d\d\d$/);
+    }
+  });
+
+  it('D.M.YYYY', () => {
+    for (let i = 0; i < 10; ++i) {
+      const str = dateFormat.dateTupleToDDotMDotYYYY(
+          dateFormat.generateRandomDateTuple());
+      expect(str).toMatch(/^\d{1,2}\.\d{1,2}\.[1-2]\d\d\d$/);
     }
   });
 

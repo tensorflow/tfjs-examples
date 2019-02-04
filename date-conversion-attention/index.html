@@ -24,6 +24,10 @@ limitations under the License.
   <title>TensorFlow.js: Date Conversion Through Attention</title>
 </head>
 <style>
+  .horizontal-sections {
+    display: inline-block;
+    vertical-align: top;
+  }
   .date-label {
     font-size: 18px;
     font-family: monospace;
@@ -43,7 +47,6 @@ limitations under the License.
     display: inline-block;
   }
   .attention-section {
-    margin-left: 308px;
     margin-top: 8px;
   }
   #attention-heatmap {
@@ -90,10 +93,13 @@ limitations under the License.
             <li class="input-date-example">01/23/2015</li>
             <li class="input-date-example">1/23/2015</li>
             <li class="input-date-example">23-01-2015</li>
+            <li class="input-date-example">23-1-2015</li>
             <li class="input-date-example">JAN 23, 15</li>
             <li class="input-date-example">Jan 23, 2015</li>
             <li class="input-date-example">23.01.2015</li>
+            <li class="input-date-example">23.1.2015</li>
             <li class="input-date-example">2015.01.23</li>
+            <li class="input-date-example">2015.1.23</li>
             <li class="input-date-example">20150123</li>
             <li class="input-date-example">2015/01/23</li>
             <li class="input-date-example">2015-01-23</li>
@@ -102,25 +108,29 @@ limitations under the License.
       </p>
     </section>
 
-    <div>
-      <div class="date-input-output-section">
-        <div class="date-label">Input date string:</div>
-        <input type="text" class="dates" id="input-date-string" value="JAN 20, 2001"></input>
+    <div class="horizontal-sections">
+      <div class="horizontal-sections">
+        <div class="date-input-output-section">
+          <div class="date-label">Input date string:</div>
+          <input type="text" class="dates" id="input-date-string" value="JAN 20, 2001"></input>
+        </div>
+
+        <div class="hint">Press Enter to Refresh Conversion</div>
+        <button id="random-date">Random</button>
+        <div class="hint benchmark" id="inference-time"></div>
       </div>
 
-      <div class="date-input-output-section">
-        <div class="date-label">Output date string:</div>
-        <input type="text" class="dates" id="output-date-string" disabled="true"></input>
+      <div class="horizontal-sections">
+        <div class="date-input-output-section">
+          <div class="date-label">Output date string:</div>
+          <input type="text" class="dates" id="output-date-string" disabled="true"></input>
+        </div>
+
+        <div class="attention-section">
+          <div class="date-label">Attention matrix:</div>
+          <div id="attention-heatmap"></div>
+        </div>
       </div>
-
-      <div class="hint">Press Enter to Refresh Conversion</div>
-      <button id="random-date">Random</button>
-      <div class="hint benchmark" id="inference-time"></div>
-    </div>
-
-    <div class="attention-section">
-      <div class="date-label">Attention matrix:</div>
-      <div id="attention-heatmap"></div>
     </div>
   </div>
 

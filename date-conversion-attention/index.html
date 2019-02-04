@@ -62,6 +62,13 @@ limitations under the License.
     text-decoration: underline;
     color: blue;
   }
+  #random-date {
+    padding-top: 5px;
+    padding-bottom: 5px;
+  }
+  .benchmark {
+    color: gray;
+  }
 </style>
 
 <body>
@@ -105,7 +112,8 @@ limitations under the License.
       </div>
 
       <div class="hint">Press Enter to Refresh Conversion</div>
-      <div class="hint" id="inference-time"></div>
+      <button id="random-date">Random</button>
+      <div class="hint benchmark" id="inference-time"></div>
     </div>
 
     <div class="attention-section">

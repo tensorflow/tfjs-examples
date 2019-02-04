@@ -25,13 +25,14 @@
 import * as tf from '@tensorflow/tfjs';
 import * as tfvis from '@tensorflow/tfjs-vis';
 
-import {INPUT_LENGTH} from './date_format';
+import {INPUT_LENGTH, INPUT_FNS, generateRandomDateTuple} from './date_format';
 import {runSeq2SeqInference} from './model';
 
 const inputDateString = document.getElementById('input-date-string');
 const outputDateString = document.getElementById('output-date-string');
 const inferenceTime = document.getElementById('inference-time');
 const attentionHeatmap = document.getElementById('attention-heatmap');
+const randomButton = document.getElementById('random-date');
 
 let model;
 
@@ -79,6 +80,12 @@ inputDateString.addEventListener('change', async () => {
     outputDateString.value = err.message;
     console.error(err);
   }
+});
+
+randomButton.addEventListener('click', async () => {
+  const inputFn = INPUT_FNS[Math.floor(Math.random() * INPUT_FNS.length)];
+  inputDateString.value = inputFn(generateRandomDateTuple());
+  inputDateString.dispatchEvent(new Event('change'));
 });
 
 async function init() {

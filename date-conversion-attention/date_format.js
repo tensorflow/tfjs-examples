@@ -173,6 +173,22 @@ export function dateTupleToYYYYDashMMDashDD(dateTuple) {
   return `${dateTuple[0]}-${monthStr}-${dayStr}`;
 }
 
+export const INPUT_FNS = [
+  dateTupleToDDMMMYYYY,
+  dateTupleToMMDDYY,
+  dateTupleToMMSlashDDSlashYY,
+  dateTupleToMMSlashDDSlashYYYY,
+  dateTupleToDDDashMMDashYYYY,
+  dateTupleToMMMSpaceDDSpaceYY,
+  dateTupleToMMMSpaceDDSpaceYYYY,
+  dateTupleToMMMSpaceDDCommaSpaceYY,
+  dateTupleToMMMSpaceDDCommaSpaceYYYY,
+  dateTupleToDDDotMMDotYYYY,
+  dateTupleToYYYYDotMMDotDD,
+  dateTupleToYYYYMMDD,
+  dateTupleToYYYYDashMMDashDD
+];  // TODO(cais): Add more formats if necessary.
+
 /**
  * Encode a number of input date strings as a `tf.Tensor`.
  *

@@ -23,23 +23,69 @@
  */
 
 import * as tf from '@tensorflow/tfjs';
+import * as tfvis from '@tensorflow/tfjs-vis';
+
+import {INPUT_LENGTH} from './date_format';
 import {runSeq2SeqInference} from './model';
 
-async function init() {
-  console.log(tf.version);  // DEBUG
+const inputDateString = document.getElementById('input-date-string');
+const outputDateString = document.getElementById('output-date-string');
+const attentionHeatmap = document.getElementById('attention-heatmap');
 
-  const model = await tf.loadModel('./model/model.json');
+let model;
+
+inputDateString.addEventListener('input', async () => {
+  let inputStr = inputDateString.value.trim().toUpperCase();
+  if (inputStr.length < 6) {
+    outputDateString.value = '';
+    return;
+  }
+
+  if (inputStr.length > INPUT_LENGTH) {
+    inputStr = inputStr.slice(0, INPUT_LENGTH);
+  }
+
+  try {
+    const getAttention = true;
+    const {outputStr, attention} =
+        await runSeq2SeqInference(model, inputStr, getAttention);
+    outputDateString.value = outputStr;
+
+    console.log(attentionHeatmap);  // DEBUG
+    console.log(attention.shape);
+    const xLabels = outputStr.split('').map((char, i) => `(${i + 1}) "${char}"`);
+    const yLabels = [];
+    for (let i = 0; i < INPUT_LENGTH; ++i) {
+      if (i < inputStr.length) {
+        yLabels.push(`${i + 1} "${inputStr[i]}"`);
+      } else {
+        yLabels.push(`${i + 1} ""`);
+      }
+    }
+    await tfvis.render.heatmap({
+      values: attention.squeeze([0]),
+      xLabels,
+      yLabels
+    }, attentionHeatmap, {
+      width: 600,
+      height: 360,
+      xLabel: 'Output characters',
+      yLabel: 'Input characters'
+    });
+  } catch (err) {
+    outputDateString.value = err.message;
+    console.error(err);
+  }
+  // exampleAttention.print();
+});
+
+async function init() {
+  outputDateString.value = 'Loading model...';
+
+  model = await tf.loadModel('./model/model.json');
   model.summary();
 
-  const inputDateString = '23DEC1996';
-  // const inputDateString = '19961223';
-
-  const getAttention = true;
-  const {outputStr, attention} =
-      await runSeq2SeqInference(model, inputDateString, getAttention);
-  const exampleAttention = attention.squeeze([0]);
-  console.log(`Ouptut date string = "${outputStr}"`);
-  exampleAttention.print();
+  inputDateString.dispatchEvent(new Event('input'));
 }
 
 init();

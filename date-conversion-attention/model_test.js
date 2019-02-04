@@ -30,7 +30,7 @@ describe('Model', () => {
     const outputLength = 5;
     const model = createModel(
         inputVocabSize, outputVocabSize, inputLength, outputLength);
-    
+
     expect(model.inputs.length).toEqual(2);
     expect(model.inputs[0].shape).toEqual([null, inputLength]);
     expect(model.inputs[1].shape).toEqual([null, outputLength]);
@@ -57,7 +57,7 @@ describe('Model', () => {
     const outputLength = 5;
     const model = createModel(
         inputVocabSize, outputVocabSize, inputLength, outputLength);
-    
+
     const numExamples = 3;
     const encoderInputs = tf.ones([numExamples, inputLength]);
     const decoderInputs = tf.ones([numExamples, outputLength]);
@@ -76,9 +76,9 @@ describe('Model', () => {
         dateFormat.INPUT_LENGTH, dateFormat.OUTPUT_LENGTH);
 
     const numTensors0 = tf.memory().numTensors;
-    const output = await runSeq2SeqInference(model, '2019/01/18');
+    const {outputStr} = await runSeq2SeqInference(model, '2019/01/18');
     // Assert no memory leak.
     expect(tf.memory().numTensors).toEqual(numTensors0);
-    expect(output.length).toEqual(dateFormat.OUTPUT_LENGTH);
+    expect(outputStr.length).toEqual(dateFormat.OUTPUT_LENGTH);
   });
 });

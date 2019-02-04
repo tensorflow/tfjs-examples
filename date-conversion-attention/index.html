@@ -22,27 +22,24 @@ limitations under the License.
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="stylesheet" href="../shared/tfjs-examples.css" />
 </head>
-
 <style>
-  .setting {
-    padding: 6px;
+  .date-label {
+    font-size: 18px;
+    font-family: monospace;
+    padding: 5px;
+    width:280px;
+    display: block;
   }
-
-  #trainModel {
-    margin-top: 12px;
+  .dates {
+    font-size: 18px;
+    font-family: monospace;
   }
-
-  .setting-label {
+  .date-input-output-section {
     display: inline-block;
-    width: 12em;
   }
-
-  .answer-correct {
-    color: green;
-  }
-
-  .answer-wrong {
-    color: red;
+  .attention-section {
+    margin-left: 288px;
+    margin-top: 8px;
   }
 </style>
 
@@ -60,7 +57,20 @@ limitations under the License.
     </section>
 
     <div>
+      <div class="date-input-output-section">
+        <div class="date-label">Input date string:</div>
+        <input type="text" class="dates" id="input-date-string" value="JAN 20, 2001"></input>
+      </div>
 
+      <div class="date-input-output-section">
+        <div class="date-label">Output date string:</div>
+        <input type="text" class="dates" id="output-date-string" disabled="true"></input>
+      </div>
+    </div>
+
+    <div class="attention-section">
+      <div class="date-label">Attention matrix:</div>
+      <div id="attention-heatmap"></div>
     </div>
   </div>
 

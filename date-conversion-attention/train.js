@@ -215,7 +215,7 @@ async function run() {
           dateFormat.dateTupleToYYYYDashMMDashDD(testDateTuples[n]);
       console.log(`Correct answer: ${correctAnswer}`);
 
-      const outputStr = await runSeq2SeqInference(model, inputStr);
+      const {outputStr} = await runSeq2SeqInference(model, inputStr);
       const isCorrect = outputStr === correctAnswer;
       console.log(
           `Model output: ${outputStr} (${isCorrect ? 'OK' : 'WRONG'})` );

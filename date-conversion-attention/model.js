@@ -109,14 +109,14 @@ export function createModel(
     axes: [2, 1],
     name: 'context'
   }).apply([attention, encoder]);
-  const deocderCombinedContext =
+  const decoderCombinedContext =
       tf.layers.concatenate().apply([context, decoder]);
   let output = tf.layers.timeDistributed({
     layer: tf.layers.dense({
       units: lstmUnits,
       activation: 'tanh'
     })
-  }).apply(deocderCombinedContext);
+  }).apply(decoderCombinedContext);
   output = tf.layers.timeDistributed({
     layer: tf.layers.dense({
       units: outputVocabSize,

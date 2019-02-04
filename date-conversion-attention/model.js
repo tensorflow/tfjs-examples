@@ -188,8 +188,6 @@ export async function runSeq2SeqInference(model,
       });
       output.attention =
           attentionModel.predict([encoderInput, decoderInput.toTensor()]);
-    } else {
-      inferenceModel = model;
     }
 
     return output;

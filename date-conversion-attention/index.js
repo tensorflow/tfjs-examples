@@ -30,11 +30,12 @@ import {runSeq2SeqInference} from './model';
 
 const inputDateString = document.getElementById('input-date-string');
 const outputDateString = document.getElementById('output-date-string');
+const inferenceTime = document.getElementById('inference-time');
 const attentionHeatmap = document.getElementById('attention-heatmap');
 
 let model;
 
-inputDateString.addEventListener('input', async () => {
+inputDateString.addEventListener('change', async () => {
   let inputStr = inputDateString.value.trim().toUpperCase();
   if (inputStr.length < 6) {
     outputDateString.value = '';
@@ -47,19 +48,20 @@ inputDateString.addEventListener('input', async () => {
 
   try {
     const getAttention = true;
+    const t0 = tf.util.now();
     const {outputStr, attention} =
         await runSeq2SeqInference(model, inputStr, getAttention);
+    const tElapsed = tf.util.now() - t0;
+    inferenceTime.textContent = `seq2seq onversion took ${tElapsed.toFixed(1)} ms`;
     outputDateString.value = outputStr;
 
-    console.log(attentionHeatmap);  // DEBUG
-    console.log(attention.shape);
     const xLabels = outputStr.split('').map((char, i) => `(${i + 1}) "${char}"`);
     const yLabels = [];
     for (let i = 0; i < INPUT_LENGTH; ++i) {
       if (i < inputStr.length) {
-        yLabels.push(`${i + 1} "${inputStr[i]}"`);
+        yLabels.push(`(${i + 1}) "${inputStr[i]}"`);
       } else {
-        yLabels.push(`${i + 1} ""`);
+        yLabels.push(`(${i + 1}) ""`);
       }
     }
     await tfvis.render.heatmap({
@@ -70,13 +72,13 @@ inputDateString.addEventListener('input', async () => {
       width: 600,
       height: 360,
       xLabel: 'Output characters',
-      yLabel: 'Input characters'
+      yLabel: 'Input characters',
+      colorMap: 'blues'
     });
   } catch (err) {
     outputDateString.value = err.message;
     console.error(err);
   }
-  // exampleAttention.print();
 });
 
 async function init() {
@@ -85,7 +87,15 @@ async function init() {
   model = await tf.loadModel('./model/model.json');
   model.summary();
 
-  inputDateString.dispatchEvent(new Event('input'));
+  const exampleItems = document.getElementsByClassName('input-date-example');
+  for (const exampleItem of exampleItems) {
+    exampleItem.addEventListener('click', (event) => {
+      inputDateString.value = event.srcElement.textContent;
+      inputDateString.dispatchEvent(new Event('change'));
+    });
+  }
+
+  inputDateString.dispatchEvent(new Event('change'));
 }
 
 init();

@@ -21,25 +21,46 @@ limitations under the License.
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="stylesheet" href="../shared/tfjs-examples.css" />
+  <title>TensorFlow.js: Date Conversion Through Attention</title>
 </head>
 <style>
   .date-label {
     font-size: 18px;
     font-family: monospace;
     padding: 5px;
-    width:280px;
+    width: 300px;
     display: block;
   }
+  .hint {
+    font-size: 12px;
+    font-family: monospace;
+  }
   .dates {
-    font-size: 18px;
+    font-size: 24px;
     font-family: monospace;
   }
   .date-input-output-section {
     display: inline-block;
   }
   .attention-section {
-    margin-left: 288px;
+    margin-left: 308px;
     margin-top: 8px;
+  }
+  #attention-heatmap {
+    width: 600px;
+    height: 360px;
+    border: 2px solid orange
+  }
+  #date-format-table {
+    font-size: 15px;
+    font-family: monospace;
+    text-align: left;
+  }
+  li {
+    padding-top: 1px;
+    padding-bottom: 2px;
+    text-decoration: underline;
+    color: blue;
   }
 </style>
 
@@ -50,9 +71,25 @@ limitations under the License.
       <p class='subtitle'>Solving a Sequence-to-Sequence Task Using LSTM and Attention</p>
     </section>
     <section>
-      <p class='section-head'>Description</p>
+      <p class='section-head'>Support Date Formats</p>
       <p>
-        TODO(cais):
+        <div id="date-format-table">
+          <div>Examples for supported formats (click to try):</div>
+          <ul>
+            <li class="input-date-example">23Jan2015</li>
+            <li class="input-date-example">012315</li>
+            <li class="input-date-example">01/23/15</li>
+            <li class="input-date-example">01/23/2015</li>
+            <li class="input-date-example">23-01-2015</li>
+            <li class="input-date-example">JAN 23, 15</li>
+            <li class="input-date-example">Jan 23, 2015</li>
+            <li class="input-date-example">23.01.2015</li>
+            <li class="input-date-example">2015.01.23</li>
+            <li class="input-date-example">20150123</li>
+            <li class="input-date-example">2015/01/23</li>
+            <li class="input-date-example">2015-01-23</li>
+          </ul>
+        </table>
       </p>
     </section>
 
@@ -66,6 +103,9 @@ limitations under the License.
         <div class="date-label">Output date string:</div>
         <input type="text" class="dates" id="output-date-string" disabled="true"></input>
       </div>
+
+      <div class="hint">Press Enter to Refresh Conversion</div>
+      <div class="hint" id="inference-time"></div>
     </div>
 
     <div class="attention-section">

@@ -88,12 +88,23 @@ export function dateTupleToMMSlashDDSlashYYYY(dateTuple) {
   return `${monthStr}/${dayStr}/${dateTuple[0]}`;
 }
 
+/** Date format such as 1/20/2019. */
+export function dateTupleToMSlashDSlashYYYY(dateTuple) {
+  return `${dateTuple[1]}/${dateTuple[2]}/${dateTuple[0]}`;
+}
+
 /** Date format such as 01/20/19. */
 export function dateTupleToMMSlashDDSlashYY(dateTuple) {
   const monthStr = toTwoDigitString(dateTuple[1]);
   const dayStr = toTwoDigitString(dateTuple[2]);
   const yearStr = `${dateTuple[0]}`.slice(2);
   return `${monthStr}/${dayStr}/${yearStr}`;
+}
+
+/** Date format such as 1/20/19. */
+export function dateTupleToMSlashDSlashYY(dateTuple) {
+  const yearStr = `${dateTuple[0]}`.slice(2);
+  return `${dateTuple[1]}/${dateTuple[2]}/${yearStr}`;
 }
 
 /** Date format such as 012019. */
@@ -178,8 +189,10 @@ export const INPUT_FNS = [
   dateTupleToMMDDYY,
   dateTupleToMMSlashDDSlashYY,
   dateTupleToMMSlashDDSlashYYYY,
+  dateTupleToMSlashDSlashYYYY,
   dateTupleToDDDashMMDashYYYY,
   dateTupleToMMMSpaceDDSpaceYY,
+  dateTupleToMSlashDSlashYY,
   dateTupleToMMMSpaceDDSpaceYYYY,
   dateTupleToMMMSpaceDDCommaSpaceYY,
   dateTupleToMMMSpaceDDCommaSpaceYYYY,

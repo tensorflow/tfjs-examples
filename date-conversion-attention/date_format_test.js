@@ -50,11 +50,27 @@ describe('Date formats', () => {
     }
   });
 
+  it('M/D/YYYY', () => {
+    for (let i = 0; i < 10; ++i) {
+      const str = dateFormat.dateTupleToMSlashDSlashYYYY(
+          dateFormat.generateRandomDateTuple());
+      expect(str).toMatch(/^\d{1,2}\/\d{1,2}\/[1-2]\d\d\d$/);
+    }
+  });
+
   it('MM/DD/YY', () => {
     for (let i = 0; i < 10; ++i) {
       const str = dateFormat.dateTupleToMMSlashDDSlashYY(
           dateFormat.generateRandomDateTuple());
       expect(str).toMatch(/^[0-1]\d\/[0-3]\d\/\d\d$/);
+    }
+  });
+
+  it('M/D/YY', () => {
+    for (let i = 0; i < 10; ++i) {
+      const str = dateFormat.dateTupleToMSlashDSlashYY(
+          dateFormat.generateRandomDateTuple());
+      expect(str).toMatch(/^\d{1,2}\/\d{1,2}\/\d\d$/);
     }
   });
 

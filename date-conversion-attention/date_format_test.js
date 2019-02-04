@@ -174,6 +174,14 @@ describe('Date formats', () => {
     }
   });
 
+  it('YYYY-M-D', () => {
+    for (let i = 0; i < 10; ++i) {
+      const str = dateFormat.dateTupleToYYYYDashMDashD(
+          dateFormat.generateRandomDateTuple());
+      expect(str).toMatch(/^[1-2]\d\d\d-\d{1,2}-\d{1,2}$/);
+    }
+  });
+
   it('YYYY-MM-DD', () => {
     for (let i = 0; i < 10; ++i) {
       const str = dateFormat.dateTupleToYYYYDashMMDashDD(

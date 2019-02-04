@@ -181,11 +181,16 @@ export function dateTupleToYYYYDotMDotD(dateTuple) {
   return `${dateTuple[0]}.${dateTuple[1]}.${dateTuple[2]}`;
 }
 
-/** Date format such as 20190120 */
+/** Date format such as 20190120. */
 export function dateTupleToYYYYMMDD(dateTuple) {
   const monthStr = toTwoDigitString(dateTuple[1]);
   const dayStr = toTwoDigitString(dateTuple[2]);
   return `${dateTuple[0]}${monthStr}${dayStr}`;
+}
+
+/** Date format such as 2019-1-20. */
+export function dateTupleToYYYYDashMDashD(dateTuple) {
+  return `${dateTuple[0]}-${dateTuple[1]}-${dateTuple[2]}`;
 }
 
 /**
@@ -216,6 +221,7 @@ export const INPUT_FNS = [
   dateTupleToYYYYDotMMDotDD,
   dateTupleToYYYYDotMDotD,
   dateTupleToYYYYMMDD,
+  dateTupleToYYYYDashMDashD,
   dateTupleToYYYYDashMMDashDD
 ];  // TODO(cais): Add more formats if necessary.
 

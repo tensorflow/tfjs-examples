@@ -28,9 +28,13 @@ import * as tfvis from '@tensorflow/tfjs-vis';
 import {INPUT_LENGTH, INPUT_FNS, generateRandomDateTuple} from './date_format';
 import {runSeq2SeqInference} from './model';
 
+const RELATIVE_MODEL_URL = './model/model.json';
+const HOSTED_MODEL_URL =
+    'https://storage.googleapis.com/tfjs-examples/date-conversion-attention/dist/model/model.json';
+
+const status = document.getElementById('status');
 const inputDateString = document.getElementById('input-date-string');
 const outputDateString = document.getElementById('output-date-string');
-const inferenceTime = document.getElementById('inference-time');
 const attentionHeatmap = document.getElementById('attention-heatmap');
 const randomButton = document.getElementById('random-date');
 
@@ -53,7 +57,7 @@ inputDateString.addEventListener('change', async () => {
     const {outputStr, attention} =
         await runSeq2SeqInference(model, inputStr, getAttention);
     const tElapsed = tf.util.now() - t0;
-    inferenceTime.textContent = `seq2seq onversion took ${tElapsed.toFixed(1)} ms`;
+    status.textContent = `seq2seq conversion took ${tElapsed.toFixed(1)} ms`;
     outputDateString.value = outputStr;
 
     const xLabels = outputStr.split('').map((char, i) => `(${i + 1}) "${char}"`);
@@ -89,9 +93,15 @@ randomButton.addEventListener('click', async () => {
 });
 
 async function init() {
-  outputDateString.value = 'Loading model...';
-
-  model = await tf.loadModel('./model/model.json');
+  try {
+    status.textContent = `Loading model from ${RELATIVE_MODEL_URL} ...`;
+    model = await tf.loadModel(RELATIVE_MODEL_URL);
+  } catch (err) {
+    // If loading of the local model has failed, try loading from the hosted model.
+    status.textContent = `Loading hosted model from ${HOSTED_MODEL_URL} ...`;
+    model = await tf.loadModel(HOSTED_MODEL_URL);
+  }
+  status.textContent = 'Done loading model.';
   model.summary();
 
   const exampleItems = document.getElementsByClassName('input-date-example');

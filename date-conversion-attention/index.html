@@ -81,6 +81,43 @@ limitations under the License.
       <p class='subtitle'>Solving a Sequence-to-Sequence Task Using LSTM and Attention</p>
     </section>
     <section>
+      <p class='section-head'>Description</p>
+      <p>
+        This example demonstrates the inference stage of using a sequence-to-sequence
+        model to convert a myriad of common date formats into the
+        <a href="https://en.wikipedia.org/wiki/ISO_8601#Calendar_dates" target="_blank">
+          ISO 8601 date format
+        </a>
+        (i.e., YYYY-MM-DD). The list below shows examples of the supported input date
+        formats.
+      </p>
+
+      <p>
+        The model is based on
+        <a href="https://js.tensorflow.org/api/latest/#layers.lstm" target="_blank">LSTM</a>
+        and the
+        <a href="https://medium.com/syncedreview/a-brief-overview-of-attention-mechanism-13c578ba9129" target="_blank">
+          attention mechanism
+        </a>.
+      </p>
+
+      <p>
+        The training uses 
+        <a href="https://github.com/tensorflow/tfjs-node">tfjs-node</a>
+        and runs in the backend Node.js environment. The training script
+        can be found
+        <a href="https://github.com/tensorflow/tfjs-examples/tree/master/date-conversion-attention/train.js">
+          here
+        </a>.
+      </p>
+    </section>
+    <section>
+      <p class='section-head'>Status</p>
+      <p>
+        <span id="status"></span>
+      </p>
+    </section>
+    <section>
       <p class='section-head'>Support Date Formats</p>
       <p>
         <div id="date-format-table">
@@ -103,6 +140,7 @@ limitations under the License.
             <li><span class="input-date-example">20150123</span></li>
             <li><span class="input-date-example">2015/01/23</span></li>
             <li><span class="input-date-example">2015-01-23</span></li>
+            <li><span class="input-date-example">2015-1-23</span></li>
           </ul>
         </table>
       </p>
@@ -117,7 +155,6 @@ limitations under the License.
 
         <div class="hint">Press Enter to Refresh Conversion</div>
         <button id="random-date">Random</button>
-        <div class="hint benchmark" id="inference-time"></div>
       </div>
 
       <div class="horizontal-sections">

@@ -167,28 +167,38 @@ export async function runSeq2SeqInference(model,
       predictOut.dispose();
       decoderInput.set(output, 0, i);
     }
-    const predictOut = model.predict(
-        [encoderInput, decoderInput.toTensor()]);
-    const finalOutput =
-        predictOut.argMax(2).dataSync()[dateFormat.OUTPUT_LENGTH - 1];
 
-    let outputStr = '';
-    for (let i = 1; i < decoderInput.shape[1]; ++i) {
-      outputStr += dateFormat.OUTPUT_VOCAB[decoderInput.get(0, i)];
-    }
-    outputStr += dateFormat.OUTPUT_VOCAB[finalOutput];
+    const output = {outputStr: ''};
 
-    const output = {outputStr};
-
+    // The `tf.Model` instance used for the final time step varies depending on
+    // whether the attention matrix is requested or not.
+    let finalStepModel = model;
     if (getAttention) {
-      const attentionLayer = model.getLayer('attention');
-      const attentionModel = tf.model({
+      // If the attention matrix is requested, construct a two-output model.
+      // - The 1st output is the original decoder output.
+      // - The 2nd output is the attention matrix.
+      finalStepModel = tf.model({
         inputs: model.inputs,
-        outputs: attentionLayer.output
+        outputs: model.outputs.concat([model.getLayer('attention').output])
       });
-      output.attention =
-          attentionModel.predict([encoderInput, decoderInput.toTensor()]);
     }
+
+    const finalPredictOut = finalStepModel.predict(
+        [encoderInput, decoderInput.toTensor()]);
+    let decoderFinalOutput;  // The decoder's final output.
+    if (getAttention) {
+      decoderFinalOutput = finalPredictOut[0];
+      output.attention = finalPredictOut[1];
+    } else {
+      decoderFinalOutput = finalPredictOut;
+    }
+    decoderFinalOutput =
+        decoderFinalOutput.argMax(2).dataSync()[dateFormat.OUTPUT_LENGTH - 1];
+
+    for (let i = 1; i < decoderInput.shape[1]; ++i) {
+      output.outputStr += dateFormat.OUTPUT_VOCAB[decoderInput.get(0, i)];
+    }
+    output.outputStr += dateFormat.OUTPUT_VOCAB[decoderFinalOutput];
 
     return output;
   });

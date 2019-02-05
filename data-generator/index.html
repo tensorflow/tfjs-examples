@@ -1,0 +1,303 @@
+<!--
+ @license
+ Copyright 2019 Google LLC. All Rights Reserved.
+ Licensed under the Apache License, Version 2.0 (the "License");
+ you may not use this file except in compliance with the License.
+ You may obtain a copy of the License at
+  http://www.apache.org/licenses/LICENSE-2.0
+  Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+ =============================================================================
+-->
+
+<html>
+
+<head>
+  <link rel="stylesheet" href="../shared/tfjs-examples.css" />
+  <style>
+    #train {
+      margin-top: 10px;
+    }
+
+    label {
+      display: inline-block;
+      width: 250px;
+      padding: 6px 0 6px 0;
+    }
+
+    .canvases {
+      display: inline-block;
+    }
+
+
+    .status {
+      border: none;
+      font-size: 20px;
+      text-align: center;
+      resize: none;
+    }
+
+    .query {
+      font-size: 20px;
+      text-align: left;
+      resize: none;
+    }
+
+    .textarea {
+      font-size: 20px;
+      text-align: center;
+      resize: none;
+    }
+
+    .textoutput {
+      font-size: 20px;
+      text-align: left;
+      resize: none;
+    }
+
+    .container {
+      width: 80%;
+      margin-left: auto;
+      margin-right: auto;
+      text-align: center;
+    }
+
+    .divTable {
+      display: table;
+      width: 100%;
+    }
+
+    .divTableRow {
+      display: table-row;
+    }
+
+    .divTableHeading {
+      background-color: #EEE;
+      display: table-header-group;
+    }
+
+    .divTableCell,
+    .divTableHead {
+      border: 1px solid #999999;
+      display: table-cell;
+      padding: 3px 10px;
+    }
+
+    .divTableCellKey {
+      border: 1px solid #999999;
+      display: table-cell;
+      padding: 3px 10px;
+      font-weight: bold;
+    }
+
+    .divTableHeading {
+      background-color: #EEE;
+      display: table-header-group;
+      font-weight: bold;
+    }
+
+    .divTableFoot {
+      background-color: #EEE;
+      display: table-footer-group;
+      font-weight: bold;
+    }
+
+    .divTableBody {
+      display: table-row-group;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <section class='title-area'>
+      <h3>TensorFlow.js: tfjs-data</h3>
+      Building a tf.data.Dataset from a generator function.
+    </section>
+  </div>
+  <p class='section-head'>How to use this demo.</p>
+
+  This demo is meant to illustrate how to train a model using a tf.data.Dataset
+  constructed from a generator using <pre>tf.data.generator()</pre>.
+  In this case, we will predict the likelihood of
+  winning a game. The game itself is described below, and implmented in game.js.
+  The game exports a function we will use as a "generator" function to create a
+  dataset. We will then fit a model to this dataset using
+  <pre>model.fitDataset()</pre>, with the goal of predicting
+  the "win" state from features calculated from Player 1's hand.  The output
+  logit value will be larger for hands which the model considers more likely
+  to win.
+
+  <p class='section-head'>How to use this app.</p>
+  <ol>
+    <li> Familiarize yourself with the rules of the game below.</li>
+    <li> Simulate the game by pressing the <i>simulate-game</i> button.</li>
+    <li> Select how many cards each player gets using the drop-down menu.</li>
+    <li> See how games are generated, wins are calculated, and notice that the
+      simulation count increases.</li>
+    <li> Familiarize yourself with the tensor-valued features calculated from
+      player 1's hand.</li>
+    <li> See what batches of data looks like by clicking dataset-to-array.</li>
+    <li> Before training a model, select a batchSize, the number of
+      batchesPerEpoch, and how many epochs to train on.</li>
+    <li> When you are ready, train a model on the generated features by
+      clicking <i>'train-model-using-fit-dataset'</i>.</li>
+    <li> Once the model is trained, make predictions by entering values
+      for the user's hand, and clicking predict.</li>
+  </ol>
+  <div class="divTable">
+    <div class="divTableRow">
+      <!-- Left hand pane -->
+      <div class="divTableCell" style='width:50%'>
+        <p></p>
+        <p class='section-head'>Game Simulation</p>
+        Click "Simulate Game" to run one play of the game. Three numbers will be
+        randomly selected for each player. The "win" status will indicate
+        whether player one's 'win' status according to the following rules..
+        <p></p>
+        Rules:
+        <ul>
+          <li>The player with the largest group of same-valued cards wins. E.g.,
+            if player 1 has three-of-a-kind, and player 2 only has a pair,
+            player 1 wins.</li>
+          <li>If both players have the same sized maximal group, then the player
+            with the group with the largest face
+            value wins. E.g., A pair of 5s beats a pair of 4s.</li>
+          <li>If neither player even has a pair, the player with the highest
+            single card wins.</li>
+          <li>Ties are settled randomly, 50/50.</li>
+        </ul>
+        Number of cards per hand
+        <select id='select-cards-per-hand'>
+          <option value="3">3</option>
+          <option value="4">4</option>
+          <option value="5">5</option>
+          <option value="6">6</option>
+          <option value="7">7</option>
+          <option value="8">8</option>
+        </select>
+        <p></p>
+        <button id='simulate-game'>simulate-game</button>
+        <h3>Simulation Results (Simulations so far =
+          <div style=display:inline id=num-simulations-so-far>0</div>)
+        </h3>
+        <p></p>
+        <div class='divTable'>
+          <div class='divTableRow' id='sim-features-row'>
+            <div id='player1Cell' , class='divTableCell' style='width:40%'>
+              <b>player 1</b>
+              <div class='divTable'>
+                <div class='divTableRow' id='player1-row'>
+                </div>
+              </div>
+            </div>
+            <div id='player2Cell' , class='divTableCell' style='width:40%'>
+              <b>opponent</b>
+              <div class='divTable'>
+                <div class='divTableRow' id='player2-row'>
+                </div>
+              </div>
+            </div>
+            <div class='divTableCell' style='width:10%'><b>win?</b>
+              <div class='divTable'>
+                <div class='divTableRow' id='result-row'>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <p></p>
+        <div class='divTable'>
+          <div class='divTableRow'>
+            <div class='divTableCell' style='width:100%'>
+              <b>Game to features and label.</b> Note that the features fed into
+              the model only include values visible to player
+              1, since we want to predict whether player 1 will win.
+              <p></p>
+            </div>
+          </div>
+        </div>
+        <div class='divTable'>
+          <div class='divTableRow'>
+            <div class='divTableCell' style='width:20%'><b>Features:</b> </div>
+            <div class='divTableCell' style='width:80%' id='sim-features'>
+              Click "sample" to run
+            </div>
+          </div>
+          <div class='divTableRow'>
+            <div class='divTableCell' style='width:20%'><b>Label:</b> </div>
+            <div class='divTableCell' style='width:80%' id='sim-label'></div>
+          </div>
+        </div>
+        <div id="generated-sample-data-message"></div>
+        <p class='section-head'>Data Pipeline</p>
+        <h4>tf.dataFromGenerator(simulation↑)</h4>
+        <h4>.map(gameToFeaturesAndLabel)</h4>
+        <h4>.batch(
+          <input type="number" id="generator-batch" value="100">)</h4>
+        <h4>.take(
+          <input type="number" id="generator-take" value="5">)</h4>
+        <h4>.toArray()
+          <button id="dataset-to-array">dataset-to-array</button>
+        </h4>
+        <p></p>
+        <div class="container" id="to-array-container">
+        </div>
+      </div>
+      <!-- Right hand pane -->
+      <div class="divTableCell" style='width:50%'>
+        <p class='section-head'>Train & Evaluate Model</p>
+        <div id="train-model-message"></div>
+        <h4>batchesPerEpoch
+          <input type="number" id="batches-per-epoch" value="50">
+          <h4>Epochs to train
+            <input type="number" id="epochs-to-train" value="50">
+          </h4>
+          Expected simulations = batchSize * batchesPerEpoch * epochs =
+          <div id='expected-simulations' style='display:inline'></div>
+          <button id="train-model-using-fit-dataset">
+            train-model-using-fit-dataset
+          </button>
+          <button id="stop-training" disabled="true">stop-training</button>
+
+          <section>
+            <p class='section-head'>Training Progress</p>
+            <p id="training-status"></p>
+            <p id="training-message"></p>
+            <div id="training-stats">
+              <div class="canvases">
+                <label id="training-loss-label"></label>
+                <div id="training-loss-canvas"></div>
+              </div>
+              <div class="canvases">
+                <label id="training-accuracy-label"></label>
+                <div id="training-accuracy-canvas"></div>
+              </div>
+            </div>
+            Note that since each player has an equal chance of winning, we
+            expect that a completely naive estimator will have an accuracy of
+            0.5. An estimator with perfect accuracy is not possible, since the
+            estimator does not have access to the opponent player's hand.
+          </section>
+
+          <section>
+            <p class='section-head'>Use Trained Model</p>
+            <div id='prediction-input'></div>
+            <button id="predict" disabled="true">predict</button>
+            Output of model:
+            <div class="container" id="prediction" style='display:inline'> </div>
+            <p></p>
+            Note that this prediction is larger for hands that the model
+            considers more likely to win, but are not calibrated probabilities.
+          </section>
+
+      </div>
+    </div>
+  </div>
+  <script src="./index.js"></script>
+</body>
+
+</html>

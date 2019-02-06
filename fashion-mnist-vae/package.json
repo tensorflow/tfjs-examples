@@ -1,0 +1,26 @@
+{
+  "name": "tfjs-examples-mnist-node",
+  "version": "0.1.0",
+  "description": "",
+  "main": "index.js",
+  "license": "Apache-2.0",
+  "private": true,
+  "engines": {
+    "node": ">=8.11.0"
+  },
+  "dependencies": {
+    "@tensorflow/tfjs-node": "0.2.3",
+    "@tensorflow/tfjs-node-gpu": "0.2.3",
+    "argparse": "^1.0.10",
+    "jimp": "0.6.0",
+    "lodash": "^4.17.11",
+    "mkdirp": "^0.5.1",
+    "terminal-image": "^0.1.2"
+  },
+  "scripts": {
+    "postinstall": "yarn upgrade --pattern @tensorflow"
+  },
+  "devDependencies": {
+    "clang-format": "~1.2.2"
+  }
+}

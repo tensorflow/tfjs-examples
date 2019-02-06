@@ -58,7 +58,13 @@ function loadHeaderValues(buffer, headerLength) {
  *
  * @return {Float32Array[]} an array of images represented as typed arrays.
  */
-async function loadImages(filepath) {
+async function loadImages(filepath) {  
+  if (!fs.existsSync(filepath)) {
+    console.log(`Data File: ${filepath} does not exist. 
+      Please see the README for instructions on how to download it`);
+    process.exit(1);
+  }
+
   const buffer = await readFile(filepath)
 
   const headerBytes = IMAGE_HEADER_BYTES;

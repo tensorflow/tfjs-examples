@@ -98,7 +98,6 @@ async function train(images, vaeOpts, savePath) {
  */
 async function generate(decoderModel, latentDimSize) {
   const targetZ = tf.zeros([latentDimSize]).expandDims();
-  console.log('targetZ', targetZ);
   const generated = (decoderModel.apply(targetZ)).mul(255);
 
   await previewImage(generated.dataSync());

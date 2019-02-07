@@ -63,8 +63,8 @@ async function predict(imgElement) {
 
   const startTime = performance.now();
   const logits = tf.tidy(() => {
-    // tf.fromPixels() returns a Tensor from an image element.
-    const img = tf.fromPixels(imgElement).toFloat();
+    // tf.browser.fromPixels() returns a Tensor from an image element.
+    const img = tf.browser.fromPixels(imgElement).toFloat();
 
     const offset = tf.scalar(127.5);
     // Normalize the image from [0, 255] to [-1, 1].

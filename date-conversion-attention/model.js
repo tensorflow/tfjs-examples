@@ -152,9 +152,8 @@ export function createModel(
  *     be populated by attention matrix as a `tf.Tensor` of
  *     dtype `float32` and shape `[]`.
  */
-export async function runSeq2SeqInference(model,
-                                          inputStr,
-                                          getAttention = false) {
+export async function runSeq2SeqInference(
+    model, inputStr, getAttention = false) {
   return tf.tidy(() => {
     const encoderInput = dateFormat.encodeInputDateStrings([inputStr]);
     const decoderInput = tf.buffer([1, dateFormat.OUTPUT_LENGTH]);
@@ -174,17 +173,17 @@ export async function runSeq2SeqInference(model,
     // whether the attention matrix is requested or not.
     let finalStepModel = model;
     if (getAttention) {
-      // If the attention matrix is requested, construct a two-output model.
-      // - The 1st output is the original decoder output.
-      // - The 2nd output is the attention matrix.
-      finalStepModel = tf.model({
-        inputs: model.inputs,
-        outputs: model.outputs.concat([model.getLayer('attention').output])
-      });
+    // If the attention matrix is requested, construct a two-output model.
+    // - The 1st output is the original decoder output.
+    // - The 2nd output is the attention matrix.
+    finalStepModel = tf.model({
+      inputs: model.inputs,
+      outputs: model.outputs.concat([model.getLayer('attention').output])
+    });
     }
 
     const finalPredictOut = finalStepModel.predict(
-        [encoderInput, decoderInput.toTensor()]);
+    [encoderInput, decoderInput.toTensor()]);
     let decoderFinalOutput;  // The decoder's final output.
     if (getAttention) {
       decoderFinalOutput = finalPredictOut[0];
@@ -193,13 +192,12 @@ export async function runSeq2SeqInference(model,
       decoderFinalOutput = finalPredictOut;
     }
     decoderFinalOutput =
-        decoderFinalOutput.argMax(2).dataSync()[dateFormat.OUTPUT_LENGTH - 1];
+    decoderFinalOutput.argMax(2).dataSync()[dateFormat.OUTPUT_LENGTH - 1];
 
     for (let i = 1; i < decoderInput.shape[1]; ++i) {
       output.outputStr += dateFormat.OUTPUT_VOCAB[decoderInput.get(0, i)];
     }
     output.outputStr += dateFormat.OUTPUT_VOCAB[decoderFinalOutput];
-
     return output;
   });
 }

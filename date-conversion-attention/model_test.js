@@ -30,7 +30,6 @@ describe('Model', () => {
     const outputLength = 5;
     const model = createModel(
         inputVocabSize, outputVocabSize, inputLength, outputLength);
-
     expect(model.inputs.length).toEqual(2);
     expect(model.inputs[0].shape).toEqual([null, inputLength]);
     expect(model.inputs[1].shape).toEqual([null, outputLength]);
@@ -57,7 +56,6 @@ describe('Model', () => {
     const outputLength = 5;
     const model = createModel(
         inputVocabSize, outputVocabSize, inputLength, outputLength);
-
     const numExamples = 3;
     const encoderInputs = tf.ones([numExamples, inputLength]);
     const decoderInputs = tf.ones([numExamples, outputLength]);

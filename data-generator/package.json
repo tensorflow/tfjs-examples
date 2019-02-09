@@ -1,0 +1,29 @@
+{
+  "name": "data-generator",
+  "version": "0.1.0",
+  "description": "Demonstrates how to use basic dataset API, including fitting a model",
+  "main": "index.js",
+  "license": "Apache-2.0",
+  "dependencies": {
+    "@babel/plugin-transform-runtime": "^7.2.0",
+    "@tensorflow/tfjs": ">= 0.12.7",
+    "@tensorflow/tfjs-vis": "^0.4.2"
+  },
+  "scripts": {
+    "link-local": "yalc link",
+    "watch": "cross-env NODE_ENV=development parcel index.html --no-hmr --open"
+  },
+  "devDependencies": {
+    "babel-core": "^6.26.3",
+    "babel-plugin-transform-runtime": "^6.23.0",
+    "babel-polyfill": "^6.26.0",
+    "babel-preset-env": "^1.7.0",
+    "clang-format": "^1.2.4",
+    "cross-env": "^5.2.0",
+    "parcel-bundler": "^1.11.0",
+    "ts-node": "^7.0.1",
+    "tslint": "^5.12.0",
+    "typescript": "^3.2.2",
+    "yalc": "^1.0.0-pre.27"
+  }
+}

@@ -1,0 +1,35 @@
+{
+  "name": "tfjs-examples-date-conversion-attention",
+  "version": "0.1.0",
+  "description": "",
+  "main": "index.js",
+  "license": "Apache-2.0",
+  "private": true,
+  "engines": {
+    "node": ">=8.11.0"
+  },
+  "scripts": {
+    "postinstall": "yarn upgrade --pattern @tensorflow",
+    "test": "babel-node run_tests.js",
+    "train": "babel-node train.js"
+  },
+  "dependencies": {
+    "@tensorflow/tfjs": "^0.15.1"
+  },
+  "devDependencies": {
+    "@tensorflow/tfjs-node": "^0.3.0",
+    "@tensorflow/tfjs-node-gpu": "^0.3.0",
+    "argparse": "^1.0.10",
+    "babel-cli": "^6.26.0",
+    "babel-core": "^6.26.3",
+    "babel-plugin-transform-runtime": "^6.23.0",
+    "babel-polyfill": "^6.26.0",
+    "babel-preset-env": "~1.7.0",
+    "clang-format": "~1.2.2",
+    "jasmine": "^3.2.0",
+    "jasmine-core": "^3.2.1",
+    "shelljs": "^0.8.3",
+    "tmp": "^0.0.33",
+    "yalc": "~1.0.0-pre.21"
+  }
+}

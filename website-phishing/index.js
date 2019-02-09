@@ -74,8 +74,8 @@ function drawROC(targets, probs, epoch) {
       const threshold = thresholds[i];
 
       const threshPredictions = utils.binarize(probs, threshold).as1D();
-      const fpr = falsePositiveRate(targets, threshPredictions).get();
-      const tpr = tf.metrics.recall(targets, threshPredictions).get();
+      const fpr = falsePositiveRate(targets, threshPredictions).dataSync()[0];
+      const tpr = tf.metrics.recall(targets, threshPredictions).dataSync()[0];
       fprs.push(fpr);
       tprs.push(tpr);
 
@@ -140,15 +140,17 @@ data.loadData().then(async () => {
         model.evaluate(testData.data, testData.target, {batchSize: batchSize});
 
     const lastTrainLog = trainLogs[trainLogs.length - 1];
-    const testLoss = result[0].get();
-    const testAcc = result[1].get();
+    const testLoss = result[0].dataSync()[0];
+    const testAcc = result[1].dataSync()[0];
 
     const probs = model.predict(testData.data);
     const predictions = utils.binarize(probs).as1D();
 
-    const precision = tf.metrics.precision(testData.target, predictions).get();
-    const recall = tf.metrics.recall(testData.target, predictions).get();
-    const fpr = falsePositiveRate(testData.target, predictions).get();
+    const precision =
+        tf.metrics.precision(testData.target, predictions).dataSync()[0];
+    const recall =
+        tf.metrics.recall(testData.target, predictions).dataSync()[0];
+    const fpr = falsePositiveRate(testData.target, predictions).dataSync()[0];
     ui.updateStatus(
         `Final train-set loss: ${lastTrainLog.loss.toFixed(4)} accuracy: ${
             lastTrainLog.acc.toFixed(4)}\n` +

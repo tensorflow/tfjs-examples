@@ -39,7 +39,7 @@ function parseArguments() {
   parser.addArgument('--modelType', {
     type: 'string',
     defaultValue: 'gru',
-    optionStrings: ['gru'],
+    optionStrings: ['baseline', 'gru', 'simpleRNN'],
     // TODO(cais): Add more model types, e.g., gru with recurrent dropout.
     help: 'Type of the model to train. Use "baseline" to compute the ' +
     'commonsense baseline prediction error.'

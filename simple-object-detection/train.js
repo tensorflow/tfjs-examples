@@ -22,18 +22,6 @@ const argparse = require('argparse');
 const canvas = require('canvas');
 const tf = require('@tensorflow/tfjs');
 const synthesizer = require('./synthetic_images');
-const fetch = require('node-fetch');
-
-// To train the model using CUDA/CuDNN,
-//   1) Make sure you have a CUDA-enabled GPU on your system.
-//   2) Install the necessary NVIDIA driver, CUDA toolkit and CuDNN library.
-//   3) Change the "@tensorflow/tfjs-node" dependency to
-//      "@tensorflow/tfjs-node-gpu" in package.json.
-//   4) Change the following line to:
-//      require('@tensorflow/tfjs-node-gpu');
-require('@tensorflow/tfjs-node');
-
-global.fetch = fetch;
 
 const CANVAS_SIZE = 224;  // Matches the input size of MobileNet.
 
@@ -47,7 +35,7 @@ const topLayerName =
 // Used to scale the first column (0-1 shape indicator) of `yTrue`
 // in order to ensure balanced contributions to the final loss value
 // from shape and bounding-box predictions.
-const LABEL_MULTIPLIER = tf.tensor1d([CANVAS_SIZE, 1, 1, 1, 1]);
+const LABEL_MULTIPLIER = [CANVAS_SIZE, 1, 1, 1, 1];
 
 /**
  * Custom loss function for object detection.
@@ -155,6 +143,10 @@ async function buildObjectDetectionModel() {
   const numLines = 10;
 
   const parser = new argparse.ArgumentParser();
+  parser.addArgument('--gpu', {
+    action: 'storeTrue',
+    help: "Use tfjs-node-gpu for training (required CUDA and CuDNN)"
+  });
   parser.addArgument(
       '--numExamples',
       {type: 'int', defaultValue: 2000, help: 'Number of training exapmles'});
@@ -180,6 +172,14 @@ async function buildObjectDetectionModel() {
     help: 'Number of training epochs in the fine-tuning (i.e., 2nd) phase'
   });
   const args = parser.parseArgs();
+
+  if (args.gpu) {
+    console.log('Training using GPU.');
+    require('@tensorflow/tfjs-node-gpu');
+  } else {
+    console.log('Training using CPU.');
+    require('@tensorflow/tfjs-node');
+  }
 
   const modelSaveURL = 'file://./dist/object_detection_model';
 

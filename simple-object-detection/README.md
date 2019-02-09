@@ -35,7 +35,7 @@ are too many training examples generated. In the meantime, having a large
 number of training examples benefits the accuracy of the model after
 training. The default number of examples is 2000. You can adjust the number
 of examples by using the `--numExamples` flag of the `yarn train` command.
-For example, the hosted model is trained with the 10000 examples, using
+For example, the hosted model is trained with the 20000 examples, using
 the command line:
 
 ```sh
@@ -52,18 +52,13 @@ See `train.js` for other adjustable parameters.
 Note that by default, the model is trained using the CPU version of tfjs-node.
 If you machine is equipped with a CUDA(R) GPU, you may switch to using
 tfjs-node-gpu, which will significantly shorten the training time. Specifically,
-in `package.json`, change the dependency `tfjs-node` to `tfjs-node-gpu`. Then,
-in `train.js`, change the line 
+add the `--gpu` flag to the command above, i.e.,
 
-```js
-require('@tensorflow/tfjs-node');
+```sh
+yarn train --gpu \
+    --numExamples 20000 \
+    --initialTransferEpochs 100 \
+    --fineTuningEpochs 200
 ```
 
-to
-
-```js
-require('@tensorflow/tfjs-node-gpu');
-```
-
-TODO(cais): Add the link below.
-[See this example live!](./README.md)
+[See this example live!](https://storage.googleapis.com/tfjs-examples/simple-object-detection/dist/index.html)

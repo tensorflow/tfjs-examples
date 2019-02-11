@@ -16,7 +16,7 @@
  */
 
 /**
- * Addition RNN example.
+ * The client-side inference part of the date-conversion example.
  *
  * Based on Python Keras example:
  *   https://github.com/keras-team/keras/blob/master/examples/addition_rnn.py

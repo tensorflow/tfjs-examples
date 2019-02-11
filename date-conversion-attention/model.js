@@ -146,7 +146,7 @@ export function createModel(
  *   1. Decoder softmax probability output of shape
  *      `[numExamples, outputLength, outputVocabularySize]`
  * @param {string} inputStr Input date string to be converted.
- * @return {{outputStr: string, attentinon?: tf.Tensor}}
+ * @return {{outputStr: string, attention?: tf.Tensor}}
  *   - The `outputStr` field is the output date string.
  *   - If and only if `getAttention` is `true`, the `attention` field will
  *     be populated by attention matrix as a `tf.Tensor` of
@@ -173,17 +173,17 @@ export async function runSeq2SeqInference(
     // whether the attention matrix is requested or not.
     let finalStepModel = model;
     if (getAttention) {
-    // If the attention matrix is requested, construct a two-output model.
-    // - The 1st output is the original decoder output.
-    // - The 2nd output is the attention matrix.
-    finalStepModel = tf.model({
-      inputs: model.inputs,
-      outputs: model.outputs.concat([model.getLayer('attention').output])
-    });
+      // If the attention matrix is requested, construct a two-output model.
+      // - The 1st output is the original decoder output.
+      // - The 2nd output is the attention matrix.
+      finalStepModel = tf.model({
+        inputs: model.inputs,
+        outputs: model.outputs.concat([model.getLayer('attention').output])
+      });
     }
 
     const finalPredictOut = finalStepModel.predict(
-    [encoderInput, decoderInput.toTensor()]);
+        [encoderInput, decoderInput.toTensor()]);
     let decoderFinalOutput;  // The decoder's final output.
     if (getAttention) {
       decoderFinalOutput = finalPredictOut[0];

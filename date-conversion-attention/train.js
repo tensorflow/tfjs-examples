@@ -30,22 +30,6 @@ import * as tf from '@tensorflow/tfjs';
 import * as dateFormat from './date_format';
 import {createModel, runSeq2SeqInference} from './model';
 
-const INPUT_FNS = [
-  dateFormat.dateTupleToDDMMMYYYY,
-  dateFormat.dateTupleToMMDDYY,
-  dateFormat.dateTupleToMMSlashDDSlashYY,
-  dateFormat.dateTupleToMMSlashDDSlashYYYY,
-  dateFormat.dateTupleToDDDashMMDashYYYY,
-  dateFormat.dateTupleToMMMSpaceDDSpaceYY,
-  dateFormat.dateTupleToMMMSpaceDDSpaceYYYY,
-  dateFormat.dateTupleToMMMSpaceDDCommaSpaceYY,
-  dateFormat.dateTupleToMMMSpaceDDCommaSpaceYYYY,
-  dateFormat.dateTupleToDDDotMMDotYYYY,
-  dateFormat.dateTupleToYYYYDotMMDotDD,
-  dateFormat.dateTupleToYYYYMMDD,
-  dateFormat.dateTupleToYYYYDashMMDashDD
-];  // TODO(cais): Add more formats if necessary.
-
 /**
  * Generate sets of data for training.
  *
@@ -87,7 +71,8 @@ export function generateDataForTraining(trainSplit = 0.8, valSplit = 0.15) {
 
   function dateTuplesToTensor(dateTuples) {
     return tf.tidy(() => {
-      const inputs = INPUT_FNS.map(fn => dateTuples.map(tuple => fn(tuple)));
+      const inputs =
+          dateFormat.INPUT_FNS.map(fn => dateTuples.map(tuple => fn(tuple)));
       const inputStrings = [];
       inputs.forEach(inputs => inputStrings.push(...inputs));
       const encoderInput =
@@ -104,10 +89,11 @@ export function generateDataForTraining(trainSplit = 0.8, valSplit = 0.15) {
         tf.ones([decoderInput.shape[0], 1]).mul(dateFormat.START_CODE),
         decoderInput.slice(
             [0, 0], [decoderInput.shape[0], decoderInput.shape[1] - 1])
-      ], 1).tile([INPUT_FNS.length, 1]);
+      ], 1).tile([dateFormat.INPUT_FNS.length, 1]);
       const decoderOutput = tf.oneHot(
           dateFormat.encodeOutputDateStrings(trainTargetStrings),
-          dateFormat.OUTPUT_VOCAB.length).tile([INPUT_FNS.length, 1, 1]);
+          dateFormat.OUTPUT_VOCAB.length).tile(
+              [dateFormat.INPUT_FNS.length, 1, 1]);
       return {encoderInput, decoderInput, decoderOutput};
     });
   }
@@ -207,7 +193,7 @@ async function run() {
   // Run seq2seq inference tests and print the results to console.
   const numTests = 10;
   for (let n = 0; n < numTests; ++n) {
-    for (const testInputFn of INPUT_FNS) {
+    for (const testInputFn of dateFormat.INPUT_FNS) {
       const inputStr = testInputFn(testDateTuples[n]);
       console.log('\n-----------------------');
       console.log(`Input string: ${inputStr}`);
@@ -215,7 +201,7 @@ async function run() {
           dateFormat.dateTupleToYYYYDashMMDashDD(testDateTuples[n]);
       console.log(`Correct answer: ${correctAnswer}`);
 
-      const outputStr = await runSeq2SeqInference(model, inputStr);
+      const {outputStr} = await runSeq2SeqInference(model, inputStr);
       const isCorrect = outputStr === correctAnswer;
       console.log(
           `Model output: ${outputStr} (${isCorrect ? 'OK' : 'WRONG'})` );

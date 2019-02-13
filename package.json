@@ -1,0 +1,9 @@
+{
+  "name": "tfjs-examples",
+  "version": "0.0.1",
+  "devDependencies": {
+    "jasmine": "~3.1.0",
+    "yalc": "~1.0.0-pre.21"
+  },
+  "license": "Apache-2.0"
+}

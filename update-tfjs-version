@@ -49,7 +49,7 @@ for (const item of dirItems) {
       const deps = packageJson['dependencies'];
       const devDeps = packageJson['devDependencies'];
       if (deps[tfjsNodeTag] != null ||
-          devDeps != null && devDpes[tfjsNodeTag] != null) {
+          devDeps != null && devDeps[tfjsNodeTag] != null) {
         console.log(
             `*** Skipping example with dependency or devDependency ` +
             `on tfjs-node: ${item}`);

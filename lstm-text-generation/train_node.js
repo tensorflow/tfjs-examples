@@ -24,7 +24,6 @@ import * as argparse from 'argparse';
 
 import {TextData, TEXT_DATA_URLS} from './data';
 import {createModel, compileModel, fitModel} from './model';
-import '@tensorflow/tfjs-node';
 
 function parseArgs() {
   const parser = argparse.ArgumentParser({
@@ -34,6 +33,10 @@ function parseArgs() {
     type: 'string',
     choices: Object.keys(TEXT_DATA_URLS),
     help: 'Name of the text dataset'
+  });
+  parser.addArgument('--gpu', {
+    action: 'storeTrue',
+    help: 'Use CUDA GPU for training.'
   });
   parser.addArgument('--sampleLen', {
     type: 'int',
@@ -56,6 +59,21 @@ function parseArgs() {
     type: 'int',
     defaultValue: 100,
     help: 'Number of training epochs'
+  });
+  parser.addArgument('--examplesPerEpoch', {
+    type: 'int',
+    defaultValue: 10000,
+    help: 'Number of examples to sample from the text in each training epoch.'
+  });
+  parser.addArgument('--batchSize', {
+    type: 'int',
+    defaultValue: 128,
+    help: 'Batch size for training.'
+  });
+  parser.addArgument('--validationSplit', {
+    type: 'float',
+    defaultValue: 0.15,
+    help: 'Validation split for training.'
   });
   parser.addArgument('--savePath', {
     type: 'string',
@@ -96,6 +114,13 @@ async function maybeDownload(sourceURL, destPath) {
 
 async function main() {
   const args = parseArgs();
+  if (args.gpu) {
+    console.log('Using GPU');
+    require('@tensorflow/tfjs-node-gpu');
+  } else {
+    console.log('Using CPU');
+    require('@tensorflow/tfjs-node');
+  }
 
   // TODO(cais): Do not hard code.
 //   const text = fs.readFileSync('./nietzsche.txt',  {encoding: 'utf-8'});
@@ -116,15 +141,11 @@ async function main() {
   const model = createModel(
       textData.sampleLen(), textData.charSetSize(), lstmLayerSize);
   compileModel(model, args.learningRate);
-  // const examplesPerEpoch = 10000;
-  const examplesPerEpoch = null;
-  const batchSize = 128;
-  const validationSplit = 0.0625;
 
   let epochCount = 0;
   await fitModel(
-      model, textData, args.epochs, examplesPerEpoch, batchSize,
-      validationSplit, {
+      model, textData, args.epochs, args.examplesPerEpoch, args.batchSize,
+      args.validationSplit, {
         onTrainBegin: async () => {
           epochCount++;
           console.log(`Epoch ${epochCount} of ${args.epochs}:`);

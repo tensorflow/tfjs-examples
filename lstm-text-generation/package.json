@@ -18,7 +18,7 @@
     "link-local": "yalc link",
     "postinstall": "yarn upgrade --pattern @tensorflow",
     "test": "babel-node run_tests.js",
-    "train": "babel-node train-node.js"
+    "train": "babel-node train_node.js"
   },
   "devDependencies": {
     "@tensorflow/tfjs-node": "0.3.0",

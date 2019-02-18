@@ -79,8 +79,6 @@ export async function generateText(
     onTextGenerationChar) {
   const sampleLen = model.inputs[0].shape[1];
   const charSetSize = model.inputs[0].shape[2];
-  console.log(`generateText(): sampleLen=${sampleLen}, ` +
-      `charSetSize=${charSetSize}, length=${length}`);  // DEBUG
 
   // Avoid overwriting the original input.
   sentenceIndices = sentenceIndices.slice();

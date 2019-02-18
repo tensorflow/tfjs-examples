@@ -116,8 +116,8 @@ async function main() {
   const model = createModel(
       textData.sampleLen(), textData.charSetSize(), lstmLayerSize);
   compileModel(model, args.learningRate);
-  const examplesPerEpoch = 2048;  // TODO(cais): Make an epoch a full pass
-  // through the text.
+  // const examplesPerEpoch = 10000;
+  const examplesPerEpoch = null;
   const batchSize = 128;
   const validationSplit = 0.0625;
 

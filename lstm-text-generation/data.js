@@ -74,7 +74,6 @@ export class TextData {
 
     this.getCharSet_();
     this.convertAllTextToIndices_();
-    this.generateExampleBeginIndices_();
   }
 
   /**
@@ -121,6 +120,12 @@ export class TextData {
    *   `ys` has the shape of `[numExamples, this.charSetSize]`.
    */
   nextDataEpoch(numExamples) {
+    this.generateExampleBeginIndices_();
+
+    if (numExamples == null) {
+      numExamples = this.exampleBeginIndices_.length;
+    }
+
     const xsBuffer = new tf.TensorBuffer([
         numExamples, this.sampleLen_, this.charSetSize_]);
     const ysBuffer  = new tf.TensorBuffer([numExamples, this.charSetSize_]);

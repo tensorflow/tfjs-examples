@@ -16,29 +16,126 @@
  */
 
 import * as fs from 'fs';
+import * as https from 'https';
+import * as os from 'os';
+import * as path from 'path';
 
-import {TextData} from './data';
+import * as argparse from 'argparse';
+
+import {TextData, TEXT_DATA_URLS} from './data';
 import {createModel, compileModel, fitModel} from './model';
 import '@tensorflow/tfjs-node';
 
+function parseArgs() {
+  const parser = argparse.ArgumentParser({
+    description: 'Train an lstm-text-generation model.'
+  });
+  parser.addArgument('textDatasetName', {
+    type: 'string',
+    choices: Object.keys(TEXT_DATA_URLS),
+    help: 'Name of the text dataset'
+  });
+  parser.addArgument('--sampleLen', {
+    type: 'int',
+    defaultValue: 60,
+    help: 'Sample length: Length of each input sequence to the model, in ' +
+    'number of characters.'
+  });
+  parser.addArgument('--sampleStep', {
+    type: 'int',
+    defaultValue: 3,
+    help: 'Step length: how many characters to skip between one example ' +
+    'extracted from the text data to the next.'
+  });
+  parser.addArgument('--learningRate', {
+    type: 'float',
+    defaultValue: 1e-2,
+    help: 'Learning rate to be used during training'
+  });
+  parser.addArgument('--epochs', {
+    type: 'int',
+    defaultValue: 100,
+    help: 'Number of training epochs'
+  });
+  parser.addArgument('--savePath', {
+    type: 'string',
+    help: 'Path to which the model will be saved (optional)'
+  });
+  parser.addArgument('--lstmLayerSize', {
+    type: 'string',
+    defaultValue: '128',
+    help: 'LSTM layer size. Can be a single number of an array of numbers ' +
+    'separated by commas (E.g., "256", "256,128")'
+  });  // TODO(cais): Support
+  return parser.parseArgs();
+}
+
+/**
+ * Get a file by downloading it if necessary.
+ *
+ * @param {string} sourceURL URL to download the file from.
+ * @param {string} destPath Destination file path on local filesystem.
+ */
+async function maybeDownload(sourceURL, destPath) {
+    return new Promise(async (resolve, reject) => {
+      if (!fs.existsSync(destPath) || fs.lstatSync(destPath).size === 0) {
+        const localZipFile = fs.createWriteStream(destPath);
+        console.log(`Downloading file from ${sourceURL} to ${destPath}...`);
+        https.get(sourceURL, response => {
+          response.pipe(localZipFile);
+          localZipFile.on('finish', () => {
+            localZipFile.close(() => resolve());
+          });
+          localZipFile.on('error', err => reject(err));
+        });
+      } else {
+        return resolve();
+      }
+    });
+  }
+
 async function main() {
-  const text = fs.readFileSync('./nietzsche.txt',  {encoding: 'utf-8'});
+  const args = parseArgs();
 
-  const sampleLength = 40;
-  const sampleStep = 3;
-  const textData =  new TextData('text-data', text, sampleLength, sampleStep);
+  // TODO(cais): Do not hard code.
+//   const text = fs.readFileSync('./nietzsche.txt',  {encoding: 'utf-8'});
+  const textDataURL = TEXT_DATA_URLS[args.textDatasetName].url;
+  const localTextDataPath = path.join(os.tmpdir(), path.basename(textDataURL));
+  await maybeDownload(textDataURL, localTextDataPath);
 
-  const lstmLayerSize = 256;
+  const text = fs.readFileSync(localTextDataPath, {encoding: 'utf-8'});
+  const textData =
+      new TextData('text-data', text, args.sampleLen, args.sampleStep);
+
+  // Convert lstmLayerSize from string to number array before handing it
+  // to `createModel()`.
+  const lstmLayerSize = args.lstmLayerSize.indexOf(',') === -1 ?
+      Number.parseInt(args.lstmLayerSize) :
+      args.lstmLayerSize.split(',').map(x => Number.parseInt(x));
+
   const model = createModel(
       textData.sampleLen(), textData.charSetSize(), lstmLayerSize);
-  compileModel(model, 1e-2);
-
-  const epochs = 100;
-  const examplesPerEpoch = 2048;
+  compileModel(model, args.learningRate);
+  const examplesPerEpoch = 2048;  // TODO(cais): Make an epoch a full pass
+  // through the text.
   const batchSize = 128;
   const validationSplit = 0.0625;
+
+  let epochCount = 0;
   await fitModel(
-      model, textData, epochs, examplesPerEpoch, batchSize, validationSplit);
+      model, textData, args.epochs, examplesPerEpoch, batchSize,
+      validationSplit, {
+        onTrainBegin: async () => {
+          epochCount++;
+          console.log(`Epoch ${epochCount} of ${args.epochs}:`);
+        }
+      });
+
+  if (args.savePath != null && args.savePath.length > 0) {
+    await model.save(`file://${args.savePath}`);
+    console.log(`Saved model to ${args.savePath}`);
+  }
+
 }
 
 main();

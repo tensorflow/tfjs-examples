@@ -95,8 +95,10 @@ describe('text-generation model', () => {
     const textData = createTextDataForTest(sampleLen);
     const model = createModel(textData.sampleLen(), textData.charSetSize(), 16);
 
-    const text = await generateText(
-        model, textData, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9], 12, 0.5);
+    const sentenceIndices = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
+    const text = await generateText(model, textData, sentenceIndices, 12, 0.5);
+    // Assert that the original indices are not altered.
+    expect(sentenceIndices).toEqual([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
     expect(typeof text).toEqual('string');
     expect(text.length).toEqual(12);
   });

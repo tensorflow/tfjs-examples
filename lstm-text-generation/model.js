@@ -79,11 +79,11 @@ export async function generateText(
     onTextGenerationChar) {
   const sampleLen = model.inputs[0].shape[1];
   const charSetSize = model.inputs[0].shape[2];
+  console.log(`generateText(): sampleLen=${sampleLen}, ` +
+      `charSetSize=${charSetSize}, length=${length}`);  // DEBUG
 
   // Avoid overwriting the original input.
   sentenceIndices = sentenceIndices.slice();
-  // const temperatureScalar = tf.scalar(temperature);
-  // TODO(cais): Cleanup.
 
   let generated = '';
   while (generated.length < length) {
@@ -113,7 +113,6 @@ export async function generateText(
     input.dispose();
     output.dispose();
   }
-  // temperatureScalar.dispose();  // TODO(cais): Remove.
   return generated;
 }
 

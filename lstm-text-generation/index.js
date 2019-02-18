@@ -124,7 +124,8 @@ export class LSTMTextGenerator {
   async generateText(sentenceIndices, length, temperature) {
     onTextGenerationBegin();
     return await model.generateText(
-        this.model, sentenceIndices, length, temperature, onTextGenerationChar);
+        this.model, this.textData_, sentenceIndices, length, temperature,
+        onTextGenerationChar);
   }
 };
 

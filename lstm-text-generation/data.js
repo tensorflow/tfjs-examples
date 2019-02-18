@@ -17,6 +17,29 @@
 
 import * as tf from '@tensorflow/tfjs';
 
+// TODO(cais): Support user-supplied text data.
+export const TEXT_DATA_URLS = {
+  'nietzsche': {
+    url:
+        'https://storage.googleapis.com/tfjs-examples/lstm-text-generation/data/nietzsche.txt',
+    needle: 'Nietzsche'
+  },
+  'julesverne': {
+    url:
+        'https://storage.googleapis.com/tfjs-examples/lstm-text-generation/data/t1.verne.txt',
+    needle: 'Jules Verne'
+  },
+  'shakespeare': {
+    url:
+        'https://storage.googleapis.com/tfjs-examples/lstm-text-generation/data/t8.shakespeare.txt',
+    needle: 'Shakespeare'
+  },
+  'tfjs-code': {
+    url: 'https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@0.11.7/dist/tf.js',
+    needle: 'TensorFlow.js Code (Compiled, 0.11.7)'
+  }
+}
+
 /**
  * A class for text data.
  *

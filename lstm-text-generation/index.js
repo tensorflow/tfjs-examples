@@ -29,6 +29,7 @@
 import * as tf from '@tensorflow/tfjs';
 
 import {TextData} from './data';
+import * as model from './model';
 import {onTextGenerationBegin, onTextGenerationChar, onTrainBatchEnd, onTrainBegin, onTrainEpochEnd, setUpUI} from './ui';
 import {sample} from './utils';
 
@@ -61,21 +62,8 @@ export class LSTMTextGenerator {
    *   number or an non-empty array of numbers.
    */
   createModel(lstmLayerSizes) {
-    if (!Array.isArray(lstmLayerSizes)) {
-      lstmLayerSizes = [lstmLayerSizes];
-    }
-
-    this.model = tf.sequential();
-    for (let i = 0; i < lstmLayerSizes.length; ++i) {
-      const lstmLayerSize = lstmLayerSizes[i];
-      this.model.add(tf.layers.lstm({
-        units: lstmLayerSize,
-        returnSequences: i < lstmLayerSizes.length - 1,
-        inputShape: i === 0 ? [this.sampleLen_, this.charSetSize_] : undefined
-      }));
-    }
-    this.model.add(
-        tf.layers.dense({units: this.charSetSize_, activation: 'softmax'}));
+    this.model = model.createModel(
+        this.sampleLen_, this.charSetSize_, lstmLayerSizes);
   }
 
   /**
@@ -84,10 +72,7 @@ export class LSTMTextGenerator {
    * @param {number} learningRate The learning rate to use during training.
    */
   compileModel(learningRate) {
-    const optimizer = tf.train.rmsprop(learningRate);
-    this.model.compile({optimizer: optimizer, loss: 'categoricalCrossentropy'});
-    console.log(`Compiled model with learning rate ${learningRate}`);
-    this.model.summary();
+    model.compileModel(this.model, learningRate);
   }
 
   /**
@@ -104,34 +89,27 @@ export class LSTMTextGenerator {
     let batchCount = 0;
     const batchesPerEpoch = examplesPerEpoch / batchSize;
     const totalBatches = numEpochs * batchesPerEpoch;
-
-    onTrainBegin();
-    await tf.nextFrame();
-
     let t = new Date().getTime();
-    for (let i = 0; i < numEpochs; ++i) {
-      const [xs, ys] = this.textData_.nextDataEpoch(examplesPerEpoch);
-      await this.model.fit(xs, ys, {
-        epochs: 1,
-        batchSize: batchSize,
-        validationSplit,
-        callbacks: {
-          onBatchEnd: async (batch, logs) => {
-            // Calculate the training speed in the current batch, in # of
-            // examples per second.
-            const t1 = new Date().getTime();
-            const examplesPerSec = batchSize / ((t1 - t) / 1e3);
-            t = t1;
-            onTrainBatchEnd(logs, ++batchCount / totalBatches, examplesPerSec);
-          },
-          onEpochEnd: async (epoch, logs) => {
-            onTrainEpochEnd(logs);
-          },
-        }
-      });
-      xs.dispose();
-      ys.dispose();
-    }
+
+    await tf.nextFrame();
+    onTrainBegin();
+    const callbacks = {
+      onBatchEnd: async (batch, logs) => {
+        // Calculate the training speed in the current batch, in # of
+        // examples per second.
+        const t1 = new Date().getTime();
+        const examplesPerSec = batchSize / ((t1 - t) / 1e3);
+        t = t1;
+        onTrainBatchEnd(logs, ++batchCount / totalBatches, examplesPerSec);
+      },
+      onEpochEnd: async (epoch, logs) => {
+        onTrainEpochEnd(logs);
+      }
+    };
+
+    await model.fitModel(
+        this.model, this.textData_, numEpochs, examplesPerEpoch, batchSize,
+        validationSplit, callbacks);
   }
 
   /**

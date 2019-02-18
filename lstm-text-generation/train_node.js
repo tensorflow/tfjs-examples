@@ -72,7 +72,7 @@ function parseArgs() {
   });
   parser.addArgument('--validationSplit', {
     type: 'float',
-    defaultValue: 0.15,
+    defaultValue: 0.0625,
     help: 'Validation split for training.'
   });
   parser.addArgument('--savePath', {
@@ -122,8 +122,6 @@ async function main() {
     require('@tensorflow/tfjs-node');
   }
 
-  // TODO(cais): Do not hard code.
-//   const text = fs.readFileSync('./nietzsche.txt',  {encoding: 'utf-8'});
   const textDataURL = TEXT_DATA_URLS[args.textDatasetName].url;
   const localTextDataPath = path.join(os.tmpdir(), path.basename(textDataURL));
   await maybeDownload(textDataURL, localTextDataPath);

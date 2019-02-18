@@ -31,7 +31,6 @@ import * as tf from '@tensorflow/tfjs';
 import {TextData} from './data';
 import * as model from './model';
 import {onTextGenerationBegin, onTextGenerationChar, onTrainBatchEnd, onTrainBegin, onTrainEpochEnd, setUpUI} from './ui';
-import {sample} from './utils';
 
 /**
  * Class that manages LSTM-based text generation.
@@ -124,36 +123,8 @@ export class LSTMTextGenerator {
    */
   async generateText(sentenceIndices, length, temperature) {
     onTextGenerationBegin();
-    const temperatureScalar = tf.scalar(temperature);
-
-    let generated = '';
-    while (generated.length < length) {
-      // Encode the current input sequence as a one-hot Tensor.
-      const inputBuffer =
-          new tf.TensorBuffer([1, this.sampleLen_, this.charSetSize_]);
-      for (let i = 0; i < this.sampleLen_; ++i) {
-        inputBuffer.set(1, 0, i, sentenceIndices[i]);
-      }
-      const input = inputBuffer.toTensor();
-
-      // Call model.predict() to get the probability values of the next
-      // character.
-      const output = this.model.predict(input);
-
-      // Sample randomly based on the probability values.
-      const winnerIndex = sample(tf.squeeze(output), temperatureScalar);
-      const winnerChar = this.textData_.getFromCharSet(winnerIndex);
-      await onTextGenerationChar(winnerChar);
-
-      generated += winnerChar;
-      sentenceIndices = sentenceIndices.slice(1);
-      sentenceIndices.push(winnerIndex);
-
-      input.dispose();
-      output.dispose();
-    }
-    temperatureScalar.dispose();
-    return generated;
+    return await model.generateText(
+        this.model, sentenceIndices, length, temperature, onTextGenerationChar);
   }
 };
 

@@ -98,9 +98,9 @@ to another project.
   </tr>
   <tr>
     <td><a href="./date-conversion-attention">date-conversion-attention</a></td>
-    <td><a href="https://storage.googleapis.com/tfjs-examples/date-conversion-attention/dist/index.html">🔗</a></td>
     <td></td>
-    <td>Attention RNN for text-to-text translation</td>
+    <td></td>
+    <td>Attention RNN for text-to-text conversion</td>
     <td></td>
     <td></td>
     <td></td>

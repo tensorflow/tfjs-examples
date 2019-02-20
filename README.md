@@ -133,9 +133,9 @@ to another project.
     <td><a href="./jena-weather">jena-weather</a></td>
     <td><a href="https://storage.googleapis.com/tfjs-examples/jena-weather/dist/index.html">🔗</a></td>
     <td>Sequence</td>
-    <td>Temporal regression</td>
-    <td>RNN</td>
-    <td>Node</td>
+    <td>Sequence-to-prediction</td>
+    <td>MLP and RNNs</td>
+    <td>Browser and Node</td>
     <td>Browser</td>
     <td>Layers</td>
     <td></td>

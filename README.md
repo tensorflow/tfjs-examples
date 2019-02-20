@@ -75,12 +75,67 @@ to another project.
     <td></td>
   </tr>
   <tr>
+    <td><a href="./data-csv">data-csv</a></td>
+    <td><a href="https://storage.googleapis.com/tfjs-examples/data-csv/dist/index.html">🔗</a></td>
+    <td></td>
+    <td>How to build and work with a tf.data.Dataset from a remote CSV.</td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+  </tr>
+  <tr>
+    <td><a href="./data-generator">data-generator</a></td>
+    <td><a href="https://storage.googleapis.com/tfjs-examples/data-generator/dist/index.html">🔗</a></td>
+    <td></td>
+    <td>How to build and work with a tf.data.Dataset using the generator API.</td>
+    <td>Regression</td>
+    <td>Multilayer perceptron</td>
+    <td>Browser</td>
+    <td>Layers</td>
+    <td></td>
+  </tr>
+  <tr>
+    <td><a href="./date-conversion-attention">date-conversion-attention</a></td>
+    <td><a href="https://storage.googleapis.com/tfjs-examples/date-conversion-attention/dist/index.html">🔗</a></td>
+    <td></td>
+    <td>Attention RNN for text-to-text translation</td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+  </tr>
+  <tr>
     <td><a href="./iris">iris</a></td>
     <td><a href="https://storage.googleapis.com/tfjs-examples/iris/dist/index.html">🔗</a></td>
     <td>Numeric</td>
     <td>Multiclass classification</td>
     <td>Multilayer perceptron</td>
     <td>Browser</td>
+    <td>Browser</td>
+    <td>Layers</td>
+    <td></td>
+  </tr>
+  <tr>
+    <td><a href="./iris-fitDataset">iris-fitDataset</a></td>
+    <td><a href="https://storage.googleapis.com/tfjs-examples/iris-fitDataset/dist/index.html">🔗</a></td>
+    <td>Numeric</td>
+    <td>Multiclass classification</td>
+    <td>Multilayer perceptron</td>
+    <td>Browser</td>
+    <td>Browser</td>
+    <td>Layers</td>
+    <td></td>
+  </tr>
+  <tr>
+    <td><a href="./jena-weather">jena-weather</a></td>
+    <td><a href="https://storage.googleapis.com/tfjs-examples/jena-weather/dist/index.html">🔗</a></td>
+    <td>Sequence</td>
+    <td>Temporal regression</td>
+    <td>RNN</td>
+    <td>Node</td>
     <td>Browser</td>
     <td>Layers</td>
     <td></td>

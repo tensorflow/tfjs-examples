@@ -74,7 +74,7 @@ function customLossFunction(yTrue, yPred) {
  * @return {tf.Model} The truncated MobileNet, with all layers frozen.
  */
 async function loadTruncatedBase() {
-  const mobilenet = await tf.loadModel(
+  const mobilenet = await tf.loadLayesModel(
       'https://storage.googleapis.com/tfjs-models/tfjs/mobilenet_v1_0.25_224/model.json');
 
   // Return a model that outputs an internal activation.
@@ -145,7 +145,7 @@ async function buildObjectDetectionModel() {
   const parser = new argparse.ArgumentParser();
   parser.addArgument('--gpu', {
     action: 'storeTrue',
-    help: "Use tfjs-node-gpu for training (required CUDA and CuDNN)"
+    help: 'Use tfjs-node-gpu for training (required CUDA and CuDNN)'
   });
   parser.addArgument(
       '--numExamples',

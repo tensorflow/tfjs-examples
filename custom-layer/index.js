@@ -22,7 +22,7 @@ import {antirectifier} from './custom_layer';
 function customLayerDemo() {
   let imgElement = document.getElementById('cat');
   // Layer expects first dimension to be batch, therefore expandDims.
-  const img = tf.fromPixels(imgElement).toFloat().expandDims(0);
+  const img = tf.browser.fromPixels(imgElement).toFloat().expandDims(0);
   const layer = antirectifier();
   const [posTensor, negTensor] = tf.split(layer.apply(img), 2, 3);
   const posCanvas = document.createElement('canvas');

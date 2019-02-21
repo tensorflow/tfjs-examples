@@ -16,7 +16,6 @@
     "watch": "./serve.sh",
     "build": "cross-env NODE_ENV=production parcel build index.html  --no-minify --public-url ./",
     "link-local": "yalc link",
-    "postinstall": "yarn upgrade --pattern @tensorflow",
     "train": "babel-node train.js"
   },
   "devDependencies": {

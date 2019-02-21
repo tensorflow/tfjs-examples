@@ -25,7 +25,7 @@
 import * as tf from '@tensorflow/tfjs';
 import * as tfvis from '@tensorflow/tfjs-vis';
 
-import {INPUT_LENGTH, INPUT_FNS, generateRandomDateTuple} from './date_format';
+import {generateRandomDateTuple, INPUT_FNS, INPUT_LENGTH} from './date_format';
 import {runSeq2SeqInference} from './model';
 
 const RELATIVE_MODEL_URL = './model/model.json';
@@ -60,7 +60,8 @@ inputDateString.addEventListener('change', async () => {
     status.textContent = `seq2seq conversion took ${tElapsed.toFixed(1)} ms`;
     outputDateString.value = outputStr;
 
-    const xLabels = outputStr.split('').map((char, i) => `(${i + 1}) "${char}"`);
+    const xLabels =
+        outputStr.split('').map((char, i) => `(${i + 1}) "${char}"`);
     const yLabels = [];
     for (let i = 0; i < INPUT_LENGTH; ++i) {
       if (i < inputStr.length) {
@@ -69,17 +70,14 @@ inputDateString.addEventListener('change', async () => {
         yLabels.push(`(${i + 1}) ""`);
       }
     }
-    await tfvis.render.heatmap({
-      values: attention.squeeze([0]),
-      xLabels,
-      yLabels
-    }, attentionHeatmap, {
-      width: 600,
-      height: 360,
-      xLabel: 'Output characters',
-      yLabel: 'Input characters',
-      colorMap: 'blues'
-    });
+    await tfvis.render.heatmap(
+        {values: attention.squeeze([0]), xLabels, yLabels}, attentionHeatmap, {
+          width: 600,
+          height: 360,
+          xLabel: 'Output characters',
+          yLabel: 'Input characters',
+          colorMap: 'blues'
+        });
   } catch (err) {
     outputDateString.value = err.message;
     console.error(err);
@@ -95,11 +93,12 @@ randomButton.addEventListener('click', async () => {
 async function init() {
   try {
     status.textContent = `Loading model from ${RELATIVE_MODEL_URL} ...`;
-    model = await tf.loadModel(RELATIVE_MODEL_URL);
+    model = await tf.loadLayersModel(RELATIVE_MODEL_URL);
   } catch (err) {
-    // If loading of the local model has failed, try loading from the hosted model.
+    // If loading of the local model has failed, try loading from the hosted
+    // model.
     status.textContent = `Loading hosted model from ${HOSTED_MODEL_URL} ...`;
-    model = await tf.loadModel(HOSTED_MODEL_URL);
+    model = await tf.loadLayersModel(HOSTED_MODEL_URL);
   }
   status.textContent = 'Done loading model.';
   model.summary();

@@ -39,7 +39,7 @@ export async function urlExists(url) {
 export async function loadHostedPretrainedModel(url) {
   ui.status('Loading pretrained model from ' + url);
   try {
-    const model = await tf.loadModel(url);
+    const model = await tf.loadLayersModel(url);
     ui.status('Done loading pretrained model.');
     return model;
   } catch (err) {
@@ -57,7 +57,7 @@ export async function saveModelLocally(model) {
 }
 
 export async function loadModelLocally() {
-  return await tf.loadModel(LOCAL_MODEL_URL);
+  return await tf.loadLayersModel(LOCAL_MODEL_URL);
 }
 
 export async function removeModelLocally() {

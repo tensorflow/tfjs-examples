@@ -21,7 +21,7 @@ import * as https from 'https';
 import * as os from 'os';
 import * as path from 'path';
 
-import {OOV_CHAR, PAD_CHAR, padSequences} from './sequence_utils';
+import {OOV_INDEX, PAD_INDEX, padSequences} from './sequence_utils';
 
 // `import` doesn't seem to work with extract-zip.
 const extract = require('extract-zip');
@@ -36,7 +36,7 @@ const METADATA_TEMPLATE_URL =
  *
  * @param {string} filePath Data file on local filesystem.
  * @param {string} numWords Number of words in the vocabulary. Word indices
- *   that exceed this limit will be marked as `OOV_CHAR`.
+ *   that exceed this limit will be marked as `OOV_INDEX`.
  * @param {string} maxLen Length of each sequence. Longer sequences will be
  *   pre-truncated; shorter ones will be pre-padded.
  * @return {tf.Tensor} The dataset represented as a 2D `tf.Tensor` of shape
@@ -60,7 +60,7 @@ function loadFeatures(filePath, numWords, maxLen) {
       seq = [];
     } else {
       // Sequence continues.
-      seq.push(value >= numWords ? OOV_CHAR : value);
+      seq.push(value >= numWords ? OOV_INDEX : value);
     }
     index += 4;
   }

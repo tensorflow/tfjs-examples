@@ -47,12 +47,12 @@ for i in $EXAMPLES; do
   echo "building ${EXAMPLE_NAME}..."
   yarn
   yarn build
-  # gsutil mkdir -p gs://tfjs-examples/$EXAMPLE_NAME
-  # gsutil mkdir -p gs://tfjs-examples/$EXAMPLE_NAME/dist
-  # gsutil -m cp dist/* gs://tfjs-examples/$EXAMPLE_NAME/dist
+  gsutil mkdir -p gs://tfjs-examples/$EXAMPLE_NAME
+  gsutil mkdir -p gs://tfjs-examples/$EXAMPLE_NAME/dist
+  gsutil -m cp dist/* gs://tfjs-examples/$EXAMPLE_NAME/dist
   cd ..
 done
 
-# gsutil -m setmeta -h "Cache-Control:private" "gs://tfjs-examples/**.html"
-# gsutil -m setmeta -h "Cache-Control:private" "gs://tfjs-examples/**.css"
-# gsutil -m setmeta -h "Cache-Control:private" "gs://tfjs-examples/**.js"
+gsutil -m setmeta -h "Cache-Control:private" "gs://tfjs-examples/**.html"
+gsutil -m setmeta -h "Cache-Control:private" "gs://tfjs-examples/**.css"
+gsutil -m setmeta -h "Cache-Control:private" "gs://tfjs-examples/**.js"

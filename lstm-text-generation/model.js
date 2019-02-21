@@ -16,7 +16,19 @@
  */
 
 import * as tf from '@tensorflow/tfjs';
+import {TextData} from './data';
 
+/**
+ * Create a model for next-character prediction.
+ * @param {number} sampleLen Sampling length: how many characters form the
+ *   input to the model.
+ * @param {number} charSetSize Size of the character size: how many unique
+ *   characters there are.
+ * @param {number|numbre[]} lstmLayerSizes Size(s) of the LSTM layers.
+ * @return {tf.Model} A next-character prediction model with an input shape
+ *   of `[null, sampleLen, charSetSize]` and an output shape of
+ *   `[null, charSetSize]`.
+ */
 export function createModel(sampleLen, charSetSize, lstmLayerSizes) {
   if (!Array.isArray(lstmLayerSizes)) {
     lstmLayerSizes = [lstmLayerSizes];
@@ -44,6 +56,20 @@ export function compileModel(model, learningRate) {
   model.summary();
 }
 
+/**
+ * Train model.
+ * @param {tf.Model} model The next-char prediction model, assumed to have an
+ *   input shape of `[null, sampleLen, charSetSize]` and an output shape of
+ *   `[null, charSetSize]`.
+ * @param {TextData} textData The TextData object to use during training.
+ * @param {number} numEpochs Number of training epochs.
+ * @param {number} examplesPerEpoch Number of examples to draw from the
+ *   `textData` object per epoch.
+ * @param {number} batchSize Batch size for training.
+ * @param {number} validationSplit Validation split for training.
+ * @param {tf.CustomCallbackArgs} callbacks Custom callbacks to use during
+ *   `model.fit()` calls.
+ */
 export async function fitModel(
     model, textData, numEpochs, examplesPerEpoch, batchSize, validationSplit,
     callbacks) {

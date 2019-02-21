@@ -15,6 +15,10 @@
  * =============================================================================
  */
 
+/**
+ * Training of a next-char prediction model.
+ */
+
 import * as fs from 'fs';
 import * as https from 'https';
 import * as os from 'os';
@@ -57,7 +61,7 @@ function parseArgs() {
   });
   parser.addArgument('--epochs', {
     type: 'int',
-    defaultValue: 100,
+    defaultValue: 150,
     help: 'Number of training epochs'
   });
   parser.addArgument('--examplesPerEpoch', {
@@ -81,7 +85,7 @@ function parseArgs() {
   });
   parser.addArgument('--lstmLayerSize', {
     type: 'string',
-    defaultValue: '128',
+    defaultValue: '128,128',
     help: 'LSTM layer size. Can be a single number of an array of numbers ' +
     'separated by commas (E.g., "256", "256,128")'
   });  // TODO(cais): Support

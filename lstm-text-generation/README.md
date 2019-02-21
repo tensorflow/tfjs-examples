@@ -70,12 +70,15 @@ yarn train shakespeare \
 - The argument `--savePath ...` lets the training script save the model at the
   specified path once the training completes
 
+If you have a CUDA-enabled GPU set up properly on your system, you can
+add the `--gpu` flag to the command line to train the model on the GPU, which
+should give you a further performance boost.
+
 ### Generating Text in Node.js using Saved Model Files
 
 The example command line above generates a set of model files in the 
 `./my-shakespeare-model` folder after the completion of the training. You can
 load the model and use it to generate text. For example:
-
 
 ```sh
 yarn gen shakespeare ./my-shakespeare-model/model.json \

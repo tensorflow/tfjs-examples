@@ -144,7 +144,7 @@ export async function generateText(
 }
 
 /**
- * Draw a sample based onprobabilities.
+ * Draw a sample based on probabilities.
  *
  * @param {tf.Tensor} probs Predicted probability scores, as a 1D `tf.Tensor` of
  *   shape `[charSetSize]`.

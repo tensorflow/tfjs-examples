@@ -58,4 +58,22 @@ describe('TextData', () => {
     expect(xs.shape[1]).toEqual(20);
     expect(xs.shape[2]).toEqual(ys.shape[1]);
   });
+
+  it('getFromCharSet', () => {
+    const data = new TextData('LoremIpsum', FAKE_TEXT, 20, 3);
+    const charSetSize = data.charSetSize();
+    expect(data.getFromCharSet(0)).not.toEqual(data.getFromCharSet(1));
+    expect(data.getFromCharSet(0))
+        .not.toEqual(data.getFromCharSet(charSetSize - 1));
+    expect(data.getFromCharSet(charSetSize)).toBeUndefined();
+    expect(data.getFromCharSet(-1)).toBeUndefined();
+  });
+
+  it('getRandomSlice', () => {
+    const data = new TextData('LoremIpsum', FAKE_TEXT, 20, 3);
+    const [text, indices] = data.getRandomSlice();
+    expect(typeof text).toEqual('string');
+    expect(Array.isArray(indices)).toEqual(true);
+  });
 });
+

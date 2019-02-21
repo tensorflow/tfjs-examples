@@ -26,8 +26,8 @@ import * as path from 'path';
 
 import * as argparse from 'argparse';
 
-import {TextData, TEXT_DATA_URLS} from './data';
-import {createModel, compileModel, fitModel} from './model';
+import {maybeDownload, TextData, TEXT_DATA_URLS} from './data';
+import {createModel, compileModel, fitModel, generateText} from './model';
 
 function parseArgs() {
   const parser = argparse.ArgumentParser({
@@ -79,6 +79,11 @@ function parseArgs() {
     defaultValue: 0.0625,
     help: 'Validation split for training.'
   });
+  parser.addArgument('--displayLength', {
+    type: 'int',
+    defaultValue: 120,
+    help: 'Length of the sampled text to display after each epoch of training.'
+  });
   parser.addArgument('--savePath', {
     type: 'string',
     help: 'Path to which the model will be saved (optional)'
@@ -92,30 +97,6 @@ function parseArgs() {
   return parser.parseArgs();
 }
 
-/**
- * Get a file by downloading it if necessary.
- *
- * @param {string} sourceURL URL to download the file from.
- * @param {string} destPath Destination file path on local filesystem.
- */
-async function maybeDownload(sourceURL, destPath) {
-    return new Promise(async (resolve, reject) => {
-      if (!fs.existsSync(destPath) || fs.lstatSync(destPath).size === 0) {
-        const localZipFile = fs.createWriteStream(destPath);
-        console.log(`Downloading file from ${sourceURL} to ${destPath}...`);
-        https.get(sourceURL, response => {
-          response.pipe(localZipFile);
-          localZipFile.on('finish', () => {
-            localZipFile.close(() => resolve());
-          });
-          localZipFile.on('error', err => reject(err));
-        });
-      } else {
-        return resolve();
-      }
-    });
-  }
-
 async function main() {
   const args = parseArgs();
   if (args.gpu) {
@@ -126,10 +107,10 @@ async function main() {
     require('@tensorflow/tfjs-node');
   }
 
+  // Create the text data object.
   const textDataURL = TEXT_DATA_URLS[args.textDatasetName].url;
   const localTextDataPath = path.join(os.tmpdir(), path.basename(textDataURL));
   await maybeDownload(textDataURL, localTextDataPath);
-
   const text = fs.readFileSync(localTextDataPath, {encoding: 'utf-8'});
   const textData =
       new TextData('text-data', text, args.sampleLen, args.sampleStep);
@@ -144,6 +125,12 @@ async function main() {
       textData.sampleLen(), textData.charSetSize(), lstmLayerSize);
   compileModel(model, args.learningRate);
 
+  // Get a seed text for display in the course of model training.
+  const [seed, seedIndices] = textData.getRandomSlice();
+  console.log(`Seed text:\n"${seed}"\n`);
+
+  const DISPLAY_TEMPERATURES = [0, 0.25, 0.5, 0.75];
+
   let epochCount = 0;
   await fitModel(
       model, textData, args.epochs, args.examplesPerEpoch, args.batchSize,
@@ -151,6 +138,15 @@ async function main() {
         onTrainBegin: async () => {
           epochCount++;
           console.log(`Epoch ${epochCount} of ${args.epochs}:`);
+        },
+        onTrainEnd: async () => {
+          DISPLAY_TEMPERATURES.forEach(async temperature => {
+            const generated = await generateText(
+                model, textData, seedIndices, args.displayLength, temperature);
+            console.log(
+                `Generated text (temperature=${temperature}):\n` +
+                `"${generated}"\n`);
+          });
         }
       });
 
@@ -158,7 +154,6 @@ async function main() {
     await model.save(`file://${args.savePath}`);
     console.log(`Saved model to ${args.savePath}`);
   }
-
 }
 
 main();

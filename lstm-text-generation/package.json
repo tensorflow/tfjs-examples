@@ -15,6 +15,7 @@
   "scripts": {
     "watch": "cross-env NODE_ENV=development parcel index.html --no-hmr --open",
     "build": "cross-env NODE_ENV=production parcel build index.html --no-minify --public-url ./",
+    "gen": "babel-node gen_node.js",
     "link-local": "yalc link",
     "postinstall": "yarn upgrade --pattern @tensorflow",
     "test": "babel-node run_tests.js",

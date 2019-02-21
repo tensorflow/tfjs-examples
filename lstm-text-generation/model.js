@@ -114,6 +114,8 @@ export async function generateText(
     // Encode the current input sequence as a one-hot Tensor.
     const inputBuffer =
         new tf.TensorBuffer([1, sampleLen, charSetSize]);
+
+    // Make the one-hot encoding of the seeding sentence.
     for (let i = 0; i < sampleLen; ++i) {
       inputBuffer.set(1, 0, i, sentenceIndices[i]);
     }
@@ -134,6 +136,7 @@ export async function generateText(
     sentenceIndices = sentenceIndices.slice(1);
     sentenceIndices.push(winnerIndex);
 
+    // Memory cleanups.
     input.dispose();
     output.dispose();
   }
@@ -143,7 +146,7 @@ export async function generateText(
 /**
  * Draw a sample based onprobabilities.
  *
- * @param {tf.Tensor} preds Predicted probabilities, as a 1D `tf.Tensor` of
+ * @param {tf.Tensor} probs Predicted probability scores, as a 1D `tf.Tensor` of
  *   shape `[charSetSize]`.
  * @param {tf.Tensor} temperature Temperature (i.e., a measure of randomness
  *   or diversity) to use during sampling. Number be a number > 0, as a Scalar
@@ -151,18 +154,12 @@ export async function generateText(
  * @returns {number} The 0-based index for the randomly-drawn sample, in the
  *   range of `[0, charSetSize - 1]`.
  */
-function sample(preds, temperature) {
+export function sample(probs, temperature) {
   return tf.tidy(() => {
-    let isNormalized = false;
-    if (tf.ENV.get('IS_BROWSER')) {
-      const logPreds = tf.div(tf.log(preds), temperature);
-      const expPreds = tf.exp(logPreds);
-      const sumExpPreds = tf.sum(expPreds);
-      preds = tf.div(expPreds, sumExpPreds);
-      isNormalized = true;
-    }
+    const logPreds = tf.div(tf.log(probs), Math.max(temperature, 1e-6));
+    const isNormalized = false;
     // Treat preds a the probabilites of a multinomial distribution and
     // randomly draw a sample from the distribution.
-    return tf.multinomial(preds, 1, null, isNormalized).dataSync()[0];
+    return tf.multinomial(logPreds, 1, null, isNormalized).dataSync()[0];
   });
 }

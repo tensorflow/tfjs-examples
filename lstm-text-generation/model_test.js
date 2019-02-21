@@ -15,10 +15,11 @@
  * =============================================================================
  */
 
+import * as tf from '@tensorflow/tfjs';
 import '@tensorflow/tfjs-node';
 
 import {TextData} from './data';
-import {createModel, compileModel, fitModel, generateText} from './model';
+import {createModel, compileModel, fitModel, generateText, sample} from './model';
 
 // tslint:disable:max-line-length
 const FAKE_TEXT = `Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse tempor aliquet justo non varius. Curabitur eget convallis velit. Vivamus malesuada, tortor ut finibus posuere, libero lacus eleifend felis, sit amet tempus dolor magna id nibh. Praesent non turpis libero. Praesent luctus, neque vitae suscipit suscipit, arcu neque aliquam justo, eget gravida diam augue nec lorem. Etiam scelerisque vel nibh sit amet maximus. Praesent et dui quis elit bibendum elementum a eget velit. Mauris porta lorem ac porttitor congue. Vestibulum lobortis ultrices velit, vitae condimentum elit ultrices a. Vivamus rutrum ultrices eros ac finibus. Orci varius natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Morbi a purus a nibh eleifend convallis. Praesent non turpis volutpat, imperdiet lacus in, cursus tellus. Etiam elit velit, ornare sit amet nulla vel, aliquam iaculis mauris.
@@ -101,5 +102,45 @@ describe('text-generation model', () => {
     expect(sentenceIndices).toEqual([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
     expect(typeof text).toEqual('string');
     expect(text.length).toEqual(12);
+  });
+
+  it('sample: temperature = 0', async () => {
+    const sampleLen = 10;
+    const textData = createTextDataForTest(sampleLen);
+    const charSetSize = textData.charSetSize();
+
+    const probsBuffer = tf.buffer([charSetSize]);
+    probsBuffer.set(1, charSetSize - 2);
+    const probs = probsBuffer.toTensor();
+
+    const temperature = 0;
+    const sampled = sample(probs, temperature);
+
+    // Sampling under temperature === 0 should be deterministic.
+    expect(sampled).toEqual(charSetSize - 2);
+  });
+
+  it('sample: temperature = 0.75', async () => {
+    const sampleLen = 10;
+    const textData = createTextDataForTest(sampleLen);
+    const charSetSize = textData.charSetSize();
+
+    let probs = tf.randomUniform([charSetSize]);
+    probs = probs.div(probs.sum());
+
+    const temperature = 0.75;
+    const uniqueSamples = [];
+    for (let i = 0; i < 16; ++i) {
+      const sampled = sample(probs, temperature);
+      expect(sampled).toBeGreaterThanOrEqual(0);
+      expect(sampled).toBeLessThan(charSetSize);
+      expect(Number.isInteger(sampled)).toEqual(true);
+      if (uniqueSamples.indexOf(sampled) === -1) {
+        uniqueSamples.push(sampled);
+      }
+    }
+
+    // Sampling under temperature 0.75 should be random.
+    expect(uniqueSamples.length).toBeGreaterThan(1);
   });
 });

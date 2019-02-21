@@ -279,7 +279,7 @@ export class SaveablePolicyNetwork extends PolicyNetwork {
     const modelsInfo = await tf.io.listModels();
     if (MODEL_SAVE_PATH_ in modelsInfo) {
       console.log(`Loading existing model...`);
-      const model = await tf.loadModel(MODEL_SAVE_PATH_);
+      const model = await tf.loadLayersModel(MODEL_SAVE_PATH_);
       console.log(`Loaded model from ${MODEL_SAVE_PATH_}`);
       return new SaveablePolicyNetwork(model);
     } else {

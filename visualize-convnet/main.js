@@ -86,23 +86,24 @@ function parseArguments() {
  * @returns {string[]} Paths to the image files generated in this call.
  */
 async function writeConvLayerFilters(
-  model, layerName, numFilters, iterations, outputDir) {
-const filePaths = [];
-const maxFilters = model.getLayer(layerName).getWeights()[0].shape[3];
-if (numFilters > maxFilters) {
-  numFilters = maxFilters;
-}
-for (let i = 0; i < numFilters; ++i) {
-  console.log(
-      `Processing layer ${layerName}, filter ${i + 1} of ${numFilters}`);
-  const imageTensor = filters.inputGradientAscent(model, layerName, i, iterations);
-  const outputFilePath = path.join(outputDir, `${layerName}_${i + 1}.png`);
-  filePaths.push(outputFilePath);
-  await utils.writeImageTensorToFile(imageTensor, outputFilePath);
-  imageTensor.dispose();
-  console.log(`  --> ${outputFilePath}`);
-}
-return filePaths;
+    model, layerName, numFilters, iterations, outputDir) {
+  const filePaths = [];
+  const maxFilters = model.getLayer(layerName).getWeights()[0].shape[3];
+  if (numFilters > maxFilters) {
+    numFilters = maxFilters;
+  }
+  for (let i = 0; i < numFilters; ++i) {
+    console.log(
+        `Processing layer ${layerName}, filter ${i + 1} of ${numFilters}`);
+    const imageTensor =
+        filters.inputGradientAscent(model, layerName, i, iterations);
+    const outputFilePath = path.join(outputDir, `${layerName}_${i + 1}.png`);
+    filePaths.push(outputFilePath);
+    await utils.writeImageTensorToFile(imageTensor, outputFilePath);
+    imageTensor.dispose();
+    console.log(`  --> ${outputFilePath}`);
+  }
+  return filePaths;
 }
 
 async function run() {
@@ -121,7 +122,7 @@ async function run() {
       args.modelJsonUrl.indexOf('file://') === -1) {
     args.modelJsonUrl = `file://${args.modelJsonUrl}`;
   }
-  const model = await tf.loadModel(args.modelJsonUrl);
+  const model = await tf.loadLayersModel(args.modelJsonUrl);
   console.log('Model loading complete.');
 
   if (!fs.existsSync(args.outputDir)) {
@@ -156,14 +157,15 @@ async function run() {
     }
 
     // Save the original input image and the top-10 classification results.
-    const origImagePath = path.join(args.outputDir, path.basename(args.inputImage));
+    const origImagePath =
+        path.join(args.outputDir, path.basename(args.inputImage));
     shelljs.cp(args.inputImage, origImagePath);
 
     // Calculate Grad-CAM heatmap.
     const xWithCAMOverlay = cam.gradClassActivationMap(model, indices[0], x);
     const camImagePath = path.join(args.outputDir, 'cam.png');
     await utils.writeImageTensorToFile(xWithCAMOverlay, camImagePath);
-    console.log(`Written CAM-overlaid image to: ${camImagePath}`);    
+    console.log(`Written CAM-overlaid image to: ${camImagePath}`);
 
     // Create manifest and write it to disk.
     const manifest = {

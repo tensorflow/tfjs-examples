@@ -103,7 +103,7 @@ async function runAndVisualizeInference(model) {
   const numLineSegments = 10;
   const {images, targets} = await synth.generateExampleBatch(
       numExamples, numCircles, numLineSegments);
-  
+
   const t0 = tf.util.now();
   // Runs inference with the model.
   const modelOut = await model.predict(images).data();
@@ -124,9 +124,9 @@ async function runAndVisualizeInference(model) {
   // the class loss with the bounding-box loss to form a single loss
   // value. Therefore, at inference time, we threshold the number
   // by half of 224 (canvas.width).
-  const shapeClassificationThreshold = canvas.width  / 2;
+  const shapeClassificationThreshold = canvas.width / 2;
   const predictClassName =
-    (modelOut[0] > shapeClassificationThreshold) ? 'rectangle' : 'triangle';
+      (modelOut[0] > shapeClassificationThreshold) ? 'rectangle' : 'triangle';
   predictedObjectClass.textContent = predictClassName;
 
   if (predictClassName === trueClassName) {
@@ -150,7 +150,7 @@ async function init() {
   // "Load hosted model" button.
   let model;
   try {
-    model = await tf.loadModel(LOCAL_MODEL_PATH);
+    model = await tf.loadLayersModel(LOCAL_MODEL_PATH);
     model.summary();
     testModel.disabled = false;
     status.textContent = 'Loaded locally-saved model! Now click "Test Model".';
@@ -163,9 +163,8 @@ async function init() {
 
   loadHostedModel.addEventListener('click', async () => {
     try {
-      status.textContent =
-          `Loading hosted model from ${HOSTED_MODEL_PATH} ...`;
-      model = await tf.loadModel(HOSTED_MODEL_PATH);
+      status.textContent = `Loading hosted model from ${HOSTED_MODEL_PATH} ...`;
+      model = await tf.loadLayersModel(HOSTED_MODEL_PATH);
       model.summary();
       loadHostedModel.disabled = true;
       testModel.disabled = false;

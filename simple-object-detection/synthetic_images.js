@@ -165,7 +165,7 @@ class ObjectDetectionImageSynthesizer {
     }
 
     return tf.tidy(() => {
-      const imageTensor = tf.fromPixels(this.canvas);
+      const imageTensor = tf.browser.fromPixels(this.canvas);
       const shapeClassIndicator = isRectangle ? 1 : 0;
       const targetTensor =
           tf.tensor1d([shapeClassIndicator].concat(boundingBox));

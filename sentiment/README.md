@@ -4,7 +4,7 @@ This demo shows how to perform text sentiment analysis on text using the Layers
 API of TensorFlow.js.
 
 It demonstrates loading a pretrained model hosted at a URL, using
-`tf.loadModel()`.
+`tf.loadLayersModel()`.
 
 Two model variants are provided (CNN and LSTM).  These were trained on a set of
 25,000 movie reviews from IMDB, labelled as having positive or negative

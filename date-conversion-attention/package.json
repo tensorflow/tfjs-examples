@@ -10,13 +10,12 @@
   },
   "scripts": {
     "build": "cross-env NODE_ENV=production parcel build index.html --no-minify --public-url ./",
-    "postinstall": "yarn upgrade --pattern @tensorflow",
     "test": "babel-node run_tests.js",
     "train": "babel-node train.js",
     "watch": "cross-env NODE_ENV=development parcel index.html --no-hmr --open"
   },
   "dependencies": {
-    "@tensorflow/tfjs": "^0.15.1",
+    "@tensorflow/tfjs": "^0.15.3",
     "@tensorflow/tfjs-vis": "^0.5.0"
   },
   "devDependencies": {

@@ -28,7 +28,6 @@ import * as tf from '@tensorflow/tfjs';
 
 import {maybeDownload, TextData, TEXT_DATA_URLS} from './data';
 import {generateText} from './model';
-import { ConsoleReporter } from 'jasmine';
 
 function parseArgs() {
   const parser = argparse.ArgumentParser({
@@ -43,6 +42,17 @@ function parseArgs() {
     type: 'string',
     help: 'Path to the trained next-char prediction model saved on disk ' +
     '(e.g., ./my-model/model.json)'
+  });
+  parser.addArgument('--genLength', {
+    type: 'int',
+    defaultValue: 200,
+    help: 'Length of the text to generate.'
+  });
+  parser.addArgument('--temperature', {
+    type: 'float',
+    defaultValue: 0.5,
+    help: 'Temperature value to use for text generation. Higher values ' +
+    'lead to more random-looking generation results.'
   });
   parser.addArgument('--gpu', {
     action: 'storeTrue',
@@ -83,15 +93,12 @@ async function main() {
   // Get a seed text from the text data object.
   const [seed, seedIndices] = textData.getRandomSlice();
   
-  console.log(`Seed text:\n${seed}`);
+  console.log(`Seed text:\n"${seed}"\n`);
 
-  const length = 100;
-  const temperature = 0.5;
   const generated = await generateText(
-      model, textData, seedIndices, length, temperature);
+      model, textData, seedIndices, args.genLength, args.temperature);
 
-  console.log(`Generated text:\n${generated}`);
-//   console.log(seedIndices);
+  console.log(`Generated text:\n"${generated}"\n`);
 }
 
 main();

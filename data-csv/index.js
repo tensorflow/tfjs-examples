@@ -55,11 +55,11 @@ async function countRowsHandler() {
   };
   try {
     ui.updateStatus('Attempting to count records in CSV.');
-    // Note that `tf.data.Dataset.forEach()` is an async function.  Without the
-    // `await` here, there is no control over when the updataFn's will execute,
-    // thus, they will likely execute *after* we update the status with the
-    // final count, resulting in a display of "Counted 0 rows.".
-    await myData.forEach(x => updateFn(x));
+    // Note that `tf.data.Dataset.forEachAsync()` is an async function.  Without
+    // the `await` here, there is no control over when the updataFn's will
+    // execute, thus, they will likely execute *after* we update the status with
+    // the final count, resulting in a display of "Counted 0 rows.".
+    await myData.forEachAsync(x => updateFn(x));
   } catch (e) {
     const errorMsg = `Caught an error iterating over ${url}.  ` +
         `This URL might not be valid or might not support CORS requests.` +

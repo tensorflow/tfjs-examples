@@ -15,11 +15,13 @@
  * =============================================================================
  */
 
-import * as tmp from 'tmp';
 import * as tf from '@tensorflow/tfjs';
 import {expectArraysClose} from '@tensorflow/tfjs-core/dist/test_util';
+import * as tmp from 'tmp';
+
 import * as dateFormat from './date_format';
 import {createModel, runSeq2SeqInference} from './model';
+
 require('@tensorflow/tfjs-node');
 
 describe('Model', () => {
@@ -28,14 +30,15 @@ describe('Model', () => {
     const outputVocabSize = 8;
     const inputLength = 6;
     const outputLength = 5;
-    const model = createModel(
-        inputVocabSize, outputVocabSize, inputLength, outputLength);
+    const model =
+        createModel(inputVocabSize, outputVocabSize, inputLength, outputLength);
     expect(model.inputs.length).toEqual(2);
     expect(model.inputs[0].shape).toEqual([null, inputLength]);
     expect(model.inputs[1].shape).toEqual([null, outputLength]);
     expect(model.outputs.length).toEqual(1);
-    expect(model.outputs[0].shape).toEqual(
-        [null, outputLength, outputVocabSize]);
+    expect(model.outputs[0].shape).toEqual([
+      null, outputLength, outputVocabSize
+    ]);
 
     const numExamples = 3;
     const encoderInputs = tf.ones([numExamples, inputLength]);
@@ -43,9 +46,7 @@ describe('Model', () => {
     const decoderOutputs =
         tf.randomUniform([numExamples, outputLength, outputVocabSize]);
     const history = await model.fit(
-        [encoderInputs, decoderInputs], decoderOutputs, {
-          epochs: 2
-        });
+        [encoderInputs, decoderInputs], decoderOutputs, {epochs: 2});
     expect(history.history.loss.length).toEqual(2);
   });
 
@@ -54,8 +55,8 @@ describe('Model', () => {
     const outputVocabSize = 8;
     const inputLength = 6;
     const outputLength = 5;
-    const model = createModel(
-        inputVocabSize, outputVocabSize, inputLength, outputLength);
+    const model =
+        createModel(inputVocabSize, outputVocabSize, inputLength, outputLength);
     const numExamples = 3;
     const encoderInputs = tf.ones([numExamples, inputLength]);
     const decoderInputs = tf.ones([numExamples, outputLength]);
@@ -63,7 +64,8 @@ describe('Model', () => {
 
     const saveDir = tmp.dirSync();
     await model.save(`file://${saveDir.name}`);
-    const modelPrime = await tf.loadModel(`file://${saveDir.name}/model.json`);
+    const modelPrime =
+        await tf.loadLayersModel(`file://${saveDir.name}/model.json`);
     const yPrime = modelPrime.predict([encoderInputs, decoderInputs]);
     expectArraysClose(yPrime, y);
   });

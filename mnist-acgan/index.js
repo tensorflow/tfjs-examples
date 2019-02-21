@@ -180,7 +180,7 @@ async function init() {
         await (await fetch(LOCAL_MEATADATA_PATH, {cache: 'no-cache'})).json();
 
     status.textContent = `Loading model from ${LOCAL_MODEL_PATH}...`;
-    model = await tf.loadModel(
+    model = await tf.loadLayersModel(
         tf.io.browserHTTPRequest(LOCAL_MODEL_PATH, {cache: 'no-cache'}));
     await showGeneratorInitially(model);
 
@@ -215,7 +215,7 @@ async function init() {
   loadHostedModel.addEventListener('click', async () => {
     try {
       status.textContent = `Loading hosted model from ${HOSTED_MODEL_URL} ...`;
-      model = await tf.loadModel(HOSTED_MODEL_URL);
+      model = await tf.loadLayersModel(HOSTED_MODEL_URL);
       loadHostedModel.disabled = true;
 
       await showGeneratorInitially(model);

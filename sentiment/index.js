@@ -18,7 +18,7 @@
 import * as tf from '@tensorflow/tfjs';
 import * as loader from './loader';
 import * as ui from './ui';
-import {OOV_CHAR, padSequences} from './sequence_utils';
+import {OOV_INDEX, padSequences} from './sequence_utils';
 
 const HOSTED_URLS = {
   model:
@@ -65,7 +65,7 @@ class SentimentPredictor {
     const sequence = inputText.map(word => {
       let wordIndex = this.wordIndex[word] + this.indexFrom;
       if (wordIndex > this.vocabularySize) {
-        wordIndex = OOV_CHAR;
+        wordIndex = OOV_INDEX;
       }
       return wordIndex;
     });

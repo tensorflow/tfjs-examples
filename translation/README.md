@@ -4,7 +4,7 @@ This demo shows how to perform sequence-to-sequence prediction using the Layers
 API of TensorFlow.js.
 
 It demonstrates loading a pretrained model hosted at a URL, using
-`tf.loadModel()`
+`tf.loadLayersModel()`
 
 The model was trained in Python Keras, based on the [lstm_seq2seq](https://github.com/keras-team/keras/blob/master/examples/lstm_seq2seq.py)
 example.  The training data was 149,861 English-French sentence pairs available

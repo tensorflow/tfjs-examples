@@ -167,7 +167,7 @@ export class SaveableLSTMTextGenerator extends LSTMTextGenerator {
     const modelsInfo = await tf.io.listModels();
     if (this.modelSavePath_ in modelsInfo) {
       console.log(`Loading existing model...`);
-      this.model = await tf.loadModel(this.modelSavePath_);
+      this.model = await tf.loadLayersModel(this.modelSavePath_);
       console.log(`Loaded model from ${this.modelSavePath_}`);
     } else {
       throw new Error(

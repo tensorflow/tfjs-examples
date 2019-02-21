@@ -98,14 +98,14 @@ to another project.
   </tr>
   <tr>
     <td><a href="./date-conversion-attention">date-conversion-attention</a></td>
-    <td></td>
-    <td></td>
-    <td>Attention RNN for text-to-text conversion</td>
-    <td></td>
-    <td></td>
-    <td></td>
-    <td></td>
-    <td></td>
+    <td><a href="https://storage.googleapis.com/tfjs-examples/date-conversion-attention/dist/index.html">🔗</a></td>
+    <td>Text</td>
+    <td>Text-to-text conversion</td>
+    <td>Attention mechanism, RNN</td>
+    <td>Node</td>
+    <td>Browser and Node</td>
+    <td>Layers</td>
+    <td>Saving to filesystem and loading in browser</td>
   </tr>
   <tr>
     <td><a href="./iris">iris</a></td>
@@ -144,7 +144,7 @@ to another project.
     <td><a href="./lstm-text-generation">lstm-text-generation</a></td>
     <td><a href="https://storage.googleapis.com/tfjs-examples/lstm-text-generation/dist/index.html">🔗</a></td>
     <td>Text</td>
-    <td>Sequence-to-prediction</td>
+    <td>Sequence prediction</td>
     <td>RNN: LSTM</td>
     <td>Browser</td>
     <td>Browser</td>

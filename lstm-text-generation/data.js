@@ -17,6 +17,29 @@
 
 import * as tf from '@tensorflow/tfjs';
 
+// TODO(cais): Support user-supplied text data.
+export const TEXT_DATA_URLS = {
+  'nietzsche': {
+    url:
+        'https://storage.googleapis.com/tfjs-examples/lstm-text-generation/data/nietzsche.txt',
+    needle: 'Nietzsche'
+  },
+  'julesverne': {
+    url:
+        'https://storage.googleapis.com/tfjs-examples/lstm-text-generation/data/t1.verne.txt',
+    needle: 'Jules Verne'
+  },
+  'shakespeare': {
+    url:
+        'https://storage.googleapis.com/tfjs-examples/lstm-text-generation/data/t8.shakespeare.txt',
+    needle: 'Shakespeare'
+  },
+  'tfjs-code': {
+    url: 'https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@0.11.7/dist/tf.js',
+    needle: 'TensorFlow.js Code (Compiled, 0.11.7)'
+  }
+}
+
 /**
  * A class for text data.
  *
@@ -38,6 +61,13 @@ export class TextData {
    *   example of the training data (in `textString`) to the next.
    */
   constructor(dataIdentifier, textString, sampleLen, sampleStep) {
+    tf.util.assert(
+        sampleLen > 0,
+        `Expected sampleLen to be a positive integer, but got ${sampleLen}`);
+    tf.util.assert(
+        sampleStep > 0,
+        `Expected sampleStep to be a positive integer, but got ${sampleStep}`);
+
     if (!dataIdentifier) {
       throw new Error('Model identifier is not provided.');
     }
@@ -51,7 +81,6 @@ export class TextData {
 
     this.getCharSet_();
     this.convertAllTextToIndices_();
-    this.generateExampleBeginIndices_();
   }
 
   /**
@@ -98,6 +127,12 @@ export class TextData {
    *   `ys` has the shape of `[numExamples, this.charSetSize]`.
    */
   nextDataEpoch(numExamples) {
+    this.generateExampleBeginIndices_();
+
+    if (numExamples == null) {
+      numExamples = this.exampleBeginIndices_.length;
+    }
+
     const xsBuffer = new tf.TensorBuffer([
         numExamples, this.sampleLen_, this.charSetSize_]);
     const ysBuffer  = new tf.TensorBuffer([numExamples, this.charSetSize_]);
@@ -198,4 +233,29 @@ export class TextData {
     tf.util.shuffle(this.exampleBeginIndices_);
     this.examplePosition_ = 0;
   }
+}
+
+/**
+ * Get a file by downloading it if necessary.
+ *
+ * @param {string} sourceURL URL to download the file from.
+ * @param {string} destPath Destination file path on local filesystem.
+ */
+export async function maybeDownload(sourceURL, destPath) {
+  const fs = require('fs');
+  return new Promise(async (resolve, reject) => {
+    if (!fs.existsSync(destPath) || fs.lstatSync(destPath).size === 0) {
+      const localZipFile = fs.createWriteStream(destPath);
+      console.log(`Downloading file from ${sourceURL} to ${destPath}...`);
+      https.get(sourceURL, response => {
+        response.pipe(localZipFile);
+        localZipFile.on('finish', () => {
+          localZipFile.close(() => resolve());
+        });
+        localZipFile.on('error', err => reject(err));
+      });
+    } else {
+      return resolve();
+    }
+  });
 }

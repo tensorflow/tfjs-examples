@@ -13,6 +13,6 @@
     ]
   ],
   "plugins": [
-    "@babel/plugin-transform-runtime"
+    "transform-runtime"
   ]
 }

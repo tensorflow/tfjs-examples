@@ -156,10 +156,10 @@ export async function generateText(
  */
 export function sample(probs, temperature) {
   return tf.tidy(() => {
-    const logPreds = tf.div(tf.log(probs), Math.max(temperature, 1e-6));
+    const logits = tf.div(tf.log(probs), Math.max(temperature, 1e-6));
     const isNormalized = false;
-    // Treat preds a the probabilites of a multinomial distribution and
-    // randomly draw a sample from the distribution.
-    return tf.multinomial(logPreds, 1, null, isNormalized).dataSync()[0];
+    // `logits` is for a multinomial distribution, scaled by the temperature.
+    // We randomly draw a sample from the distribution.
+    return tf.multinomial(logits, 1, null, isNormalized).dataSync()[0];
   });
 }

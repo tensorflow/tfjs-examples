@@ -91,7 +91,7 @@ function parseArgs() {
   parser.addArgument('--lstmLayerSize', {
     type: 'string',
     defaultValue: '128,128',
-    help: 'LSTM layer size. Can be a single number of an array of numbers ' +
+    help: 'LSTM layer size. Can be a single number or an array of numbers ' +
     'separated by commas (E.g., "256", "256,128")'
   });  // TODO(cais): Support
   return parser.parseArgs();

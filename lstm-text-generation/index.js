@@ -90,7 +90,6 @@ export class LSTMTextGenerator {
     const totalBatches = numEpochs * batchesPerEpoch;
     let t = new Date().getTime();
 
-    await tf.nextFrame();
     onTrainBegin();
     const callbacks = {
       onBatchEnd: async (batch, logs) => {

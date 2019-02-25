@@ -74,7 +74,7 @@ function customLossFunction(yTrue, yPred) {
  * @return {tf.Model} The truncated MobileNet, with all layers frozen.
  */
 async function loadTruncatedBase() {
-  const mobilenet = await tf.loadLayesModel(
+  const mobilenet = await tf.loadLayersModel(
       'https://storage.googleapis.com/tfjs-models/tfjs/mobilenet_v1_0.25_224/model.json');
 
   // Return a model that outputs an internal activation.

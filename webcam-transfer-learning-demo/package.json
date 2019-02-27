@@ -1,0 +1,37 @@
+{
+  "name": "tfjs-examples-webcam-transfer-learning",
+  "version": "0.1.0",
+  "description": "",
+  "main": "index.js",
+  "license": "Apache-2.0",
+  "private": true,
+  "engines": {
+    "node": ">=8.9.0"
+  },
+  "dependencies": {
+    "@tensorflow/tfjs": "^0.15.3",
+    "@tensorflow/tfjs-data": "link:.yalc/@tensorflow/tfjs-data",
+    "vega-embed": "^3.0.0"
+  },
+  "scripts": {
+    "watch": "cross-env NODE_ENV=development parcel index.html --no-hmr --open",
+    "build": "cross-env NODE_ENV=production parcel build index.html  --no-minify --public-url ./",
+    "link-local": "yalc link"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.0.0-0",
+    "@babel/plugin-transform-runtime": "^7.1.0",
+    "babel-preset-env": "~1.6.1",
+    "clang-format": "~1.2.2",
+    "cross-env": "^5.1.6",
+    "parcel-bundler": "~1.10.3",
+    "typescript": "^3.3.3333",
+    "yalc": "~1.0.0-pre.22"
+  },
+  "browserslist": [
+    "> 1%",
+    "ie >= 11",
+    "ios >= 10",
+    "android >= 6"
+  ]
+}

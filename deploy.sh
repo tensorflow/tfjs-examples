@@ -48,9 +48,10 @@ for i in $EXAMPLES; do
   yarn
   rm -rf dist .cache
   yarn build
-  # Remove the example directory.
-  gsutil -m rm -r gs://tfjs-examples/$EXAMPLE_NAME
-  # Gzip and copy all the dist files. The trailing slash is important.
+  # Remove files in the example directory (but not sub-directories).
+  gsutil -m rm gs://tfjs-examples/$EXAMPLE_NAME/*
+  # Gzip and copy all the dist files.
+  # The trailing slash is important so we get $EXAMPLE_NAME/dist/.
   gsutil -m cp -Z -r dist gs://tfjs-examples/$EXAMPLE_NAME/
   cd ..
 done

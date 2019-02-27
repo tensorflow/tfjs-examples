@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@tensorflow/tfjs": "^0.15.3",
+    "@tensorflow/tfjs-data": "link:.yalc/@tensorflow/tfjs-data",
     "vega-embed": "^3.0.0"
   },
   "scripts": {
@@ -24,6 +25,7 @@
     "clang-format": "~1.2.2",
     "cross-env": "^5.1.6",
     "parcel-bundler": "~1.10.3",
+    "typescript": "^3.3.3333",
     "yalc": "~1.0.0-pre.22"
   },
   "browserslist": [

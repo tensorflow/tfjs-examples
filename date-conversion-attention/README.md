@@ -1,5 +1,7 @@
 # TensorFlow.js Example: Date Conversion Through an LSTM-Attention Model
 
+[See this example live!](https://storage.googleapis.com/tfjs-examples/date-conversion-attention/dist/index.html)
+
 ## Overview
 
 This example shows how to use TensorFlow.js to train a model based on
@@ -37,11 +39,34 @@ yarn train --gpu
 
 ## Using the model in the browser
 
-TODO(cais): Implement it.
+To see the trained model in action in the browser, do:
+
+```sh
+yarn
+yarn watch
+```
 
 ### Visualization of the attention mechanism
 
-TODO(cais): Implement it.
+In the page opened by the `yarn watch` command, you can generate
+random input date strings by clicking the "Random" button. A converted
+date string will appear in the output text box each time a new input
+date string is entered. You may also manually enter a date in the input-date
+box. But make sure that the date falls into a range between the years 1950
+and 2050, as this is the range of dates that the model is trained on.
+See [date_format.js](./date_format.js) for more details.
+
+In addition to converting the date and showing the output, the page visualizes
+the attention matrix used by the trained model to convert the input date string
+to the output one in (e.g., see the image below).
+
+![Attention Matrix](./attention_matrix.png)
+
+Each column of the attention matrix corresponds to a character in the input
+string and each column corresponds to a character in the output string.
+A darker color in a cell of the attention matrix
+indicates a greater attention paid by the model to the corresponding input
+character when generating the corresponding output character.
 
 ## Running unit tests
 

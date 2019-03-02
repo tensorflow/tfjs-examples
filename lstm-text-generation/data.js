@@ -15,6 +15,7 @@
  * =============================================================================
  */
 
+import * as https from 'https';
 import * as tf from '@tensorflow/tfjs';
 
 // TODO(cais): Support user-supplied text data.

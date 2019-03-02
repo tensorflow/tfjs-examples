@@ -48,9 +48,19 @@ yarn watch
 
 ### Visualization of the attention mechanism
 
-The page opened by the `yarn watch` commmand visualizes the attention
-matrix used by the trained model to convert the input date string to
-the output one in the ISO-8601 format (e.g., see the image below).
+In the page opened by the `yarn watch` command, you can generate
+random input date strings by clicking the "Random" button. A converted
+date string will appear in the output text box each time a new input
+date string is entered. You may also manually enter a date in the input-date
+box. But make sure that the date falls into a range between the years 1950
+and 2050, as this is the range of dates that the model is trained on.
+See [date_format.js](./date_format.js) for more details.
+
+In addition to converting the date and showing the output, the page visualizes
+the attention matrix used by the trained model to convert the input date string
+to the output one in (e.g., see the image below).
+
+![Attention Matrix](./attention_matrix.png)
 
 Each column of the attention matrix corresponds to a character in the input
 string and each column corresponds to a character in the output string.

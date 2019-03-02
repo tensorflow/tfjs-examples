@@ -46,13 +46,12 @@ for i in $EXAMPLES; do
 
   echo "building ${EXAMPLE_NAME}..."
   yarn
+  rm -rf dist .cache
   yarn build
-  gsutil mkdir -p gs://tfjs-examples/$EXAMPLE_NAME
-  gsutil mkdir -p gs://tfjs-examples/$EXAMPLE_NAME/dist
-  gsutil -m cp dist/* gs://tfjs-examples/$EXAMPLE_NAME/dist
+  # Remove files in the example directory (but not sub-directories).
+  gsutil -m rm gs://tfjs-examples/$EXAMPLE_NAME/*
+  # Gzip and copy all the dist files.
+  # The trailing slash is important so we get $EXAMPLE_NAME/dist/.
+  gsutil -m cp -Z -r dist gs://tfjs-examples/$EXAMPLE_NAME/
   cd ..
 done
-
-gsutil -m setmeta -h "Cache-Control:private" "gs://tfjs-examples/**.html"
-gsutil -m setmeta -h "Cache-Control:private" "gs://tfjs-examples/**.css"
-gsutil -m setmeta -h "Cache-Control:private" "gs://tfjs-examples/**.js"

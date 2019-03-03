@@ -21,15 +21,13 @@ import * as tfd from '@tensorflow/tfjs-data';
 
 import {ControllerDataset} from './controller_dataset';
 import * as ui from './ui';
-// import {Webcam} from './webcam';
 
 // The number of classes we want to predict. In this example, we will be
 // predicting 4 classes for up, down, left, and right.
 const NUM_CLASSES = 4;
 
 // A webcam class that generates Tensors from the images from the webcam.
-// const webcam = new Webcam(document.getElementById('webcam'));
-let webcamDataset;
+let webcam;
 
 // The dataset object where we will store activations.
 const controllerDataset = new ControllerDataset(NUM_CLASSES);
@@ -52,7 +50,7 @@ async function loadTruncatedMobileNet() {
 // it with the class label given by the button. up, down, left, right are
 // labels 0, 1, 2, 3 respectively.
 ui.setExampleHandler(async label => {
-  let img = (await webcamDataset.capture())
+  let img = (await webcam.capture())
                 .expandDims(0)
                 .toFloat()
                 .div(tf.scalar(127))
@@ -137,8 +135,7 @@ async function predict() {
   ui.isPredicting();
   while (isPredicting) {
     // Capture the frame from the webcam.
-    // const img = webcam.capture();
-    const img = (await webcamDataset.capture())
+    const img = (await webcam.capture())
                     .expandDims(0)
                     .toFloat()
                     .div(tf.scalar(127))
@@ -181,24 +178,21 @@ document.getElementById('predict').addEventListener('click', () => {
 
 async function init() {
   try {
-    // await webcam.setup();
-    webcamDataset = tfd.webcam(
-        document.getElementById('webcam') as HTMLVideoElement,
-        {frameRate: 10, width: 224, height: 224});
-    await webcamDataset.init();
+    webcam =
+        await tfd.webcam(document.getElementById('webcam') as HTMLVideoElement);
   } catch (e) {
     document.getElementById('no-webcam').style.display = 'block';
   }
   truncatedMobileNet = await loadTruncatedMobileNet();
 
+  ui.init();
+
   // Warm up the model. This uploads weights to the GPU and compiles the WebGL
   // programs so the first time we collect data from the webcam it will be
   // quick.
-  const screenShot = await webcamDataset.capture();
+  const screenShot = await webcam.capture();
   truncatedMobileNet.predict(screenShot.expandDims(0));
   screenShot.dispose();
-
-  ui.init();
 }
 
 // Initialize the application.

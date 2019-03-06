@@ -187,7 +187,6 @@ async function trainModelUsingFitDatasetHandler() {
     metrics: ['accuracy'],
   });
   const dataset = GAME_GENERATOR_DATASET.map(gameToFeaturesAndLabel)
-                      .map(a => [a.features, a.label])
                       .batch(ui.getBatchSize());
   trainModelUsingFitDataset(model, dataset);
 }

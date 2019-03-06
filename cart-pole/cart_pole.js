@@ -55,7 +55,7 @@ export class CartPole {
 
     // Threshold values, beyond which a simulation will be marked as failed.
     this.xThreshold = 2.4;
-    this.thetaTheshold = 12 / 360 * 2 * Math.PI;
+    this.thetaThreshold = 12 / 360 * 2 * Math.PI;
 
     this.setRandomState();
   }
@@ -121,6 +121,6 @@ export class CartPole {
    */
   isDone() {
     return this.x < -this.xThreshold || this.x > this.xThreshold ||
-        this.theta < -this.thetaTheshold || this.theta > this.thetaTheshold;
+        this.theta < -this.thetaThreshold || this.theta > this.thetaThreshold;
   }
 }

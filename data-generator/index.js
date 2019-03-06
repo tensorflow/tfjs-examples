@@ -61,7 +61,7 @@ function gameToFeaturesAndLabel(gameState) {
         game.GAME_STATE.max_card_value);
     const features = tf.sum(handOneHot, 0);
     const label = tf.tensor1d([gameState.player1Win]);
-    return {features, label};
+    return {xs: features, ys: label};
   });
 }
 

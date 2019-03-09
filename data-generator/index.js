@@ -61,7 +61,7 @@ function gameToFeaturesAndLabel(gameState) {
         game.GAME_STATE.max_card_value);
     const features = tf.sum(handOneHot, 0);
     const label = tf.tensor1d([gameState.player1Win]);
-    return {xs: features, ys: label};
+    return {features, label};
   });
 }
 
@@ -187,6 +187,7 @@ async function trainModelUsingFitDatasetHandler() {
     metrics: ['accuracy'],
   });
   const dataset = GAME_GENERATOR_DATASET.map(gameToFeaturesAndLabel)
+                      .map(a => [a.features, a.label])
                       .batch(ui.getBatchSize());
   trainModelUsingFitDataset(model, dataset);
 }

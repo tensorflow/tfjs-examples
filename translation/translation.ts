@@ -488,7 +488,7 @@ parser.addArgument(
   '--epochs',
   {
     type: 'int',
-    defaultValue: 20,
+    defaultValue: 200,
     help: 'Number of training epochs.',
   },
 )

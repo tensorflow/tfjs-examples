@@ -284,7 +284,7 @@ class AdditionRNNDemo {
           iterations}: Model fit time ${modelFitTime.toFixed(6)} (seconds)`;
       const lossContainer = document.getElementById('lossChart');
       tfvis.render.linechart(
-          {values: lossValues, series: ['train', 'validation']}, lossContainer,
+          lossContainer, {values: lossValues, series: ['train', 'validation']},
           {
             width: 420,
             height: 300,
@@ -294,8 +294,9 @@ class AdditionRNNDemo {
 
       const accuracyContainer = document.getElementById('accuracyChart');
       tfvis.render.linechart(
+          accuracyContainer,
           {values: accuracyValues, series: ['train', 'validation']},
-          accuracyContainer, {
+          {
             width: 420,
             height: 300,
             xLabel: 'epoch',

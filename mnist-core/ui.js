@@ -35,7 +35,7 @@ export function trainingLog(loss, iteration) {
     yLavel: 'Loss',
   };
   const data = {values: lossArr, series: ['loss']};
-  tfvis.render.linechart(container, data, options);
+  tfvis.render.linechart(data, container, options);
 }
 
 export function showTestResults(batch, predictions, labels) {

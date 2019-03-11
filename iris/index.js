@@ -126,8 +126,7 @@ async function calculateAndDrawConfusionMatrix(model, xTest, yTest) {
   const confMatrixData = await tfvis.metrics.confusionMatrix(labels, preds);
   const container = document.getElementById('confusion-matrix');
   tfvis.render.confusionMatrix(
-      {values: confMatrixData, labels: data.IRIS_CLASSES},
-      container,
+      container, {values: confMatrixData, labels: data.IRIS_CLASSES},
       {shadeDiagonal: true},
   );
 

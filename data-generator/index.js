@@ -24,10 +24,10 @@ import * as ui from './ui';
 /**
  * Returns a dataset which will yield unlimited plays of the game.
  */
-export const GAME_GENERATOR_DATASET = tf.data.func(() => {
-  const value = game.generateOnePlay();
-  const done = false;
-  return {value, done};
+export const GAME_GENERATOR_DATASET = tf.data.generator(function* gen() {
+  while (true) {
+    yield game.generateOnePlay();
+  }
 });
 
 /**

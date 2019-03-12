@@ -13,14 +13,14 @@
  */
 
 
-import fs     from 'fs'
-import path   from 'path'
+import fs from 'fs'
+import path from 'path'
 
-import { ArgumentParser } from 'argparse'
-import readline           from 'readline'
-import mkdirp             from 'mkdirp'
+import {ArgumentParser} from 'argparse'
+import readline from 'readline'
+import mkdirp from 'mkdirp'
 
-const { zip } = require('zip-array')
+const {zip} = require('zip-array')
 const invertKv = require('invert-kv')
 
 import * as tf from '@tensorflow/tfjs'

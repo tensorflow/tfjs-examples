@@ -174,33 +174,33 @@ async function readData (
   };
 }
 
+/**
+Create a Keras model for the seq2seq translation.
+
+Args:
+  num_encoder_tokens: Total number of distinct tokens in the inputs
+    to the encoder.
+  num_decoder_tokens: Total number of distinct tokens in the outputs
+    to/from the decoder
+  latent_dim: Number of latent dimensions in the LSTMs.
+
+Returns:
+  encoder_inputs: Instance of `keras.Input`, symbolic tensor as input to
+    the encoder LSTM.
+  encoder_states: Instance of `keras.Input`, symbolic tensor for output
+    states (h and c) from the encoder LSTM.
+  decoder_inputs: Instance of `keras.Input`, symbolic tensor as input to
+    the decoder LSTM.
+  decoder_lstm: `keras.Layer` instance, the decoder LSTM.
+  decoder_dense: `keras.Layer` instance, the Dense layer in the decoder.
+  model: `keras.Model` instance, the entire translation model that can be
+    used in training.
+*/
 function seq2seqModel (
   numEncoderTokens: number,
   numDecoderTokens: number,
   latentDim: number,
 ) {
-  /**
-  Create a Keras model for the seq2seq translation.
-
-  Args:
-    num_encoder_tokens: Total number of distinct tokens in the inputs
-      to the encoder.
-    num_decoder_tokens: Total number of distinct tokens in the outputs
-      to/from the decoder
-    latent_dim: Number of latent dimensions in the LSTMs.
-
-  Returns:
-    encoder_inputs: Instance of `keras.Input`, symbolic tensor as input to
-      the encoder LSTM.
-    encoder_states: Instance of `keras.Input`, symbolic tensor for output
-      states (h and c) from the encoder LSTM.
-    decoder_inputs: Instance of `keras.Input`, symbolic tensor as input to
-      the decoder LSTM.
-    decoder_lstm: `keras.Layer` instance, the decoder LSTM.
-    decoder_dense: `keras.Layer` instance, the Dense layer in the decoder.
-    model: `keras.Model` instance, the entire translation model that can be
-      used in training.
-  */
   // Define an input sequence and process it.
   const encoderInputs = tf.layers.input({
     shape: [null, numEncoderTokens] as number[],
@@ -260,6 +260,26 @@ function seq2seqModel (
   };
 }
 
+/**
+Decode (i.e., translate) an encoded sentence.
+
+Args:
+  input_seq: A `numpy.ndarray` of shape
+    `(1, max_encoder_seq_length, num_encoder_tokens)`.
+  encoder_model: A `keras.Model` instance for the encoder.
+  decoder_model: A `keras.Model` instance for the decoder.
+  num_decoder_tokens: Number of unique tokens for the decoder.
+  target_begin_index: An `int`: the index for the beginning token of the
+    decoder.
+  reverse_target_char_index: A lookup table for the target characters, i.e.,
+    a map from `int` index to target character.
+  max_decoder_seq_length: Maximum allowed sequence length output by the
+    decoder.
+
+Returns:
+  The result of the decoding (i.e., translation) as a string.
+"""
+*/
 async function decodeSequence (
   inputSeq: tf.Tensor,
   encoderModel: tf.Model,
@@ -269,27 +289,6 @@ async function decodeSequence (
   reverseTargetCharIndex: {[indice: number]: string},
   maxDecoderSeqLength: number,
 ) {
-  /**
-  Decode (i.e., translate) an encoded sentence.
-
-  Args:
-    input_seq: A `numpy.ndarray` of shape
-      `(1, max_encoder_seq_length, num_encoder_tokens)`.
-    encoder_model: A `keras.Model` instance for the encoder.
-    decoder_model: A `keras.Model` instance for the decoder.
-    num_decoder_tokens: Number of unique tokens for the decoder.
-    target_begin_index: An `int`: the index for the beginning token of the
-      decoder.
-    reverse_target_char_index: A lookup table for the target characters, i.e.,
-      a map from `int` index to target character.
-    max_decoder_seq_length: Maximum allowed sequence length output by the
-      decoder.
-
-  Returns:
-    The result of the decoding (i.e., translation) as a string.
-  """
-  */
-
   // Encode the input as state vectors.
   let statesValue = encoderModel.predict(inputSeq) as tf.Tensor[];
 

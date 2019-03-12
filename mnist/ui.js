@@ -83,7 +83,8 @@ export function plotAccuracy(batch, accuracy, set) {
   accuracyValues[series].push({x: batch, y: accuracy});
   tfvis.render.linechart(
       {values: accuracyValues, series: ['train', 'validation']},
-      accuracyContainer, {
+      accuracyContainer,
+      {
         xLabel: 'Batch #',
         yLabel: 'Accuracy',
         width: 400,

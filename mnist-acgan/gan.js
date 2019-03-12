@@ -25,6 +25,13 @@
  * yarn
  * yarn train
  * ```
+ * 
+ * If available, a CUDA GPU will give you a higher training speed:
+ * 
+ * ```sh
+ * yarn
+ * yarn train --gpu
+ * ```
  *
  * To start the demo in the browser, do in a separate terminal:
  *
@@ -51,11 +58,6 @@ const path = require('path');
 
 const argparse = require('argparse');
 const tf = require('@tensorflow/tfjs');
-require('@tensorflow/tfjs-node');
-
-// Uncomment me to train the model on GPU.
-// Requires: CUDA-enabled GPU, installs of CUDA toolkit and CuDNN.
-// require('@tensorflow/tfjs-node-gpu');
 
 const data = require('./data');
 
@@ -327,6 +329,10 @@ function buildArgumentParser() {
     description: 'TensorFlowj.js: MNIST ACGAN trainer example.',
     addHelp: true
   });
+  parser.addArgument('--gpu', {
+    action: 'storeTrue',
+    help: 'Use tfjs-node-gpu for training (required CUDA GPU)'
+  });
   parser.addArgument(
       '--epochs',
       {type: 'int', defaultValue: 100, help: 'Number of training epochs.'});
@@ -368,6 +374,14 @@ function makeMetadata(totalEpochs, currentEpoch, completed) {
 async function run() {
   const parser = buildArgumentParser();
   const args = parser.parseArgs();
+
+  if (args.gpu) {
+    console.log('Using GPU');
+    require('@tensorflow/tfjs-node-gpu');
+  } else {
+    console.log('Using CPU');
+    require('@tensorflow/tfjs-node');
+  }
 
   if (!fs.existsSync(path.dirname(args.generatorSavePath))) {
     fs.mkdirSync(path.dirname(args.generatorSavePath));

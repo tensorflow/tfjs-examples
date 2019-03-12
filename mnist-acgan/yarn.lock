@@ -765,7 +765,7 @@
     rimraf "^2.6.2"
     tar "^4.4.6"
 
-"@tensorflow/tfjs@~0.15.3":
+"@tensorflow/tfjs@0.15.3", "@tensorflow/tfjs@~0.15.3":
   version "0.15.3"
   resolved "https://registry.yarnpkg.com/@tensorflow/tfjs/-/tfjs-0.15.3.tgz#6608833952858c8984f20962eb86624f99196f06"
   integrity sha512-NBAs+iGBNBxprm98mk488EfTDl2kA/lzNguoQGEMeIPWVHTbadSn2QV5xXKAf/fcOat+JwVfqe2vxHBbTjHMOw==

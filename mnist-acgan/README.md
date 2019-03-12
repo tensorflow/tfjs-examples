@@ -38,6 +38,15 @@ yarn
 yarn train
 ```
 
+If you have a CUDA-enabled GPU on your system, you can add the `--gpu` flag
+to train the model on the GPU, which should give you a significant boost in
+the speed of training:
+
+```sh
+yarn
+yarn train --gpu
+```
+
 The training job is a long running one and takes a few hours to complete on
 a GPU (using @tensorflow/tfjs-node-gpu) and even longer on a CPU
 (using @tensorflow/tfjs-node). It saves the generator part of the ACGAN

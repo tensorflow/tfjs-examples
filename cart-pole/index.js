@@ -51,15 +51,15 @@ class PolicyNetwork {
   /**
    * Constructor of PolicyNetwork.
    *
-   * @param {number | number[] | tf.Model} hiddenLayerSizes
+   * @param {number | number[] | tf.LayersModel} hiddenLayerSizes
    *   Can be any of the following
    *   - Size of the hidden layer, as a single number (for a single hidden
    *     layer)
    *   - An Array of numbers (for any number of hidden layers).
-   *   - An instance of tf.Model.
+   *   - An instance of tf.LayersModel.
    */
   constructor(hiddenLayerSizesOrModel) {
-    if (hiddenLayerSizesOrModel instanceof tf.Model) {
+    if (hiddenLayerSizesOrModel instanceof tf.LayersModel) {
       this.model = hiddenLayerSizesOrModel;
     } else {
       this.createModel(hiddenLayerSizesOrModel);

@@ -295,7 +295,8 @@ class AdditionRNNDemo {
       const accuracyContainer = document.getElementById('accuracyChart');
       tfvis.render.linechart(
           {values: accuracyValues, series: ['train', 'validation']},
-          accuracyContainer, {
+          accuracyContainer,
+          {
             width: 420,
             height: 300,
             xLabel: 'epoch',

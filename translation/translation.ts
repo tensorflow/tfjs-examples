@@ -81,9 +81,9 @@ async function readData (
 
   // Math.max() does not work with very large arrays because of the stack limitation
   const max_encoder_seq_length = input_texts.map(text => text.length)
-                                            .reduceRight((prev, curr) => curr > prev ? curr : prev, 0);
+      .reduceRight((prev, curr) => curr > prev ? curr : prev, 0);
   const max_decoder_seq_length = target_texts.map(text => text.length)
-                                              .reduceRight((prev, curr) => curr > prev ? curr : prev, 0);
+      .reduceRight((prev, curr) => curr > prev ? curr : prev, 0);
 
   console.log('Number of samples:', input_texts.length);
   console.log('Number of unique input tokens:', num_encoder_tokens);

@@ -31,11 +31,11 @@ async function readData (
   dataFile: string,
 ) {
   // Vectorize the data.
-  const input_texts: string[] = [];
-  const target_texts: string[] = [];
+  const inputTexts: string[] = [];
+  const targetTexts: string[] = [];
 
-  const input_characters = new Set<string>();
-  const target_characters = new Set<string>();
+  const inputCharacters = new Set<string>();
+  const targetCharacters = new Set<string>();
 
   const fileStream = fs.createReadStream(dataFile);
   const rl = readline.createInterface({
@@ -51,133 +51,133 @@ async function readData (
       return;
     }
 
-    let [input_text, target_text] = line.split('\t');
+    let [inputText, targetText] = line.split('\t');
     // We use "tab" as the "start sequence" character for the targets, and "\n"
     // as "end sequence" character.
-    target_text = '\t' + target_text + '\n';
+    targetText = '\t' + targetText + '\n';
 
-    input_texts.push(input_text);
-    target_texts.push(target_text);
+    inputTexts.push(inputText);
+    targetTexts.push(targetText);
 
-    for (const char of input_text) {
-      if (!input_characters.has(char)) {
-        input_characters.add(char);
+    for (const char of inputText) {
+      if (!inputCharacters.has(char)) {
+        inputCharacters.add(char);
       }
     }
-    for (const char of target_text) {
-      if (!target_characters.has(char)) {
-        target_characters.add(char);
+    for (const char of targetText) {
+      if (!targetCharacters.has(char)) {
+        targetCharacters.add(char);
       }
     }
   })
 
   await new Promise(r => rl.on('close', r));
 
-  const input_character_list = [...input_characters].sort();
-  const target_character_list = [...target_characters].sort();
+  const inputCharacterList = [...inputCharacters].sort();
+  const targetCharacterList = [...targetCharacters].sort();
 
-  const num_encoder_tokens = input_character_list.length;
-  const num_decoder_tokens = target_character_list.length;
+  const numEncoderTokens = inputCharacterList.length;
+  const numDecoderTokens = targetCharacterList.length;
 
   // Math.max() does not work with very large arrays because of the stack limitation
-  const max_encoder_seq_length = input_texts.map(text => text.length)
+  const maxEncoderSeqLength = inputTexts.map(text => text.length)
       .reduceRight((prev, curr) => curr > prev ? curr : prev, 0);
-  const max_decoder_seq_length = target_texts.map(text => text.length)
+  const maxDecoderSeqLength = targetTexts.map(text => text.length)
       .reduceRight((prev, curr) => curr > prev ? curr : prev, 0);
 
-  console.log('Number of samples:', input_texts.length);
-  console.log('Number of unique input tokens:', num_encoder_tokens);
-  console.log('Number of unique output tokens:', num_decoder_tokens);
-  console.log('Max sequence length for inputs:', max_encoder_seq_length);
-  console.log('Max sequence length for outputs:', max_decoder_seq_length);
+  console.log('Number of samples:', inputTexts.length);
+  console.log('Number of unique input tokens:', numEncoderTokens);
+  console.log('Number of unique output tokens:', numDecoderTokens);
+  console.log('Max sequence length for inputs:', maxEncoderSeqLength);
+  console.log('Max sequence length for outputs:', maxDecoderSeqLength);
 
-  const input_token_index = input_character_list.reduce(
+  const inputTokenIndex = inputCharacterList.reduce(
     (prev, curr, idx) => (prev[curr] = idx, prev),
     {} as {[char: string]: number},
   );
-  const target_token_index = target_character_list.reduce(
+  const targetTokenIndex = targetCharacterList.reduce(
     (prev, curr, idx) => (prev[curr] = idx, prev),
     {} as {[char: string]: number},
   );
 
   // Save the token indices to file.
-  const metadata_json_path = path.join(
+  const metadataJsonPath = path.join(
     FLAGS.artifacts_dir,
     'metadata.json',
   );
 
-  if (!fs.existsSync(path.dirname(metadata_json_path))) {
-    mkdirp.sync(path.dirname(metadata_json_path));
+  if (!fs.existsSync(path.dirname(metadataJsonPath))) {
+    mkdirp.sync(path.dirname(metadataJsonPath));
   }
 
   const metadata = {
-    'input_token_index': input_token_index,
-    'target_token_index': target_token_index,
-    'max_encoder_seq_length': max_encoder_seq_length,
-    'max_decoder_seq_length': max_decoder_seq_length,
+    'input_token_index': inputTokenIndex,
+    'target_token_index': targetTokenIndex,
+    'max_encoder_seq_length': maxEncoderSeqLength,
+    'max_decoder_seq_length': maxDecoderSeqLength,
   };
 
-  fs.writeFileSync(metadata_json_path, JSON.stringify(metadata));
-  console.log('Saved metadata at: ', metadata_json_path);
+  fs.writeFileSync(metadataJsonPath, JSON.stringify(metadata));
+  console.log('Saved metadata at: ', metadataJsonPath);
 
-  const encoder_input_data_buf = tf.buffer<tf.Rank.R3>([
-    input_texts.length,
-    max_encoder_seq_length,
-    num_encoder_tokens,
+  const encoderInputDataBuf = tf.buffer<tf.Rank.R3>([
+    inputTexts.length,
+    maxEncoderSeqLength,
+    numEncoderTokens,
   ]);
-  const decoder_input_data_buf = tf.buffer<tf.Rank.R3>([
-    input_texts.length,
-    max_decoder_seq_length,
-    num_decoder_tokens,
+  const decoderInputDataBuf = tf.buffer<tf.Rank.R3>([
+    inputTexts.length,
+    maxDecoderSeqLength,
+    numDecoderTokens,
   ]);
-  const decoder_target_data_buf = tf.buffer<tf.Rank.R3>([
-    input_texts.length,
-    max_decoder_seq_length,
-    num_decoder_tokens,
+  const decoderTargetDataBuf = tf.buffer<tf.Rank.R3>([
+    inputTexts.length,
+    maxDecoderSeqLength,
+    numDecoderTokens,
   ]);
 
   for (
-    const [i, [input_text, target_text]]
-    of (zip(input_texts, target_texts).entries() as IterableIterator<[number, [string, string]]>)
+    const [i, [inputText, targetText]]
+    of (zip(inputTexts, targetTexts).entries() as IterableIterator<[number, [string, string]]>)
   ) {
-    for (const [t, char] of input_text.split('').entries()) {
+    for (const [t, char] of inputText.split('').entries()) {
       // encoder_input_data[i, t, input_token_index[char]] = 1.
-      encoder_input_data_buf.set(1, i, t, input_token_index[char]);
+      encoderInputDataBuf.set(1, i, t, inputTokenIndex[char]);
     }
 
-    for (const [t, char] of target_text.split('').entries()) {
+    for (const [t, char] of targetText.split('').entries()) {
       // decoder_target_data is ahead of decoder_input_data by one timestep
-      decoder_input_data_buf.set(1, i, t, target_token_index[char]);
+      decoderInputDataBuf.set(1, i, t, targetTokenIndex[char]);
       if (t > 0) {
         // decoder_target_data will be ahead by one timestep
         // and will not include the start character.
-        decoder_target_data_buf.set(1, i, t - 1, target_token_index[char]);
+        decoderTargetDataBuf.set(1, i, t - 1, targetTokenIndex[char]);
       }
     }
   }
 
-  const encoder_input_data = encoder_input_data_buf.toTensor();
-  const decoder_input_data = decoder_input_data_buf.toTensor();
-  const decoder_target_data = decoder_target_data_buf.toTensor();
+  const encoderInputData = encoderInputDataBuf.toTensor();
+  const decoderInputData = decoderInputDataBuf.toTensor();
+  const decoderTargetData = decoderTargetDataBuf.toTensor();
 
   return {
-    input_texts,
-    max_encoder_seq_length,
-    max_decoder_seq_length,
-    num_encoder_tokens,
-    num_decoder_tokens,
-    input_token_index,
-    target_token_index,
-    encoder_input_data,
-    decoder_input_data,
-    decoder_target_data,
+    inputTexts,
+    maxEncoderSeqLength,
+    maxDecoderSeqLength,
+    numEncoderTokens,
+    numDecoderTokens,
+    inputTokenIndex,
+    targetTokenIndex,
+    encoderInputData,
+    decoderInputData,
+    decoderTargetData,
   };
 }
 
 function seq2seqModel (
-  num_encoder_tokens: number,
-  num_decoder_tokens: number,
-  latent_dim: number,
+  numEncoderTokens: number,
+  numDecoderTokens: number,
+  latentDim: number,
 ) {
   /**
   Create a Keras model for the seq2seq translation.
@@ -202,72 +202,72 @@ function seq2seqModel (
       used in training.
   */
   // Define an input sequence and process it.
-  const encoder_inputs = tf.layers.input({
-    shape: [null, num_encoder_tokens] as number[],
+  const encoderInputs = tf.layers.input({
+    shape: [null, numEncoderTokens] as number[],
     name: 'encoderInputs',
   });
 
   const encoder = tf.layers.lstm({
-    units: latent_dim,
+    units: latentDim,
     returnState: true,
     name: 'encoderLstm',
   });
-  const [, state_h, state_c] = encoder.apply(encoder_inputs) as tf.SymbolicTensor[];
+  const [, stateH, stateC] = encoder.apply(encoderInputs) as tf.SymbolicTensor[];
   // We discard `encoder_outputs` and only keep the states.
-  const encoder_states = [state_h, state_c];
+  const encoderStates = [stateH, stateC];
 
   // Set up the decoder, using `encoder_states` as initial state.
-  const decoder_inputs = tf.layers.input({
-    shape: [null, num_decoder_tokens] as number[],
+  const decoderInputs = tf.layers.input({
+    shape: [null, numDecoderTokens] as number[],
     name: 'decoderInputs',
   });
   // We set up our decoder to return full output sequences,
   // and to return internal states as well. We don't use the
   // return states in the training model, but we will use them in inference.
-  const decoder_lstm = tf.layers.lstm({
+  const decoderLstm = tf.layers.lstm({
     units: FLAGS.latent_dim,
     returnSequences: true,
     returnState: true,
     name: 'decoderLstm',
   });
 
-  const [decoder_outputs, ] = decoder_lstm.apply(
-    [decoder_inputs, ...encoder_states],
+  const [decoderOutputs, ] = decoderLstm.apply(
+    [decoderInputs, ...encoderStates],
   ) as tf.Tensor[];
 
-  const decoder_dense = tf.layers.dense({
-    units: num_decoder_tokens,
+  const decoderDense = tf.layers.dense({
+    units: numDecoderTokens,
     activation: 'softmax',
     name: 'decoderDense',
   });
 
-  const decoder_dense_outputs = decoder_dense.apply(decoder_outputs) as tf.SymbolicTensor;
+  const decoderDenseOutputs = decoderDense.apply(decoderOutputs) as tf.SymbolicTensor;
 
   // Define the model that will turn
   // `encoder_input_data` & `decoder_input_data` into `decoder_target_data`
   const model = tf.model({
-    inputs: [encoder_inputs, decoder_inputs],
-    outputs: decoder_dense_outputs,
+    inputs: [encoderInputs, decoderInputs],
+    outputs: decoderDenseOutputs,
     name: 'seq2seqModel',
   });
   return {
-    encoder_inputs,
-    encoder_states,
-    decoder_inputs,
-    decoder_lstm,
-    decoder_dense,
+    encoderInputs,
+    encoderStates,
+    decoderInputs,
+    decoderLstm,
+    decoderDense,
     model,
   };
 }
 
-async function decode_sequence (
-  input_seq: tf.Tensor,
-  encoder_model: tf.Model,
-  decoder_model: tf.Model,
-  num_decoder_tokens: number,
-  target_begin_index: number,
-  reverse_target_char_index: {[indice: number]: string},
-  max_decoder_seq_length: number,
+async function decodeSequence (
+  inputSeq: tf.Tensor,
+  encoderModel: tf.Model,
+  decoderModel: tf.Model,
+  numDecoderTokens: number,
+  targetBeginIndex: number,
+  reverseTargetCharIndex: {[indice: number]: string},
+  maxDecoderSeqLength: number,
 ) {
   /**
   Decode (i.e., translate) an encoded sentence.
@@ -291,25 +291,25 @@ async function decode_sequence (
   */
 
   // Encode the input as state vectors.
-  let states_value = encoder_model.predict(input_seq) as tf.Tensor[];
+  let statesValue = encoderModel.predict(inputSeq) as tf.Tensor[];
 
   // Generate empty target sequence of length 1.
-  let target_seq = tf.buffer<tf.Rank.R3>([
+  let targetSeq = tf.buffer<tf.Rank.R3>([
     1,
     1,
-    num_decoder_tokens,
+    numDecoderTokens,
   ]);
 
   // Populate the first character of target sequence with the start character.
-  target_seq.set(1, 0, 0, target_begin_index);
+  targetSeq.set(1, 0, 0, targetBeginIndex);
 
   // Sampling loop for a batch of sequences
   // (to simplify, here we assume a batch of size 1).
-  let stop_condition = false;
-  let decoded_sentence = '';
-  while (!stop_condition) {
-    const [output_tokens, h, c] = decoder_model.predict(
-      [target_seq.toTensor(), ...states_value]
+  let stopCondition = false;
+  let decodedSentence = '';
+  while (!stopCondition) {
+    const [outputTokens, h, c] = decoderModel.predict(
+      [targetSeq.toTensor(), ...statesValue]
     ) as [
       tf.Tensor<tf.Rank.R3>,
       tf.Tensor<tf.Rank.R2>,
@@ -317,30 +317,30 @@ async function decode_sequence (
     ];
 
     // Sample a token
-    const sampled_token_index = await output_tokens
+    const sampledTokenIndex = await outputTokens
                                       .squeeze()
                                       .argMax(-1)
                                       .array() as number;
 
-    const sampled_char = reverse_target_char_index[sampled_token_index];
-    decoded_sentence += sampled_char;
+    const sampledChar = reverseTargetCharIndex[sampledTokenIndex];
+    decodedSentence += sampledChar;
 
     // Exit condition: either hit max length
     // or find stop character.
-    if ( sampled_char === '\n'
-      || decoded_sentence.length > max_decoder_seq_length
+    if ( sampledChar === '\n'
+      || decodedSentence.length > maxDecoderSeqLength
     ) {
-      stop_condition = true;
+      stopCondition = true;
     }
 
     // Update the target sequence (of length 1).
-    target_seq = tf.buffer<tf.Rank.R3>([1, 1, num_decoder_tokens], 'float32');
-    target_seq.set(1, 0, 0, sampled_token_index);
+    targetSeq = tf.buffer<tf.Rank.R3>([1, 1, numDecoderTokens], 'float32');
+    targetSeq.set(1, 0, 0, sampledTokenIndex);
 
     // Update states
-    states_value = [h, c];
+    statesValue = [h, c];
   }
-  return decoded_sentence;
+  return decodedSentence;
 }
 
 async function main () {
@@ -353,26 +353,26 @@ async function main () {
   }
 
   const {
-    input_texts,
-    max_decoder_seq_length,
-    num_encoder_tokens,
-    num_decoder_tokens,
-    target_token_index,
-    encoder_input_data,
-    decoder_input_data,
-    decoder_target_data,
+    inputTexts,
+    maxDecoderSeqLength,
+    numEncoderTokens,
+    numDecoderTokens,
+    targetTokenIndex,
+    encoderInputData,
+    decoderInputData,
+    decoderTargetData,
   } = await readData(FLAGS.data_path);
 
   const {
-    encoder_inputs,
-    encoder_states,
-    decoder_inputs,
-    decoder_lstm,
-    decoder_dense,
+    encoderInputs,
+    encoderStates,
+    decoderInputs,
+    decoderLstm,
+    decoderDense,
     model,
   } = seq2seqModel(
-    num_encoder_tokens,
-    num_decoder_tokens,
+    numEncoderTokens,
+    numDecoderTokens,
     FLAGS.latent_dim,
   );
 
@@ -384,10 +384,10 @@ async function main () {
 
   await model.fit(
     [
-      encoder_input_data,
-      decoder_input_data,
+      encoderInputData,
+      decoderInputData,
     ],
-    decoder_target_data,
+    decoderTargetData,
     {
       batchSize: FLAGS.batch_size,
       epochs: FLAGS.epochs,
@@ -409,63 +409,63 @@ async function main () {
   // 3) Repeat with the current target token and current states
 
   // Define sampling models
-  const encoder_model = tf.model({
-    inputs: encoder_inputs,
-    outputs: encoder_states,
+  const encoderModel = tf.model({
+    inputs: encoderInputs,
+    outputs: encoderStates,
     name: 'encoderModel',
   });
 
-  const decoder_state_input_h = tf.layers.input({
+  const decoderStateInputH = tf.layers.input({
     shape: [FLAGS.latent_dim],
     name: 'decoderStateInputHidden',
   });
-  const decoder_state_input_c = tf.layers.input({
+  const decoderStateInputC = tf.layers.input({
     shape: FLAGS.latent_dim,
     name: 'decoderStateInputCell',
   });
-  const decoder_states_inputs = [decoder_state_input_h, decoder_state_input_c];
-  let [decoder_outputs, state_h, state_c] = decoder_lstm.apply(
-      [decoder_inputs, ...decoder_states_inputs]
+  const decoderStatesInputs = [decoderStateInputH, decoderStateInputC];
+  let [decoderOutputs, stateH, stateC] = decoderLstm.apply(
+      [decoderInputs, ...decoderStatesInputs]
   ) as tf.SymbolicTensor[];
 
-  const decoder_states = [state_h, state_c];
-  decoder_outputs = decoder_dense.apply(decoder_outputs) as tf.SymbolicTensor;
-  const decoder_model = tf.model({
-    inputs: [decoder_inputs, ...decoder_states_inputs],
-    outputs: [decoder_outputs, ...decoder_states],
+  const decoderStates = [stateH, stateC];
+  decoderOutputs = decoderDense.apply(decoderOutputs) as tf.SymbolicTensor;
+  const decoderModel = tf.model({
+    inputs: [decoderInputs, ...decoderStatesInputs],
+    outputs: [decoderOutputs, ...decoderStates],
     name: 'decoderModel',
   });
 
   // Reverse-lookup token index to decode sequences back to
   // something readable.
-  const reverse_target_char_index = invertKv(target_token_index) as {[indice: number]: string};
+  const reverseTargetCharIndex = invertKv(targetTokenIndex) as {[indice: number]: string};
 
-  const target_begin_index = target_token_index['\t'];
+  const targetBeginIndex = targetTokenIndex['\t'];
 
-  for (let seq_index = 0; seq_index < FLAGS.num_test_sentences; seq_index++) {
+  for (let seqIndex = 0; seqIndex < FLAGS.num_test_sentences; seqIndex++) {
     // Take one sequence (part of the training set)
     // for trying out decoding.
-    const input_seq = encoder_input_data.slice(seq_index, 1);
+    const inputSeq = encoderInputData.slice(seqIndex, 1);
 
     // Get expected output
-    const target_seq_voc = decoder_target_data.slice(seq_index, 1).squeeze([0]) as tf.Tensor2D;
-    const target_seq_tensor = target_seq_voc.argMax(-1) as tf.Tensor1D;
+    const targetSeqVoc = decoderTargetData.slice(seqIndex, 1).squeeze([0]) as tf.Tensor2D;
+    const targetSeqTensor = targetSeqVoc.argMax(-1) as tf.Tensor1D;
 
-    const target_seq_list = await target_seq_tensor.array();
+    const targetSeqList = await targetSeqTensor.array();
 
     // One-hot to index
-    const target_seq = target_seq_list.map(indice => reverse_target_char_index[indice]);
+    const targetSeq = targetSeqList.map(indice => reverseTargetCharIndex[indice]);
 
     // Array to string
-    const target_seq_str = target_seq.join('').replace('\n', '');
-    const decoded_sentence = await decode_sequence(
-      input_seq, encoder_model, decoder_model, num_decoder_tokens,
-      target_begin_index, reverse_target_char_index, max_decoder_seq_length,
+    const targetSeqStr = targetSeq.join('').replace('\n', '');
+    const decodedSentence = await decodeSequence(
+      inputSeq, encoderModel, decoderModel, numDecoderTokens,
+      targetBeginIndex, reverseTargetCharIndex, maxDecoderSeqLength,
     );
     console.log('-');
-    console.log('Input sentence:', input_texts[seq_index]);
-    console.log('Target sentence:', target_seq_str);
-    console.log('Decoded sentence:', decoded_sentence);
+    console.log('Input sentence:', inputTexts[seqIndex]);
+    console.log('Target sentence:', targetSeqStr);
+    console.log('Decoded sentence:', decodedSentence);
   }
 }
 

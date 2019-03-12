@@ -19,8 +19,8 @@
   "devDependencies": {
     "@babel/core": "^7.0.0-0",
     "@babel/plugin-transform-runtime": "^7.1.0",
-    "@tensorflow/tfjs-node": "^0.3.1",
-    "@tensorflow/tfjs-node-gpu": "^0.3.1",
+    "@tensorflow/tfjs-node": "^0.3.2",
+    "@tensorflow/tfjs-node-gpu": "^0.3.2",
     "argparse": "^1.0.10",
     "babel-core": "^6.26.3",
     "babel-plugin-transform-runtime": "~6.23.0",

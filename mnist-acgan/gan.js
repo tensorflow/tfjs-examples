@@ -228,7 +228,7 @@ function buildDiscriminator() {
 
 // "Soft" one used for training the combined ACGAN model.
 // This is an important trick in training GANs.
-const softOne = tf.scalar(0.95);
+const SOFT_ONE = 0.95;
 
 /**
  * Train the discriminator for one step.
@@ -277,9 +277,10 @@ async function trainDiscriminatorOneStep(
         generator.predict([zVectors, sampledLabels], {batchSize: batchSize});
 
     const x = tf.concat([imageBatch, generatedImages], 0);
+
     const y = tf.tidy(
         () => tf.concat(
-            [tf.ones([batchSize, 1]).mul(softOne), tf.zeros([batchSize, 1])]));
+            [tf.ones([batchSize, 1]).mul(SOFT_ONE), tf.zeros([batchSize, 1])]));
 
     const auxY = tf.concat([labelBatch, sampledLabels], 0);
     return [x, y, auxY];
@@ -314,7 +315,7 @@ async function trainCombinedModelOneStep(batchSize, latentSize, combined) {
     // We want to train the generator to trick the discriminator.
     // For the generator, we want all the {fake, not-fake} labels to say
     // not-fake.
-    const trick = tf.tidy(() => tf.ones([batchSize, 1]).mul(softOne));
+    const trick = tf.tidy(() => tf.ones([batchSize, 1]).mul(SOFT_ONE));
     return [zVectors, sampledLabels, trick];
   });
 
@@ -359,6 +360,10 @@ function buildArgumentParser() {
     defaultValue: './dist/generator',
     help: 'Path to which the generator model will be saved after every epoch.'
   });
+  parser.addArgument('--logDir', {
+    type: 'string',
+    help: 'Optional log directory to which the loss values will be written.'
+  });
   return parser;
 }
 
@@ -375,13 +380,9 @@ async function run() {
   const parser = buildArgumentParser();
   const args = parser.parseArgs();
 
-  if (args.gpu) {
-    console.log('Using GPU');
-    require('@tensorflow/tfjs-node-gpu');
-  } else {
-    console.log('Using CPU');
-    require('@tensorflow/tfjs-node');
-  }
+  const tfn = args.gpu ? 
+      require('@tensorflow/tfjs-node-gpu') :
+      require('@tensorflow/tfjs-node');
 
   if (!fs.existsSync(path.dirname(args.generatorSavePath))) {
     fs.mkdirSync(path.dirname(args.generatorSavePath));
@@ -427,6 +428,13 @@ async function run() {
   await generator.save(saveURL);
 
   let numTensors;
+  let logWriter;
+  if (args.logDir) {
+    console.log(`Logging to tensorboard at logdir: ${args.logDir}`);
+    logWriter = tfn.node.summaryFileWriter(args.logDir);
+  }
+
+  let step = 0;
   for (let epoch = 0; epoch < args.epochs; ++epoch) {
     // Write some metadata to disk at the beginning of every epoch.
     fs.writeFileSync(
@@ -456,7 +464,11 @@ async function run() {
           `epoch ${epoch + 1}/${args.epochs} batch ${batch + 1}/${
               numBatches}: ` +
           `dLoss = ${dLoss[0].toFixed(6)}, gLoss = ${gLoss[0].toFixed(6)}`);
-      tf.dispose([dLoss, gLoss]);
+      if (logWriter != null) {
+        logWriter.scalar('dLoss', dLoss[0], step);
+        logWriter.scalar('gLoss', gLoss[0], step);
+        step++;
+      }
 
       // Assert on no memory leak.
       // TODO(cais): Remove this check once the current memory leak in

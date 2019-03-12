@@ -24,7 +24,6 @@ const {zip} = require('zip-array')
 const invertKv = require('invert-kv')
 
 import * as tf from '@tensorflow/tfjs'
-import '@tensorflow/tfjs-node'
 
 let FLAGS = {} as any
 
@@ -346,6 +345,14 @@ async function decode_sequence (
 }
 
 async function main () {
+  if (FLAGS.gpu) {
+    console.log('Using GPU');
+    require('@tensorflow/tfjs-node-gpu');
+  } else {
+    console.log('Using CPU');
+    require('@tensorflow/tfjs-node');
+  }
+
   const {
     input_texts,
     max_decoder_seq_length,
@@ -524,6 +531,10 @@ parser.addArgument(
     help: 'Local path for saving the TensorFlow.js artifacts.',
   },
 )
+parser.addArgument('--gpu', {
+  action: 'storeTrue',
+  help: 'Use tfjs-node-gpu to train the model. Requires CUDA/CuDNN.'
+});
 
 ;[FLAGS,] = parser.parseKnownArgs()
 main()

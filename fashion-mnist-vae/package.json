@@ -1,5 +1,5 @@
 {
-  "name": "tfjs-examples-mnist-node",
+  "name": "tfjs-examples-fashion-mnist-vae",
   "version": "0.1.0",
   "description": "",
   "main": "index.js",
@@ -9,18 +9,30 @@
     "node": ">=8.11.0"
   },
   "dependencies": {
-    "@tensorflow/tfjs-node": "0.2.3",
-    "@tensorflow/tfjs-node-gpu": "0.2.3",
+    "@tensorflow/tfjs": "0.15.3",
+    "@tensorflow/tfjs-node": "0.3.2",
+    "@tensorflow/tfjs-node-gpu": "0.3.2",
     "argparse": "^1.0.10",
+    "d3": "^5.7.0",
+    "http-server": "^0.11.1",
     "jimp": "0.6.0",
     "lodash": "^4.17.11",
     "mkdirp": "^0.5.1",
     "terminal-image": "^0.1.2"
   },
   "scripts": {
-    "postinstall": "yarn upgrade --pattern @tensorflow"
+    "train": "node main.js",
+    "serve": "http-server ./models --cors",
+    "watch": "cross-env NODE_ENV=development parcel client.html --no-hmr --open",
+    "build-client": "cross-env NODE_ENV=production parcel build client.html --no-minify --public-url ./"
   },
   "devDependencies": {
-    "clang-format": "~1.2.2"
+    "@babel/core": "^7.0.0-0",
+    "@babel/plugin-transform-runtime": "^7.1.0",
+    "babel-preset-env": "~1.6.1",
+    "clang-format": "~1.2.2",
+    "cross-env": "^5.2.0",
+    "parcel-bundler": "^1.12.1",
+    "yalc": "~1.0.0-pre.22"
   }
 }

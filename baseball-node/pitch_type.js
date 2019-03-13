@@ -45,19 +45,24 @@ const TEST_DATA_LENGTH = 700;
 
 // Converts a row from the CSV into features and labels.
 // Each feature field is normalized within training data constants:
-const csvTransform = ([features, labels]) => {
-  const values = [
-    normalize(features.vx0, VX0_MIN, VX0_MAX),
-    normalize(features.vy0, VY0_MIN, VY0_MAX),
-    normalize(features.vz0, VZ0_MIN, VZ0_MAX),
-    normalize(features.ax, AX_MIN, AX_MAX),
-    normalize(features.ay, AY_MIN, AY_MAX),
-    normalize(features.az, AZ_MIN, AZ_MAX),
-    normalize(features.start_speed, START_SPEED_MIN, START_SPEED_MAX),
-    features.left_handed_pitcher
-  ];
-  return [values, [labels.pitch_code]];
-};
+const csvTransform =
+    ({features, labels}) => {
+      console.log('--------------------------------------------');
+      console.log(features);
+      console.log(labels);
+      console.log('--------------------------------------------');
+      const values = [
+        normalize(features.vx0, VX0_MIN, VX0_MAX),
+        normalize(features.vy0, VY0_MIN, VY0_MAX),
+        normalize(features.vz0, VZ0_MIN, VZ0_MAX),
+        normalize(features.ax, AX_MIN, AX_MAX),
+        normalize(features.ay, AY_MIN, AY_MAX),
+        normalize(features.az, AZ_MIN, AZ_MAX),
+        normalize(features.start_speed, START_SPEED_MIN, START_SPEED_MAX),
+        features.left_handed_pitcher
+      ];
+      return [values, [labels.pitch_code]];
+    }
 
 const trainingData =
     tf.data.csv(TRAIN_DATA_PATH, {columnConfigs: {pitch_code: {isLabel: true}}})

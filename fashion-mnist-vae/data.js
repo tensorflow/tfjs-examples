@@ -58,9 +58,9 @@ function loadHeaderValues(buffer, headerLength) {
  *
  * @return {Float32Array[]} an array of images represented as typed arrays.
  */
-async function loadImages(filepath) {  
+async function loadImages(filepath) {
   if (!fs.existsSync(filepath)) {
-    console.log(`Data File: ${filepath} does not exist. 
+    console.log(`Data File: ${filepath} does not exist.
       Please see the README for instructions on how to download it`);
     process.exit(1);
   }
@@ -88,6 +88,7 @@ async function loadImages(filepath) {
   }
 
   assert.equal(images.length, headerValues[1]);
+  tf.util.shuffle(images);
   return images;
 }
 
@@ -108,7 +109,7 @@ function batchImages(imagesData) {
   }
 
   const batchedTensor = tf.tensor(
-      flat, [numImages, IMAGE_WIDTH, IMAGE_HEIGHT, IMAGE_CHANNELS], 'float32');
+    flat, [numImages, IMAGE_WIDTH, IMAGE_HEIGHT], 'float32');
 
   return batchedTensor;
 }
@@ -126,23 +127,24 @@ async function arrayToJimp(imageData) {
   for (let i = 0; i < IMAGE_HEIGHT; ++i) {
     for (let j = 0; j < IMAGE_WIDTH; ++j) {
       const inIndex = (i * IMAGE_WIDTH + j);
-      buffer.set([Math.floor(imageData[inIndex] * 255)], index++);
-      buffer.set([Math.floor(imageData[inIndex] * 255)], index++);
-      buffer.set([Math.floor(imageData[inIndex] * 255)], index++);
+      const val = imageData[inIndex] * 255;
+      buffer.set([Math.floor(val)], index++);
+      buffer.set([Math.floor(val)], index++);
+      buffer.set([Math.floor(val)], index++);
       buffer.set([255], index++);
     }
   }
 
   return new Promise((resolve, reject) => {
     new jimp(
-        {data: buffer, width: IMAGE_WIDTH, height: IMAGE_HEIGHT},
-        (err, img) => {
-          if (err) {
-            reject(err);
-          } else {
-            resolve(img);
-          }
-        });
+      { data: buffer, width: IMAGE_WIDTH, height: IMAGE_HEIGHT },
+      (err, img) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve(img);
+        }
+      });
   });
 }
 

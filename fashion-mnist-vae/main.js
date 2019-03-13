@@ -18,7 +18,8 @@
 const path = require('path');
 const _ = require('lodash');
 const mkdirp = require('mkdirp');
-const tf = require('@tensorflow/tfjs-node');
+const argparse = require('argparse');
+const tf = require('@tensorflow/tfjs');
 
 const {
   DATASET_PATH,
@@ -29,7 +30,7 @@ const {
   batchImages,
 } = require('./data');
 
-const {encoder, decoder, vae, vaeLoss} = require('./model');
+const { encoder, decoder, vae, vaeLoss } = require('./model');
 
 
 const EPOCHS = 100;
@@ -56,7 +57,7 @@ async function train(images, vaeOpts, savePath) {
   const optimizer = tf.train.adam();
 
   // Group the data into batches.
-  const batchSize = 256;
+  const batchSize = 512;
   const batches = _.chunk(images, batchSize);
 
   // Run the train loop.
@@ -68,7 +69,7 @@ async function train(images, vaeOpts, savePath) {
 
 
       const reshaped =
-          batchedImages.reshape([currentBatchSize, vaeOpts.originalDim]);
+        batchedImages.reshape([currentBatchSize, vaeOpts.originalDim]);
 
       // This is the model optimization step. We make a prediction
       // compute loss and return it so that optimizer.minimize can
@@ -76,10 +77,14 @@ async function train(images, vaeOpts, savePath) {
       optimizer.minimize(() => {
         const outputs = vaeModel.apply(reshaped);
         const loss = vaeLoss(reshaped, outputs, vaeOpts);
-        // console.log('loss', loss.dataSync());
         process.stdout.write('.');
+        if (j % 50 === 0) {
+          console.log('\nLoss', loss.dataSync());
+        }
+
         return loss;
       });
+      tf.dispose([batchedImages, reshaped]);
     }
     console.log('');
     // Gennerate a preview after each epoch
@@ -97,7 +102,7 @@ async function train(images, vaeOpts, savePath) {
  * @param {*} latentDimSize
  */
 async function generate(decoderModel, latentDimSize) {
-  const targetZ = tf.zeros([latentDimSize]).expandDims();
+  const targetZ = tf.randomNormal([latentDimSize]).expandDims();
   const generated = (decoderModel.apply(targetZ)).mul(255);
 
   await previewImage(generated.dataSync());
@@ -128,6 +133,8 @@ async function run() {
   const images = await loadImages(dataPath);
   console.log('Data Loaded', images.length);
   await previewImage(images[5]);
+  await previewImage(images[50]);
+  await previewImage(images[500]);
   // Start the training.
   const vaeOpts = {
     originalDim: IMAGE_FLAT_SIZE,
@@ -138,6 +145,23 @@ async function run() {
   await train(images, vaeOpts, savePath);
 }
 
-(async function() {
-  run();
+
+(async function () {
+  const parser = new argparse.ArgumentParser();
+  parser.addArgument('--gpu', {
+    action: 'storeTrue',
+    help: "Use tfjs-node-gpu for training (required CUDA and CuDNN)"
+  });
+
+  const args = parser.parseArgs();
+
+  if (args.gpu) {
+    console.log('Training using GPU.');
+    require('@tensorflow/tfjs-node-gpu');
+  } else {
+    console.log('Training using CPU.');
+    require('@tensorflow/tfjs-node');
+  }
+
+  await run();
 })();

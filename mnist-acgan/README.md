@@ -59,7 +59,7 @@ saved with the model as well.
 The Node.js-based training script allows you to log the loss values from
 the generator and the discriminator to
 [TensorBoard](https://www.tensorflow.org/guide/summaries_and_tensorboard).
-Relative to printing loss values to the console, which the=
+Relative to printing loss values to the console, which the
 training script performs by default, logging to tensorboard has the following
 advantanges:
 
@@ -125,4 +125,17 @@ with
 
 ```js
 require('@tensorflow/tfjs-node-gpu');
+```
+
+## Running unit tests
+
+This example comes with JavaScript unit tests. To run them, do:
+
+```sh
+pushd ../  # Go to the root directory of tfjs-exapmles
+yarn
+popd  # Go back to mnist-acgan/
+
+yarn
+yarn test
 ```

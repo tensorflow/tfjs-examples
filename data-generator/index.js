@@ -24,10 +24,10 @@ import * as ui from './ui';
 /**
  * Returns a dataset which will yield unlimited plays of the game.
  */
-export const GAME_GENERATOR_DATASET = tf.data.generator(() => {
-  const value = game.generateOnePlay();
-  const done = false;
-  return {value, done};
+export const GAME_GENERATOR_DATASET = tf.data.generator(function* gen() {
+  while (true) {
+    yield game.generateOnePlay();
+  }
 });
 
 /**
@@ -61,7 +61,7 @@ function gameToFeaturesAndLabel(gameState) {
         game.GAME_STATE.max_card_value);
     const features = tf.sum(handOneHot, 0);
     const label = tf.tensor1d([gameState.player1Win]);
-    return {features, label};
+    return {xs: features, ys: label};
   });
 }
 
@@ -187,7 +187,6 @@ async function trainModelUsingFitDatasetHandler() {
     metrics: ['accuracy'],
   });
   const dataset = GAME_GENERATOR_DATASET.map(gameToFeaturesAndLabel)
-                      .map(a => [a.features, a.label])
                       .batch(ui.getBatchSize());
   trainModelUsingFitDataset(model, dataset);
 }
@@ -199,7 +198,7 @@ async function trainModelUsingFitDatasetHandler() {
 function predictHandler() {
   const cards = ui.getInputCards();
   const features =
-      gameToFeaturesAndLabel({player1Hand: cards, player1Win: 1}).features;
+      gameToFeaturesAndLabel({player1Hand: cards, player1Win: 1}).xs;
   const output = GLOBAL_MODEL.predict(features.expandDims(0));
   ui.displayPrediction(`${output.dataSync()[0].toFixed(3)}`);
 }

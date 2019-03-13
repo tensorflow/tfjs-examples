@@ -15,8 +15,8 @@
     "watch": "cross-env NODE_ENV=development parcel index.html --no-hmr --open"
   },
   "dependencies": {
-    "@tensorflow/tfjs": "^0.15.3",
-    "@tensorflow/tfjs-vis": "^0.5.0"
+    "@tensorflow/tfjs": "^1.0.0",
+    "@tensorflow/tfjs-vis": "1.0.3"
   },
   "devDependencies": {
     "@tensorflow/tfjs-node": "^0.3.1",

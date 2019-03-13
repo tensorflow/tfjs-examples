@@ -280,8 +280,8 @@ Returns:
 */
 async function decodeSequence (
   inputSeq: tf.Tensor,
-  encoderModel: tf.Model,
-  decoderModel: tf.Model,
+  encoderModel: tf.LayersModel,
+  decoderModel: tf.LayersModel,
   numDecoderTokens: number,
   targetBeginIndex: number,
   reverseTargetCharIndex: {[indice: number]: string},
@@ -378,6 +378,8 @@ async function main () {
     optimizer: 'rmsprop',
     loss: 'categoricalCrossentropy',
   });
+
+  model.summary();
 
   await model.fit(
     [

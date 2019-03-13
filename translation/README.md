@@ -6,7 +6,7 @@ API of TensorFlow.js.
 It demonstrates loading a pretrained model hosted at a URL, using
 `tf.loadLayersModel()`
 
-## TRAIN DEMO
+## Training Demo
 
 The training data was 149,861 English-French sentence pairs available from [http://www.manythings.org/anki](http://www.manythings.org/anki).
 

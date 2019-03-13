@@ -51,16 +51,15 @@ Epoch 20/20
 WARNING:tensorflow:Layer lstm_1 was passed non-serializable keyword arguments: {'initial_state': [<tf.Tensor 'lstm/while/Exit_2:0' shape=(?, 256) dtype=float32>, <tf.Tensor 'lstm/while/Exit_3:0' shape=(?, 256) dtype=float32>]}. They will not be included in the serialized model (and thus will be missing at deserialization time).
 -
 Input sentence: Go.
-Target sentence: Va !																								
+Target sentence: Va !
 Decoded sentence: Continuez à nouveau.
 
 -
 Input sentence: Hi.
-Target sentence: Salut !																							
+Target sentence: Salut !
 Decoded sentence: Restez aven !
 
 -
 Input sentence: Run!
-Target sentence: Cours !																							
+Target sentence: Cours !
 Decoded sentence: Sais-tou ?
-

@@ -27,9 +27,7 @@ import * as tf from '@tensorflow/tfjs';
 
 let FLAGS = {} as any;
 
-async function readData (
-  dataFile: string,
-) {
+async function readData (dataFile: string) {
   // Vectorize the data.
   const inputTexts: string[] = [];
   const targetTexts: string[] = [];
@@ -39,8 +37,8 @@ async function readData (
 
   const fileStream = fs.createReadStream(dataFile);
   const rl = readline.createInterface({
-    input:    fileStream,
-    output:   process.stdout,
+    input: fileStream,
+    output: process.stdout,
     terminal: false,
   });
 
@@ -394,7 +392,6 @@ async function main () {
     },
   );
 
-  // Huan: be aware that the Node need a `file://` prefix to local filename
   await model.save('file://' + FLAGS.artifacts_dir);
 
   // tfjs.converters.save_keras_model(model, FLAGS.artifacts_dir)

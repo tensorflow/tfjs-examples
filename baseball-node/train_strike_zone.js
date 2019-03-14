@@ -31,9 +31,9 @@ async function run(epochCount, savePath) {
   });
 
   // Eval against test data:
-  await sz_model.testValidationData.forEach((data) => {
+  await sz_model.testValidationData.forEachAsync(data => {
     const evalOutput =
-        sz_model.model.evaluate(data[0], data[1], sz_model.TEST_DATA_LENGTH);
+        sz_model.model.evaluate(data.xs, data.ys, sz_model.TEST_DATA_LENGTH);
 
     console.log(
         `\nEvaluation result:\n` +

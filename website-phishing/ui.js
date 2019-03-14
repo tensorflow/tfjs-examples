@@ -70,8 +70,8 @@ export async function plotROC(fprs, tprs, epoch) {
   rocValues.push(newSeries);
 
   return tfvis.render.linechart(
-      {values: rocValues, series: rocSeries},
       document.getElementById('rocCurve'),
+      {values: rocValues, series: rocSeries},
       {
         width: 450,
         height: 320,

@@ -78,7 +78,7 @@ async function trainModel(trainDataset, validationDataset) {
         trainLogs.push(logs);
         tfvis.show.history(lossContainer, trainLogs, ['loss', 'val_loss'])
         tfvis.show.history(accContainer, trainLogs, ['acc', 'val_acc'])
-        const [[xTest, yTest]] = await validationDataset.toArray();
+        const [{xs: xTest, ys: yTest}] = await validationDataset.toArray();
         calculateAndDrawConfusionMatrix(model, xTest, yTest);
       },
     }
@@ -132,8 +132,7 @@ async function calculateAndDrawConfusionMatrix(model, xTest, yTest) {
   const confMatrixData = await tfvis.metrics.confusionMatrix(labels, preds);
   const container = document.getElementById('confusion-matrix');
   tfvis.render.confusionMatrix(
-      {values: confMatrixData, labels: data.IRIS_CLASSES},
-      container,
+      container, {values: confMatrixData, labels: data.IRIS_CLASSES},
       {shadeDiagonal: true},
   );
 

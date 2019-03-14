@@ -67,7 +67,7 @@ export function plotLoss(batch, loss, set) {
   lossValues[series].push({x: batch, y: loss});
   const lossContainer = document.getElementById('loss-canvas');
   tfvis.render.linechart(
-      {values: lossValues, series: ['train', 'validation']}, lossContainer, {
+      lossContainer, {values: lossValues, series: ['train', 'validation']}, {
         xLabel: 'Batch #',
         yLabel: 'Loss',
         width: 400,
@@ -82,8 +82,8 @@ export function plotAccuracy(batch, accuracy, set) {
   const series = set === 'train' ? 0 : 1;
   accuracyValues[series].push({x: batch, y: accuracy});
   tfvis.render.linechart(
-      {values: accuracyValues, series: ['train', 'validation']},
-      accuracyContainer, {
+      accuracyContainer,
+      {values: accuracyValues, series: ['train', 'validation']}, {
         xLabel: 'Batch #',
         yLabel: 'Accuracy',
         width: 400,

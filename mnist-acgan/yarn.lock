@@ -709,7 +709,7 @@
     rimraf "^2.6.2"
     tar "^4.4.6"
 
-"@tensorflow/tfjs@~1.0.1":
+"@tensorflow/tfjs@1.0.1", "@tensorflow/tfjs@~1.0.1":
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/@tensorflow/tfjs/-/tfjs-1.0.1.tgz#1642d037222e90f8393f3b12ffc38a770d962515"
   integrity sha512-EPFnB+ihJc11npoVBm8PWLfgGcMh8KhU2y7T4hpNNDRPTOvZqD/xx5ApVV9j300IHMKcUup25S6V2e5CfTkTbg==

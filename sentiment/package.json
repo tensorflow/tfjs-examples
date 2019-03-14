@@ -19,8 +19,8 @@
     "train": "babel-node train.js"
   },
   "devDependencies": {
-    "@tensorflow/tfjs-node": "0.3.1",
-    "@tensorflow/tfjs-node-gpu": "0.3.1",
+    "@tensorflow/tfjs-node": "1.0.1",
+    "@tensorflow/tfjs-node-gpu": "1.0.1",
     "argparse": "^1.0.10",
     "babel-cli": "^6.26.0",
     "babel-core": "^6.26.3",

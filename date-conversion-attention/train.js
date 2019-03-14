@@ -57,12 +57,8 @@ export function generateDataForTraining(trainSplit = 0.8, valSplit = 0.15) {
   const dateTuples = [];
   const MIN_YEAR = 1950;
   const MAX_YEAR = 2050;
-  for (let year = MIN_YEAR; year < MAX_YEAR; ++year) {
-    for (let month = 1; month <= 12; ++month) {
-      for (let day = 1; day <= 28; ++day) {
-        dateTuples.push([year, month, day]);
-      }
-    }
+  for(let date = new Date(MIN_YEAR,0,1); date.getFullYear() < MAX_YEAR; date.setDate(date.getDate() +1) ) {
+    dateTuples.push([date.getFullYear(), date.getMonth() + 1, date.getDate()]);
   }
   tf.util.shuffle(dateTuples);
 

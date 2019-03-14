@@ -21,8 +21,8 @@
     "train": "node train.js"
   },
   "devDependencies": {
-    "@tensorflow/tfjs-node": "0.3.1",
-    "@tensorflow/tfjs-node-gpu": "0.3.1",
+    "@tensorflow/tfjs-node": "1.0.1",
+    "@tensorflow/tfjs-node-gpu": "1.0.1",
     "babel-core": "^6.26.3",
     "babel-plugin-transform-runtime": "~6.23.0",
     "babel-polyfill": "~6.26.0",

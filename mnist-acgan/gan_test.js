@@ -30,6 +30,16 @@ describe('ACGAN', () => {
     expect(generator.outputs.length).toEqual(1);
     // MNIST image tensor output.
     expect(generator.outputs[0].shape).toEqual([null, 28, 28, 1]);
+
+    // Test generator.predict().
+    const latentInput = tf.randomUniform([2, 5]);
+    const classInput = tf.tensor2d([[0], [1]]);
+    const numTensors0 = tf.memory().numTensors;
+    const output = generator.predict([latentInput, classInput]);
+    expect(output.shape).toEqual([2, 28, 28, 1]);
+    tf.dispose(output);
+    // Assert no memory leak.
+    expect(tf.memory().numTensors).toEqual(numTensors0);
   });
 
   it('buildDiscriminator', () => {
@@ -97,6 +107,11 @@ describe('ACGAN', () => {
     // Burn-in training call.
     await gan.trainCombinedModelOneStep(batchSize, latentSize, model);
 
+    const discriminatorOldWeights =
+        discriminator.getWeights().map(w => w.dataSync());
+    const generatorOldWeights =
+        generator.getWeights().map(w => w.dataSync());
+
     // Actually-tested training call.
     const numTensors0 = tf.memory().numTensors;
     const losses =
@@ -108,5 +123,25 @@ describe('ACGAN', () => {
     expect(losses[2]).toBeGreaterThan(0);
     // Assert no memory leak.
     expect(tf.memory().numTensors).toEqual(numTensors0);
+
+    const discriminatorNewWeights =
+        discriminator.getWeights().map(w => w.dataSync());
+    const generatorNewWeights =
+        generator.getWeights().map(w => w.dataSync());
+    // Assert that the discriminator's weights are not changed by the training
+    // step.
+    discriminatorOldWeights.forEach(((oldValue, i) => {
+      const maxAbsDiff =
+          tf.tensor1d(discriminatorNewWeights[i]).sub(tf.tensor1d(oldValue))
+          .abs().max().arraySync();
+      expect(maxAbsDiff).toEqual(0);
+    }));
+    // Assert that the generator's weights are changed by the training step.
+    generatorNewWeights.forEach(((oldValue, i) => {
+      const maxAbsDiff =
+          tf.tensor1d(generatorOldWeights[i]).sub(tf.tensor1d(oldValue))
+          .abs().max().arraySync();
+      expect(maxAbsDiff).toBeGreaterThan(0);
+    }));
   });
 });

@@ -99,3 +99,13 @@ These files can be directly uploaded to the Embedding Projector
 
 See example screenshot:
 ![image](https://user-images.githubusercontent.com/16824702/52145038-f0fce480-262d-11e9-9313-9a5014ace25f.png)
+
+### Running unit tests
+
+This example comes with unit tests. If you would like to submit changes to the code, 
+be sure the tests first:
+
+```sh
+yarn
+yarn test
+```

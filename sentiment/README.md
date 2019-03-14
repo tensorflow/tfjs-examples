@@ -103,7 +103,7 @@ See example screenshot:
 ### Running unit tests
 
 This example comes with unit tests. If you would like to submit changes to the code, 
-be sure the tests first:
+be sure to run the tests and ensure they pass first:
 
 ```sh
 yarn

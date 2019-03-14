@@ -140,8 +140,11 @@ function vaeLoss(inputs, outputs, vaeOpts) {
   const reconstructionLoss =
     tf.losses.meanSquaredError(inputs, decoderOutput).mul(originalDim);
 
+  //const reconstructionLoss =
+  //  tf.metrics.binaryCrossentropy(inputs, decoderOutput).mul(originalDim);
+
   let klLoss = zLogVar.add(1).sub(zMean.square()).sub(zLogVar.exp());
-  klLoss = klLoss.sum(-1);
+  klLoss = klLoss.sum(-1);  // or klLoss.sum(-1)
   klLoss = klLoss.mul(-0.5)
 
   return reconstructionLoss.add(klLoss).mean();

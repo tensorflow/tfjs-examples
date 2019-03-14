@@ -33,7 +33,7 @@ const {
 const { encoder, decoder, vae, vaeLoss } = require('./model');
 
 
-const EPOCHS = 100;
+const EPOCHS = 10;
 
 
 /**
@@ -55,9 +55,11 @@ async function train(images, vaeOpts, savePath) {
 
   // Cteate the optimizer
   const optimizer = tf.train.adam();
+  // const optimizer = tf.train.sgd(0.001)
+
 
   // Group the data into batches.
-  const batchSize = 512;
+  const batchSize = 256;
   const batches = _.chunk(images, batchSize);
 
   // Run the train loop.
@@ -87,7 +89,7 @@ async function train(images, vaeOpts, savePath) {
       tf.dispose([batchedImages, reshaped]);
     }
     console.log('');
-    // Gennerate a preview after each epoch
+    // Generate a preview after each epoch
     await generate(decoderModel, vaeOpts.latentDim);
   }
 

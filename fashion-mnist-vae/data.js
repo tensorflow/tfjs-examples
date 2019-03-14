@@ -24,7 +24,7 @@ const terminalImage = require('terminal-image');
 
 const readFile = util.promisify(fs.readFile);
 
-const DATASET_PATH = './dataset';
+const DATASET_PATH = './dataset/mnist';
 const TRAIN_IMAGES_FILE = 'train-images-idx3-ubyte';
 const IMAGE_HEADER_MAGIC_NUM = 2051;
 const IMAGE_HEADER_BYTES = 16;

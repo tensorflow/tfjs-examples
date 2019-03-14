@@ -1,4 +1,5 @@
 import * as tf from '@tensorflow/tfjs';
+import * as tfvis from '@tensorflow/tfjs-vis';
 import * as d3 from 'd3';
 
 const decoderUrl =
@@ -13,7 +14,11 @@ const IMAGE_CHANNELS = 1;
 const LATENT_DIMS = 2;
 
 async function loadModel(modelUrl) {
-  return tf.loadLayersModel(modelUrl);
+  const decoder = await tf.loadLayersModel(modelUrl);
+  tfvis.show.modelSummary({ name: 'decoder' }, decoder);
+  tfvis.show.layer({ name: 'dense2' }, decoder.getLayer('dense_Dense2'));
+  tfvis.show.layer({ name: 'dense3' }, decoder.getLayer('dense_Dense3'));
+  return decoder;
 }
 
 function generateLatentSpace(dimensions, pointsPerDim, start, end) {
@@ -31,7 +36,7 @@ function generateLatentSpace(dimensions, pointsPerDim, start, end) {
 function decodeZ(inputTensor) {
   return tf.tidy(() => {
     const batched = decoder.apply(inputTensor).mul(255).cast('int32');
-    // console.log('batched', batched)
+    console.log('batched', batched)
     // const flat = tf.unstack(batched)[0];
     // console.log('flat', flat)
     const reshaped = batched.reshape([IMAGE_HEIGHT, IMAGE_WIDTH, IMAGE_CHANNELS]);

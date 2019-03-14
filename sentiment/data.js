@@ -21,7 +21,7 @@ import * as https from 'https';
 import * as os from 'os';
 import * as path from 'path';
 
-import {OOV_INDEX, PAD_INDEX, padSequences} from './sequence_utils';
+import {OOV_INDEX, padSequences} from './sequence_utils';
 
 // `import` doesn't seem to work with extract-zip.
 const extract = require('extract-zip');
@@ -92,7 +92,7 @@ function loadFeatures(filePath, numWords, maxLen, multihot = false) {
     const buffer = tf.buffer([sequences.length, numWords]);
     sequences.forEach((seq, i) => {
       seq.forEach(wordIndex => {
-        if (wordIndex !== OOV_CHAR) {
+        if (wordIndex !== OOV_INDEX) {
           buffer.set(1, i, wordIndex);
         }
       });

@@ -108,8 +108,8 @@ function batchImages(imagesData) {
     }
   }
 
-  const batchedTensor = tf.tensor(
-    flat, [numImages, IMAGE_WIDTH, IMAGE_HEIGHT], 'float32');
+  const batchedTensor =
+      tf.tensor(flat, [numImages, IMAGE_WIDTH, IMAGE_HEIGHT], 'float32');
 
   return batchedTensor;
 }
@@ -137,14 +137,14 @@ async function arrayToJimp(imageData) {
 
   return new Promise((resolve, reject) => {
     new jimp(
-      { data: buffer, width: IMAGE_WIDTH, height: IMAGE_HEIGHT },
-      (err, img) => {
-        if (err) {
-          reject(err);
-        } else {
-          resolve(img);
-        }
-      });
+        {data: buffer, width: IMAGE_WIDTH, height: IMAGE_HEIGHT},
+        (err, img) => {
+          if (err) {
+            reject(err);
+          } else {
+            resolve(img);
+          }
+        });
   });
 }
 

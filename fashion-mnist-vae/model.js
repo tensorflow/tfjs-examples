@@ -33,16 +33,16 @@ const tf = require('@tensorflow/tfjs');
  * @param {*} opts
  */
 function encoder(opts) {
-  const { originalDim, intermediateDim, latentDim } = opts;
+  const {originalDim, intermediateDim, latentDim} = opts;
 
-  const inputs = tf.input({ shape: [originalDim], name: 'encoder_input' });
-  const x = tf.layers.dense({ units: intermediateDim, activation: 'relu' })
-    .apply(inputs);
-  const zMean = tf.layers.dense({ units: latentDim, name: 'z_mean' }).apply(x);
+  const inputs = tf.input({shape: [originalDim], name: 'encoder_input'});
+  const x = tf.layers.dense({units: intermediateDim, activation: 'relu'})
+                .apply(inputs);
+  const zMean = tf.layers.dense({units: latentDim, name: 'z_mean'}).apply(x);
   const zLogVar =
-    tf.layers.dense({ units: latentDim, name: 'z_log_var' }).apply(x);
+      tf.layers.dense({units: latentDim, name: 'z_log_var'}).apply(x);
 
-  const z = new zLayer({ name: 'z' }, [latentDim]).apply([zMean, zLogVar]);
+  const z = new zLayer({name: 'z'}, [latentDim]).apply([zMean, zLogVar]);
 
   const enc = tf.model({
     inputs: inputs,
@@ -88,13 +88,13 @@ class zLayer extends tf.layers.Layer {
  * @param {*} opts
  */
 function decoder(opts) {
-  const { originalDim, intermediateDim, latentDim } = opts;
+  const {originalDim, intermediateDim, latentDim} = opts;
 
-  const latentInputs = tf.input({ shape: [latentDim], name: 'z_sampling' });
-  const x = tf.layers.dense({ units: intermediateDim, activation: 'relu' })
-    .apply(latentInputs);
+  const latentInputs = tf.input({shape: [latentDim], name: 'z_sampling'});
+  const x = tf.layers.dense({units: intermediateDim, activation: 'relu'})
+                .apply(latentInputs);
   const outputs =
-    tf.layers.dense({ units: originalDim, activation: 'sigmoid' }).apply(x);
+      tf.layers.dense({units: originalDim, activation: 'sigmoid'}).apply(x);
 
   const dec = tf.model({
     inputs: latentInputs,
@@ -134,15 +134,16 @@ function vae(encoder, decoder) {
  * @param {*} vaeOpts
  */
 function vaeLoss(inputs, outputs, vaeOpts) {
-  const { originalDim } = vaeOpts;
+  const {originalDim} = vaeOpts;
   const decoderOutput = outputs[0];
   const zMean = outputs[1];
   const zLogVar = outputs[2];
 
   const reconstructionLoss =
-    tf.losses.meanSquaredError(inputs, decoderOutput).mul(originalDim);
+      tf.losses.meanSquaredError(inputs, decoderOutput).mul(originalDim);
 
-  //const reconstructionLoss =
+  // binaryCrossEntropy can be used as an altenarive loss function
+  // const reconstructionLoss =
   //  tf.metrics.binaryCrossentropy(inputs, decoderOutput).mul(originalDim);
 
   let klLoss = zLogVar.add(1).sub(zMean.square()).sub(zLogVar.exp());

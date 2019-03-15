@@ -4,6 +4,9 @@ This example shows you how to train a [variational autoenconder](https://blog.ke
 
 The model will be trained on the [Fashion MNIST](https://github.com/zalandoresearch/fashion-mnist) dataset
 
+Thiis example is a port of the code for a multilayer perceptron based variational
+autoencoder from this link https://github.com/keras-team/keras/blob/master/examples/variational_autoencoder.py See [this tutorial](https://blog.keras.io/building-autoencoders-in-keras.html) for a description of how autoencoders work.
+
 ## Prepare the node environment:
 ```sh
 $ yarn

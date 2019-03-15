@@ -142,18 +142,31 @@ function parseArguments() {
     'file will be written to /tmp/embed_vectors.tsv and the labels ' +
     'file will be written to /tmp/embed_label.tsv'
   });
+  parser.addArgument('--logDir', {
+    type: 'string',
+    help: 'Optional tensorboard log directory, to which the loss and ' +
+    'accuracy will be logged during model training.'
+  })
+  parser.addArgument('--logUpdateFreq', {
+    type: 'string',
+    defaultValue: 'batch',
+    optionStrings: ['batch', 'epoch'],
+    help: 'Frequency at which the loss and accuracy will be logged to ' +
+    'tensorboard.'
+  })
   return parser.parseArgs();
 }
 
 async function main() {
   const args = parseArguments();
 
+  let tfn;
   if (args.gpu) {
     console.log('Using GPU for training');
-    require('@tensorflow/tfjs-node-gpu');
+    tfn = require('@tensorflow/tfjs-node-gpu');
   } else {
     console.log('Using CPU for training');
-    require('@tensorflow/tfjs-node');
+    tfn = require('@tensorflow/tfjs-node');
   }
 
   console.log('Loading data...');
@@ -176,7 +189,10 @@ async function main() {
   await model.fit(xTrain, yTrain, {
     epochs: args.epochs,
     batchSize: args.batchSize,
-    validationSplit: args.validationSplit
+    validationSplit: args.validationSplit,
+    callbacks: args.logDir == null ? null : tfn.node.tensorBoard(args.logDir, {
+      updateFreq: args.logUpdateFreq
+    })
   });
 
   console.log('Evaluating model...');

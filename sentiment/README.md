@@ -70,8 +70,28 @@ Other arguments of the `yarn train` command include:
   training completes.
 - `--embeddingFilesPrefix` Prefix for the path to which to save the embedding vectors
   and labels files (optinal). See the section below for details.
+- `--logDir` This optional string lets you log the loss and accuracy values to
+  a tensorboard log directory during training. For example if you start your training
+  with command:
+
+  ```sh
+  yarn train lstm --logDir /tmp/my_lstm_logs
+  ```
+
+  You can use the following commands to start a tensorboard server in a separate
+  terminal:
+
+  ```sh
+  pip install tensorboard   # Unless tensorboard is already installed
+  tensorboard --logdir /tmp/my_lstm_logs
+  ```
+
+  Then you can open a browser tab and navigate to the http:// URL indicated by
+  tensorboard (by default: http://localhost:6006) to view the loss and accuracy
+  curves.
 
 The detailed code for training are in the file [train.js](./train.js).
+
 
 ### Visualizing the word embeddings in embedding projector
 
@@ -102,7 +122,7 @@ See example screenshot:
 
 ### Running unit tests
 
-This example comes with unit tests. If you would like to submit changes to the code, 
+This example comes with unit tests. If you would like to submit changes to the code,
 be sure to run the tests and ensure they pass first:
 
 ```sh

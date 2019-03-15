@@ -33,7 +33,7 @@ import {writeEmbeddingMatrixAndLabels} from './embedding';
  *   configure the embedding layer.
  * @returns An uncompiled instance of `tf.Model`.
  */
-function buildModel(modelType, maxLen, vocabularySize, embeddingSize) {
+export function buildModel(modelType, maxLen, vocabularySize, embeddingSize) {
   // TODO(cais): Bidirectional and dense-only.
   const model = tf.sequential();
   if (modelType === 'multihot') {
@@ -227,4 +227,6 @@ async function main() {
   }
 }
 
-main();
+if (require.main === module) {
+  main();
+}

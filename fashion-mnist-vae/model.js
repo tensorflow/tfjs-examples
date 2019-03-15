@@ -41,6 +41,7 @@ function encoder(opts) {
   const zMean = tf.layers.dense({ units: latentDim, name: 'z_mean' }).apply(x);
   const zLogVar =
     tf.layers.dense({ units: latentDim, name: 'z_log_var' }).apply(x);
+
   const z = new zLayer({ name: 'z' }, [latentDim]).apply([zMean, zLogVar]);
 
   const enc = tf.model({
@@ -72,7 +73,8 @@ class zLayer extends tf.layers.Layer {
     const mean = 0;
     const std = 1.0;
     const epsilon = tf.randomNormal([batch, dim], mean, std);
-    return z_mean.add(z_log_var.mul(0.5).exp()).mul(epsilon);
+
+    return z_mean.add((z_log_var.mul(0.5).exp()).mul(epsilon));
   }
 
   getClassName() {

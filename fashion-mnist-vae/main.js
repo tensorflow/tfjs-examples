@@ -33,7 +33,7 @@ const {
 const { encoder, decoder, vae, vaeLoss } = require('./model');
 
 
-const EPOCHS = 10;
+const EPOCHS = 15;
 
 
 /**

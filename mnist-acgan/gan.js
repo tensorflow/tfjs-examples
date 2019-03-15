@@ -67,7 +67,7 @@ const IMAGE_SIZE = 28;
 
 // The value of the tf object will be set dynamically, depending on whether
 // the CPU (tfjs-node) or GPU (tfjs-node-gpu) backend is used. This is why
-// `let` is used in lieu of the more conventiona `const` here.
+// `let` is used in lieu of the more conventional `const` here.
 let tf = require('@tensorflow/tfjs');
 
 /**

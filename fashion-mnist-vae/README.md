@@ -22,7 +22,47 @@ Uncompress the file and put the resulting `train-images-idx3-ubyte`. Into a fold
 $ node main.js
 ```
 
+or if you have CUDA installed you can use
+
+```sh
+$ node main.js --gpu
+```
+
 It will display a preview image after every epoch and will save the model at the end of training.
 
 If you are running on a Linux system that is [CUDA compatible](https://www.tensorflow.org/install/install_linux), try using the GPU
 package. To do so, replace `require('@tensorflow/tfjs-node')` with `require('@tensorflow/tfjs-node-gpu');` in main.js
+
+## Serve the model
+
+Once the training is complete run
+
+```sh
+yarn serve
+```
+
+or 
+
+```sh
+npm run serve
+```
+
+to serve the model
+
+## View the results
+
+In another terminal run 
+
+```sh
+yarn watch
+```
+
+or 
+
+```sh
+npm run watch
+```
+
+To start up the client once it loads you should see an image like the one below after a few seconds.
+
+![screenshot of vae results on fashion mnist. A 30x30 grid of small images](fashion-mnist-vae-scr.png)

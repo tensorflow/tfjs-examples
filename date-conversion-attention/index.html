@@ -1,0 +1,177 @@
+<!--
+Copyright 2018 Google LLC. All Rights Reserved.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+==============================================================================
+-->
+
+<!doctype html>
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="../shared/tfjs-examples.css" />
+  <title>TensorFlow.js: Date Conversion Through Attention</title>
+</head>
+<style>
+  .horizontal-sections {
+    display: inline-block;
+    vertical-align: top;
+  }
+  .date-label {
+    font-size: 18px;
+    font-family: monospace;
+    padding: 5px;
+    width: 300px;
+    display: block;
+  }
+  .hint {
+    font-size: 12px;
+    font-family: monospace;
+  }
+  .dates {
+    font-size: 24px;
+    font-family: monospace;
+  }
+  .date-input-output-section {
+    display: inline-block;
+  }
+  .attention-section {
+    margin-top: 8px;
+  }
+  #attention-heatmap {
+    width: 600px;
+    height: 360px;
+    border: 2px solid lightblue
+  }
+  #date-format-table {
+    font-size: 15px;
+    font-family: monospace;
+    text-align: left;
+  }
+  li {
+    padding-top: 1px;
+    padding-bottom: 2px;
+    text-decoration: underline;
+    color: blue;
+  }
+  #random-date {
+    margin-top: 10px;
+    padding-top: 5px;
+    padding-bottom: 5px;
+  }
+  .benchmark {
+    color: gray;
+  }
+</style>
+
+<body>
+  <div class='tfjs-example-container centered-container'>
+    <section class='title-area'>
+      <h1>TensorFlow.js: Date String Conversion</h1>
+      <p class='subtitle'>Solving a Sequence-to-Sequence Task Using LSTM and Attention</p>
+    </section>
+    <section>
+      <p class='section-head'>Description</p>
+      <p>
+        This example demonstrates the inference stage of using a sequence-to-sequence
+        model to convert a myriad of common date formats into the
+        <a href="https://en.wikipedia.org/wiki/ISO_8601#Calendar_dates" target="_blank">
+          ISO 8601 date format
+        </a>
+        (i.e., YYYY-MM-DD). The list below shows examples of the supported input date
+        formats.
+      </p>
+
+      <p>
+        The model is based on
+        <a href="https://js.tensorflow.org/api/latest/#layers.lstm" target="_blank">LSTM</a>
+        and the
+        <a href="https://medium.com/syncedreview/a-brief-overview-of-attention-mechanism-13c578ba9129" target="_blank">
+          attention mechanism
+        </a>.
+      </p>
+
+      <p>
+        The training uses 
+        <a href="https://github.com/tensorflow/tfjs-node">tfjs-node</a>
+        and runs in the backend Node.js environment. The training script
+        can be found
+        <a href="https://github.com/tensorflow/tfjs-examples/tree/master/date-conversion-attention/train.js">
+          here
+        </a>.
+      </p>
+    </section>
+    <section>
+      <p class='section-head'>Status</p>
+      <p>
+        <span id="status"></span>
+      </p>
+    </section>
+    <section>
+      <p class='section-head'>Support Date Formats</p>
+      <p>
+        <div id="date-format-table">
+          <div>Examples for supported formats (click to try):</div>
+          <ul>
+            <li><span class="input-date-example">23Jan2015</span></li>
+            <li><span class="input-date-example">012315</span></li>
+            <li><span class="input-date-example">01/23/15</span></li>
+            <li><span class="input-date-example">1/23/15</span></li>
+            <li><span class="input-date-example">01/23/2015</span></li>
+            <li><span class="input-date-example">1/23/2015</span></li>
+            <li><span class="input-date-example">23-01-2015</span></li>
+            <li><span class="input-date-example">23-1-2015</span></li>
+            <li><span class="input-date-example">JAN 23, 15</span></li>
+            <li><span class="input-date-example">Jan 23, 2015</span></li>
+            <li><span class="input-date-example">23.01.2015</span></li>
+            <li><span class="input-date-example">23.1.2015</span></li>
+            <li><span class="input-date-example">2015.01.23</span></li>
+            <li><span class="input-date-example">2015.1.23</span></li>
+            <li><span class="input-date-example">20150123</span></li>
+            <li><span class="input-date-example">2015/01/23</span></li>
+            <li><span class="input-date-example">2015-01-23</span></li>
+            <li><span class="input-date-example">2015-1-23</span></li>
+          </ul>
+        </table>
+      </p>
+    </section>
+
+    <div class="horizontal-sections">
+      <div class="horizontal-sections">
+        <div class="date-input-output-section">
+          <div class="date-label">Input date string:</div>
+          <input type="text" class="dates" id="input-date-string" value="JAN 20, 2001"></input>
+        </div>
+
+        <div class="hint">Press Enter to Refresh Conversion</div>
+        <button id="random-date">Random</button>
+      </div>
+
+      <div class="horizontal-sections">
+        <div class="date-input-output-section">
+          <div class="date-label">Output date string:</div>
+          <input type="text" class="dates" id="output-date-string" disabled="true"></input>
+        </div>
+
+        <div class="attention-section">
+          <div class="date-label">Attention matrix:</div>
+          <div id="attention-heatmap"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</body>
+
+<script src="index.js"></script>

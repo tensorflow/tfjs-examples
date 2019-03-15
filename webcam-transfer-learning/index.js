@@ -37,7 +37,7 @@ let model;
 // Loads mobilenet and returns a model that returns the internal activation
 // we'll use as input to our classifier model.
 async function loadTruncatedMobileNet() {
-  const mobilenet = await tf.loadModel(
+  const mobilenet = await tf.loadLayersModel(
       'https://storage.googleapis.com/tfjs-models/tfjs/mobilenet_v1_0.25_224/model.json');
 
   // Return a model that outputs an internal activation.
@@ -74,9 +74,8 @@ async function train() {
       // Flattens the input to a vector so we can use it in a dense layer. While
       // technically a layer, this only performs a reshape (and has no training
       // parameters).
-      tf.layers.flatten({
-        inputShape: truncatedMobileNet.outputs[0].shape.slice(1)
-      }),
+      tf.layers.flatten(
+          {inputShape: truncatedMobileNet.outputs[0].shape.slice(1)}),
       // Layer 1.
       tf.layers.dense({
         units: ui.getDenseUnits(),

@@ -9,11 +9,10 @@
     "node": ">=8.11.0"
   },
   "dependencies": {
-    "@tensorflow/tfjs-node": "^0.2.3",
+    "@tensorflow/tfjs-node": "^1.0.1",
     "argparse": "^1.0.10"
   },
   "scripts": {
-    "postinstall": "yarn upgrade --pattern @tensorflow"
   },
   "devDependencies": {
     "clang-format": "~1.2.2"

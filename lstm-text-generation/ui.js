@@ -19,31 +19,8 @@
 import * as tf from '@tensorflow/tfjs';
 import * as tfvis from '@tensorflow/tfjs-vis';
 
-import {TextData} from './data';
+import {TEXT_DATA_URLS, TextData} from './data';
 import {SaveableLSTMTextGenerator} from './index';
-
-// TODO(cais): Support user-supplied text data.
-const TEXT_DATA_URLS = {
-  'nietzsche': {
-    url:
-        'https://storage.googleapis.com/tfjs-examples/lstm-text-generation/data/nietzsche.txt',
-    needle: 'Nietzsche'
-  },
-  'julesverne': {
-    url:
-        'https://storage.googleapis.com/tfjs-examples/lstm-text-generation/data/t1.verne.txt',
-    needle: 'Jules Verne'
-  },
-  'shakespeare': {
-    url:
-        'https://storage.googleapis.com/tfjs-examples/lstm-text-generation/data/t8.shakespeare.txt',
-    needle: 'Shakespeare'
-  },
-  'tfjs-code': {
-    url: 'https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@0.11.7/dist/tf.js',
-    needle: 'TensorFlow.js Code (Compiled, 0.11.7)'
-  }
-}
 
 // UI controls.
 const testText = document.getElementById('test-text');
@@ -149,7 +126,7 @@ export async function onTextGenerationChar(char) {
   generatedTextInput.value += char;
   generatedTextInput.scrollTop = generatedTextInput.scrollHeight;
   const charCount = generatedTextInput.value.length;
-  const generateLength = Number.parseInt(generateLengthInput.value);
+  const generateLength = parseInt(generateLengthInput.value);
   const status = `Generating text: ${charCount}/${generateLength} complete...`;
   logStatus(status);
   textGenerationStatus.textContent = status;
@@ -204,8 +181,8 @@ export function setUpUI() {
         logStatus('ERROR: Please load text data set first.');
         return;
       }
-      const generateLength = Number.parseInt(generateLengthInput.value);
-      const temperature = Number.parseFloat(temperatureInput.value);
+      const generateLength = parseInt(generateLengthInput.value);
+      const temperature = parseFloat(temperatureInput.value);
       if (!(generateLength > 0)) {
         logStatus(
             `ERROR: Invalid generation length: ${generateLength}. ` +
@@ -352,7 +329,7 @@ export function setUpUI() {
       // Create model from scratch.
       logStatus('Creating model... Please wait.');
       const lstmLayerSizes = lstmLayersSizesInput.value.trim().split(',').map(
-          s => Number.parseInt(s));
+          s => parseInt(s));
 
       // Sanity check on the LSTM layer sizes.
       if (lstmLayerSizes.length === 0) {
@@ -399,27 +376,27 @@ export function setUpUI() {
       return;
     }
 
-    const numEpochs = Number.parseInt(epochsInput.value);
+    const numEpochs = parseInt(epochsInput.value);
     if (!(numEpochs > 0)) {
       logStatus(`ERROR: Invalid number of epochs: ${numEpochs}`);
       return;
     }
-    const examplesPerEpoch = Number.parseInt(examplesPerEpochInput.value);
+    const examplesPerEpoch = parseInt(examplesPerEpochInput.value);
     if (!(examplesPerEpoch > 0)) {
       logStatus(`ERROR: Invalid examples per epoch: ${examplesPerEpoch}`);
       return;
     }
-    const batchSize = Number.parseInt(batchSizeInput.value);
+    const batchSize = parseInt(batchSizeInput.value);
     if (!(batchSize > 0)) {
       logStatus(`ERROR: Invalid batch size: ${batchSize}`);
       return;
     }
-    const validationSplit = Number.parseFloat(validationSplitInput.value);
+    const validationSplit = parseFloat(validationSplitInput.value);
     if (!(validationSplit >= 0 && validationSplit < 1)) {
       logStatus(`ERROR: Invalid validation split: ${validationSplit}`);
       return;
     }
-    const learningRate = Number.parseFloat(learningRateInput.value);
+    const learningRate = parseFloat(learningRateInput.value);
     if (!(learningRate > 0)) {
       logStatus(`ERROR: Invalid learning rate: ${learningRate}`);
       return;

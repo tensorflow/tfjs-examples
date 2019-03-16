@@ -174,15 +174,14 @@ async function buildObjectDetectionModel() {
   });
   parser.addArgument('--logDir', {
     type: 'string',
-    help: 'Optional tensorboard log directory, to which the loss and ' +
-    'metric will be logged during model training.'
+    help: 'Optional tensorboard log directory, to which the loss ' +
+    'values will be logged during model training.'
   });
   parser.addArgument('--logUpdateFreq', {
     type: 'string',
     defaultValue: 'batch',
     optionStrings: ['batch', 'epoch'],
-    help: 'Frequency at which the loss and metric will be logged to ' +
-    'tensorboard.'
+    help: 'Frequency at which the loss will be logged to tensorboard.'
   });
   const args = parser.parseArgs();
 

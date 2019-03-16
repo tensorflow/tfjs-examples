@@ -146,14 +146,14 @@ function parseArguments() {
     type: 'string',
     help: 'Optional tensorboard log directory, to which the loss and ' +
     'accuracy will be logged during model training.'
-  })
+  });
   parser.addArgument('--logUpdateFreq', {
     type: 'string',
     defaultValue: 'batch',
     optionStrings: ['batch', 'epoch'],
     help: 'Frequency at which the loss and accuracy will be logged to ' +
     'tensorboard.'
-  })
+  });
   return parser.parseArgs();
 }
 

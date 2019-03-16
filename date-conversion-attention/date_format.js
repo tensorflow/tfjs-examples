@@ -193,6 +193,12 @@ export function dateTupleToYYYYDashMDashD(dateTuple) {
   return `${dateTuple[0]}-${dateTuple[1]}-${dateTuple[2]}`;
 }
 
+/** Date format such as 20 JAN 2019. */
+export function dateTupleToDSpaceMMMSpaceYYYY(dateTuple) {
+  const monthStr = MONTH_NAMES_3LETTER[dateTuple[1] - 1];
+  return `${dateTuple[2]} ${monthStr} ${dateTuple[0]}`;
+}
+
 /**
  * Date format such as 2019-01-20
  * (i.e.,  the ISO format and the conversion target).
@@ -222,6 +228,7 @@ export const INPUT_FNS = [
   dateTupleToYYYYDotMDotD,
   dateTupleToYYYYMMDD,
   dateTupleToYYYYDashMDashD,
+  dateTupleToDSpaceMMMSpaceYYYY,
   dateTupleToYYYYDashMMDashDD
 ];  // TODO(cais): Add more formats if necessary.
 

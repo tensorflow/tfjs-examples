@@ -47,7 +47,7 @@ advantanges:
 
 1. Persistence of the loss values, so you can have a copy of the training
    history available even if the system crashes in the middle of the training
-   for some reason, while logs in consoles a more ephemeral.
+   for some reason, while logs in consoles are more ephemeral.
 2. Visualizing the loss values as curves makes the trends easier to see (e.g.,
    see the screenshot below).
 

@@ -388,7 +388,9 @@ async function main () {
   model.summary();
 
   if (args.logDir != null) {
-    console.log(`Logging to tensorboard logdir: ${args.logDir}`);
+    console.log(
+      `To view logs in tensorboard, do:\n` +
+      `  tensorboard --logdir ${args.logDir}\n`);
   }
 
   await model.fit(

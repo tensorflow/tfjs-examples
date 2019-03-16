@@ -236,7 +236,10 @@ async function buildObjectDetectionModel() {
   await model.fit(images, targets, {
     epochs: args.fineTuningEpochs,
     batchSize: args.batchSize / 2,
-    validationSplit: args.validationSplit
+    validationSplit: args.validationSplit,
+    callbacks: args.logDir == null ? null : tfn.node.tensorBoard(args.logDir, {
+      updateFreq: args.logUpdateFreq
+    })
   });
 
   // Save model.

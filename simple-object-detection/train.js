@@ -172,14 +172,27 @@ async function buildObjectDetectionModel() {
     defaultValue: 100,
     help: 'Number of training epochs in the fine-tuning (i.e., 2nd) phase'
   });
+  parser.addArgument('--logDir', {
+    type: 'string',
+    help: 'Optional tensorboard log directory, to which the loss and ' +
+    'metric will be logged during model training.'
+  });
+  parser.addArgument('--logUpdateFreq', {
+    type: 'string',
+    defaultValue: 'batch',
+    optionStrings: ['batch', 'epoch'],
+    help: 'Frequency at which the loss and metric will be logged to ' +
+    'tensorboard.'
+  });
   const args = parser.parseArgs();
 
+  let tfn;
   if (args.gpu) {
     console.log('Training using GPU.');
-    require('@tensorflow/tfjs-node-gpu');
+    tfn = require('@tensorflow/tfjs-node-gpu');
   } else {
     console.log('Training using CPU.');
-    require('@tensorflow/tfjs-node');
+    tfn = require('@tensorflow/tfjs-node');
   }
 
   const modelSaveURL = 'file://./dist/object_detection_model';
@@ -201,7 +214,10 @@ async function buildObjectDetectionModel() {
   await model.fit(images, targets, {
     epochs: args.initialTransferEpochs,
     batchSize: args.batchSize,
-    validationSplit: args.validationSplit
+    validationSplit: args.validationSplit,
+    callbacks: args.logDir == null ? null : tfn.node.tensorBoard(args.logDir, {
+      updateFreq: args.logUpdateFreq
+    })
   });
 
   // Fine-tuning phase of transfer learning.

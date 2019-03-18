@@ -18,19 +18,28 @@
 const tf = require('@tensorflow/tfjs-node');
 const game = require('./game');
 
-
-describe('Testing famework', () => {it('works', () => {
-                               const five = 5;
-                               const ten = 10;
-                               expect(five + five).toEqual(ten);
-                             })});
+const boardConfig66 = {
+  width: 6,
+  height: 6,
+  nInRow: 4
+};
+const boardConfig33 = {
+  width: 3,
+  height: 3,
+  nInRow: 3
+};
+const boardConfig88 = {
+  width: 8,
+  height: 8,
+  nInRow: 5
+};
+const boardConfig93 = {
+  width: 9,
+  height: 3,
+  nInRow: 3
+};
 
 describe('Board', () => {
-  const boardConfig66 = {width: 6, height: 6, nInRow: 4};
-  const boardConfig33 = {width: 3, height: 3, nInRow: 3};
-  const boardConfig88 = {width: 8, height: 8, nInRow: 5};
-  const boardConfig93 = {width: 9, height: 3, nInRow: 3};
-
   const boardConfigs =
       [boardConfig66, boardConfig88, boardConfig33, boardConfig93];
 
@@ -211,9 +220,9 @@ describe('Board', () => {
   it('currentState is as expected for board with some moves', () => {
     const board = new game.Board(boardConfig66);
     board.initBoard();
-    board.doMove(board.locationToMove({ x: 0, y: 0 }));
-    board.doMove(board.locationToMove({ x: 1, y: 1 }));
-    board.doMove(board.locationToMove({ x: 2, y: 2 }));
+    board.doMove(board.locationToMove({x: 0, y: 0}));
+    board.doMove(board.locationToMove({x: 1, y: 1}));
+    board.doMove(board.locationToMove({x: 2, y: 2}));
     const state = board.currentState();
     const expectedBuffer = tf.buffer([3, 6, 6]);
     // player 1's moves.
@@ -224,9 +233,59 @@ describe('Board', () => {
     // last move.
     expectedBuffer.set(1.0, 2, 2, 2);
     // next player field.
-    const expectedState = tf.concat([expectedBuffer.toTensor(), tf.ones([1, 6, 6])]);
+    const expectedState =
+        tf.concat([expectedBuffer.toTensor(), tf.ones([1, 6, 6])]);
     tf.test_util.expectArraysClose(state, expectedState);
   });
+});
 
+describe('GameObject', () => {
+  it('is creatable', () => {
+    new game.Game(new game.Board());
+  });
 
+  it('asAsciiArt empty game', () => {
+    const myGame = new game.Game(new game.Board());
+    const myArt = myGame.asAsciiArt();
+    const expectedArt = `player 0 with X
+player 1 with O
+  01234567
+0 --------
+1 --------
+2 --------
+3 --------
+4 --------
+5 --------
+6 --------
+7 --------`;
+    expect(myArt).toEqual(expectedArt);
+  });
+
+  it('asAsciiArt after some moves', () => {
+    const board = new game.Board(boardConfig66);
+    board.initBoard();
+    const myGame = new game.Game(board);
+    let expectedArt = `player 0 with X
+player 1 with O
+  012345
+0 ------
+1 ------
+2 ------
+3 ------
+4 ------
+5 ------`;
+    expect(myGame.asAsciiArt()).toEqual(expectedArt);
+    board.doMove(board.locationToMove({ x: 1, y: 2 }));
+    board.doMove(board.locationToMove({ x: 3, y: 4 }));
+    expectedArt = `player 0 with X
+player 1 with O
+  012345
+0 ------
+1 ------
+2 -X----
+3 ------
+4 ---O--
+5 ------`;
+    expect(myGame.asAsciiArt()).toEqual(expectedArt);
+  });
 });

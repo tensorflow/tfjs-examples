@@ -242,9 +242,56 @@ class Board {
   }
 }
 
+class Game {
+
+  constructor(board, gameConfig = {}) {
+    this.board = board;
+  }
+
+  _rowAsAsciiArt(iRow) {
+    let rowText = iRow + " ";
+    for (let iCol = 0; iCol < this.board.width; iCol++) {
+      const move = this.board.locationToMove({ x: iCol, y: iRow });
+      const playerMoveVal = this.board.states[move];
+      switch (playerMoveVal) {
+        case this.board.players[0]:
+          rowText += 'X';
+          break;
+        case this.board.players[1]:
+          rowText += 'O';
+          break;
+        default:
+          rowText += '-';
+      }
+    }
+    return rowText;
+  }
+
+  _colIndexRow(width) {
+    let rowText = "  ";
+    for (let i = 0; i < width; i++) {
+      rowText += i;
+    }
+    return rowText;
+  }
+
+  asAsciiArt() {
+    const textRows = [];
+    textRows.push(`player ${this.board.players[0]} with X`);
+    textRows.push(`player ${this.board.players[1]} with O`);
+
+    textRows.push(this._colIndexRow(this.board.width));
+    for (let iRow = 0; iRow < this.board.height; iRow++) {
+      textRows.push(this._rowAsAsciiArt(iRow));
+    }
+    return textRows.join('\n');
+  }
+
+}
 
 module.exports = {
   Board,
+  Game,
   DEFAULT_BOARD_SIZE,
   DEFAULT_N_IN_ROW,
   LAST_MOVE_SENTINEL,

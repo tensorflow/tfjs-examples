@@ -58,6 +58,11 @@ class Board {
     this.lastMove = LAST_MOVE_SENTINEL;
   }
 
+  isAvailable(move) {
+    // Would be undefined if not available.
+    this.availables[move] === null;
+  }
+
   /**
    * Converts index of position to a board location.
    *
@@ -235,7 +240,7 @@ class Board {
     // Set channel 3 to which player's turn it is, assuming alternate
     // players.
     const lastChannelFillVal =
-      (this.currentPlayer === this.players[1]) ? 1.0 : 0.0;
+        (this.currentPlayer === this.players[1]) ? 1.0 : 0.0;
     const playerTensor =
         tf.fill([1, this.width, this.height], lastChannelFillVal);
     return tf.concat([boardBuffer.toTensor(), playerTensor], 0);
@@ -243,15 +248,14 @@ class Board {
 }
 
 class Game {
-
   constructor(board, gameConfig = {}) {
     this.board = board;
   }
 
   _rowAsAsciiArt(iRow) {
-    let rowText = iRow + " ";
+    let rowText = iRow + ' ';
     for (let iCol = 0; iCol < this.board.width; iCol++) {
-      const move = this.board.locationToMove({ x: iCol, y: iRow });
+      const move = this.board.locationToMove({x: iCol, y: iRow});
       const playerMoveVal = this.board.states[move];
       switch (playerMoveVal) {
         case this.board.players[0]:
@@ -268,7 +272,7 @@ class Game {
   }
 
   _colIndexRow(width) {
-    let rowText = "  ";
+    let rowText = '  ';
     for (let i = 0; i < width; i++) {
       rowText += i;
     }
@@ -287,6 +291,41 @@ class Game {
     return textRows.join('\n');
   }
 
+  startPlay(agent1, agent2, startPlayer = 0, isShown = true) {
+    if (startPlayer !== 0 && startPlayer !== 1) {
+      throw new Error(
+          'start_player should be either 0 (agent1 first) ' +
+          'or 1 (agent2 first)');
+    }
+    self.board.initBoard(startPlayer);
+    const [player1Index, player2Index] = board.players;
+    agent1.setPlayerIndex(player1Index);
+    agent2.setPlayerIndex(player2Index);
+    const agents = { p1: agent1, p2: agent2 };
+    if (isShown) {
+      console.log(this.asAsciiArt());
+    }
+    while (true) {
+      const currentPlayer = this.board.currentPlayer;
+      const currentAgent = agents[currentPlayer];
+      const move = currentAgent.getAction(this.board);
+      this.board.doMove(move);
+      if (isShown) {
+        console.log(this.asAsciiArt());
+      }
+      const [end, winner] = this.board.gameEnd();
+      if (end) {
+        if (isShown) {
+          if (winner !== NO_WIN_SENTINEL) {
+            console.log('Game end.  Winner is ', agents[winner]);
+          } else {
+            console.log('Game end.  Tie.');
+          }
+        }
+        return winner;
+      }
+    }
+  }
 }
 
 module.exports = {

@@ -60,21 +60,21 @@ inputDateString.addEventListener('change', async () => {
     status.textContent = `seq2seq conversion took ${tElapsed.toFixed(1)} ms`;
     outputDateString.value = outputStr;
 
-    const xLabels =
+    const xTickLabels =
         outputStr.split('').map((char, i) => `(${i + 1}) "${char}"`);
-    const yLabels = [];
+    const yTickLabels = [];
     for (let i = 0; i < INPUT_LENGTH; ++i) {
       if (i < inputStr.length) {
-        yLabels.push(`(${i + 1}) "${inputStr[i]}"`);
+        yTickLabels.push(`(${i + 1}) "${inputStr[i]}"`);
       } else {
-        yLabels.push(`(${i + 1}) ""`);
+        yTickLabels.push(`(${i + 1}) ""`);
       }
     }
     await tfvis.render.heatmap(
         attentionHeatmap, {
           values: attention.squeeze([0]),
-          xTickLabels: xLabels,
-          yTickLabels: yLabels
+          xTickLabels,
+          yTickLabels
         }, {
           width: 600,
           height: 360,

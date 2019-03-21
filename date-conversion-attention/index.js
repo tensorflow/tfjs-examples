@@ -71,7 +71,11 @@ inputDateString.addEventListener('change', async () => {
       }
     }
     await tfvis.render.heatmap(
-        attentionHeatmap, {values: attention.squeeze([0]), xLabels, yLabels}, {
+        attentionHeatmap, {
+          values: attention.squeeze([0]),
+          xTickLabels: xLabels,
+          yTickLabels: yLabels
+        }, {
           width: 600,
           height: 360,
           xLabel: 'Output characters',

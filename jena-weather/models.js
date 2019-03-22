@@ -219,11 +219,10 @@ export async function trainModel(
     model, jenaWeatherData, normalize, includeDateTime, lookBack, step, delay,
     batchSize, epochs, displayEvery = 100, customCallbacks) {
   const shuffle = true;
-
-  const trainNextBatchFn = jenaWeatherData.getNextBatchFunction(
-      shuffle, lookBack, delay, batchSize, step, TRAIN_MIN_ROW, TRAIN_MAX_ROW,
-      normalize, includeDateTime);
-  const trainDataset = tf.data.generator(trainNextBatchFn).prefetch(8);
+  const trainDataset = tf.data.generator(
+      () => jenaWeatherData.getNextBatchFunction(
+          shuffle, lookBack, delay, batchSize, step, TRAIN_MIN_ROW,
+          TRAIN_MAX_ROW, normalize, includeDateTime)).prefetch(8);
 
   const batchesPerEpoch = 500;
   let t0;
@@ -251,10 +250,11 @@ export async function trainModel(
         }
       },
       onEpochEnd: async (epoch, logs) => {
-        const valNextBatchFn = jenaWeatherData.getNextBatchFunction(
-            false, lookBack, delay, batchSize, step, VAL_MIN_ROW, VAL_MAX_ROW,
-            normalize, includeDateTime);
-        const valDataset = tf.data.generator(valNextBatchFn);
+        const shuffle = false;
+        const valDataset = tf.data.generator(
+            () => jenaWeatherData.getNextBatchFunction(
+                shuffle, lookBack, delay, batchSize, step, VAL_MIN_ROW,
+                VAL_MAX_ROW, normalize, includeDateTime))
         console.log(`epoch ${epoch + 1}/${epochs}: Performing validation...`);
         // TODO(cais): Remove the second arg (empty object), when the bug is
         // fixed:

@@ -31,6 +31,7 @@ import {ArgumentParser} from 'argparse';
 import {JenaWeatherData} from './data';
 import {buildModel, getBaselineMeanAbsoluteError, trainModel} from './models';
 
+// This is for fetching data. See ./data.js.
 global.fetch = require('node-fetch');
 
 function parseArguments() {

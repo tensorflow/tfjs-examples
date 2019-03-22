@@ -39,6 +39,8 @@ const IMAGE_FLAT_SIZE = IMAGE_HEIGHT * IMAGE_WIDTH * IMAGE_CHANNELS;
  *
  * @param {Buffer} buffer
  * @param {number} headerLength
+ *
+ * @returns {number[]} MNIST data header values
  */
 function loadHeaderValues(buffer, headerLength) {
   const headerValues = [];
@@ -56,7 +58,7 @@ function loadHeaderValues(buffer, headerLength) {
  *
  * @param {string} filepath
  *
- * @return {Float32Array[]} an array of images represented as typed arrays.
+ * @returns {Float32Array[]} an array of images represented as typed arrays.
  */
 async function loadImages(filepath) {
   if (!fs.existsSync(filepath)) {
@@ -94,9 +96,11 @@ async function loadImages(filepath) {
 
 /**
  * Take an array of images (represented as typedarrays) and return
- * a tensor represensing them.
+ * a tensor representing them.
  *
  * @param {Float32Array[]} imagesData
+ *
+ * @returns {Tensor3d} tensor of input images
  */
 function batchImages(imagesData) {
   const numImages = imagesData.length;
@@ -109,7 +113,7 @@ function batchImages(imagesData) {
   }
 
   const batchedTensor =
-      tf.tensor(flat, [numImages, IMAGE_WIDTH, IMAGE_HEIGHT], 'float32');
+      tf.tensor3d(flat, [numImages, IMAGE_WIDTH, IMAGE_HEIGHT], 'float32');
 
   return batchedTensor;
 }
@@ -118,6 +122,8 @@ function batchImages(imagesData) {
  * Convert an image represented as a typed array to a JIMP object.
  *
  * @param {Float32Array} imageData
+ *
+ * @returns {Promise[Jimp]} Jimp object representing image.
  */
 async function arrayToJimp(imageData) {
   const bufferLen = IMAGE_HEIGHT * IMAGE_WIDTH * 4;

@@ -15,11 +15,8 @@
  * =============================================================================
  */
 
-const tf = require('@tensorflow/tfjs');
-
-
 /**
- * Thils file implements the code for a multilayer perceptron based variational
+ * This file implements the code for a multilayer perceptron based variational
  * autoencoder and is a per of this code
  * https://github.com/keras-team/keras/blob/master/examples/variational_autoencoder.py
  *
@@ -27,10 +24,17 @@ const tf = require('@tensorflow/tfjs');
  * https://blog.keras.io/building-autoencoders-in-keras.html
  */
 
+const tf = require('@tensorflow/tfjs');
 
 /**
- * The encoder portion of the model
- * @param {*} opts
+ * The encoder portion of the model.
+ *
+ * @param {*} opts encoder configuration
+ * @param {number} opts.originalDim number of dimensions in the original data
+ * @param {number} opts.intermediateDim number of dimensions in the bottleneck
+ * @param {number} opts.latentDim number of dimensions in latent space
+ *
+ * @returns {tf.Model} the encoder model
  */
 function encoder(opts) {
   const {originalDim, intermediateDim, latentDim} = opts;
@@ -42,7 +46,8 @@ function encoder(opts) {
   const zLogVar =
       tf.layers.dense({units: latentDim, name: 'z_log_var'}).apply(x);
 
-  const z = new zLayer({name: 'z'}, [latentDim]).apply([zMean, zLogVar]);
+  const z =
+      new ZLayer({name: 'z', outputShape: [latentDim]}).apply([zMean, zLogVar]);
 
   const enc = tf.model({
     inputs: inputs,
@@ -55,26 +60,41 @@ function encoder(opts) {
   return enc;
 }
 
-class zLayer extends tf.layers.Layer {
-  constructor(config, outputShape) {
+/**
+ * This layer implements the 'reparameterization trick' described in
+ * https://blog.keras.io/building-autoencoders-in-keras.html.
+ *
+ * The implementation is in the call method.
+ * Instead of sampling from Q(z|X):
+ *    sample epsilon = N(0,I)
+ *    z = z_mean + sqrt(var) * epsilon
+ */
+class ZLayer extends tf.layers.Layer {
+  constructor(config) {
     super(config);
-    this._outputShape = outputShape;
+    this._outputShape = config.outputShape;
   }
 
   computeOutputShape(inputShape) {
     return this._outputShape;
   }
 
+  /**
+   *
+   * @param {*} inputs this layer takes two input tensors, z_mean and z_log_var
+   */
   call(inputs, kwargs) {
-    const [z_mean, z_log_var] = inputs;
-    const batch = z_mean.shape[0];
-    const dim = z_mean.shape[1];
-    // #by default, random_normal has mean = 0 and std = 1.0
+    const [zMean, zLogVar] = inputs;
+    const batch = zMean.shape[0];
+    const dim = zMean.shape[1];
+
     const mean = 0;
     const std = 1.0;
+    // sample epsilon = N(0,I)
     const epsilon = tf.randomNormal([batch, dim], mean, std);
 
-    return z_mean.add((z_log_var.mul(0.5).exp()).mul(epsilon));
+    // z = z_mean + sqrt(var) * epsilon
+    return zMean.add((zLogVar.mul(0.5).exp()).mul(epsilon));
   }
 
   getClassName() {
@@ -84,8 +104,13 @@ class zLayer extends tf.layers.Layer {
 
 
 /**
- * The decoder portion of the model
- * @param {*} opts
+ * The decoder portion of the model.
+ *
+ * @param {*} opts decoder configuration
+ * @param {number} opts.originalDim number of dimensions in the original data
+ * @param {number} opts.intermediateDim number of dimensions in the bottleneck
+ *                                      of the encoder
+ * @param {number} opts.latentDim number of dimensions in latent space
  */
 function decoder(opts) {
   const {originalDim, intermediateDim, latentDim} = opts;
@@ -109,8 +134,12 @@ function decoder(opts) {
 
 
 /**
- * The combined encoder-decorder pipeline.
- * @param {*} opts
+ * The combined encoder-decoder pipeline.
+ *
+ * @param {tf.Model} encoder
+ * @param {tf.Model} decoder
+ *
+ * @returns {tf.Model} the vae.
  */
 function vae(encoder, decoder) {
   const inputs = encoder.inputs;
@@ -122,16 +151,20 @@ function vae(encoder, decoder) {
     outputs: [decoderOutput, ...encoderOutputs],
     name: 'vae_mlp',
   })
+
   // console.log('VAE Summary')
   // v.summary();
   return v;
 }
 
 /**
- * The custom loss function for VAE
- * @param {*} inputs
- * @param {*} outputs
- * @param {*} vaeOpts
+ * The custom loss function for VAE.
+ *
+ * @param {tf.tensor} inputs the encoder inputs a batched image tensor
+ * @param {[tf.tensor]} outputs the vae outputs, [decoderOutput,
+ *     ...encoderOutputs]
+ * @param {*} vaeOpts vae configuration
+ * @param {number} vaeOpts.originalDim number of dimensions in the original data
  */
 function vaeLoss(inputs, outputs, vaeOpts) {
   const {originalDim} = vaeOpts;
@@ -139,16 +172,20 @@ function vaeLoss(inputs, outputs, vaeOpts) {
   const zMean = outputs[1];
   const zLogVar = outputs[2];
 
+  // First we compute a 'reconstruction loss' terms. The goal of minimizing this
+  // term is to make the model outputs match the input data.
   const reconstructionLoss =
       tf.losses.meanSquaredError(inputs, decoderOutput).mul(originalDim);
 
-  // binaryCrossEntropy can be used as an altenarive loss function
+  // binaryCrossEntropy can be used as an alternative loss function
   // const reconstructionLoss =
   //  tf.metrics.binaryCrossentropy(inputs, decoderOutput).mul(originalDim);
 
+  // Next we compute the KL-divergence between zLogVar and zMean, minimizing
+  // this term aims to make the distribution of latent variable more normally
+  // distributed around the center of the latent space.
   let klLoss = zLogVar.add(1).sub(zMean.square()).sub(zLogVar.exp());
-  klLoss = klLoss.sum(-1);  // or klLoss.sum(-1)
-  klLoss = klLoss.mul(-0.5)
+  klLoss = klLoss.sum(-1).mul(-0.5);
 
   return reconstructionLoss.add(klLoss).mean();
 }

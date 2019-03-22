@@ -30,11 +30,14 @@ const {
   batchImages,
 } = require('./data');
 
-const { encoder, decoder, vae, vaeLoss } = require('./model');
+const {encoder, decoder, vae, vaeLoss} = require('./model');
 
 
-const EPOCHS = 15;
+let epochs;
+let batchSize;
 
+const INTERMEDIATE_DIM = 512;
+const LATENT_DIM = 2;
 
 /**
  * Train the auto encoder
@@ -58,11 +61,10 @@ async function train(images, vaeOpts, savePath) {
 
 
   // Group the data into batches.
-  const batchSize = 256;
   const batches = _.chunk(images, batchSize);
 
   // Run the train loop.
-  for (let i = 0; i < EPOCHS; i++) {
+  for (let i = 0; i < epochs; i++) {
     console.log(`\n*** Epoch #${i} ***\n`)
     for (let j = 0; j < batches.length; j++) {
       const currentBatchSize = batches[j].length
@@ -70,7 +72,7 @@ async function train(images, vaeOpts, savePath) {
 
 
       const reshaped =
-        batchedImages.reshape([currentBatchSize, vaeOpts.originalDim]);
+          batchedImages.reshape([currentBatchSize, vaeOpts.originalDim]);
 
       // This is the model optimization step. We make a prediction
       // compute loss and return it so that optimizer.minimize can
@@ -128,7 +130,7 @@ async function saveModel(savePath, vaeModel, encoderModel, decoderModel) {
 }
 
 
-async function run() {
+async function run(savePath) {
   // Load the data
   const dataPath = path.join(DATASET_PATH, TRAIN_IMAGES_FILE);
   const images = await loadImages(dataPath);
@@ -139,22 +141,38 @@ async function run() {
   // Start the training.
   const vaeOpts = {
     originalDim: IMAGE_FLAT_SIZE,
-    intermediateDim: 512,
-    latentDim: 2
+    intermediateDim: INTERMEDIATE_DIM,
+    latentDim: LATENT_DIM
   };
-  const savePath = './models';
   await train(images, vaeOpts, savePath);
 }
 
 
-(async function () {
+(async function() {
   const parser = new argparse.ArgumentParser();
   parser.addArgument('--gpu', {
     action: 'storeTrue',
-    help: "Use tfjs-node-gpu for training (required CUDA and CuDNN)"
+    help: 'Use tfjs-node-gpu for training (required CUDA and CuDNN)'
+  });
+
+  parser.addArgument('--epochs', {
+    type: 'int',
+    defaultValue: 5,
+    help: 'Number of epochs to train the model for'
+  });
+  parser.addArgument('--batchSize', {
+    type: 'int',
+    defaultValue: 256,
+    help: 'Batch size to be used during model training'
+  });
+  parser.addArgument('--savePath', {
+    type: 'string',
+    defaultValue: './models',
   });
 
   const args = parser.parseArgs();
+  epochs = args.epochs;
+  batchSize = args.batchSize;
 
   if (args.gpu) {
     console.log('Training using GPU.');
@@ -164,5 +182,5 @@ async function run() {
     require('@tensorflow/tfjs-node');
   }
 
-  await run();
+  await run(args.savePath);
 })();

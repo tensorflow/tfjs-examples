@@ -16,7 +16,7 @@
     "watch": "cross-env NODE_ENV=development parcel index.html --no-hmr --open",
     "build": "cross-env NODE_ENV=production parcel build index.html --no-minify --public-url ./",
     "link-local": "yalc link",
-    "train-rnn": "babel-node train-rnn.js"
+    "train-rnn": "babel-node --max_old_space_size=4096 train-rnn.js"
   },
   "devDependencies": {
     "@tensorflow/tfjs-node": "^1.0.2",

@@ -78,11 +78,6 @@ function parseArguments() {
   parser.addArgument(
       '--epochs',
       {type: 'int', defaultValue: 20, help: 'Number of training epochs'});
-  parser.addArgument('--displayEvery', {
-    type: 'int',
-    defaultValue: 10,
-    help: 'Log info to the console every _ batches'
-  });
   parser.addArgument('--logDir', {
     type: 'string',
     help: 'Optional tensorboard log directory, to which the loss and ' +
@@ -139,7 +134,7 @@ async function main() {
     await trainModel(
         model, jenaWeatherData, args.normalize, args.includeDateTime,
         args.lookBack, args.step, args.delay, args.batchSize, args.epochs,
-        args.displayEvery, callback);
+        callback);
   }
 }
 

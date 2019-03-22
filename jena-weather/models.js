@@ -210,60 +210,37 @@ export function buildModel(modelType, numTimeSteps, numFeatures) {
  *   for.
  * @param {number} batchSize batchSize for training.
  * @param {number} epochs Number of training epochs.
- * @param {number} displayEvery Log info to console every _ batches. If set to a
- *   value not > 0 (e.g., 0), no logging to console will ever occur.
  * @param {tf.Callback | tf.CustomCallbackArgs} customCallback Optional callback
  *   to invoke at the end of every epoch. Can optionally have `onBatchEnd` and
  *   `onEpochEnd` fields.
  */
 export async function trainModel(
     model, jenaWeatherData, normalize, includeDateTime, lookBack, step, delay,
-    batchSize, epochs, displayEvery = 100, customCallback) {
-  const shuffle = true;
+    batchSize, epochs, customCallback) {
+  const trainShuffle = true;
   const trainDataset = tf.data.generator(
       () => jenaWeatherData.getNextBatchFunction(
-          shuffle, lookBack, delay, batchSize, step, TRAIN_MIN_ROW,
+          trainShuffle, lookBack, delay, batchSize, step, TRAIN_MIN_ROW,
           TRAIN_MAX_ROW, normalize, includeDateTime)).prefetch(8);
 
   const batchesPerEpoch = 500;
-  let t0;
-  let currentEpoch;
-  const callbacks = [{
-    onEpochBegin: async (epoch) => {
-      currentEpoch = epoch;
-      t0 = tf.util.now();
-    },
-    onBatchEnd: async (batch, logs) => {
-      if (displayEvery > 0 && (batch + 1) % displayEvery === 0) {
-        const t = tf.util.now();
-        const millisPerBatch = (t - t0) / (batch + 1);
-        console.log(
-            `epoch ${currentEpoch + 1}/${epochs} ` +
-            `batch ${batch + 1}/${batchesPerEpoch}: ` +
-            `loss=${logs.loss.toFixed(6)} ` +
-            `(${millisPerBatch.toFixed(1)} ms/batch)`);
-      }
-    },
-    onEpochEnd: async (epoch, logs) => {
-      const shuffle = false;
-      const valDataset = tf.data.generator(
-          () => jenaWeatherData.getNextBatchFunction(
-              shuffle, lookBack, delay, batchSize, step, VAL_MIN_ROW,
-              VAL_MAX_ROW, normalize, includeDateTime))
-      console.log(`epoch ${epoch + 1}/${epochs}: Performing validation...`);
-      const evalOut = await model.evaluateDataset(valDataset);
-      logs.val_loss = (await evalOut.data())[0];
-      tf.dispose(evalOut);
-      console.log(
-          `epoch ${epoch + 1}/${epochs}: ` +
-          `trainLoss=${logs.loss.toFixed(6)}; ` +
-          `valLoss=${logs.val_loss.toFixed(6)}`);
-    }
-  }];
-  if (customCallback != null) {
-    callbacks.push(customCallback);
-  }
-  await model.fitDataset(trainDataset, {batchesPerEpoch, epochs, callbacks});
 
-  return model;
+  // const callbacks = ;
+  // if (customCallback != null) {
+  //   console.log('Custom callback:', customCallback);  // DEBUG
+  //   letcustomCallback);
+  // }
+
+  const evalShuffle = false;
+  const valDataset = tf.data.generator(
+      () => jenaWeatherData.getNextBatchFunction(
+          evalShuffle, lookBack, delay, batchSize, step, VAL_MIN_ROW,
+          VAL_MAX_ROW, normalize, includeDateTime))
+
+  await model.fitDataset(trainDataset, {
+    batchesPerEpoch,
+    epochs,
+    callbacks: customCallback,
+    validationData: valDataset
+  });
 }

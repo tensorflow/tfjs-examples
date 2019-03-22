@@ -222,23 +222,14 @@ export async function trainModel(
       () => jenaWeatherData.getNextBatchFunction(
           trainShuffle, lookBack, delay, batchSize, step, TRAIN_MIN_ROW,
           TRAIN_MAX_ROW, normalize, includeDateTime)).prefetch(8);
-
-  const batchesPerEpoch = 500;
-
-  // const callbacks = ;
-  // if (customCallback != null) {
-  //   console.log('Custom callback:', customCallback);  // DEBUG
-  //   letcustomCallback);
-  // }
-
   const evalShuffle = false;
   const valDataset = tf.data.generator(
       () => jenaWeatherData.getNextBatchFunction(
           evalShuffle, lookBack, delay, batchSize, step, VAL_MIN_ROW,
-          VAL_MAX_ROW, normalize, includeDateTime))
+          VAL_MAX_ROW, normalize, includeDateTime));
 
   await model.fitDataset(trainDataset, {
-    batchesPerEpoch,
+    batchesPerEpoch: 500,
     epochs,
     callbacks: customCallback,
     validationData: valDataset

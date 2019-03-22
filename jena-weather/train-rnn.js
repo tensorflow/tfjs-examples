@@ -17,10 +17,10 @@
 
 /**
  * Train recurrent neural networks (RNNs) for temperature prediction.
- * 
+ *
  * This script drives the RNN training process in the Node.js environment
  * using tfjs-node or tfjs-node-gpu (see the `--gpu` flag).
- * 
+ *
  * - See [data.js](./data.js) for how the Jena weather dataset is loaded.
  * - See [models.js](./train.js) for the detailed model creation and training
  *   logic.
@@ -31,7 +31,6 @@ import {ArgumentParser} from 'argparse';
 import {JenaWeatherData} from './data';
 import {buildModel, getBaselineMeanAbsoluteError, trainModel} from './models';
 
-// This is for fetching data. See ./data.js.
 global.fetch = require('node-fetch');
 
 function parseArguments() {
@@ -84,17 +83,30 @@ function parseArguments() {
     defaultValue: 10,
     help: 'Log info to the console every _ batches'
   });
+  parser.addArgument('--logDir', {
+    type: 'string',
+    help: 'Optional tensorboard log directory, to which the loss and ' +
+    'accuracy will be logged during model training.'
+  });
+  parser.addArgument('--logUpdateFreq', {
+    type: 'string',
+    defaultValue: 'batch',
+    optionStrings: ['batch', 'epoch'],
+    help: 'Frequency at which the loss and accuracy will be logged to ' +
+    'tensorboard.'
+  });
   return parser.parseArgs();
 }
 
 async function main() {
   const args = parseArguments();
+  let tfn;
   if (args.gpu) {
     console.log('Using GPU for training.');
-    require('@tensorflow/tfjs-node-gpu');
+    tfn = require('@tensorflow/tfjs-node-gpu');
   } else {
     console.log('Using CPU for training.');
-    require('@tensorflow/tfjs-node');
+    tfn = require('@tensorflow/tfjs-node');
   }
 
   const jenaWeatherData = new JenaWeatherData();
@@ -114,10 +126,20 @@ async function main() {
     const model = buildModel(
         args.modelType, Math.floor(args.lookBack / args.step), numFeatures);
 
+    let callback = null;
+    if (args.logDir != null) {
+      console.log(
+          `Logging to tensorboard. ` +
+          `Use the command below to bring up tensorboard server:\n` +
+          `  tensorboard --logdir ${args.logDir}`);
+      callback = tfn.node.tensorBoard(
+          args.logDir, {updateFreq: args.logUpdateFreq});
+    }
+
     await trainModel(
         model, jenaWeatherData, args.normalize, args.includeDateTime,
         args.lookBack, args.step, args.delay, args.batchSize, args.epochs,
-        args.displayEvery);
+        args.displayEvery, callback);
   }
 }
 

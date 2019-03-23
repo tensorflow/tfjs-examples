@@ -28,7 +28,7 @@ TensorFlow.js
   training-set and validation-set losses at the end of batches and epochs of
   model training.
 
-## Training RNNs
+## Training RNNs in Node.js
 
 This example shows how to predict temperature using a few different types of
 models, including linear regressors, multilayer perceptrons, and recurrent
@@ -63,4 +63,36 @@ yarn
 yarn train-rnn --modelType baseline
 ```
 
-The training code is in the file [train-rnn.js](./train-rnn.js).
+### Monitoring Node.js Training in TensorBoard
+
+The Node.js-based training script allows you to log the loss values from the
+model to TensorBoard. Relative to printing loss values to the console, which
+the training script performs by default, logging to tensorboard has the
+following advantanges:
+
+1. Persistence of the loss values, so you can have a copy of the training
+   history available even if the system crashes in the middle of the training
+   for some reason, while logs in consoles a more ephemeral.
+2. Visualizing the loss values as curves makes the trends easier to see.
+3. You will be able to monitor the training from a remote machine by accessing
+   the TensorBoard HTTP server.
+
+To do this in this example, add the flag --logDir to the yarn train command,
+followed by the directory to which you want the logs to be written, e.g.,
+
+```sh
+yarn train-rnn --gpu --logDir /tmp/jena-weather-logs-1
+```
+
+Then install tensorboard and start it by pointing it to the log directory:
+
+```sh
+# Skip this step if you have already installed tensorboard.
+pip install tensorboard
+
+tensorboard --logdir /tmp/jena-weather-logs-1
+```
+
+tensorboard will print an HTTP URL in the terminal. Open your browser and
+navigate to the URL to view the loss curves in the Scalar dashboard of
+TensorBoard.

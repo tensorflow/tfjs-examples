@@ -17,7 +17,7 @@
 
 /**
  * Weather Prediction Example.
- * 
+ *
  * - Visualizes data using tfjs-vis.
  * - Trains simple models (linear regressor and MLPs) and visualizes the
  *   training processes.
@@ -102,7 +102,7 @@ function makeTimeSeriesChart(
   }
   // NOTE(cais): On a Linux workstation running latest Chrome, the length
   // limit seems to be around 120k.
-  tfvis.render.linechart({values, series: series}, chartConatiner, {
+  tfvis.render.linechart(chartConatiner, {values, series: series}, {
     width: chartConatiner.offsetWidth * 0.95,
     height: chartConatiner.offsetWidth * 0.3,
     xLabel: 'Time',
@@ -141,7 +141,7 @@ function makeTimeSeriesScatterPlot(series1, series2, timeSpan, normalize) {
   }
   const series = [`${seriesLabel1} - ${seriesLabel2}`];
 
-  tfvis.render.scatterplot({values, series}, dataChartContainer, {
+  tfvis.render.scatterplot(dataChartContainer, {values, series}, {
     width: dataChartContainer.offsetWidth * 0.7,
     height: dataChartContainer.offsetWidth * 0.5,
     xLabel: seriesLabel1,
@@ -160,7 +160,6 @@ trainModelButton.addEventListener('click', async () => {
   const batchSize = 128;
   const normalize = true;
   const includeDateTime = includeDateTimeSelect.checked;
-  
   const modelType = modelTypeSelect.value;
 
   console.log('Creating model...');
@@ -177,10 +176,9 @@ trainModelButton.addEventListener('click', async () => {
 
   console.log('Starting model training...');
   const epochs = +epochsInput.value;
-  const displayEvery = 100;
   await trainModel(
       model, jenaWeatherData, normalize, includeDateTime,
-      lookBack, step, delay, batchSize, epochs, displayEvery,
+      lookBack, step, delay, batchSize, epochs,
       tfvis.show.fitCallbacks(trainingSurface, ['loss', 'val_loss'], {
         callbacks: ['onBatchEnd', 'onEpochEnd']
       }));

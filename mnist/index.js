@@ -121,7 +121,7 @@ function createDenseModel() {
  * @param {onIterationCallback} onIteration A callback to execute every 10
  *     batches & epoch end.
  */
-async function train(model, onIteration) {
+async function train(model) {
   ui.logStatus('Training model...');
 
   // Now that we've defined our model, we will define our optimizer. The
@@ -164,16 +164,11 @@ async function train(model, onIteration) {
 
   // Get number of training epochs from the UI.
   const trainEpochs = ui.getTrainEpochs();
-
-  // We'll keep a buffer of loss and accuracy values over time.
-  let trainBatchCount = 0;
-
   const trainData = data.getTrainData();
   const testData = data.getTestData();
 
-  const totalNumBatches =
-      Math.ceil(trainData.xs.shape[0] * (1 - validationSplit) / batchSize) *
-      trainEpochs;
+  const numBatches =
+      Math.ceil(trainData.xs.shape[0] * (1 - validationSplit) / batchSize);
 
   // During the long-running fit() call for model training, we include
   // callbacks, so that we can plot the loss and accuracy values in the page
@@ -184,27 +179,21 @@ async function train(model, onIteration) {
     validationSplit,
     epochs: trainEpochs,
     callbacks: {
-      onBatchEnd: async (batch, logs) => {
-        trainBatchCount++;
+      onYield: (epoch, batch, logs) => {
+        const batchNumber = epoch * numBatches + batch;
+        const progress = (epoch + (batch + 1) / numBatches) / trainEpochs;
         ui.logStatus(
             `Training... (` +
-            `${(trainBatchCount / totalNumBatches * 100).toFixed(1)}%` +
+            `${(progress * 100).toFixed(1)}%` +
             ` complete). To stop training, refresh or close page.`);
-        ui.plotLoss(trainBatchCount, logs.loss, 'train');
-        ui.plotAccuracy(trainBatchCount, logs.acc, 'train');
-        if (onIteration && batch % 10 === 0) {
-          onIteration('onBatchEnd', batch, logs);
-        }
-        await tf.nextFrame();
+        ui.plotLoss(batchNumber, logs.loss, 'train');
+        ui.plotAccuracy(batchNumber, logs.acc, 'train');
       },
-      onEpochEnd: async (epoch, logs) => {
+      onEpochEnd: (epoch, logs) => {
         valAcc = logs.val_acc;
-        ui.plotLoss(trainBatchCount, logs.val_loss, 'validation');
-        ui.plotAccuracy(trainBatchCount, logs.val_acc, 'validation');
-        if (onIteration) {
-          onIteration('onEpochEnd', epoch, logs);
-        }
-        await tf.nextFrame();
+        const batchNumber = epoch * numBatches + numBatches - 1;
+        ui.plotLoss(batchNumber, logs.val_loss, 'validation');
+        ui.plotAccuracy(batchNumber, logs.val_acc, 'validation');
       }
     }
   });
@@ -282,5 +271,6 @@ ui.setTrainButtonCallback(async () => {
   model.summary();
 
   ui.logStatus('Starting model training...');
-  await train(model, () => showPredictions(model));
+  await train(model);
+  showPredictions(model);
 });

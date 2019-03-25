@@ -55,7 +55,7 @@ function encoder(opts) {
     name: 'encoder',
   })
 
-  // console.log('Encoder Summary')
+  // console.log('Encoder Summary');
   // enc.summary();
   return enc;
 }
@@ -80,8 +80,8 @@ class ZLayer extends tf.layers.Layer {
   }
 
   /**
-   *
-   * @param {*} inputs this layer takes two input tensors, z_mean and z_log_var
+   * @param {Tensor[]} inputs this layer takes two input tensors, z_mean and
+   *     z_log_var
    */
   call(inputs, kwargs) {
     const [zMean, zLogVar] = inputs;
@@ -127,7 +127,7 @@ function decoder(opts) {
     name: 'decoder',
   });
 
-  // console.log('Decoder Summary')
+  // console.log('Decoder Summary');
   // dec.summary();
   return dec;
 }
@@ -152,7 +152,7 @@ function vae(encoder, decoder) {
     name: 'vae_mlp',
   })
 
-  // console.log('VAE Summary')
+  // console.log('VAE Summary');
   // v.summary();
   return v;
 }

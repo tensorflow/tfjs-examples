@@ -65,7 +65,7 @@ async function train(images, vaeOpts, savePath) {
 
   // Run the train loop.
   for (let i = 0; i < epochs; i++) {
-    console.log(`\n*** Epoch #${i} ***\n`)
+    console.log(`\n*** Epoch #${i} of ${epochs}***\n`)
     for (let j = 0; j < batches.length; j++) {
       const currentBatchSize = batches[j].length
       const batchedImages = batchImages(batches[j]);
@@ -82,7 +82,7 @@ async function train(images, vaeOpts, savePath) {
         const loss = vaeLoss(reshaped, outputs, vaeOpts);
         process.stdout.write('.');
         if (j % 50 === 0) {
-          console.log('\nLoss', loss.dataSync());
+          console.log('\nLoss:', loss.dataSync()[0]);
         }
 
         return loss;
@@ -105,27 +105,16 @@ async function train(images, vaeOpts, savePath) {
  * @param {*} latentDimSize
  */
 async function generate(decoderModel, latentDimSize) {
-  const targetZ = tf.randomNormal([latentDimSize]).expandDims();
-  const generated = (decoderModel.apply(targetZ)).mul(255);
+  const targetZ = tf.zeros([latentDimSize]).expandDims();
+  const generated = (decoderModel.predict(targetZ));
 
   await previewImage(generated.dataSync());
   tf.dispose([targetZ, generated]);
 }
 
 async function saveModel(savePath, vaeModel, encoderModel, decoderModel) {
-  // Note that all three models are saved.
-  // To generate images only the decoder is required.
-
-  const vaePath = path.join(savePath, 'vae');
-  const encoderPath = path.join(savePath, 'encoder');
   const decoderPath = path.join(savePath, 'decoder');
-
-  mkdirp.sync(vaePath);
-  mkdirp.sync(encoderPath);
   mkdirp.sync(decoderPath);
-
-  await vaeModel.save(`file://${vaePath}`);
-  await encoderModel.save(`file://${encoderPath}`);
   await decoderModel.save(`file://${decoderPath}`);
 }
 

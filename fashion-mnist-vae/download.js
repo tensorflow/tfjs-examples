@@ -37,7 +37,6 @@ async function maybeDownload(sourceURL, destPath) {
         }
       });
       const localZipFile = fs.createWriteStream(destPath);
-      console.log(`Downloading file from ${sourceURL} ...`);
       http.get(sourceURL, response => {
         response.pipe(localZipFile);
         localZipFile.on('finish', () => {
@@ -85,7 +84,8 @@ const UNZIP_PATH =
 
 (async function run() {
   try {
-    console.log('Downloading data file');
+    console.log(
+        `Downloading data file from ${DATA_URL} and saving to ${ZIP_PATH}`);
     await maybeDownload(DATA_URL, ZIP_PATH);
   } catch (e) {
     console.log('Error downloading file');

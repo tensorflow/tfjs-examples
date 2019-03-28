@@ -65,7 +65,7 @@ async function train(images, vaeOpts, savePath) {
 
   // Run the train loop.
   for (let i = 0; i < epochs; i++) {
-    console.log(`\n*** Epoch #${i} of ${epochs}***\n`)
+    console.log(`\nEpoch #${i} of ${epochs}\n`)
     for (let j = 0; j < batches.length; j++) {
       const currentBatchSize = batches[j].length
       const batchedImages = batchImages(batches[j]);

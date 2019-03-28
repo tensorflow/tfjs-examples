@@ -22,6 +22,7 @@
     "@types/argparse": "^1.0.36",
     "@types/mkdirp": "^0.5.2",
     "@tensorflow/tfjs-node": "^1.0.1",
+    "@tensorflow/tfjs-node-gpu": "^1.0.1",
     "babel-core": "^6.26.3",
     "babel-plugin-transform-runtime": "~6.23.0",
     "babel-polyfill": "~6.26.0",

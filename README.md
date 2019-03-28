@@ -267,7 +267,7 @@ to another project.
     <td>Text</td>
     <td>Sequence-to-sequence</td>
     <td>LSTM encoder and decoder</td>
-    <td></td>
+    <td>Node.js or Python</td>
     <td>Browser</td>
     <td>Layers</td>
     <td>Loading model converted from Keras</td>

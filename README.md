@@ -108,7 +108,7 @@ to another project.
     <td>Saving to filesystem and loading in browser</td>
   </tr>
   <tr>
-    <td><a href="./sentiment">fashion-mnist-vae</a></td>
+    <td><a href="./fashion-mnist-vae">fashion-mnist-vae</a></td>
     <td></td>
     <td>Image</td>
     <td>Generative</td>

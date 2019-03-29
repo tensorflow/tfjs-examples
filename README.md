@@ -116,7 +116,7 @@ to another project.
     <td>Node.js</td>
     <td>Browser</td>
     <td>Layers</td>
-    <td>Load model from tfjs-node</td>
+    <td>Export trained model from tfjs-node and load it in browser</td>
   </tr>
   <tr>
     <td><a href="./iris">iris</a></td>

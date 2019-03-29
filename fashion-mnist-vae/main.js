@@ -32,7 +32,6 @@ const {
 
 const {encoder, decoder, vae, vaeLoss} = require('./model');
 
-
 let epochs;
 let batchSize;
 
@@ -48,7 +47,6 @@ async function train(images, vaeOpts, savePath) {
   const encoderModel = encoder(vaeOpts);
   const decoderModel = decoder(vaeOpts);
   const vaeModel = vae(encoderModel, decoderModel);
-
 
   console.log('\n** Train Model **\n');
 
@@ -118,7 +116,6 @@ async function saveModel(savePath, vaeModel, encoderModel, decoderModel) {
   await decoderModel.save(`file://${decoderPath}`);
 }
 
-
 async function run(savePath) {
   // Load the data
   const dataPath = path.join(DATASET_PATH, TRAIN_IMAGES_FILE);
@@ -135,7 +132,6 @@ async function run(savePath) {
   };
   await train(images, vaeOpts, savePath);
 }
-
 
 (async function() {
   const parser = new argparse.ArgumentParser();

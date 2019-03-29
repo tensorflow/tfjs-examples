@@ -29,12 +29,11 @@ const tf = require('@tensorflow/tfjs');
 /**
  * The encoder portion of the model.
  *
- * @param {*} opts encoder configuration
- * @param {number} opts.originalDim number of dimensions in the original data
- * @param {number} opts.intermediateDim number of dimensions in the bottleneck
- * @param {number} opts.latentDim number of dimensions in latent space
- *
- * @returns {tf.Model} the encoder model
+ * @param {*} opts encoder configuration.
+ * @param {number} opts.originalDim number of dimensions in the original data.
+ * @param {number} opts.intermediateDim number of dimensions in the bottleneck.
+ * @param {number} opts.latentDim number of dimensions in latent space.
+ * @returns {tf.LayersModel} the encoder model.
  */
 function encoder(opts) {
   const {originalDim, intermediateDim, latentDim} = opts;
@@ -72,16 +71,22 @@ function encoder(opts) {
 class ZLayer extends tf.layers.Layer {
   constructor(config) {
     super(config);
-    this._outputShape = config.outputShape;
   }
 
   computeOutputShape(inputShape) {
-    return this._outputShape;
+    tf.util.assert(inputShape.length === 2 && Array.isArray(inputShape[0]),
+        () => `Expected exactly 2 input shapes. But got: ${inputShape}`);
+    return inputShape[0];
   }
 
   /**
+   * The actual computation performed by an instance of ZLayer. 
+   * 
    * @param {Tensor[]} inputs this layer takes two input tensors, z_mean and
    *     z_log_var
+   * @return A tensor of the same shape as z_mean and z_log_var, equal to
+   *     z_mean + sqrt(exp(z_log_var)) * epsilon, where epsilon is a random
+   *     vector that follows the unit normal distribution (N(0, I)).
    */
   call(inputs, kwargs) {
     const [zMean, zLogVar] = inputs;
@@ -90,18 +95,17 @@ class ZLayer extends tf.layers.Layer {
 
     const mean = 0;
     const std = 1.0;
-    // sample epsilon = N(0,I)
+    // sample epsilon = N(0, I)
     const epsilon = tf.randomNormal([batch, dim], mean, std);
 
     // z = z_mean + sqrt(var) * epsilon
     return zMean.add((zLogVar.mul(0.5).exp()).mul(epsilon));
   }
 
-  getClassName() {
-    return 'zLayer';
+  static getClassName() {
+    return 'ZLayer';
   }
 }
-
 
 /**
  * The decoder portion of the model.
@@ -131,7 +135,6 @@ function decoder(opts) {
   // dec.summary();
   return dec;
 }
-
 
 /**
  * The combined encoder-decoder pipeline.

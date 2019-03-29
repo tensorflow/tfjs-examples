@@ -26,7 +26,8 @@
     "serve-model": "http-server ./models --cors",
     "serve-client": "cross-env NODE_ENV=development parcel client.html --no-hmr --open",
     "download-data": "node download.js",
-    "build": "cross-env NODE_ENV=production parcel build client.html --no-minify --public-url ./"
+    "build": "cross-env NODE_ENV=production parcel build client.html --no-minify --public-url ./",
+    "test": "node run_tests.js"
   },
   "devDependencies": {
     "@babel/core": "^7.0.0-0",

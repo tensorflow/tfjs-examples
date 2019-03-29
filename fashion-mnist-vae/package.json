@@ -1,0 +1,40 @@
+{
+  "name": "tfjs-examples-fashion-mnist-vae",
+  "version": "0.1.0",
+  "description": "",
+  "main": "index.js",
+  "license": "Apache-2.0",
+  "private": true,
+  "engines": {
+    "node": ">=8.11.0"
+  },
+  "dependencies": {
+    "@tensorflow/tfjs": "^1.0.2",
+    "@tensorflow/tfjs-node": "^1.0.2",
+    "@tensorflow/tfjs-node-gpu": "^1.0.2",
+    "@tensorflow/tfjs-vis": "^1.0.3",
+    "argparse": "^1.0.10",
+    "d3-selection": "^1.4.0",
+    "http-server": "^0.11.1",
+    "jimp": "0.6.0",
+    "lodash": "^4.17.11",
+    "mkdirp": "^0.5.1",
+    "terminal-image": "^0.1.2"
+  },
+  "scripts": {
+    "train": "node main.js",
+    "serve-model": "http-server ./models --cors",
+    "serve-client": "cross-env NODE_ENV=development parcel client.html --no-hmr --open",
+    "download-data": "node download.js",
+    "build": "cross-env NODE_ENV=production parcel build client.html --no-minify --public-url ./"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.0.0-0",
+    "@babel/plugin-transform-runtime": "^7.1.0",
+    "babel-preset-env": "~1.6.1",
+    "clang-format": "~1.2.2",
+    "cross-env": "^5.2.0",
+    "parcel-bundler": "^1.12.1",
+    "yalc": "~1.0.0-pre.22"
+  }
+}

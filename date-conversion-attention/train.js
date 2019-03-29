@@ -49,7 +49,7 @@ import {createModel, runSeq2SeqInference} from './model';
  *     set.
  *   - testDateTuples, date tuples ([year, month, day]) for the test set.
  */
-export function generateDataForTraining(trainSplit = 0.8, valSplit = 0.15) {
+export function generateDataForTraining(trainSplit = 0.25, valSplit = 0.15) {
   tf.util.assert(
       trainSplit > 0 && valSplit > 0 && trainSplit + valSplit <= 1,
       `Invalid trainSplit (${trainSplit}) and valSplit (${valSplit})`);
@@ -57,17 +57,20 @@ export function generateDataForTraining(trainSplit = 0.8, valSplit = 0.15) {
   const dateTuples = [];
   const MIN_YEAR = 1950;
   const MAX_YEAR = 2050;
-  for (let year = MIN_YEAR; year < MAX_YEAR; ++year) {
-    for (let month = 1; month <= 12; ++month) {
-      for (let day = 1; day <= 28; ++day) {
-        dateTuples.push([year, month, day]);
-      }
-    }
+  for (let date = new Date(MIN_YEAR,0,1);
+       date.getFullYear() < MAX_YEAR;
+       date.setDate(date.getDate() + 1)) {
+    dateTuples.push([date.getFullYear(), date.getMonth() + 1, date.getDate()]);
   }
   tf.util.shuffle(dateTuples);
 
   const numTrain = Math.floor(dateTuples.length * trainSplit);
   const numVal = Math.floor(dateTuples.length * valSplit);
+  console.log(`Number of dates used for training: ${numTrain}`);
+  console.log(`Number of dates used for validation: ${numVal}`);
+  console.log(
+      `Number of dates used for testing: ` +
+      `${dateTuples.length - numTrain - numVal}`);
 
   function dateTuplesToTensor(dateTuples) {
     return tf.tidy(() => {
@@ -140,21 +143,46 @@ function parseArguments() {
     defaultValue: 128,
     help: 'Batch size to be used during model training'
   });
+  argParser.addArgument('--trainSplit ', {
+    type: 'float',
+    defaultValue: 0.25,
+    help: 'Fraction of all possible dates to use for training. Must be ' +
+    '> 0 and < 1. Its sum with valSplit must be <1.'
+  });
+  argParser.addArgument('--valSplit', {
+    type: 'float',
+    defaultValue: 0.15,
+    help: 'Fraction of all possible dates to use for training. Must be ' +
+    '> 0 and < 1. Its sum with trainSplit must be <1.'
+  });
   argParser.addArgument('--savePath', {
     type: 'string',
     defaultValue: './dist/model',
+  });
+  argParser.addArgument('--logDir', {
+    type: 'string',
+    help: 'Optional tensorboard log directory, to which the loss and ' +
+    'accuracy will be logged during model training.'
+  });
+  argParser.addArgument('--logUpdateFreq', {
+    type: 'string',
+    defaultValue: 'batch',
+    optionStrings: ['batch', 'epoch'],
+    help: 'Frequency at which the loss and accuracy will be logged to ' +
+    'tensorboard.'
   });
   return argParser.parseArgs();
 }
 
 async function run() {
   const args = parseArguments();
+  let tfn;
   if (args.gpu) {
     console.log('Using GPU');
-    require('@tensorflow/tfjs-node-gpu');
+    tfn = require('@tensorflow/tfjs-node-gpu');
   } else {
     console.log('Using CPU');
-    require('@tensorflow/tfjs-node');
+    tfn = require('@tensorflow/tfjs-node');
   }
 
   const model = createModel(
@@ -170,14 +198,16 @@ async function run() {
     valDecoderInput,
     valDecoderOutput,
     testDateTuples
-  } = generateDataForTraining();
+  } = generateDataForTraining(args.trainSplit, args.valSplit);
 
   await model.fit(
       [trainEncoderInput, trainDecoderInput], trainDecoderOutput, {
         epochs: args.epochs,
         batchSize: args.batchSize,
         shuffle: true,
-        validationData: [[valEncoderInput, valDecoderInput], valDecoderOutput]
+        validationData: [[valEncoderInput, valDecoderInput], valDecoderOutput],
+        callbacks: args.logDir == null ? null :
+            tfn.node.tensorBoard(args.logDir, {updateFreq: args.logUpdateFreq})
       });
 
   // Save the model.

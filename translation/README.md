@@ -15,7 +15,22 @@ The training data was 149,861 English-French sentence pairs available from [http
 To train the demo in JavaScript, do
 
 ```sh
-yarn train ${DATA_PATH}
+yarn train "${DATA_PATH}"
+```
+
+To monitor the loss values during training, use the `--logDir` flag
+in conjuction with TensorBoard, e.g.,
+
+```sh
+yarn train "${DATA_PATH}" --logDir /tmp/translation-logs
+```
+
+In a separate terminal, start tensorboard
+
+```sh
+pip install tensorboard   # Unless tensorboard is already installed
+
+tensorboard --logdir /tmp/translation-logs
 ```
 
 The model was trained in Node.js with Tensorflow.js, which the model code is converted from Python to TypeScript by @[huan](https://github.com/huan) based on the [translation.py](https://github.com/tensorflow/tfjs-examples/blob/master/translation/python/translation.py) example.

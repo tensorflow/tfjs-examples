@@ -93,7 +93,7 @@ async function generateAndVisualizeImages(generator) {
     // Generate one fake image for each digit.
     const sampledLabels = tf.tensor2d([0, 1, 2, 3, 4, 5, 6, 7, 8, 9], [10, 1]);
     // The output has pixel values in the [-1, 1] interval. Normalize it
-    // to the unit inerval ([0, 1]).
+    // to the unit interval ([0, 1]).
     const t0 = tf.util.now();
     const generatedImages =
         generator.predict([latentVectors, sampledLabels]).add(1).div(2);

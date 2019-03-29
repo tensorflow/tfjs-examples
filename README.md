@@ -67,7 +67,7 @@ to another project.
     <td><a href="./custom-layer">custom-layer</a></td>
     <td><a href="https://storage.googleapis.com/tfjs-examples/custom-layer/dist/index.html">🔗</a></td>
     <td></td>
-    <td>(Illustrates how to define and use a custom Layer subtype)</td>
+    <td>(Defining a custom Layer subtype)</td>
     <td></td>
     <td></td>
     <td>Browser</td>
@@ -78,7 +78,7 @@ to another project.
     <td><a href="./data-csv">data-csv</a></td>
     <td><a href="https://storage.googleapis.com/tfjs-examples/data-csv/dist/index.html">🔗</a></td>
     <td></td>
-    <td>How to build and work with a tf.data.Dataset from a remote CSV.</td>
+    <td>Building a tf.data.Dataset from a remote CSV</td>
     <td></td>
     <td></td>
     <td></td>
@@ -89,7 +89,7 @@ to another project.
     <td><a href="./data-generator">data-generator</a></td>
     <td><a href="https://storage.googleapis.com/tfjs-examples/data-generator/dist/index.html">🔗</a></td>
     <td></td>
-    <td>How to build and work with a tf.data.Dataset using the generator API.</td>
+    <td>Building a tf.data.Dataset using a generator</td>
     <td>Regression</td>
     <td>Multilayer perceptron</td>
     <td>Browser</td>
@@ -102,10 +102,21 @@ to another project.
     <td>Text</td>
     <td>Text-to-text conversion</td>
     <td>Attention mechanism, RNN</td>
-    <td>Node</td>
-    <td>Browser and Node</td>
+    <td>Node.js</td>
+    <td>Browser and Node.js</td>
     <td>Layers</td>
     <td>Saving to filesystem and loading in browser</td>
+  </tr>
+  <tr>
+    <td><a href="./fashion-mnist-vae">fashion-mnist-vae</a></td>
+    <td></td>
+    <td>Image</td>
+    <td>Generative</td>
+    <td>Variational autoencoder (VAE)</td>
+    <td>Node.js</td>
+    <td>Browser</td>
+    <td>Layers</td>
+    <td>Export trained model from tfjs-node and load it in browser</td>
   </tr>
   <tr>
     <td><a href="./iris">iris</a></td>
@@ -245,10 +256,10 @@ to another project.
     <td>Text</td>
     <td>Sequence-to-binary-prediction</td>
     <td>LSTM, 1D convnet</td>
-    <td>Node.js</td>
+    <td>Node.js or Python</td>
     <td>Browser</td>
     <td>Layers</td>
-    <td>Loading model converted from Keras and tfjs-node</td>
+    <td>Load model from Keras and tfjs-node</td>
   </tr>
   <tr>
     <td><a href="./simple-object-detection">simple-object-detection</a></td>
@@ -259,7 +270,7 @@ to another project.
     <td>Node.js</td>
     <td>Browser</td>
     <td>Layers</td>
-    <td>Save a trained model from tfjs-node and load it in the browser</td>
+    <td>Export trained model from tfjs-node and load it in browser</td>
   </tr>
   <tr>
     <td><a href="./translation">translation</a></td>
@@ -270,7 +281,7 @@ to another project.
     <td>Node.js or Python</td>
     <td>Browser</td>
     <td>Layers</td>
-    <td>Loading model converted from Keras</td>
+    <td>Load model converted from Keras</td>
   </tr>
   <tr>
     <td><a href="./tsne-mnist-canvas">tsne-mnist-canvas</a></td>

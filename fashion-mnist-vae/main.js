@@ -68,7 +68,6 @@ async function train(images, vaeOpts, savePath) {
       const currentBatchSize = batches[j].length
       const batchedImages = batchImages(batches[j]);
 
-
       const reshaped =
           batchedImages.reshape([currentBatchSize, vaeOpts.originalDim]);
 

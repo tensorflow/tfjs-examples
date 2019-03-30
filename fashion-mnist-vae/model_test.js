@@ -29,7 +29,6 @@ describe('Encoder', () => {
     const enc = encoder(opts);
     expect(enc.inputs.length).toEqual(1);
     expect(enc.inputs[0].shape).toEqual([null, 100]);
-    expect(end.layers.length).toEqual(3);
     expect(enc.layers[1].outputShape).toEqual([null, 10]);
     expect(enc.outputs.length).toEqual(3);
     expect(enc.outputs[0].shape).toEqual([null, 2]);
@@ -40,7 +39,7 @@ describe('Encoder', () => {
     const numExamples = 4;
     xs = tf.randomUniform([numExamples, 100]);
     const outs = enc.predict(xs);
-    expect(outs.length).toEqual(3);
+    expect(outs.length).toEqual(3);  // zMean, zLogVar and z.
     expect(outs[0].shape).toEqual([numExamples, 2]);
     expect(outs[1].shape).toEqual([numExamples, 2]);
     expect(outs[2].shape).toEqual([numExamples, 2]);
@@ -57,9 +56,15 @@ describe('Decoder', () => {
     const dec = decoder(opts);
     expect(dec.inputs.length).toEqual(1);
     expect(dec.inputs[0].shape).toEqual([null, 2]);
-    expect(dec.layers.length).toEqual(3);
-    expect(dec.layers[1].outputShape).toEqual([null, 10]);
+    expect(dec.layers.length).toEqual(2);
+    expect(dec.layers[0].outputShape).toEqual([null, 10]);
     expect(dec.outputs.length).toEqual(1);
     expect(dec.outputs[0].shape).toEqual([null, 100]);
+
+    // Run a tensor input through the predict() method.
+    const numExamples = 4;
+    xs = tf.randomUniform([numExamples, 2]);
+    const outs = dec.predict(xs);
+    expect(outs.shape).toEqual([numExamples, 100]);
   });
 });

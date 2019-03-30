@@ -52,7 +52,7 @@ function encoder(opts) {
     inputs: inputs,
     outputs: [zMean, zLogVar, z],
     name: 'encoder',
-  })
+  });
 
   // console.log('Encoder Summary');
   // enc.summary();
@@ -99,7 +99,7 @@ class ZLayer extends tf.layers.Layer {
     const epsilon = tf.randomNormal([batch, dim], mean, std);
 
     // z = z_mean + sqrt(var) * epsilon
-    return zMean.add((zLogVar.mul(0.5).exp()).mul(epsilon));
+    return zMean.add(zLogVar.exp().mul(epsilon));
   }
 
   static getClassName() {
@@ -119,17 +119,13 @@ class ZLayer extends tf.layers.Layer {
 function decoder(opts) {
   const {originalDim, intermediateDim, latentDim} = opts;
 
-  const latentInputs = tf.input({shape: [latentDim], name: 'z_sampling'});
-  const x = tf.layers.dense({units: intermediateDim, activation: 'relu'})
-                .apply(latentInputs);
-  const outputs =
-      tf.layers.dense({units: originalDim, activation: 'sigmoid'}).apply(x);
-
-  const dec = tf.model({
-    inputs: latentInputs,
-    outputs: outputs,
-    name: 'decoder',
-  });
+  const dec = tf.sequential({name: 'decoder'});
+  dec.add(tf.layers.dense({
+    units: intermediateDim,
+    activation: 'relu',
+    inputShape: [latentDim]
+  }));
+  dec.add(tf.layers.dense({units: originalDim, activation: 'sigmoid'}));
 
   // console.log('Decoder Summary');
   // dec.summary();

@@ -100,6 +100,7 @@ describe('VAE', () => {
     const loss = vaeLoss(xs, ys);
     const numTensors1 = tf.memory().numTensors;
     expect(numTensors1).toEqual(numTensors0 + 1);
-    loss.print();
+    expect(loss.shape).toEqual([]);  // loss is a scalar.
+    expect(loss.arraySync()).toBeGreaterThan(0);
   });
 })

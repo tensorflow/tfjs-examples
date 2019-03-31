@@ -57,7 +57,6 @@ async function train(images, vaeOpts, savePath) {
   // Cteate the optimizer
   const optimizer = tf.train.adam();
 
-
   // Group the data into batches.
   const batches = _.chunk(images, batchSize);
 

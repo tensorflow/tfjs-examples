@@ -80,8 +80,8 @@ class ZLayer extends tf.layers.Layer {
   }
 
   /**
-   * The actual computation performed by an instance of ZLayer. 
-   * 
+   * The actual computation performed by an instance of ZLayer.
+   *
    * @param {Tensor[]} inputs this layer takes two input tensors, z_mean and
    *     z_log_var
    * @return A tensor of the same shape as z_mean and z_log_var, equal to
@@ -99,7 +99,7 @@ class ZLayer extends tf.layers.Layer {
     const epsilon = tf.randomNormal([batch, dim], mean, std);
 
     // z = z_mean + sqrt(var) * epsilon
-    return zMean.add(zLogVar.exp().mul(epsilon));
+    return zMean.add(zLogVar.mul(0.5).exp().mul(epsilon));
   }
 
   static getClassName() {
@@ -162,31 +162,32 @@ function vae(encoder, decoder) {
  * @param {tf.tensor} inputs the encoder inputs a batched image tensor
  * @param {[tf.tensor]} outputs the vae outputs, [decoderOutput,
  *     ...encoderOutputs]
- * @param {*} vaeOpts vae configuration
  * @param {number} vaeOpts.originalDim number of dimensions in the original data
  */
-function vaeLoss(inputs, outputs, vaeOpts) {
-  const {originalDim} = vaeOpts;
-  const decoderOutput = outputs[0];
-  const zMean = outputs[1];
-  const zLogVar = outputs[2];
+function vaeLoss(inputs, outputs) {
+  return tf.tidy(() => {
+    const originalDim = inputs.shape[1];
+    const decoderOutput = outputs[0];
+    const zMean = outputs[1];
+    const zLogVar = outputs[2];
 
-  // First we compute a 'reconstruction loss' terms. The goal of minimizing this
-  // term is to make the model outputs match the input data.
-  const reconstructionLoss =
-      tf.losses.meanSquaredError(inputs, decoderOutput).mul(originalDim);
+    // First we compute a 'reconstruction loss' terms. The goal of minimizing
+    // tihs term is to make the model outputs match the input data.
+    const reconstructionLoss =
+        tf.losses.meanSquaredError(inputs, decoderOutput).mul(originalDim);
 
-  // binaryCrossEntropy can be used as an alternative loss function
-  // const reconstructionLoss =
-  //  tf.metrics.binaryCrossentropy(inputs, decoderOutput).mul(originalDim);
+    // binaryCrossEntropy can be used as an alternative loss function
+    // const reconstructionLoss =
+    //  tf.metrics.binaryCrossentropy(inputs, decoderOutput).mul(originalDim);
 
-  // Next we compute the KL-divergence between zLogVar and zMean, minimizing
-  // this term aims to make the distribution of latent variable more normally
-  // distributed around the center of the latent space.
-  let klLoss = zLogVar.add(1).sub(zMean.square()).sub(zLogVar.exp());
-  klLoss = klLoss.sum(-1).mul(-0.5);
+    // Next we compute the KL-divergence between zLogVar and zMean, minimizing
+    // this term aims to make the distribution of latent variable more normally
+    // distributed around the center of the latent space.
+    let klLoss = zLogVar.add(1).sub(zMean.square()).sub(zLogVar.exp());
+    klLoss = klLoss.sum(-1).mul(-0.5);
 
-  return reconstructionLoss.add(klLoss).mean();
+    return reconstructionLoss.add(klLoss).mean();
+  });
 }
 
 module.exports = {

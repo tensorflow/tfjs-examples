@@ -91,7 +91,7 @@ async function train(images, vaeOpts, savePath) {
   }
 
   console.log('done training');
-  saveModel(savePath, vaeModel, encoderModel, decoderModel);
+  saveDecoder(savePath, decoderModel);
 }
 
 /**
@@ -108,10 +108,12 @@ async function generate(decoderModel, latentDimSize) {
   tf.dispose([targetZ, generated]);
 }
 
-async function saveModel(savePath, vaeModel, encoderModel, decoderModel) {
+async function saveDecoder(savePath, decoderModel) {
   const decoderPath = path.join(savePath, 'decoder');
   mkdirp.sync(decoderPath);
-  await decoderModel.save(`file://${decoderPath}`);
+  const saveURL = `file://${decoderPath}`;
+  console.log(`Saving decoder to ${saveURL}`);
+  await decoderModel.save(saveURL);
 }
 
 async function run(savePath) {
@@ -150,7 +152,7 @@ async function run(savePath) {
   });
   parser.addArgument('--savePath', {
     type: 'string',
-    defaultValue: './models',
+    defaultValue: './dist/models',
   });
 
   const args = parser.parseArgs();

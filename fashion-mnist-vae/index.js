@@ -15,7 +15,6 @@
  * =============================================================================
  */
 
-
 /**
  * This file holds the browser based viewer for the VAE trained in node.
  */
@@ -27,7 +26,7 @@ import {select as d3Select} from 'd3-selection';
 // Make sure that you are serving the model file at this location.
 // You should be able to paste this url into your browser and see
 // the json file.
-const decoderUrl = 'http://127.0.0.1:8080/decoder/model.json';
+const decoderUrl = './models/decoder/model.json';
 
 let decoder;
 

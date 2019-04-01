@@ -103,4 +103,4 @@ describe('VAE', () => {
     expect(loss.shape).toEqual([]);  // loss is a scalar.
     expect(loss.arraySync()).toBeGreaterThan(0);
   });
-})
+});

@@ -29,7 +29,11 @@ const tf = require('@tensorflow/tfjs');
 /**
  * The encoder portion of the model.
  *
- * @param {*} opts encoder configuration.
+ * @param {object} opts encoder configuration, includnig the following fields:
+ *   - originaDim {number} Length of the input flattened image.
+ *   - intermediateDim {number} Number of units of the intermediate (i.e.,
+ *     hidden) dense layer.
+ *   - latentDim {number} Dimensionality of the latent space (i.e,. z-space).
  * @param {number} opts.originalDim number of dimensions in the original data.
  * @param {number} opts.intermediateDim number of dimensions in the bottleneck.
  * @param {number} opts.latentDim number of dimensions in latent space.

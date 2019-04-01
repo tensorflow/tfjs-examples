@@ -86,7 +86,7 @@ async function train(images, vaeOpts, savePath, logDir) {
   // Run the train loop.
   let step = 0;
   for (let i = 0; i < epochs; i++) {
-    console.log(`\nEpoch #${i} of ${epochs}\n`)
+    console.log(`\nEpoch #${i + 1} of ${epochs}\n`);
     for (let j = 0; j < batches.length; j++) {
       const currentBatchSize = batches[j].length
       const batchedImages = batchImages(batches[j]);
@@ -166,7 +166,7 @@ async function run(savePath, logDir) {
   });
   parser.addArgument('--epochs', {
     type: 'int',
-    defaultValue: 5,
+    defaultValue: 100,
     help: 'Number of epochs to train the model for'
   });
   parser.addArgument('--batchSize', {

@@ -102,10 +102,11 @@ class ZLayer extends tf.layers.Layer {
     return zMean.add(zLogVar.mul(0.5).exp().mul(epsilon));
   }
 
-  static getClassName() {
+  static get className() {
     return 'ZLayer';
   }
 }
+tf.serialization.registerClass(ZLayer);
 
 /**
  * The decoder portion of the model.

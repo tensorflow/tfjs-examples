@@ -140,7 +140,7 @@ describe('Board', () => {
     for (let i = 0; i < board.nInRow; i++) {
       board.states[board.locationToMove({x: i, y: 0})] = 0;
     }
-    expect(board.hasAWinner()).toEqual([true, board.players[0]]);
+    expect(board.hasAWinner()).toEqual({win: true, winner: board.players[0]});
   });
 
   it('hasAWinner vertical', () => {
@@ -149,7 +149,7 @@ describe('Board', () => {
     for (let i = 0; i < board.nInRow; i++) {
       board.states[board.locationToMove({x: 0, y: i})] = 0;
     }
-    expect(board.hasAWinner()).toEqual([true, board.players[0]]);
+    expect(board.hasAWinner()).toEqual({win: true, winner: board.players[0]});
   });
 
   it('hasAWinner diagonal \\', () => {
@@ -158,7 +158,7 @@ describe('Board', () => {
     for (let i = 0; i < board.nInRow; i++) {
       board.states[board.locationToMove({x: 5 - i, y: i})] = 0;
     }
-    expect(board.hasAWinner()).toEqual([true, board.players[0]]);
+    expect(board.hasAWinner()).toEqual({win: true, winner: board.players[0]});
   });
 
 
@@ -168,7 +168,7 @@ describe('Board', () => {
     for (let i = 0; i < board.nInRow; i++) {
       board.states[board.locationToMove({x: i, y: i})] = 0;
     }
-    expect(board.hasAWinner()).toEqual([true, board.players[0]]);
+    expect(board.hasAWinner()).toEqual({win: true, winner: board.players[0]});
   });
 
   // Other hasAWinner tests hack the board state.  Let's test one using the
@@ -185,7 +185,7 @@ describe('Board', () => {
     board.doMove(3);
     board.doMove(12);
     board.doMove(4);
-    expect(board.hasAWinner()).toEqual([true, board.players[0]]);
+    expect(board.hasAWinner()).toEqual({win: true, winner: board.players[0]});
   });
 
   it('gameEnd not finished', () => {
@@ -200,30 +200,30 @@ describe('Board', () => {
     for (let i = 0; i < board.nInRow; i++) {
       board.states[board.locationToMove({x: i, y: i})] = 0;
     }
-    expect(board.gameEnd()).toEqual([true, board.players[0]]);
+    expect(board.gameEnd()).toEqual({win: true, winner: board.players[0]});
   });
 
   it('gameEnd tie', () => {
     const board = new game.Board(boardConfig66);
     board.initBoard();
     board.availables = {};
-    expect(board.gameEnd()).toEqual([true, game.NO_WIN_SENTINEL]);
+    expect(board.gameEnd()).toEqual({win: true, winner: game.NO_WIN_SENTINEL});
   });
 
-  it('currentState is zeros for empty board', () => {
+  it('currentStateTensor is zeros for empty board', () => {
     const board = new game.Board(boardConfig66);
     board.initBoard();
-    const state = board.currentState();
+    const state = board.currentStateTensor();
     tf.test_util.expectArraysClose(state, tf.zeros([4, 6, 6]));
   });
 
-  it('currentState is as expected for board with some moves', () => {
+  it('currentStateTensor is as expected for board with some moves', () => {
     const board = new game.Board(boardConfig66);
     board.initBoard();
     board.doMove(board.locationToMove({x: 0, y: 0}));
     board.doMove(board.locationToMove({x: 1, y: 1}));
     board.doMove(board.locationToMove({x: 2, y: 2}));
-    const state = board.currentState();
+    const state = board.currentStateTensor();
     const expectedBuffer = tf.buffer([3, 6, 6]);
     // player 1's moves.
     expectedBuffer.set(1.0, 0, 0, 0);

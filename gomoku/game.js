@@ -47,7 +47,7 @@
 // The value of the tf object will be set dynamically, depending on whether
 // the CPU (tfjs-node) or GPU (tfjs-node-gpu) backend is used. This is why
 // `let` is used in lieu of the more conventional `const` here.
-let tf = require('@tensorflow/tfjs');
+const tf = require('@tensorflow/tfjs');
 
 const INVALID_BOARD_MOVE = null;
 const INVALID_BOARD_LOCATION = null;
@@ -68,8 +68,18 @@ function createAvailableKeys(N) {
   return myObj;
 }
 
-// TODO(bileschi): Add docstring.
+/**
+ * Encapusulates the concept of a game board and the current game state.
+ * Includes pieces placed, which player's turn it is, and game parameters
+ * like the size of the board.
+ */
 class Board {
+  /**
+   * boardConfig
+   *  .width = the integer size of the board along the x dimension.
+   *  .height = the integer size of the board along the y dimension.
+   *  .nInRow = how many pieces are needed to be in a row to constitute a win.
+   */
   constructor(boardConfig = {}) {
     this.width = boardConfig.width || DEFAULT_BOARD_SIZE;
     this.height = boardConfig.height || DEFAULT_BOARD_SIZE;
@@ -82,15 +92,20 @@ class Board {
     this.currentPlayer = null;
   }
 
-  // TODO(bileschi): Add docstring.
+  /**
+   * Resets the board to empty of pieces.
+   * Sets the next player to be the starting player.
+   * 
+   * @param startPlayer: Which player should go first, 0 or 1.
+   */
   initBoard(startPlayer = 0) {
     if (this.width < this.nInRow) {
-      throw `Width (${this.width}) can not be less than winning row size ${
-          this.nInRow}.`
+      throw new Error(`Width (${this.width}) can not be less than winning row size ${
+          this.nInRow}.`);
     }
     if (this.height < this.nInRow) {
-      throw `Height (${this.height}) can not be less than winning row size ${
-          this.nInRow}.`
+      throw new Error(`Height (${this.height}) can not be less than winning row size ${
+          this.nInRow}.`);
     }
     this.currentPlayer = this.players[startPlayer];
     // Keep available moves as keys in an object.
@@ -99,6 +114,7 @@ class Board {
     this.lastMove = LAST_MOVE_SENTINEL;
   }
 
+  /** Returns true if the provided move is not already occupied. */
   isAvailable(move) {
     // Would be undefined if not available.
     this.availables[move] === null;
@@ -117,7 +133,7 @@ class Board {
    * Returns undefined on invalid location.
    * */
   moveToLocation(move) {
-    if (move < 0 | move >= this.width * this.height) {
+    if (move < 0 | move >= this.width * this.height | !Number.isInteger(move)) { 
       return INVALID_BOARD_MOVE;
     }
     return {y: Math.floor(move / this.width), x: move % this.width};
@@ -131,7 +147,8 @@ class Board {
    */
   locationToMove(location) {
     if (location.x < 0 | location.x >= this.width | location.y < 0 |
-        location.y >= this.height) {
+        location.y >= this.height | !Number.isInteger(location.x) | 
+        !Number.isInteger(location.y)) {
       return INVALID_BOARD_LOCATION;
     }
     return location.x + location.y * this.width;
@@ -144,7 +161,6 @@ class Board {
    *
    * @param {number} move position of current player's move, in single number
    *     format.
-   *
    */
   doMove(move) {
     this.states[move] = this.currentPlayer;
@@ -160,8 +176,8 @@ class Board {
    * Indicates whether the board has a winner.
    *
    * @returns {(boolean, integer)} If the game has been won returns
-   * [True, $Player] indicating which player has won the game.  Otherwise
-   * returns [False, -1];
+   * {win: True, winner: $Player} indicating which player has won the game.  Otherwise
+   * returns {win: False, winner: -1};
    */
   hasAWinner() {
     const moved = Object.keys(this.states);
@@ -169,10 +185,10 @@ class Board {
     // diff.
     /*
     if (moved.length < (this.nInRow * 2 - 1)) {
-      return [false, -1];
+      return {win: false, winner: -1};
     } */
-    for (let mString of moved) {
-      const m = parseInt(mString);
+    moved.forEach(mString => {
+      const m = Number.parseInt(mString);
       const loc = this.moveToLocation(m);
       const player = this.states[m];
       // Check if this is the leftmost piece in a horizontal win
@@ -233,27 +249,27 @@ class Board {
           return [true, winner];
         }
       }
-    }
-    return [false, NO_WIN_SENTINEL];
+    });
+    return {win: false, winner: NO_WIN_SENTINEL};
   }
 
   // TODO(bileschi): Move this to be part of 'Game' not 'Board'
   /**
    * The game is over if either there is a winner, or there are no moves left
    * to make.
-   * @returns {(boolean, integer)} If the game has been won returns
-   *   [True, $Player] indicating which player has won the game.
-   *   If the game is a tie, returns [True, -1]
-   *   Otherwise returns [False, -1];
+   * @returns {{win: boolean, winner: integer}} If the game has been won returns
+   *   {win: True, winner: $Player} indicating which player has won the game.
+   *   If the game is a tie, returns {win: True, winner: -1}
+   *   Otherwise returns {win: False, winner: -1};
    */
   gameEnd() {
     const [win, winner] = this.hasAWinner();
     if (win) {
-      return [true, winner];
+      return {win: true, winner: winner};
     } else if (Object.keys(this.availables).length == 0) {
-      return [true, NO_WIN_SENTINEL];
+      return {win: true, winner: NO_WIN_SENTINEL};
     } else {
-      return [false, NO_WIN_SENTINEL];
+      return {win: false, winner: NO_WIN_SENTINEL};
     }
   }
 
@@ -264,11 +280,12 @@ class Board {
    * Channel 1 is your pieces.
    * Channel 2 is the position of the previous move.
    * Channel 3 alternates ones and zeros, depending on which player is next.
+   * @returns tf.Tensor with shape [3, width, height] 
    */
-  currentState() {
+  currentStateTensor() {
     const boardBuffer = tf.buffer([3, this.width, this.height], 'float32');
     // Set channel 0 and channel 1.
-    for (let [move, movePlayer] of Object.entries(this.states)) {
+    for (const [move, movePlayer] of Object.entries(this.states)) {
       const playerIndex = movePlayer === this.currentPlayer;
       const loc = this.moveToLocation(move);
       boardBuffer.set(1.0, playerIndex, loc.x, loc.y);
@@ -320,6 +337,9 @@ class Game {
     return rowText;
   }
 
+  /**
+   * Returns a string representation of the Game.
+   */
   asAsciiArt() {
     const textRows = [];
     textRows.push(`player ${this.board.players[0]} with X`);
@@ -332,6 +352,18 @@ class Game {
     return textRows.join('\n');
   }
 
+  /**
+   * Begins the game, with agent1 and agent2 representing players.
+   * @param agent1: agent acting as player 1
+   * @param agent2: agent acting as player 2
+   * @param startPlayer: 0 if player 1 goes first, 1 otherwise.
+   * @param isShown: true to print the game state out to the console.
+   * @returns {{win: boolean, winner: integer}} If the game has been won returns
+   *   {win: True, winner: $Player} indicating which player has won the game.
+   *   If the game is a tie, returns {win: True, winner: -1}
+   *   Otherwise returns {win: False, winner: -1};
+ 
+   */
   startPlay(agent1, agent2, startPlayer = 0, isShown = true) {
     if (startPlayer !== 0 && startPlayer !== 1) {
       throw new Error(

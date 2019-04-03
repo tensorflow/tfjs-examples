@@ -23,9 +23,8 @@
  * The training data can be downloaded with a command like the following example:
  *   wget http://www.manythings.org/anki/fra-eng.zip
  *
- * Author: Huan LI <zixia@zixia.net>
+ * Original author: Huan LI <zixia@zixia.net>
  * 2019, https://github.com/huan
- *
  */
 import fs from 'fs';
 import path from 'path';
@@ -39,7 +38,7 @@ const invertKv = require('invert-kv');
 
 import * as tf from '@tensorflow/tfjs';
 
-let FLAGS = {} as any;
+let args = {} as any;
 
 async function readData (dataFile: string) {
   // Vectorize the data.
@@ -58,7 +57,7 @@ async function readData (dataFile: string) {
 
   let lineNumber = 0;
   rl.on('line', line => {
-    if (++lineNumber > FLAGS.num_samples) {
+    if (++lineNumber > args.num_samples) {
       rl.close();
       return;
     }
@@ -114,7 +113,7 @@ async function readData (dataFile: string) {
 
   // Save the token indices to file.
   const metadataJsonPath = path.join(
-    FLAGS.artifacts_dir,
+    args.artifacts_dir,
     'metadata.json',
   );
 
@@ -237,7 +236,7 @@ function seq2seqModel (
   // and to return internal states as well. We don't use the
   // return states in the training model, but we will use them in inference.
   const decoderLstm = tf.layers.lstm({
-    units: FLAGS.latent_dim,
+    units: args.latent_dim,
     returnSequences: true,
     returnState: true,
     name: 'decoderLstm',
@@ -328,19 +327,16 @@ async function decodeSequence (
     ];
 
     // Sample a token
-    const sampledTokenIndex = await outputTokens
-                                      .squeeze()
-                                      .argMax(-1)
-                                      .array() as number;
+    const sampledTokenIndex =
+        await outputTokens.squeeze().argMax(-1).array() as number;
 
     const sampledChar = reverseTargetCharIndex[sampledTokenIndex];
     decodedSentence += sampledChar;
 
     // Exit condition: either hit max length
     // or find stop character.
-    if ( sampledChar === '\n'
-      || decodedSentence.length > maxDecoderSeqLength
-    ) {
+    if (sampledChar === '\n' ||
+        decodedSentence.length > maxDecoderSeqLength) {
       stopCondition = true;
     }
 
@@ -355,12 +351,13 @@ async function decodeSequence (
 }
 
 async function main () {
-  if (FLAGS.gpu) {
+  let tfn;
+  if (args.gpu) {
     console.log('Using GPU');
-    require('@tensorflow/tfjs-node-gpu');
+    tfn = require('@tensorflow/tfjs-node-gpu');
   } else {
     console.log('Using CPU');
-    require('@tensorflow/tfjs-node');
+    tfn = require('@tensorflow/tfjs-node');
   }
 
   const {
@@ -372,7 +369,7 @@ async function main () {
     encoderInputData,
     decoderInputData,
     decoderTargetData,
-  } = await readData(FLAGS.data_path);
+  } = await readData(args.data_path);
 
   const {
     encoderInputs,
@@ -381,34 +378,34 @@ async function main () {
     decoderLstm,
     decoderDense,
     model,
-  } = seq2seqModel(
-    numEncoderTokens,
-    numDecoderTokens,
-    FLAGS.latent_dim,
-  );
+  } = seq2seqModel(numEncoderTokens, numDecoderTokens, args.latent_dim);
 
   // Run training.
   model.compile({
     optimizer: 'rmsprop',
     loss: 'categoricalCrossentropy',
   });
-
   model.summary();
 
+  if (args.logDir != null) {
+    console.log(
+      `To view logs in tensorboard, do:\n` +
+      `  tensorboard --logdir ${args.logDir}\n`);
+  }
+
   await model.fit(
-    [
-      encoderInputData,
-      decoderInputData,
-    ],
-    decoderTargetData,
-    {
-      batchSize: FLAGS.batch_size,
-      epochs: FLAGS.epochs,
+    [encoderInputData, decoderInputData], decoderTargetData, {
+      batchSize: args.batch_size,
+      epochs: args.epochs,
       validationSplit: 0.2,
-    },
+      callbacks: args.logDir == null ? null :
+          tfn.node.tensorBoard(args.logDir, {
+            updateFreq: args.logUpdateFreq
+          })
+    }
   );
 
-  await model.save('file://' + FLAGS.artifacts_dir);
+  await model.save(`file://${args.artifacts_dir}`);
 
   // tfjs.converters.save_keras_model(model, FLAGS.artifacts_dir)
 
@@ -428,11 +425,11 @@ async function main () {
   });
 
   const decoderStateInputH = tf.layers.input({
-    shape: [FLAGS.latent_dim],
+    shape: [args.latent_dim],
     name: 'decoderStateInputHidden',
   });
   const decoderStateInputC = tf.layers.input({
-    shape: FLAGS.latent_dim,
+    shape: args.latent_dim,
     name: 'decoderStateInputCell',
   });
   const decoderStatesInputs = [decoderStateInputH, decoderStateInputC];
@@ -450,23 +447,26 @@ async function main () {
 
   // Reverse-lookup token index to decode sequences back to
   // something readable.
-  const reverseTargetCharIndex = invertKv(targetTokenIndex) as {[indice: number]: string};
+  const reverseTargetCharIndex =
+      invertKv(targetTokenIndex) as {[indice: number]: string};
 
   const targetBeginIndex = targetTokenIndex['\t'];
 
-  for (let seqIndex = 0; seqIndex < FLAGS.num_test_sentences; seqIndex++) {
+  for (let seqIndex = 0; seqIndex < args.num_test_sentences; seqIndex++) {
     // Take one sequence (part of the training set)
     // for trying out decoding.
     const inputSeq = encoderInputData.slice(seqIndex, 1);
 
     // Get expected output
-    const targetSeqVoc = decoderTargetData.slice(seqIndex, 1).squeeze([0]) as tf.Tensor2D;
+    const targetSeqVoc =
+        decoderTargetData.slice(seqIndex, 1).squeeze([0]) as tf.Tensor2D;
     const targetSeqTensor = targetSeqVoc.argMax(-1) as tf.Tensor1D;
 
     const targetSeqList = await targetSeqTensor.array();
 
     // One-hot to index
-    const targetSeq = targetSeqList.map(indice => reverseTargetCharIndex[indice]);
+    const targetSeq =
+        targetSeqList.map(indice => reverseTargetCharIndex[indice]);
 
     // Array to string
     const targetSeqStr = targetSeq.join('').replace('\n', '');
@@ -543,10 +543,22 @@ parser.addArgument(
     help: 'Local path for saving the TensorFlow.js artifacts.',
   },
 );
+parser.addArgument('--logDir', {
+  type: 'string',
+  help: 'Optional tensorboard log directory, to which the loss values ' +
+  'will be logged during model training.'
+});
+parser.addArgument('--logUpdateFreq', {
+  type: 'string',
+  defaultValue: 'batch',
+  optionStrings: ['batch', 'epoch'],
+  help: 'Frequency at which the loss values will be logged to ' +
+  'tensorboard.'
+});
 parser.addArgument('--gpu', {
   action: 'storeTrue',
   help: 'Use tfjs-node-gpu to train the model. Requires CUDA/CuDNN.'
 });
 
-[FLAGS,] = parser.parseKnownArgs();
+[args,] = parser.parseKnownArgs();
 main();

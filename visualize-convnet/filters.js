@@ -126,9 +126,9 @@ function inputGradientAscent(model, layerName, filterIndex, iterations = 40) {
     const lossFunction = (input) =>
         auxModel.apply(input, {training: true}).gather([filterIndex], 3);
 
-    // This function (`gradient`) calculates the gradient of the convolutional
-    // filter's output with respect to the input image.
-    const gradients = tf.grad(lossFunction);
+    // This returned function (`gradFunction`) calculates the gradient of the
+    // convolutional filter's output with respect to the input image.
+    const gradFunction = tf.grad(lossFunction);
 
     // Form a random image as the starting point of the gradient ascent.
     let image = tf.randomUniform([1, imageH, imageW, imageDepth], 0, 1)
@@ -137,7 +137,7 @@ function inputGradientAscent(model, layerName, filterIndex, iterations = 40) {
 
     for (let i = 0; i < iterations; ++i) {
       const scaledGrads = tf.tidy(() => {
-        const grads = gradients(image);
+        const grads = gradFunction(image);
         const norm =
             tf.sqrt(tf.mean(tf.square(grads))).add(tf.ENV.get('EPSILON'));
         // Important trick: scale the gradient with the magnitude (norm)

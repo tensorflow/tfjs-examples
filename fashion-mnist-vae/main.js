@@ -181,7 +181,7 @@ async function run(savePath, logDir) {
   });
   parser.addArgument('--savePath', {
     type: 'string',
-    defaultValue: './dist/models',
+    defaultValue: './models',
     help: 'Directory to which the decoder part of the VAE model will ' +
     'be saved after training. If the directory does not exist, it will be ' +
     'created.'

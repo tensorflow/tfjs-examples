@@ -23,7 +23,7 @@
   },
   "scripts": {
     "train": "node main.js",
-    "watch": "cross-env NODE_ENV=development parcel index.html --no-hmr --open",
+    "watch": "mkdir -p dist/models && cp -r models/decoder dist/models/ && cross-env NODE_ENV=development parcel index.html --no-hmr --open",
     "download-data": "node download.js",
     "build": "cross-env NODE_ENV=production parcel build index.html --no-minify --public-url ./",
     "test": "node run_tests.js"

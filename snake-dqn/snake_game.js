@@ -22,6 +22,16 @@ const DEFAULT_WIDTH = 16;
 const DEFAULT_NUM_FRUITS = 1;
 const DEFAULT_INIT_LEN = 4;
 
+// TODO(cais): Tune these parameters.
+export const NO_FRUIT_REWARD = 0;
+export const FRUIT_REWARD = 1;
+// TODO(cais): Explore adding a "bad fruit" with a negative reward.
+
+export const ACTION_LEFT = 0;
+export const ACTION_UP = 1;
+export const ACTION_RIGHT = 2;
+export const ACTION_DOWN = 3;
+
 export class SnakeGame {
   /**
    * Constructor of SnakeGame.
@@ -73,9 +83,71 @@ export class SnakeGame {
    *     1 - top
    *     2 - right
    *     3 - bottom
+   * @returns {object} Object with the following keys:
+   *   - reward {number} the reward value.
+   *     - 0 if no fruit is eaten in this step
+   *     - 1 if a fruit is eaten in this step
+   *   - done {boolean} whether the game has ended after this step.
+   *     A game ends when the head of the snake goes off the board or goes
+   *     over its own body.
    */
   step(action) {
+    const [headY, headX] = this.snakeSquares_[0];
 
+    // Calculate the coordinates of the new head and check whether it has
+    // gone off the board, in which case the game will end.
+    let done;
+    let newHeadY;
+    let newHeadX;
+    if (action === ACTION_LEFT) {
+      newHeadY = headY;
+      newHeadX = headX - 1;
+      done = newHeadX < 0;
+    } else if (action === ACTION_UP) {
+      newHeadY = headY - 1;
+      newHeadX = headX;
+      done = newHeadY < 0
+    } else if (action === ACTION_RIGHT) {
+      newHeadY = headY;
+      newHeadX = headX + 1;
+      done = newHeadX >= this.width_;
+    } else if (action === ACTION_DOWN) {
+      newHeadY = headY + 1;
+      newHeadX = headX;
+      done = newHeadY >= this.height_;
+    }
+
+    // Check if the head goes over the snake's body, in which case the
+    // game will end.
+    for (let i = 1; i < this.snakeSquares_.length; ++i) {
+      if (this.snakeSquares_[i][0] === newHeadY &&
+          this.snakeSquares_[i][1] === newHeadX) {
+        done = true;
+      }
+    }
+
+    if (done) {
+      return {reward: 0, done};
+    }
+
+    // Update the position of the snake.
+    this.snakeSquares_.pop();
+    this.snakeSquares_.unshift([newHeadY, newHeadX]);
+
+    // Check if a fruit is eaten.
+    let reward = NO_FRUIT_REWARD;
+    let i = 0;
+    for (; i < this.fruitSquares_.length; ++i) {
+      const fruitYX = this.fruitSquares_[i];
+      if (fruitYX[0] === newHeadY && fruitYX[1] === newHeadX) {
+        reward = FRUIT_REWARD;
+        this.fruitSquares_.splice(i, 1);
+        this.makeFruits_();
+        break;
+      }
+    }
+
+    return {reward, done};
   }
 
   initializeSnake_() {
@@ -100,7 +172,11 @@ export class SnakeGame {
   }
 
   /**
-   * Generate a given number of new fruits at a random locations.
+   * Generate a number of new fruits at a random locations.
+   *
+   * The number of frtuis created is such that the total number of
+   * fruits will be equal to the numFruits specified during the
+   * construction of this object.
    *
    * The fruits will be created at unoccupied squares of the board.
    */
@@ -109,12 +185,14 @@ export class SnakeGame {
       this.fruitSquares_ = [];
     }
     const numFruits = this.numFruits_ - this.fruitSquares_.length;
-    console.log(`numFruits = ${numFruits}`);
+    if (numFruits <= 0) {
+      return;
+    }
 
     const emptyIndices = [];
     for (let i = 0; i < this.height_; ++i) {
       for (let j = 0; j < this.width_; ++j) {
-	emptyIndices.push(i * this.width_ + j);
+	      emptyIndices.push(i * this.width_ + j);
       }
     }
 
@@ -131,7 +209,7 @@ export class SnakeGame {
       const fruitX = fruitIndex % this.width_;
       this.fruitSquares_.push([fruitY, fruitX]);
       if (numFruits > 1) {
-	emptyIndices.splice(emptyIndices.indexOf(fruitIndex), 1);
+	      emptyIndices.splice(emptyIndices.indexOf(fruitIndex), 1);
       }
     }
   }
@@ -173,7 +251,13 @@ export class SnakeGame {
   }
 }
 
-
+/**
+ * Generate a random integer >= min and < max.
+ *
+ * @param {number} min Lower bound, inclusive.
+ * @param {number} max Upper bound, exclusive.
+ * @return {number} The random integer.
+ */
 export function getRandomInteger(min, max) {
   return Math.floor((max - min) * Math.random()) + min;
 }

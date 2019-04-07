@@ -15,7 +15,10 @@
  * =============================================================================
  */
 
-import {SnakeGame} from "./snake_game";
+import * as tf from '@tensorflow/tfjs';
+
+import {getRandomInteger, SnakeGame} from "./snake_game";
+import {expectArraysClose} from "@tensorflow/tfjs-core/dist/test_util";
 
 describe('SnakeGame', () => {
   it('SnakeGame constructor: no-arg', () => {
@@ -28,5 +31,46 @@ describe('SnakeGame', () => {
     const game = new SnakeGame({height: 12, width: 14});
     expect(game.height).toEqual(12);
     expect(game.width).toEqual(14);
+  });
+
+  it('Invalid height and/or width leads to Error', () => {
+    expect(() => new SnakeGame({height: -12})).toThrowError(
+	/Expected height to be a positive number/);
+    expect(() => new SnakeGame({height: 1.2})).toThrowError(
+	/Expected height to be an integer/);
+    expect(() => new SnakeGame({width: -12})).toThrowError(
+	/Expected width to be a positive number/);
+    expect(() => new SnakeGame({width: 1.2})).toThrowError(
+	/Expected width to be an integer/);
+  });
+
+  it('getStateTensor', () => {
+    const game = new SnakeGame({height: 5, width: 5, initLen: 2});
+    const x = game.getStateTensor();
+    expect(x.dtype).toEqual('float32');
+    expect(x.shape).toEqual([5, 5, 2]);
+    const [snake, fruits] = x.unstack(-1);
+    expectArraysClose(snake.sum(), 3);
+    expectArraysClose(snake.max(), 2);
+    expectArraysClose(snake.min(), 0);
+    expectArraysClose(fruits.sum(), 1);
+    expectArraysClose(fruits.max(), 1);
+    expectArraysClose(fruits.min(), 0);
+    // TODO(cais): Check that the snake and fruit are non-overlapping.
+  });
+});
+
+describe('getRandomInteger()', () => {
+  it('max > min', () => {
+    const values = [];
+    for (let i = 0; i < 10; ++i) {
+      const v = getRandomInteger(3, 6);
+      expect(v).toBeGreaterThanOrEqual(3);
+      expect(v).toBeLessThan(6);
+      if (values.indexOf(v) === -1) {
+	values.push(v);
+      }
+    }
+    expect(values.length).toBeGreaterThan(1);
   });
 });

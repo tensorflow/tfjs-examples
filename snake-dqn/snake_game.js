@@ -15,6 +15,8 @@
  * =============================================================================
  */
 
+import * as tf from '@tensorflow/tfjs';
+
 const DEFAULT_HEIGHT = 16;
 const DEFAULT_WIDTH = 16;
 const DEFAULT_NUM_FRUITS = 1;
@@ -53,10 +55,10 @@ export class SnakeGame {
     this.numFruits_ = args.numFruits;
     this.initLen_ = args.initLen;
 
-    assertPositiveInteger(args.height);
-    assertPositiveInteger(args.width);
-    assertPositiveInteger(args.numFruits);
-    assertPositiveInteger(args.initLen);
+    assertPositiveInteger(args.height, 'height');
+    assertPositiveInteger(args.width, 'width');
+    assertPositiveInteger(args.numFruits, 'numFruits');
+    assertPositiveInteger(args.initLen, 'initLen');
 
     this.initializeSnake_();
     this.makeFruits_();
@@ -67,7 +69,7 @@ export class SnakeGame {
    *
    * @param {0 | 1 | 2 | 3} action The action to take in the current step.
    *   The meaning of the possible values:
-   *     0 - left
+ rtui  *     0 - left
    *     1 - top
    *     2 - right
    *     3 - bottom
@@ -89,17 +91,49 @@ export class SnakeGame {
 
     // Currently, the snake will start from a completely-straight state.
 
+    const y = getRandomInteger(0, this.height_);
+    let x = getRandomInteger(this.initLen_ - 1, this.width_);
+    this.snakeSquares_.push([y, x]);
+    for (let i = 1; i < this.initLen_; ++i) {
+      this.snakeSquares_.push([y, x - i]);
+    }
   }
 
   /**
    * Generate a given number of new fruits at a random locations.
    *
    * The fruits will be created at unoccupied squares of the board.
-   *
-   * @param {number} numFruits Number of fruits. Must be a positive integer.
    */
-  makeFruits_(numFruits) {
+  makeFruits_() {
+    if (this.fruitSquares_ == null) {
+      this.fruitSquares_ = [];
+    }
+    const numFruits = this.numFruits_ - this.fruitSquares_.length;
+    console.log(`numFruits = ${numFruits}`);
 
+    const emptyIndices = [];
+    for (let i = 0; i < this.height_; ++i) {
+      for (let j = 0; j < this.width_; ++j) {
+	emptyIndices.push(i * this.width_ + j);
+      }
+    }
+
+    // Remove the squares occupied by the snake from the empty indices.
+    this.snakeSquares_.forEach(yx => {
+      const index = yx[0] * this.width_ + yx[1];
+      // TODO(cais): Possible optimization?
+      emptyIndices.splice(emptyIndices.indexOf(index), 1);
+    });
+
+    for (let i = 0; i < numFruits; ++i) {
+      const fruitIndex = emptyIndices[getRandomInteger(0, emptyIndices.length)];
+      const fruitY = Math.floor(fruitIndex / this.width_);
+      const fruitX = fruitIndex % this.width_;
+      this.fruitSquares_.push([fruitY, fruitX]);
+      if (numFruits > 1) {
+	emptyIndices.splice(emptyIndices.indexOf(fruitIndex), 1);
+      }
+    }
   }
 
   get height() {
@@ -109,6 +143,39 @@ export class SnakeGame {
   get width() {
     return this.width_;
   }
+
+  /**
+   * Get the current state of the game as an image tensor.
+   *
+   * @return {tf.Tensor} A tensor of shape [height, width, 2] and dtype
+   *   'float32'
+   *   - The first channel uses 0-1-2 values to mark the snake.
+   *     - 0 means an empty square.
+   *     - 1 means the body of the snake.
+   *     - 2 means the haed of the snake.
+   *   - The second channel uses 0-1 values to mark the fruits.
+   */
+  getStateTensor() {
+    // TODO(cais): Maintain only a single buffer for efficiency.
+    const buffer = tf.buffer([this.height_, this.width_, 2]);
+
+    // Mark the snake.
+    this.snakeSquares_.forEach((yx, i) => {
+      buffer.set(i === 0 ? 2 : 1, yx[0], yx[1], 0);
+    });
+
+    // Mark the fruit(s).
+    this.fruitSquares_.forEach(yx => {
+      buffer.set(1, yx[0], yx[1], 1);
+    });
+
+    return buffer.toTensor();
+  }
+}
+
+
+export function getRandomInteger(min, max) {
+  return Math.floor((max - min) * Math.random()) + min;
 }
 
 function assertPositiveInteger(x, name) {
@@ -117,25 +184,7 @@ function assertPositiveInteger(x, name) {
         `Expected ${name} to be an integer, but received ${x}`);
   }
   if (!(x > 0)) {
-    throw new Error({
-      "presets": [
-        [
-          "env",
-          {
-            "esmodules": false,
-            "targets": {
-              "browsers": [
-                "> 3%"
-              ]
-            }
-          }
-        ]
-      ],
-      "plugins": [
-        "transform-runtime"
-      ]
-    }
-
+    throw new Error(
         `Expected ${name} to be a positive number, but received ${x}`);
   }
 }

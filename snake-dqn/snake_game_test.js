@@ -44,7 +44,7 @@ describe('SnakeGame', () => {
 	/Expected width to be an integer/);
   });
 
-  it('getStateTensor', () => {
+  it('getStateTensor: 1 fruit', async () => {
     const game = new SnakeGame({height: 5, width: 5, initLen: 2});
     const x = game.getStateTensor();
     expect(x.dtype).toEqual('float32');
@@ -56,7 +56,37 @@ describe('SnakeGame', () => {
     expectArraysClose(fruits.sum(), 1);
     expectArraysClose(fruits.max(), 1);
     expectArraysClose(fruits.min(), 0);
-    // TODO(cais): Check that the snake and fruit are non-overlapping.
+
+    // Check that the snake and fruit are non-overlapping.
+    const fruitIndex = await fruits.flatten().argMax().array();
+    expect((await snake.flatten().data())[fruitIndex]).toEqual(0);
+  });
+
+  it('getStateTensor: 2 fruits', async () => {
+    const game = new SnakeGame({
+      height: 5,
+      width: 5,
+      initLen: 2,
+      numFruits: 2
+    });
+    const x = game.getStateTensor();
+    expect(x.dtype).toEqual('float32');
+    expect(x.shape).toEqual([5, 5, 2]);
+    const [snake, fruits] = x.unstack(-1);
+    expectArraysClose(snake.sum(), 3);
+    expectArraysClose(snake.max(), 2);
+    expectArraysClose(snake.min(), 0);
+    expectArraysClose(fruits.sum(), 2);  // Two fruits.
+    expectArraysClose(fruits.max(), 1);
+    expectArraysClose(fruits.min(), 0);
+
+    // Check that the snake and fruit are non-overlapping.
+    const isFruit = await fruits.flatten().equal(1).array();
+    for (let i = 0; i < isFruit.length; ++i) {
+      if (isFruit[i] === 1) {
+        expect((await snake.flatten().data())[i]).toEqual(0);
+      }
+    }
   });
 });
 

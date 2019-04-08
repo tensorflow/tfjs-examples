@@ -117,6 +117,10 @@ export class SnakeGame {
       newHeadY = headY + 1;
       newHeadX = headX;
       done = newHeadY >= this.height_;
+    } else {
+      throw new Error(
+          `Invalid action: ${action}. Valid actions are: ` +
+          `${ACTOIN_LEFT}, ${ACTION_UP}, ${ACTION_RIGHT}, ${ACTION_DOWN}`);
     }
 
     // Check if the head goes over the snake's body, in which case the

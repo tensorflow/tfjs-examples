@@ -17,6 +17,8 @@
 
 import * as tf from '@tensorflow/tfjs';
 
+import {getRandomInteger} from './utils';
+
 const DEFAULT_HEIGHT = 16;
 const DEFAULT_WIDTH = 16;
 const DEFAULT_NUM_FRUITS = 1;
@@ -161,7 +163,6 @@ export class SnakeGame {
     this.snakeSquares_ = [];
 
     // Currently, the snake will start from a completely-straight state.
-
     const y = getRandomInteger(0, this.height_);
     let x = getRandomInteger(this.initLen_ - 1, this.width_);
     this.snakeSquares_.push([y, x]);
@@ -196,11 +197,14 @@ export class SnakeGame {
     }
 
     // Remove the squares occupied by the snake from the empty indices.
+    const occupiedIndices = [];
     this.snakeSquares_.forEach(yx => {
-      const index = yx[0] * this.width_ + yx[1];
-      // TODO(cais): Possible optimization?
-      emptyIndices.splice(emptyIndices.indexOf(index), 1);
+      occupiedIndices.push(yx[0] * this.width_ + yx[1]);
     });
+    occupiedIndices.sort((a, b) => a - b);  // TODO(cais): Possible optimization?
+    for (let i = occupiedIndices.length - 1; i >= 0; --i) {
+      emptyIndices.splice(occupiedIndices[i], 1);
+    }
 
     for (let i = 0; i < numFruits; ++i) {
       const fruitIndex = emptyIndices[getRandomInteger(0, emptyIndices.length)];
@@ -248,17 +252,6 @@ export class SnakeGame {
 
     return buffer.toTensor();
   }
-}
-
-/**
- * Generate a random integer >= min and < max.
- *
- * @param {number} min Lower bound, inclusive.
- * @param {number} max Upper bound, exclusive.
- * @return {number} The random integer.
- */
-export function getRandomInteger(min, max) {
-  return Math.floor((max - min) * Math.random()) + min;
 }
 
 function assertPositiveInteger(x, name) {

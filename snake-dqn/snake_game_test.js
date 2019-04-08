@@ -17,7 +17,7 @@
 
 import * as tf from '@tensorflow/tfjs';
 
-import {ACTION_DOWN, ACTION_LEFT, ACTION_RIGHT, ACTION_UP, FRUIT_REWARD, getRandomInteger, NO_FRUIT_REWARD, SnakeGame} from "./snake_game";
+import {ACTION_DOWN, ACTION_LEFT, ACTION_RIGHT, ACTION_UP, FRUIT_REWARD, NO_FRUIT_REWARD, SnakeGame} from "./snake_game";
 import {expectArraysClose} from "@tensorflow/tfjs-core/dist/test_util";
 
 describe('SnakeGame', () => {
@@ -45,23 +45,34 @@ describe('SnakeGame', () => {
   });
 
   it('getStateTensor: 1 fruit', async () => {
-    const game = new SnakeGame({height: 5, width: 5, initLen: 2});
-    const numTensors0 = tf.memory().numTensors;
-    const x = game.getStateTensor();
-    expect(tf.memory().numTensors).toEqual(numTensors0 + 1);
-    expect(x.dtype).toEqual('float32');
-    expect(x.shape).toEqual([5, 5, 2]);
-    const [snake, fruits] = x.unstack(-1);
-    expectArraysClose(snake.sum(), 3);
-    expectArraysClose(snake.max(), 2);
-    expectArraysClose(snake.min(), 0);
-    expectArraysClose(fruits.sum(), 1);
-    expectArraysClose(fruits.max(), 1);
-    expectArraysClose(fruits.min(), 0);
+    // Since the board generation process is random, run the testing
+    // for multiple iterations to increase the likelihood of finding
+    // nondeterministic testing failures.
+    for (let i = 0; i < 40; ++i) {
+      const game = new SnakeGame({height: 4, width: 4, initLen: 2});
+      const numTensors0 = tf.memory().numTensors;
+      const x = game.getStateTensor();
+      expect(tf.memory().numTensors).toEqual(numTensors0 + 1);
+      expect(x.dtype).toEqual('float32');
+      expect(x.shape).toEqual([4, 4, 2]);
+      const [snake, fruits] = x.unstack(-1);
+      expectArraysClose(snake.sum(), 3);
+      expectArraysClose(snake.max(), 2);
+      expectArraysClose(snake.min(), 0);
+      expectArraysClose(fruits.sum(), 1);
+      expectArraysClose(fruits.max(), 1);
+      expectArraysClose(fruits.min(), 0);
 
-    // Check that the snake and fruit are non-overlapping.
-    const fruitIndex = await fruits.flatten().argMax().array();
-    expect((await snake.flatten().data())[fruitIndex]).toEqual(0);
+      // Check that the snake and fruit are non-overlapping.
+      const fruitIndex = await fruits.flatten().argMax().array();
+      if ((await snake.flatten().data())[fruitIndex] !== 0) {
+        console.log('=====================');  // DEBUG
+        snake.print();  // DEBUG
+        fruits.print();  // DEBUG
+        console.log('=====================');  // DEBUG
+      }
+      expect((await snake.flatten().data())[fruitIndex]).toEqual(0);
+    }
   });
 
   it('getStateTensor: 2 fruits', async () => {
@@ -212,20 +223,5 @@ describe('SnakeGame', () => {
     expectedSnakeSquares.forEach(snakeYX => {
       expect(snakeYX[0] === fruitY && snakeYX[1] === fruitX).toEqual(false);
     });
-  });
-});
-
-describe('getRandomInteger()', () => {
-  it('max > min', () => {
-    const values = [];
-    for (let i = 0; i < 10; ++i) {
-      const v = getRandomInteger(3, 6);
-      expect(v).toBeGreaterThanOrEqual(3);
-      expect(v).toBeLessThan(6);
-      if (values.indexOf(v) === -1) {
-	      values.push(v);
-      }
-    }
-    expect(values.length).toBeGreaterThan(1);
   });
 });

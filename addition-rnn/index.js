@@ -280,8 +280,9 @@ class AdditionRNNDemo {
       accuracyValues[0].push({'x': i, 'y': trainAccuracy});
       accuracyValues[1].push({'x': i, 'y': valAccuracy});
 
-      document.getElementById('trainStatus').textContent = `Iteration ${i} of ${
-          iterations}: Model fit time ${modelFitTime.toFixed(6)} (seconds)`;
+      document.getElementById('trainStatus').textContent =
+          `Iteration ${i + 1} of ${iterations}: ` +
+          `Time per iteration: ${modelFitTime.toFixed(3)} (seconds)`;
       const lossContainer = document.getElementById('lossChart');
       tfvis.render.linechart(
           lossContainer, {values: lossValues, series: ['train', 'validation']},

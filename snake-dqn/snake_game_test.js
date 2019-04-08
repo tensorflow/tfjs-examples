@@ -65,12 +65,6 @@ describe('SnakeGame', () => {
 
       // Check that the snake and fruit are non-overlapping.
       const fruitIndex = await fruits.flatten().argMax().array();
-      if ((await snake.flatten().data())[fruitIndex] !== 0) {
-        console.log('=====================');  // DEBUG
-        snake.print();  // DEBUG
-        fruits.print();  // DEBUG
-        console.log('=====================');  // DEBUG
-      }
       expect((await snake.flatten().data())[fruitIndex]).toEqual(0);
     }
   });

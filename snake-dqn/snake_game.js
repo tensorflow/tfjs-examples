@@ -79,7 +79,7 @@ export class SnakeGame {
    *
    * @param {0 | 1 | 2 | 3} action The action to take in the current step.
    *   The meaning of the possible values:
- rtui  *     0 - left
+   *     0 - left
    *     1 - top
    *     2 - right
    *     3 - bottom

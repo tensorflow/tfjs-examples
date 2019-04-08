@@ -37,11 +37,11 @@ export class SnakeGame {
    * Constructor of SnakeGame.
    *
    * @param {object} args Configurations for the game. Fields include:
-   *   - height {number} height of the board (positive integer)
-   *   - width {number} width of the board (positive integer)
-   *   - numFruits {number} number of fruits that present on the screen
-   *     at any given time
-   *   - initLen {number} initial length of the snake
+   *   - height {number} height of the board (positive integer).
+   *   - width {number} width of the board (positive integer).
+   *   - numFruits {number} number of fruits present on the screen
+   *     at any given step.
+   *   - initLen {number} initial length of the snake.
    */
   constructor(args) {
     if (args == null) {
@@ -60,15 +60,15 @@ export class SnakeGame {
       args.initLen = DEFAULT_INIT_LEN;
     }
 
-    this.height_ = args.height;
-    this.width_ = args.width;
-    this.numFruits_ = args.numFruits;
-    this.initLen_ = args.initLen;
-
     assertPositiveInteger(args.height, 'height');
     assertPositiveInteger(args.width, 'width');
     assertPositiveInteger(args.numFruits, 'numFruits');
     assertPositiveInteger(args.initLen, 'initLen');
+
+    this.height_ = args.height;
+    this.width_ = args.width;
+    this.numFruits_ = args.numFruits;
+    this.initLen_ = args.initLen;
 
     this.initializeSnake_();
     this.makeFruits_();
@@ -136,8 +136,7 @@ export class SnakeGame {
 
     // Check if a fruit is eaten.
     let reward = NO_FRUIT_REWARD;
-    let i = 0;
-    for (; i < this.fruitSquares_.length; ++i) {
+    for (let i = 0; i < this.fruitSquares_.length; ++i) {
       const fruitYX = this.fruitSquares_[i];
       if (fruitYX[0] === newHeadY && fruitYX[1] === newHeadX) {
         reward = FRUIT_REWARD;

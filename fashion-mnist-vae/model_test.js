@@ -56,8 +56,6 @@ describe('Decoder', () => {
     const dec = decoder(opts);
     expect(dec.inputs.length).toEqual(1);
     expect(dec.inputs[0].shape).toEqual([null, 2]);
-    expect(dec.layers.length).toEqual(2);
-    expect(dec.layers[0].outputShape).toEqual([null, 10]);
     expect(dec.outputs.length).toEqual(1);
     expect(dec.outputs[0].shape).toEqual([null, 100]);
 

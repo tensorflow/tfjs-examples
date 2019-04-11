@@ -104,7 +104,9 @@ async function train(images, vaeOpts, savePath, logDir) {
         if (j % 50 === 0) {
           console.log('\nLoss:', loss.dataSync()[0]);
         }
-        summaryWriter.scalar('loss', loss, step++);
+        if (summaryWriter != null) {
+          summaryWriter.scalar('loss', loss, step++);
+        }
 
         return loss;
       });

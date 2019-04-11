@@ -124,13 +124,20 @@ tf.serialization.registerClass(ZLayer);
 function decoder(opts) {
   const {originalDim, intermediateDim, latentDim} = opts;
 
-  const dec = tf.sequential({name: 'decoder'});
-  dec.add(tf.layers.dense({
+  // The decoder model has a linear topology and hence could be constructed
+  // with `tf.sequential()`. But we use the functional-model API (i.e.,
+  // `tf.model()`) here nonetheless, for consistency with the encoder model
+  // (see `encoder()` above).
+  const input = tf.input({shape: [latentDim]});
+  let y = tf.layers.dense({
     units: intermediateDim,
-    activation: 'relu',
-    inputShape: [latentDim]
-  }));
-  dec.add(tf.layers.dense({units: originalDim, activation: 'sigmoid'}));
+    activation: 'relu'
+  }).apply(input);
+  y = tf.layers.dense({
+    units: originalDim,
+    activation: 'sigmoid'
+  }).apply(y);
+  const dec = tf.model({inputs: input, outputs: y});
 
   // console.log('Decoder Summary');
   // dec.summary();

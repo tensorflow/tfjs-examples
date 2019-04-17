@@ -21,7 +21,7 @@ import * as https from 'https';
 import * as os from 'os';
 import * as path from 'path';
 
-import {OOV_INDEX, PAD_INDEX, padSequences} from './sequence_utils';
+import {OOV_INDEX, padSequences} from './sequence_utils';
 
 // `import` doesn't seem to work with extract-zip.
 const extract = require('extract-zip');
@@ -39,10 +39,14 @@ const METADATA_TEMPLATE_URL =
  *   that exceed this limit will be marked as `OOV_INDEX`.
  * @param {string} maxLen Length of each sequence. Longer sequences will be
  *   pre-truncated; shorter ones will be pre-padded.
- * @return {tf.Tensor} The dataset represented as a 2D `tf.Tensor` of shape
- *   `[]` and dtype `int32` .
+ * @param {string} multihot Whether to use multi-hot encoding of the words.
+ *   Default: `false`.
+ * @return {tf.Tensor} If `multihot` is `false` (default), the dataset
+ *   represented as a 2D `tf.Tensor` of shape `[numExamples, maxLen]` and
+ *   dtype `int32`. Else, the dataset represented as a 2D `tf.Tensor` of
+ *   shape `[numExamples, numWords]` and dtype `float32`.
  */
-function loadFeatures(filePath, numWords, maxLen) {
+function loadFeatures(filePath, numWords, maxLen, multihot = false) {
   const buffer = fs.readFileSync(filePath);
   const numBytes = buffer.byteLength;
 
@@ -67,10 +71,39 @@ function loadFeatures(filePath, numWords, maxLen) {
   if (seq.length > 0) {
     sequences.push(seq);
   }
-  const paddedSequences =
-      padSequences(sequences, maxLen, 'pre', 'pre');
-  return tf.tensor2d(
-      paddedSequences, [paddedSequences.length, maxLen], 'int32');
+
+  // Get some sequence length stats.
+  let minLength = Infinity;
+  let maxLength = -Infinity;
+  sequences.forEach(seq => {
+    const length = seq.length;
+    if (length < minLength) {
+      minLength = length;
+    }
+    if (length > maxLength) {
+      maxLength = length;
+    }
+  });
+  console.log(`Sequence length: min = ${minLength}; max = ${maxLength}`);
+
+  if (multihot) {
+    // If requested by the arg, encode the sequences as multi-hot
+    // vectors.
+    const buffer = tf.buffer([sequences.length, numWords]);
+    sequences.forEach((seq, i) => {
+      seq.forEach(wordIndex => {
+        if (wordIndex !== OOV_INDEX) {
+          buffer.set(1, i, wordIndex);
+        }
+      });
+    });
+    return buffer.toTensor();
+  } else {
+    const paddedSequences =
+        padSequences(sequences, maxLen, 'pre', 'pre');
+    return tf.tensor2d(
+        paddedSequences, [paddedSequences.length, maxLen], 'int32');
+  }
 }
 
 /**
@@ -84,10 +117,23 @@ function loadTargets(filePath) {
   const buffer = fs.readFileSync(filePath);
   const numBytes = buffer.byteLength;
 
+  let numPositive = 0;
+  let numNegative = 0;
+
   let ys = [];
   for (let i = 0; i < numBytes; ++i) {
-    ys.push(buffer.readUInt8(i));
+    const y = buffer.readUInt8(i);
+    if (y === 1) {
+      numPositive++;
+    } else {
+      numNegative++;
+    }
+    ys.push(y);
   }
+
+  console.log(
+      `Loaded ${numPositive} positive examples and ` +
+      `${numNegative} negative examples.`);
   return tf.tensor2d(ys, [ys.length, 1], 'float32');
 }
 
@@ -171,13 +217,13 @@ async function maybeDownloadAndExtract() {
  *   xTest: The same as `xTrain`, but for the test dataset.
  *   yTest: The same as `yTrain`, but for the test dataset.
  */
-export async function loadData(numWords, len) {
+export async function loadData(numWords, len, multihot = false) {
   const dataDir = await maybeDownloadAndExtract();
 
   const trainFeaturePath = path.join(dataDir, 'imdb_train_data.bin');
-  const xTrain = loadFeatures(trainFeaturePath, numWords, len);
+  const xTrain = loadFeatures(trainFeaturePath, numWords, len, multihot);
   const testFeaturePath = path.join(dataDir, 'imdb_test_data.bin');
-  const xTest = loadFeatures(testFeaturePath, numWords, len);
+  const xTest = loadFeatures(testFeaturePath, numWords, len, multihot);
   const trainTargetsPath = path.join(dataDir, 'imdb_train_targets.bin');
   const yTrain = loadTargets(trainTargetsPath);
   const testTargetsPath = path.join(dataDir, 'imdb_test_targets.bin');

@@ -38,12 +38,61 @@ yarn
 yarn train
 ```
 
+If you have a CUDA-enabled GPU on your system, you can add the `--gpu` flag
+to train the model on the GPU, which should give you a significant boost in
+the speed of training:
+
+```sh
+yarn
+yarn train --gpu
+```
+
 The training job is a long running one and takes a few hours to complete on
 a GPU (using @tensorflow/tfjs-node-gpu) and even longer on a CPU
 (using @tensorflow/tfjs-node). It saves the generator part of the ACGAN
 into the `./dist/generator` folder at the beginning of the training and
 at the end of every training epoch. Some additional metadata is
 saved with the model as well.
+
+### Monitoring GAN training using TensorBoard
+
+The Node.js-based training script allows you to log the loss values from
+the generator and the discriminator to
+[TensorBoard](https://www.tensorflow.org/guide/summaries_and_tensorboard).
+Relative to printing loss values to the console, which the
+training script performs by default, logging to tensorboard has the following
+advantanges:
+
+1. Persistence of the loss values, so you can have a copy of the training
+   history available even if the system crashes in the middle of the training
+   for some reason, while logs in consoles a more ephemeral.
+2. Visualizing the loss values as curves makes the trends easier to see (e.g.,
+   see the screenshot below).
+
+![MNIST ACGAN Training: TensorBoard Example](./mnist-acgan-tensorboard-example.png)
+
+To do this in this example, add the flag `--logDir` to the `yarn train`
+command, followed by the directory to which you want the logs to
+be written, e.g.,
+
+```sh
+yarn train --gpu --logDir /tmp/mnist-acgan-logs
+```
+
+Then install tensorboard and start it by pointing it to the log directory:
+
+```sh
+# Skip this step if you have already installed tensorboard.
+pip install tensorboard
+
+tensorboard --logdir /tmp/mnist-acgan-logs
+```
+
+tensorboard will print an HTTP URL in the terminal. Open your browser and
+navigate to the URL to view the loss curves in the Scalar dashboard of
+TensorBoard.
+
+### Running Generator demo in the Browser
  
 To start the demo in the browser, do in a separate terminal:
  
@@ -76,4 +125,17 @@ with
 
 ```js
 require('@tensorflow/tfjs-node-gpu');
+```
+
+## Running unit tests
+
+This example comes with JavaScript unit tests. To run them, do:
+
+```sh
+pushd ../  # Go to the root directory of tfjs-exapmles
+yarn
+popd  # Go back to mnist-acgan/
+
+yarn
+yarn test
 ```

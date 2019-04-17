@@ -45,19 +45,18 @@ const TEST_DATA_LENGTH = 700;
 
 // Converts a row from the CSV into features and labels.
 // Each feature field is normalized within training data constants:
-const csvTransform = ([features, labels]) => {
-  const values = [
-    normalize(features.vx0, VX0_MIN, VX0_MAX),
-    normalize(features.vy0, VY0_MIN, VY0_MAX),
-    normalize(features.vz0, VZ0_MIN, VZ0_MAX),
-    normalize(features.ax, AX_MIN, AX_MAX),
-    normalize(features.ay, AY_MIN, AY_MAX),
-    normalize(features.az, AZ_MIN, AZ_MAX),
-    normalize(features.start_speed, START_SPEED_MIN, START_SPEED_MAX),
-    features.left_handed_pitcher
-  ];
-  return [values, [labels.pitch_code]];
-};
+const csvTransform =
+    ({xs, ys}) => {
+      const values = [
+        normalize(xs.vx0, VX0_MIN, VX0_MAX),
+        normalize(xs.vy0, VY0_MIN, VY0_MAX),
+        normalize(xs.vz0, VZ0_MIN, VZ0_MAX), normalize(xs.ax, AX_MIN, AX_MAX),
+        normalize(xs.ay, AY_MIN, AY_MAX), normalize(xs.az, AZ_MIN, AZ_MAX),
+        normalize(xs.start_speed, START_SPEED_MIN, START_SPEED_MAX),
+        xs.left_handed_pitcher
+      ];
+      return {xs: values, ys: ys.pitch_code};
+    }
 
 const trainingData =
     tf.data.csv(TRAIN_DATA_PATH, {columnConfigs: {pitch_code: {isLabel: true}}})
@@ -93,8 +92,8 @@ model.compile({
 async function evaluate(useTestData) {
   // TODO(kreeger): Consider using model.evaluateDataset()
   let results = {};
-  await trainingValidationData.forEach((pitchTypeBatch) => {
-    const values = model.predict(pitchTypeBatch[0]).dataSync();
+  await trainingValidationData.forEachAsync(pitchTypeBatch => {
+    const values = model.predict(pitchTypeBatch.xs).dataSync();
     const classSize = TRAINING_DATA_LENGTH / NUM_PITCH_CLASSES;
     for (let i = 0; i < NUM_PITCH_CLASSES; i++) {
       results[pitchFromClassNum(i)] = {
@@ -104,8 +103,8 @@ async function evaluate(useTestData) {
   });
 
   if (useTestData) {
-    await testValidationData.forEach((pitchTypeBatch) => {
-      const values = model.predict(pitchTypeBatch[0]).dataSync();
+    await testValidationData.forEachAsync(pitchTypeBatch => {
+      const values = model.predict(pitchTypeBatch.xs).dataSync();
       const classSize = TEST_DATA_LENGTH / NUM_PITCH_CLASSES;
       for (let i = 0; i < NUM_PITCH_CLASSES; i++) {
         results[pitchFromClassNum(i)].validation =

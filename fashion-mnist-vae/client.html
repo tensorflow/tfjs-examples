@@ -1,0 +1,107 @@
+<!--
+Copyright 2018 Google LLC. All Rights Reserved.
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+http://www.apache.org/licenses/LICENSE-2.0
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+==============================================================================
+-->
+
+<html>
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="../shared/tfjs-examples.css" />
+
+  <style>
+    .plot-area {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .row {
+      display: flex;
+      flex-direction: row;
+    }
+
+    .col {
+      display: flex;
+      flex-direction: column;
+    }
+
+    input {
+      max-width: 80px;
+    }
+  </style>
+</head>
+
+<body>
+  <div class='tfjs-example-container centered-container'>
+    <section class='title-area'>
+      <h1>TensorFlow.js: Variational AutoEncoder (VAE)</h1>
+      <p class='subtitle'>Train a VAE model to generate images.</p>
+    </section>
+    <section>
+      <p class='section-head'>Description</p>
+      <p>
+        This example trains a
+        <a href="https://blog.keras.io/building-autoencoders-in-keras.html">
+          variational autoencoder</a>
+        to generate images that resemble those found in the <a href="https://github.com/zalandoresearch/fashion-mnist">
+          fashion MNIST</a> dataset.
+      </p>
+
+      <p>
+        This example trains the model in Node.js. See README.md for instructions. This page
+        contains a viewer for the trained model.
+      </p>
+
+      <p>
+        This examples assumes that the latest space of the autoencoder is 2d.
+      </p>
+
+    </section>
+
+    <div>
+      <section>
+        <p class='section-head'>Instructions</p>
+        <p>
+          You can adjust the number of images in the grid as well as the start and end
+          values used to generate each image. Experiment with them see the range of what
+          the autoencoder can generate.
+        </p>
+      </section>
+
+      <section>
+        <p class='section-head'>Controls</p>
+
+        <div>
+          <label for="">Points per dimension</label>
+          <input id="pointsPerDim" type="number" value=30>
+          <label for="">Start Val</label>
+          <input id="start" type="number" value=-4>
+          <label for="">end Val</label>
+          <input id="end" type="number" value=4>
+
+          <button id="update">Update</button>
+        </div>
+      </section>
+
+      <section>
+        <p class='section-head'>Results</p>
+        <div id="plot-area" class="plot-area">
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <script src="client.js"></script>
+</body>
+
+</html>

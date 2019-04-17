@@ -102,7 +102,7 @@ function onIterationEnd(iterationCount, totalIterations) {
 // Objects and function to support the plotting of game steps during training.
 let meanStepValues = [];
 function plotSteps() {
-  tfvis.render.linechart({values: meanStepValues}, stepsContainer, {
+  tfvis.render.linechart(stepsContainer, {values: meanStepValues}, {
     xLabel: 'Training Iteration',
     yLabel: 'Mean Steps Per Game',
     width: 400,

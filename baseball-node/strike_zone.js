@@ -38,15 +38,13 @@ const TEST_DATA_LENGTH = 200;
 
 // Converts a row from the CSV into features and labels.
 // Each feature field is normalized within training data constants:
-const csvTransform = ([features, labels]) => {
+const csvTransform = ({xs, ys}) => {
   const values = [
-    normalize(features.px, PX_MIN, PX_MAX),
-    normalize(features.pz, PZ_MIN, PZ_MAX),
-    normalize(features.sz_top, SZ_TOP_MIN, SZ_TOP_MAX),
-    normalize(features.sz_bot, SZ_BOT_MIN, SZ_BOT_MAX),
-    features.left_handed_batter
+    normalize(xs.px, PX_MIN, PX_MAX), normalize(xs.pz, PZ_MIN, PZ_MAX),
+    normalize(xs.sz_top, SZ_TOP_MIN, SZ_TOP_MAX),
+    normalize(xs.sz_bot, SZ_BOT_MIN, SZ_BOT_MAX), xs.left_handed_batter
   ];
-  return [values, [labels.is_strike]]
+  return {xs: values, ys: ys.is_strike};
 };
 
 const trainingData =

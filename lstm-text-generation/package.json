@@ -9,8 +9,8 @@
     "node": ">=8.9.0"
   },
   "dependencies": {
-    "@tensorflow/tfjs": "^0.15.3",
-    "@tensorflow/tfjs-vis": "^0.4.2"
+    "@tensorflow/tfjs": "^1.0.1",
+    "@tensorflow/tfjs-vis": "^1.0.3"
   },
   "scripts": {
     "watch": "cross-env NODE_ENV=development parcel index.html --no-hmr --open",
@@ -22,8 +22,8 @@
     "train": "babel-node train_node.js"
   },
   "devDependencies": {
-    "@tensorflow/tfjs-node": "0.3.0",
-    "@tensorflow/tfjs-node-gpu": "0.3.0",
+    "@tensorflow/tfjs-node": "1.0.1",
+    "@tensorflow/tfjs-node-gpu": "1.0.1",
     "argparse": "^1.0.10",
     "babel-cli": "^6.26.0",
     "babel-core": "^6.26.3",

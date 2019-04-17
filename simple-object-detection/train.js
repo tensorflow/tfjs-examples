@@ -74,7 +74,8 @@ function customLossFunction(yTrue, yPred) {
  * @return {tf.Model} The truncated MobileNet, with all layers frozen.
  */
 async function loadTruncatedBase() {
-  const mobilenet = await tf.loadLayesModel(
+  // TODO(cais): Add unit test.
+  const mobilenet = await tf.loadLayersModel(
       'https://storage.googleapis.com/tfjs-models/tfjs/mobilenet_v1_0.25_224/model.json');
 
   // Return a model that outputs an internal activation.
@@ -171,14 +172,26 @@ async function buildObjectDetectionModel() {
     defaultValue: 100,
     help: 'Number of training epochs in the fine-tuning (i.e., 2nd) phase'
   });
+  parser.addArgument('--logDir', {
+    type: 'string',
+    help: 'Optional tensorboard log directory, to which the loss ' +
+    'values will be logged during model training.'
+  });
+  parser.addArgument('--logUpdateFreq', {
+    type: 'string',
+    defaultValue: 'batch',
+    optionStrings: ['batch', 'epoch'],
+    help: 'Frequency at which the loss will be logged to tensorboard.'
+  });
   const args = parser.parseArgs();
 
+  let tfn;
   if (args.gpu) {
     console.log('Training using GPU.');
-    require('@tensorflow/tfjs-node-gpu');
+    tfn = require('@tensorflow/tfjs-node-gpu');
   } else {
     console.log('Training using CPU.');
-    require('@tensorflow/tfjs-node');
+    tfn = require('@tensorflow/tfjs-node');
   }
 
   const modelSaveURL = 'file://./dist/object_detection_model';
@@ -200,7 +213,10 @@ async function buildObjectDetectionModel() {
   await model.fit(images, targets, {
     epochs: args.initialTransferEpochs,
     batchSize: args.batchSize,
-    validationSplit: args.validationSplit
+    validationSplit: args.validationSplit,
+    callbacks: args.logDir == null ? null : tfn.node.tensorBoard(args.logDir, {
+      updateFreq: args.logUpdateFreq
+    })
   });
 
   // Fine-tuning phase of transfer learning.
@@ -219,7 +235,10 @@ async function buildObjectDetectionModel() {
   await model.fit(images, targets, {
     epochs: args.fineTuningEpochs,
     batchSize: args.batchSize / 2,
-    validationSplit: args.validationSplit
+    validationSplit: args.validationSplit,
+    callbacks: args.logDir == null ? null : tfn.node.tensorBoard(args.logDir, {
+      updateFreq: args.logUpdateFreq
+    })
   });
 
   // Save model.

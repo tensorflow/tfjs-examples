@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@tensorflow/tfjs": "^1.0.4",
+    "@tensorflow/tfjs-data": "link:.yalc/@tensorflow/tfjs-data",
     "vega-embed": "^3.0.0"
   },
   "scripts": {

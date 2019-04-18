@@ -202,7 +202,7 @@ class Board {
           }
         }
         if (winner != null) {
-          return [true, winner];
+          return {win: true, winner: winner};
         }
       }
       // Check if this is the bottom-most piece in a vertical win.
@@ -216,7 +216,7 @@ class Board {
           }
         }
         if (winner != null) {
-          return [true, winner];
+          return {win: true, winner};
         }
       }
       // Check if this is the bottom-left piece in a diagonal win like /.
@@ -231,7 +231,7 @@ class Board {
           }
         }
         if (winner != null) {
-          return [true, winner];
+          return {win: true, winner};
         }
       }
       // Check if this is the top-left piece in a diagonal win like \.
@@ -246,7 +246,7 @@ class Board {
           }
         }
         if (winner != null) {
-          return [true, winner];
+          return {win: true, winner};
         }
       }
     });

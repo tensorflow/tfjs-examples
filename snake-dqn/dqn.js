@@ -57,3 +57,14 @@ export function createDeepQNetwork(h, w, numActions) {
   }));
   return model;
 }
+
+/**
+ * Copy the weights from a source deep-Q network to another.
+ *
+ * @param {tf.LayersModel} destNetwork The destination network of weight
+ *   copying.
+ * @param {tf.LayersModel} srcNetwork The source network for weight copying.
+ */
+export function copyWeights(destNetwork, srcNetwork) {
+  destNetwork.setWeights(srcNetwork.getWeights());
+}

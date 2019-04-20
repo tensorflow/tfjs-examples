@@ -17,8 +17,19 @@
 
 import * as tf from '@tensorflow/tfjs';
 
-import {ACTION_DOWN, ACTION_LEFT, ACTION_RIGHT, ACTION_UP, FRUIT_REWARD, getStateTensor, NO_FRUIT_REWARD, SnakeGame} from "./snake_game";
+import {ACTION_DOWN, ACTION_LEFT, ACTION_RIGHT, ACTION_UP, FRUIT_REWARD, getRandomAction, getStateTensor, NO_FRUIT_REWARD, SnakeGame} from "./snake_game";
 import {expectArraysClose} from "@tensorflow/tfjs-core/dist/test_util";
+
+describe('getRandomAction', () => {
+  it('getRandomAction', () => {
+    for (let i = 0; i < 40; ++i) {
+      const action = getRandomAction();
+      expect(
+          [ACTION_LEFT, ACTION_UP, ACTION_RIGHT, ACTION_DOWN].indexOf(action))
+          .not.toEqual(-1);
+    }
+  });
+});
 
 function manhanttanDistance(xy1, xy2) {
   return Math.abs(xy1[0] - xy2[0]) + Math.abs(xy1[1] - xy2[1]);
@@ -54,7 +65,7 @@ describe('SnakeGame', () => {
     // nondeterministic testing failures.
     for (let i = 0; i < 40; ++i) {
       const game = new SnakeGame({height: 4, width: 4, initLen: 2});
-      const {s, f} =  game.getState();
+      const {s, f} = game.getState();
       expect(s).toEqual(game.snakeSquares_);
       expect(f).toEqual(game.fruitSquares_);
       expect(s.length).toBeGreaterThanOrEqual(2);
@@ -247,6 +258,27 @@ describe('SnakeGame', () => {
     expectedSnakeSquares.forEach(snakeYX => {
       expect(snakeYX[0] === fruitY && snakeYX[1] === fruitX).toEqual(false);
     });
+  });
+
+ it('reset after game over', () => {
+    const game = new SnakeGame({height: 5, width: 5, initLen: 4});
+    game.snakeSquares_ = [[2, 3], [3, 3], [3, 4], [2, 4]];
+    game.fruitSquares_ = [[0, 4]];
+
+    const {reward, done} = game.step(ACTION_RIGHT);
+    expect(reward).toEqual(NO_FRUIT_REWARD);
+    expect(done).toEqual(true);
+
+    const {s, f} = game.reset();
+    expect(s.length).toEqual(4);
+    expect(f.length).toEqual(1);
+    const [headY, headX] = s[0];
+    // Find a valid direction to step in.
+    // This works because the snake currently always starts from
+    // a straight horizontal pose.
+    const action = headY > 0 ? ACTION_UP : ACTION_DOWN;
+    const out = game.step(action);
+    expect(out.done).toEqual(false);
   });
 });
 

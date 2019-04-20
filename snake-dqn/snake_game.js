@@ -34,6 +34,18 @@ export const ACTION_UP = 1;
 export const ACTION_RIGHT = 2;
 export const ACTION_DOWN = 3;
 
+const allActions = [ACTION_LEFT, ACTION_UP, ACTION_RIGHT, ACTION_DOWN];
+export const NUM_ACTIONS = allActions.length;
+
+/**
+ * Generate a random action among all possible actions.
+ *
+ * @return {0 | 1 | 2 | 3} Action represented as a number.
+ */
+export function getRandomAction() {
+  return allActions[Math.floor(Math.random() * 4)];
+}
+
 export class SnakeGame {
   /**
    * Constructor of SnakeGame.
@@ -72,8 +84,19 @@ export class SnakeGame {
     this.numFruits_ = args.numFruits;
     this.initLen_ = args.initLen;
 
+    this.reset();
+  }
+
+  /**
+   * Reset the state of the game.
+   *
+   * @return {object} Initial state of the game.
+   *   See the documentation of `getState()` for details.
+   */
+  reset() {
     this.initializeSnake_();
     this.makeFruits_();
+    return this.getState();
   }
 
   /**
@@ -85,11 +108,12 @@ export class SnakeGame {
    *     1 - top
    *     2 - right
    *     3 - bottom
-   * @returns {object} Object with the following keys:
-   *   - reward {number} the reward value.
+   * @return {object} Object with the following keys:
+   *   - `reward` {number} the reward value.
    *     - 0 if no fruit is eaten in this step
    *     - 1 if a fruit is eaten in this step
-   *   - done {boolean} whether the game has ended after this step.
+   *   - `state` New state of the game after the step.
+   *   - `done` {boolean} whether the game has ended after this step.
    *     A game ends when the head of the snake goes off the board or goes
    *     over its own body.
    */
@@ -152,7 +176,8 @@ export class SnakeGame {
       }
     }
 
-    return {reward, done};
+    const state = this.getState();
+    return {reward, state, done};
   }
 
   initializeSnake_() {
@@ -166,7 +191,8 @@ export class SnakeGame {
      */
     this.snakeSquares_ = [];
 
-    // Currently, the snake will start from a completely-straight state.
+    // Currently, the snake will start from a completely-straight and
+    // horizontally-posed state.
     const y = getRandomInteger(0, this.height_);
     let x = getRandomInteger(this.initLen_ - 1, this.width_);
     this.snakeSquares_.push([y, x]);

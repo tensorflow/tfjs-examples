@@ -17,8 +17,12 @@
 
 import * as tf from '@tensorflow/tfjs';
 
-import {ACTION_DOWN, ACTION_LEFT, ACTION_RIGHT, ACTION_UP, FRUIT_REWARD, NO_FRUIT_REWARD, SnakeGame} from "./snake_game";
+import {ACTION_DOWN, ACTION_LEFT, ACTION_RIGHT, ACTION_UP, FRUIT_REWARD, getStateTensor, NO_FRUIT_REWARD, SnakeGame} from "./snake_game";
 import {expectArraysClose} from "@tensorflow/tfjs-core/dist/test_util";
+
+function manhanttanDistance(xy1, xy2) {
+  return Math.abs(xy1[0] - xy2[0]) + Math.abs(xy1[1] - xy2[1]);
+}
 
 describe('SnakeGame', () => {
   it('SnakeGame constructor: no-arg', () => {
@@ -44,57 +48,83 @@ describe('SnakeGame', () => {
         /Expected width to be an integer/);
   });
 
-  it('getStateTensor: 1 fruit', async () => {
+  it('getState: 1 fruit', async () => {
     // Since the board generation process is random, run the testing
     // for multiple iterations to increase the likelihood of finding
     // nondeterministic testing failures.
     for (let i = 0; i < 40; ++i) {
       const game = new SnakeGame({height: 4, width: 4, initLen: 2});
-      const numTensors0 = tf.memory().numTensors;
-      const x = game.getStateTensor();
-      expect(tf.memory().numTensors).toEqual(numTensors0 + 1);
-      expect(x.dtype).toEqual('float32');
-      expect(x.shape).toEqual([4, 4, 2]);
-      const [snake, fruits] = x.unstack(-1);
-      expectArraysClose(snake.sum(), 3);
-      expectArraysClose(snake.max(), 2);
-      expectArraysClose(snake.min(), 0);
-      expectArraysClose(fruits.sum(), 1);
-      expectArraysClose(fruits.max(), 1);
-      expectArraysClose(fruits.min(), 0);
+      const {s, f} =  game.getState();
+      expect(s).toEqual(game.snakeSquares_);
+      expect(f).toEqual(game.fruitSquares_);
+      expect(s.length).toBeGreaterThanOrEqual(2);
+      for (let i = 0; i < s.length; ++i) {
+        expect(s[i].length).toEqual(2);
+        const [y, x] = s[i];
+        expect(Number.isInteger(y));
+        expect(y).toBeGreaterThanOrEqual(0);
+        expect(y).toBeLessThan(4);
+        expect(Number.isInteger(x));
+        expect(x).toBeGreaterThanOrEqual(0);
+        expect(x).toBeLessThan(4);
+        // Verify that the snake squares are consecutive (i.e.,
+        // with a Manhattan distance of 1.
+        if (i > 0) {
+          expect(manhanttanDistance(s[i - 1], s[i])).toEqual(1);
+        }
+      }
+      expect(f.length).toEqual(1);
+      f.forEach(item => {
+        expect(item.length).toEqual(2);
+      });
 
       // Check that the snake and fruit are non-overlapping.
-      const fruitIndex = await fruits.flatten().argMax().array();
-      expect((await snake.flatten().data())[fruitIndex]).toEqual(0);
+      const sIndices = s.map(yx => yx[0] * 4 + yx[1]);
+      const fIndices = f.map(yx => yx[0] * 4 + yx[1]);
+      expect(sIndices.indexOf(fIndices[0])).toEqual(-1);
     }
   });
 
-  it('getStateTensor: 2 fruits', async () => {
-    const game = new SnakeGame({
-      height: 5,
-      width: 5,
-      initLen: 2,
-      numFruits: 2
-    });
-    const numTensors0 = tf.memory().numTensors;
-    const x = game.getStateTensor();
-    expect(tf.memory().numTensors).toEqual(numTensors0 + 1);
-    expect(x.dtype).toEqual('float32');
-    expect(x.shape).toEqual([5, 5, 2]);
-    const [snake, fruits] = x.unstack(-1);
-    expectArraysClose(snake.sum(), 3);
-    expectArraysClose(snake.max(), 2);
-    expectArraysClose(snake.min(), 0);
-    expectArraysClose(fruits.sum(), 2);  // Two fruits.
-    expectArraysClose(fruits.max(), 1);
-    expectArraysClose(fruits.min(), 0);
+  it('getState: 2 fruits', async () => {
+    for (let i = 0; i < 40; ++i) {
+      const game = new SnakeGame({
+        height: 5,
+        width: 5,
+        initLen: 2,
+        numFruits: 2
+      });
 
-    // Check that the snake and fruit are non-overlapping.
-    const isFruit = await fruits.flatten().equal(1).array();
-    for (let i = 0; i < isFruit.length; ++i) {
-      if (isFruit[i] === 1) {
-        expect((await snake.flatten().data())[i]).toEqual(0);
+      const {s, f} = game.getState();
+      expect(s).toEqual(game.snakeSquares_);
+      expect(f).toEqual(game.fruitSquares_);
+      expect(s.length).toBeGreaterThanOrEqual(2);
+      for (let i = 0; i < s.length; ++i) {
+        expect(s[i].length).toEqual(2);
+        const [y, x] = s[i];
+        expect(Number.isInteger(y));
+        expect(y).toBeGreaterThanOrEqual(0);
+        expect(y).toBeLessThan(5);
+        expect(Number.isInteger(x));
+        expect(x).toBeGreaterThanOrEqual(0);
+        expect(x).toBeLessThan(5);
+        // Verify that the snake squares are consecutive (i.e.,
+        // with a Manhattan distance of 1.
+        if (i > 0) {
+          expect(manhanttanDistance(s[i - 1], s[i])).toEqual(1);
+        }
       }
+      expect(f.length).toEqual(2);
+      f.forEach(item => expect(item.length).toEqual(2));
+
+      // Check that the snake and fruit are non-overlapping.
+      const sIndices = s.map(yx => yx[0] * 5 + yx[1]);
+      const fIndices = f.map(yx => yx[0] * 5 + yx[1]);
+      for (let i = 0; i < fIndices.length; ++i) {
+        expect(sIndices.indexOf(fIndices[i])).toEqual(-1);
+      }
+
+      // Check that the two fruits are non-overlapping.
+      expect(sIndices[0] !== sIndices[1]).toEqual(true);
     }
   });
 
@@ -217,5 +247,57 @@ describe('SnakeGame', () => {
     expectedSnakeSquares.forEach(snakeYX => {
       expect(snakeYX[0] === fruitY && snakeYX[1] === fruitX).toEqual(false);
     });
+  });
+});
+
+describe('getStateTensor', () => {
+  it('1 fruit', () => {
+    const h = 4;
+    const w = 4;
+    const state = {
+      s: [[0, 0], [1, 0], [2, 0], [3, 0], [3, 1], [2, 1]],
+      f: [[2, 2]]
+    };
+    const tensor = getStateTensor(state, h, w);
+    expect(tensor.shape).toEqual([4, 4, 2]);
+    expect(tensor.dtype).toEqual('float32');
+    const [snakeTensor, fruitTensor] = tensor.unstack(-1);
+
+    expectArraysClose(snakeTensor, tf.tensor2d(
+      [[2, 0, 0, 0],
+       [1, 0, 0, 0],
+       [1, 1, 0, 0],
+       [1, 1, 0, 0]]));
+    expectArraysClose(fruitTensor, tf.tensor2d(
+      [[0, 0, 0, 0],
+       [0, 0, 0, 0],
+       [0, 0, 1, 0],
+       [0, 0, 0, 0]]));
+  });
+
+  it('2 fruits', () => {
+    const h = 5;
+    const w = 5;
+    const state = {
+      s: [[4, 2], [4, 1], [4, 0], [3, 0], [2, 0], [2, 1], [2, 2]],
+      f: [[4, 4], [0, 0]]
+    };
+    const tensor = getStateTensor(state, h, w);
+    expect(tensor.shape).toEqual([5, 5, 2]);
+    expect(tensor.dtype).toEqual('float32');
+    const [snakeTensor, fruitTensor] = tensor.unstack(-1);
+
+    expectArraysClose(snakeTensor, tf.tensor2d(
+      [[0, 0, 0, 0, 0],
+       [0, 0, 0, 0, 0],
+       [1, 1, 1, 0, 0],
+       [1, 0, 0, 0, 0],
+       [1, 1, 2, 0, 0]]));
+    expectArraysClose(fruitTensor, tf.tensor2d(
+      [[1, 0, 0, 0, 0],
+       [0, 0, 0, 0, 0],
+       [0, 0, 0, 0, 0],
+       [0, 0, 0, 0, 0],
+       [0, 0, 0, 0, 1]]));
   });
 });

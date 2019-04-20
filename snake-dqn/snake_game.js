@@ -230,32 +230,56 @@ export class SnakeGame {
   }
 
   /**
-   * Get the current state of the game as an image tensor.
+   * Get plain JavaScript representation of the game state.
    *
-   * @return {tf.Tensor} A tensor of shape [height, width, 2] and dtype
-   *   'float32'
-   *   - The first channel uses 0-1-2 values to mark the snake.
-   *     - 0 means an empty square.
-   *     - 1 means the body of the snake.
-   *     - 2 means the haed of the snake.
-   *   - The second channel uses 0-1 values to mark the fruits.
+   * @return An object with two keys:
+   *   - s: {Array<[number, number]>} representing the squares occupied by
+   *        the snake. The array is ordered in such a way that the first
+   *        element corresponds to the head of the snake and the last
+   *        element corresponds to the tail.
+   *   - f: {Array<[number, number]>} representing the squares occupied by
+   *        the fruit(s).
    */
-  getStateTensor() {
-    // TODO(cais): Maintain only a single buffer for efficiency.
-    const buffer = tf.buffer([this.height_, this.width_, 2]);
-
-    // Mark the snake.
-    this.snakeSquares_.forEach((yx, i) => {
-      buffer.set(i === 0 ? 2 : 1, yx[0], yx[1], 0);
-    });
-
-    // Mark the fruit(s).
-    this.fruitSquares_.forEach(yx => {
-      buffer.set(1, yx[0], yx[1], 1);
-    });
-
-    return buffer.toTensor();
+  getState() {
+    return {
+      "s": this.snakeSquares_.slice(),
+      "f": this.fruitSquares_.slice()
+    }
   }
+}
+
+/**
+ * Get the current state of the game as an image tensor.
+ *
+ * @param {object} state The state object as returned by
+ *   `SnakeGame.getState()`, consisting of two keys: `s` for the snake and
+ *   `f` for the fruit(s).
+ * @param {number} h Height.
+ * @param {number} w With.
+ * @return {tf.Tensor} A tensor of shape [height, width, 2] and dtype
+ *   'float32'
+ *   - The first channel uses 0-1-2 values to mark the snake.
+ *     - 0 means an empty square.
+ *     - 1 means the body of the snake.
+ *     - 2 means the haed of the snake.
+ *   - The second channel uses 0-1 values to mark the fruits.
+ */
+
+export function getStateTensor(state, h, w) {
+  // TODO(cais): Maintain only a single buffer for efficiency.
+  const buffer = tf.buffer([h, w, 2]);
+
+  // Mark the snake.
+  state.s.forEach((yx, i) => {
+    buffer.set(i === 0 ? 2 : 1, yx[0], yx[1], 0);
+  });
+
+  // Mark the fruit(s).
+  state.f.forEach(yx => {
+    buffer.set(1, yx[0], yx[1], 1);
+  });
+
+  return buffer.toTensor();
 }
 
 function assertPositiveInteger(x, name) {

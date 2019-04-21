@@ -34,8 +34,8 @@ export const ACTION_UP = 1;
 export const ACTION_RIGHT = 2;
 export const ACTION_DOWN = 3;
 
-const allActions = [ACTION_LEFT, ACTION_UP, ACTION_RIGHT, ACTION_DOWN];
-export const NUM_ACTIONS = allActions.length;
+export const ALL_ACTIONS = [ACTION_LEFT, ACTION_UP, ACTION_RIGHT, ACTION_DOWN];
+export const NUM_ACTIONS = ALL_ACTIONS.length;
 
 /**
  * Generate a random action among all possible actions.
@@ -43,7 +43,7 @@ export const NUM_ACTIONS = allActions.length;
  * @return {0 | 1 | 2 | 3} Action represented as a number.
  */
 export function getRandomAction() {
-  return allActions[Math.floor(Math.random() * 4)];
+  return ALL_ACTIONS[Math.floor(Math.random() * 4)];
 }
 
 export class SnakeGame {

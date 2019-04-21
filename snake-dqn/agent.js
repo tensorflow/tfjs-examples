@@ -15,8 +15,10 @@
  * =============================================================================
  */
 
+import * as tf from '@tensorflow/tfjs';
+
 import {createDeepQNetwork} from './dqn';
-import {getRandomAction, SnakeGame, NUM_ACTIONS} from './snake_game';
+import {getRandomAction, SnakeGame, NUM_ACTIONS, ALL_ACTIONS, getStateTensor} from './snake_game';
 import {ReplayMemory} from './replay_memory';
 
 export class SnakeGameAgent {
@@ -34,6 +36,8 @@ export class SnakeGameAgent {
    *   - `epsilonNumFrames` {number} The # of frames over which the value of
    *     `epsilon` decreases from `episloInit` to `epsilonFinal`, via a linear
    *     schedule.
+   *   - `batchSize` {number} Batch size for training.
+   *   - `learningRate` {number} Learning rate for training.
    */
   constructor(game, config) {
     this.game_ = game;
@@ -44,6 +48,8 @@ export class SnakeGameAgent {
     this.epsilonIncrement_ = (this.epsilonFinal_ - this.epsilonInit_) /
         this.epislonNumFrames_;
 
+    // TODO(cais): Check to make sure that `batchSize` is <= `replayBufferSize`.
+
     this.onlineNetwork_ =
         createDeepQNetwork(game.height,  game.width, NUM_ACTIONS);
     this.targetNetwork_ =
@@ -51,7 +57,12 @@ export class SnakeGameAgent {
 
     this.replayMemory_ = new ReplayMemory(config.replayBufferSize);
     this.frameCount_ = 0;
-    this.state_ = game.reset();
+    this.reset();
+  }
+
+  reset() {
+    this.cumulativeReward_ = 0;
+    this.game_.reset();
   }
 
   /**
@@ -61,17 +72,49 @@ export class SnakeGameAgent {
    *   the total reward from the game as a plain number. Else, `null`.
    */
   playStep() {
-    const epsilon = this.frameCount_ >= this.epislonNumFrames ?
+    const epsilon = this.frameCount_ >= this.epislonNumFrames_ ?
         this.epsilonFinal_ :
         this.epsilonInit_ + this.epsilonIncrement_  * this.frameCount_;
+    this.frameCount_++;
 
     // The epsilon-greedy algorithm.
+    let action;
+    const state = this.game_.getState();
     if (Math.random() < epsilon) {
       // Pick an action at random.
-      const action = getRandomAction();
+      action = getRandomAction();
     } else {
-      // Greedily pick an action.
+      // Greedily pick an action based on online DQN output.
+      tf.tidy(() => {
+        const stateTensor =
+            getStateTensor(state, this.game_.height, this.game_.width)
+            .expandDims(0);
+        action = ALL_ACTIONS[
+            this.onlineNetwork_.predict(stateTensor).argMax(-1).dataSync()[0]];
+      });
     }
+
+    const {state: newState, reward, done} = this.game_.step(action);
+
+    this.replayMemory_.append([state, action, reward, done, newState]);
+
+    this.cumulativeReward_ += reward;
+    const output = {
+      action,
+      cumulativeReward: this.cumulativeReward_,
+      done
+    };
+    if (done) {
+      this.reset();
+    }
+    return output;
+  }
+
+  /**
+   * TODO(cais): Doc string.
+   */
+  async trainOnReplayBatch() {
+    throw new Error('Not implemented yet.');
   }
 }
 

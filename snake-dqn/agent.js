@@ -17,7 +17,7 @@
 
 import * as tf from '@tensorflow/tfjs';
 
-import {createDeepQNetwork} from './dqn';
+import {copyWeights, createDeepQNetwork} from './dqn';
 import {getRandomAction, SnakeGame, NUM_ACTIONS, ALL_ACTIONS, getStateTensor} from './snake_game';
 import {ReplayMemory} from './replay_memory';
 
@@ -63,6 +63,7 @@ export class SnakeGameAgent {
 
     this.optimizer = tf.train.adam(config.learningRate);
 
+    this.replayBufferSize = config.replayBufferSize;
     this.replayMemory = new ReplayMemory(config.replayBufferSize);
     this.frameCount = 0;
     this.reset();
@@ -151,9 +152,31 @@ export class SnakeGameAgent {
     tf.dispose(grads);
   }
 
-  // train() {
-  //   for (let i = 0; i < this.replayBufferSize; ++i) {
-  //     this.playStep();
-  //   }
-  // }
+  /**
+   *
+   * @param {*} cumulativeRewardThreshold
+   */
+  train(cumulativeRewardThreshold, copyPerFrame) {
+    for (let i = 0; i < this.replayBufferSize; ++i) {
+      this.playStep();
+    }
+
+    while (true) {
+      // console.log('Calling trainOnReplayBatch()');  // DEBUG
+      this.trainOnReplayBatch();
+      const {cumulativeReward, done} = this.playStep();
+      if (done) {
+        console.log(`Frame #${this.frameCount}: ` +
+            `cumulativeReward = ${cumulativeReward}`);
+        if (cumulativeReward > cumulativeRewardThreshold) {
+          // TODO(cais): Save online network.
+          break;
+        }
+      }
+      if (this.frameCount % copyPerFrame === 0) {
+        console.log('Copying weights from online network to target network');
+        copyWeights(this.targetNetwork, this.onlineNetwork);
+      }
+    }
+  }
 }

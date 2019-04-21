@@ -82,7 +82,7 @@ describe('SnakeGameAgent', () => {
       replayBufferSize,
       epsilonInit: 1,
       epsilonFinal: 0.1,
-      epsilonNumFrames: replayBufferSize,
+      epsilonNumFrames: 1000,
       batchSize: 512,
       learningRate: 1e-2
     });
@@ -119,5 +119,28 @@ describe('SnakeGameAgent', () => {
           .sub(tf.tensor1d(oldTargetWeights[i]))
           .abs().max().arraySync()).toEqual(0);
     }
+  });
+
+  fit('train', () => {
+    const game = new SnakeGame({
+      height: 9,
+      width: 9,
+      numFruits: 1,
+      initLen: 2
+    });
+    const replayBufferSize = 1e4;
+    const agent = new SnakeGameAgent(game, {
+      gamma: 0.99,
+      replayBufferSize,
+      epsilonInit: 1,
+      epsilonFinal: 0.05,
+      epsilonNumFrames: 1e5,
+      batchSize: 64,
+      learningRate: 1e-3
+    });
+
+    const cumulativeRewardThreshold = 10;
+    const copyPerFrame = 1000;
+    agent.train(cumulativeRewardThreshold, copyPerFrame);
   });
 });

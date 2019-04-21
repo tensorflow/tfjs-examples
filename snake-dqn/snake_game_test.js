@@ -291,9 +291,9 @@ describe('getStateTensor', () => {
       f: [[2, 2]]
     };
     const tensor = getStateTensor(state, h, w);
-    expect(tensor.shape).toEqual([4, 4, 2]);
+    expect(tensor.shape).toEqual([1, 4, 4, 2]);
     expect(tensor.dtype).toEqual('float32');
-    const [snakeTensor, fruitTensor] = tensor.unstack(-1);
+    const [snakeTensor, fruitTensor] = tensor.squeeze(0).unstack(-1);
 
     expectArraysClose(snakeTensor, tf.tensor2d(
       [[2, 0, 0, 0],
@@ -314,10 +314,10 @@ describe('getStateTensor', () => {
       s: [[4, 2], [4, 1], [4, 0], [3, 0], [2, 0], [2, 1], [2, 2]],
       f: [[4, 4], [0, 0]]
     };
-    const tensor = getStateTensor(state, h, w);
-    expect(tensor.shape).toEqual([5, 5, 2]);
+    const tensor = getStateTensor([state], h, w);
+    expect(tensor.shape).toEqual([1, 5, 5, 2]);
     expect(tensor.dtype).toEqual('float32');
-    const [snakeTensor, fruitTensor] = tensor.unstack(-1);
+    const [snakeTensor, fruitTensor] = tensor.squeeze(0).unstack(-1);
 
     expectArraysClose(snakeTensor, tf.tensor2d(
       [[0, 0, 0, 0, 0],
@@ -331,5 +331,66 @@ describe('getStateTensor', () => {
        [0, 0, 0, 0, 0],
        [0, 0, 0, 0, 0],
        [0, 0, 0, 0, 1]]));
+  });
+
+  it('2 examples, both defined', () => {
+    const h = 4;
+    const w = 4;
+    const state1 = {
+      s: [[0, 0], [1, 0], [2, 0], [3, 0], [3, 1], [2, 1]],
+      f: [[2, 2]]
+    };
+    const state2 = {
+      s: [[0, 0], [1, 0], [2, 0], [3, 0], [3, 1]],
+      f: [[3, 3]]
+    };
+    const tensor = getStateTensor([state1, state2], h, w);
+    expect(tensor.shape).toEqual([2, 4, 4, 2]);
+
+    expectArraysClose(tensor.gather(0).gather(0, -1), tf.tensor2d(
+      [[2, 0, 0, 0],
+       [1, 0, 0, 0],
+       [1, 1, 0, 0],
+       [1, 1, 0, 0]]));
+    expectArraysClose(tensor.gather(0).gather(1, -1), tf.tensor2d(
+      [[0, 0, 0, 0],
+       [0, 0, 0, 0],
+       [0, 0, 1, 0],
+       [0, 0, 0, 0]]));
+    expectArraysClose(tensor.gather(1).gather(0, -1), tf.tensor2d(
+      [[2, 0, 0, 0],
+       [1, 0, 0, 0],
+       [1, 0, 0, 0],
+       [1, 1, 0, 0]]));
+    expectArraysClose(tensor.gather(1).gather(1, -1), tf.tensor2d(
+      [[0, 0, 0, 0],
+       [0, 0, 0, 0],
+       [0, 0, 0, 0],
+       [0, 0, 0, 1]]));
+  });
+
+  it('2 examples, one undefined', () => {
+    const h = 4;
+    const w = 4;
+    const state1 = undefined;
+    const state2 = {
+      s: [[0, 0], [1, 0], [2, 0], [3, 0], [3, 1]],
+      f: [[3, 3]]
+    };
+    const tensor = getStateTensor([state1, state2], h, w);
+    expect(tensor.shape).toEqual([2, 4, 4, 2]);
+
+    expectArraysClose(tensor.gather(0).gather(0, -1), tf.zeros([4, 4]));
+    expectArraysClose(tensor.gather(0).gather(1, -1), tf.zeros([4, 4]));
+    expectArraysClose(tensor.gather(1).gather(0, -1), tf.tensor2d(
+      [[2, 0, 0, 0],
+       [1, 0, 0, 0],
+       [1, 0, 0, 0],
+       [1, 1, 0, 0]]));
+    expectArraysClose(tensor.gather(1).gather(1, -1), tf.tensor2d(
+      [[0, 0, 0, 0],
+       [0, 0, 0, 0],
+       [0, 0, 0, 0],
+       [0, 0, 0, 1]]));
   });
 });

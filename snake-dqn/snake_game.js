@@ -277,34 +277,45 @@ export class SnakeGame {
 /**
  * Get the current state of the game as an image tensor.
  *
- * @param {object} state The state object as returned by
+ * @param {object | object[]} state The state object as returned by
  *   `SnakeGame.getState()`, consisting of two keys: `s` for the snake and
- *   `f` for the fruit(s).
+ *   `f` for the fruit(s). Can also be an array of such state objects.
  * @param {number} h Height.
  * @param {number} w With.
- * @return {tf.Tensor} A tensor of shape [height, width, 2] and dtype
- *   'float32'
+ * @return {tf.Tensor} A tensor of shape [numExamples, height, width, 2] and
+ *   dtype 'float32'
  *   - The first channel uses 0-1-2 values to mark the snake.
  *     - 0 means an empty square.
  *     - 1 means the body of the snake.
  *     - 2 means the haed of the snake.
  *   - The second channel uses 0-1 values to mark the fruits.
+ *   - `numExamples` is 1 if `state` argument is a single object or an
+ *     array of a single object. Otherwise, it will be equal to the length
+ *     of the state-object array.
  */
 
 export function getStateTensor(state, h, w) {
+  if (!Array.isArray(state)) {
+    state = [state];
+  }
+  const numExamples = state.length;
   // TODO(cais): Maintain only a single buffer for efficiency.
-  const buffer = tf.buffer([h, w, 2]);
+  const buffer = tf.buffer([numExamples, h, w, 2]);
 
-  // Mark the snake.
-  state.s.forEach((yx, i) => {
-    buffer.set(i === 0 ? 2 : 1, yx[0], yx[1], 0);
-  });
+  for (let n = 0; n < numExamples; ++n) {
+    if (state[n] == null) {
+      continue;
+    }
+    // Mark the snake.
+    state[n].s.forEach((yx, i) => {
+      buffer.set(i === 0 ? 2 : 1, n, yx[0], yx[1], 0);
+    });
 
-  // Mark the fruit(s).
-  state.f.forEach(yx => {
-    buffer.set(1, yx[0], yx[1], 1);
-  });
-
+    // Mark the fruit(s).
+    state[n].f.forEach(yx => {
+      buffer.set(1, n, yx[0], yx[1], 1);
+    });
+  }
   return buffer.toTensor();
 }
 

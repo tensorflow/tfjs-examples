@@ -15,6 +15,7 @@
  * =============================================================================
  */
 
+import * as tf from '@tensorflow/tfjs';
 
 /**
  * Generate a random integer >= min and < max.

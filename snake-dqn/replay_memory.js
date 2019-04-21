@@ -15,6 +15,8 @@
  * =============================================================================
  */
 
+import * as tf from '@tensorflow/tfjs';
+
 import {getRandomIntegers} from "./utils";
 
 export class ReplayMemory {
@@ -31,6 +33,11 @@ export class ReplayMemory {
     }
     this.index = 0;
     this.length = 0;
+
+    this.bufferIndices_ = [];
+    for (let i = 0; i < maxLen; ++i) {
+      this.bufferIndices_.push(i);
+    }
   }
 
   append(data) {
@@ -40,7 +47,16 @@ export class ReplayMemory {
   }
 
   sample(batchSize) {
-    const indices = getRandomIntegers(0, this.length, batchSize);
-    return indices.map(i => this.buffer[i]);
+    if (batchSize > this.maxLen) {
+      throw new Error(
+          `batchSize (${batchSize}) exceeds buffer length (${this.maxLen})`);
+    }
+    tf.util.shuffle(this.bufferIndices_);
+
+    const out = [];
+    for (let i = 0; i < batchSize; ++i) {
+      out.push(this.buffer[i]);
+    }
+    return out;
   }
 }

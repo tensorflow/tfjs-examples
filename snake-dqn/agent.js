@@ -27,6 +27,7 @@ export class SnakeGameAgent {
    *
    * @param {SnakeGame} game A game object.
    * @param {object} config The configuration object with the following keys:
+   *   - `gamma` {number} reward discount rate. Should be a number >= 0 and <= 1.
    *   - `replayBufferSize` {number} Size of the replay memory. Must be a
    *     positive integer.
    *   - `epsilonInit` {number} Initial value of epsilon (for the epsilon-
@@ -40,29 +41,36 @@ export class SnakeGameAgent {
    *   - `learningRate` {number} Learning rate for training.
    */
   constructor(game, config) {
-    this.game_ = game;
+    this.game = game;
 
-    this.epsilonInit_ = config.epsilonInit;
-    this.epsilonFinal_ = config.epsilonFinal;
-    this.epislonNumFrames_ = config.epsilonNumFrames;
-    this.epsilonIncrement_ = (this.epsilonFinal_ - this.epsilonInit_) /
-        this.epislonNumFrames_;
+    this.gamma = config.gamma;
+    this.epsilonInit = config.epsilonInit;
+    this.epsilonFinal = config.epsilonFinal;
+    this.epislonNumFrames = config.epsilonNumFrames;
+    this.epsilonIncrement_ = (this.epsilonFinal - this.epsilonInit) /
+        this.epislonNumFrames;
+    this.batchSize = config.batchSize;
 
     // TODO(cais): Check to make sure that `batchSize` is <= `replayBufferSize`.
 
-    this.onlineNetwork_ =
+    this.onlineNetwork =
         createDeepQNetwork(game.height,  game.width, NUM_ACTIONS);
-    this.targetNetwork_ =
+    this.targetNetwork =
         createDeepQNetwork(game.height,  game.width, NUM_ACTIONS);
+    // Freeze taget network: it's weights are updated only through copying from
+    // the online network.
+    this.targetNetwork.trainable = false;
 
-    this.replayMemory_ = new ReplayMemory(config.replayBufferSize);
-    this.frameCount_ = 0;
+    this.optimizer = tf.train.adam(config.learningRate);
+
+    this.replayMemory = new ReplayMemory(config.replayBufferSize);
+    this.frameCount = 0;
     this.reset();
   }
 
   reset() {
     this.cumulativeReward_ = 0;
-    this.game_.reset();
+    this.game.reset();
   }
 
   /**
@@ -72,14 +80,14 @@ export class SnakeGameAgent {
    *   the total reward from the game as a plain number. Else, `null`.
    */
   playStep() {
-    const epsilon = this.frameCount_ >= this.epislonNumFrames_ ?
-        this.epsilonFinal_ :
-        this.epsilonInit_ + this.epsilonIncrement_  * this.frameCount_;
-    this.frameCount_++;
+    const epsilon = this.frameCount >= this.epislonNumFrames ?
+        this.epsilonFinal :
+        this.epsilonInit + this.epsilonIncrement_  * this.frameCount;
+    this.frameCount++;
 
     // The epsilon-greedy algorithm.
     let action;
-    const state = this.game_.getState();
+    const state = this.game.getState();
     if (Math.random() < epsilon) {
       // Pick an action at random.
       action = getRandomAction();
@@ -87,16 +95,15 @@ export class SnakeGameAgent {
       // Greedily pick an action based on online DQN output.
       tf.tidy(() => {
         const stateTensor =
-            getStateTensor(state, this.game_.height, this.game_.width)
-            .expandDims(0);
+            getStateTensor(state, this.game.height, this.game.width)
         action = ALL_ACTIONS[
-            this.onlineNetwork_.predict(stateTensor).argMax(-1).dataSync()[0]];
+            this.onlineNetwork.predict(stateTensor).argMax(-1).dataSync()[0]];
       });
     }
 
-    const {state: newState, reward, done} = this.game_.step(action);
+    const {state: nextState, reward, done} = this.game.step(action);
 
-    this.replayMemory_.append([state, action, reward, done, newState]);
+    this.replayMemory.append([state, action, reward, done, nextState]);
 
     this.cumulativeReward_ += reward;
     const output = {
@@ -113,8 +120,40 @@ export class SnakeGameAgent {
   /**
    * TODO(cais): Doc string.
    */
-  async trainOnReplayBatch() {
-    throw new Error('Not implemented yet.');
-  }
-}
+  trainOnReplayBatch() {
+    // Get a batch of examples from the replay buffer.
+    const batch = this.replayMemory.sample(this.batchSize);
+    const lossFunction = () => tf.tidy(() => {
+      const stateTensor = getStateTensor(
+          batch.map(example => example[0]), this.game.height, this.game.width);
+      const actionTensor = tf.tensor1d(
+          batch.map(example => example[1]), 'int32');
+      const qs = this.onlineNetwork.predict(
+          stateTensor).mul(tf.oneHot(actionTensor, NUM_ACTIONS)).sum(-1);
 
+      const rewardTensor = tf.tensor1d(batch.map(example => example[2]));
+      const nextStateTensor = getStateTensor(
+          batch.map(example => example[4]), this.game.height, this.game.width);
+      const nextMaxQTensor =
+          this.targetNetwork.predict(nextStateTensor).max(-1);
+      const doneMask = tf.scalar(1).sub(
+          tf.tensor1d(batch.map(example => example[3])).asType('float32'));
+      const targetQs =
+          rewardTensor.add(nextMaxQTensor.mul(doneMask).mul(this.gamma));
+      return tf.losses.meanSquaredError(targetQs, qs);
+    });
+
+    // TODO(cais): Remove the second argument when `variableGrads()` obeys the
+    // trainable flag.
+    const grads =
+        tf.variableGrads(lossFunction, this.onlineNetwork.getWeights());
+    this.optimizer.applyGradients(grads.grads);
+    tf.dispose(grads);
+  }
+
+  // train() {
+  //   for (let i = 0; i < this.replayBufferSize; ++i) {
+  //     this.playStep();
+  //   }
+  // }
+}

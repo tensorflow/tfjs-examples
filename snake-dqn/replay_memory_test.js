@@ -24,33 +24,21 @@ describe('ReplayMemory', () => {
     memory.append(10);
     memory.append(20);
     memory.append(30);
-    expect(memory.length).toEqual(3);
-
-    for (let i = 0; i < 10; ++i) {
-      const batch = memory.sample(4);
-      expect(batch.length).toEqual(4);
-      batch.forEach(x => {
-        expect([10, 20, 30].indexOf(x)).toBeGreaterThanOrEqual(0);
-      });
-    }
-  });
-
-  it('Going over limit', () => {
-    const memory = new ReplayMemory(3);
-    expect(memory.length).toEqual(0);
-    memory.append(10);
-    memory.append(20);
-    memory.append(30);
     memory.append(40);
-    expect(memory.length).toEqual(3);
+    memory.append(50);
+    expect(memory.length).toEqual(5);
 
     for (let i = 0; i < 10; ++i) {
       const batch = memory.sample(4);
+      const uniqueItems = [];
       expect(batch.length).toEqual(4);
-      console.log()
       batch.forEach(x => {
-        expect([20, 30, 40].indexOf(x)).toBeGreaterThanOrEqual(0);
+        expect([10, 20, 30, 40, 50].indexOf(x)).toBeGreaterThanOrEqual(0);
+        if (uniqueItems.indexOf(x) === -1) {
+          uniqueItems.push(x);
+        }
       });
+      expect(uniqueItems.length).toEqual(batch.length);
     }
   });
 });

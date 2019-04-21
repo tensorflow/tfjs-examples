@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import * as tf from '@tensorflow/tfjs-node-gpu';
+import * as tf from '@tensorflow/tfjs-node';
 
 import {SnakeGameAgent} from "./agent";
 import {SnakeGame} from "./snake_game";

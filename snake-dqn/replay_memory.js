@@ -55,7 +55,7 @@ export class ReplayMemory {
 
     const out = [];
     for (let i = 0; i < batchSize; ++i) {
-      out.push(this.buffer[i]);
+      out.push(this.buffer[this.bufferIndices_[i]]);
     }
     return out;
   }

@@ -51,10 +51,7 @@ export function createDeepQNetwork(h, w, numActions) {
     activation: 'relu'
   }));
   model.add(tf.layers.flatten());
-  model.add(tf.layers.dense({
-    units: numActions,
-    activation: 'softmax'
-  }));
+  model.add(tf.layers.dense({units: numActions}));
   return model;
 }
 

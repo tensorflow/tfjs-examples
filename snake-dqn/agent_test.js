@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import * as tf from '@tensorflow/tfjs-node';
+import * as tf from '@tensorflow/tfjs-node-gpu';
 
 import {SnakeGameAgent} from "./agent";
 import {SnakeGame} from "./snake_game";
@@ -139,7 +139,7 @@ describe('SnakeGameAgent', () => {
       learningRate: 1e-3
     });
 
-    const cumulativeRewardThreshold = 10;
+    const cumulativeRewardThreshold = 1000;
     const copyPerFrame = 1000;
     agent.train(cumulativeRewardThreshold, copyPerFrame);
   });

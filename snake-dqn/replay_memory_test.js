@@ -19,7 +19,7 @@ import {ReplayMemory} from "./replay_memory";
 
 describe('ReplayMemory', () => {
   it('Not going over limit', () => {
-    const memory = new ReplayMemory(10);
+    const memory = new ReplayMemory(5);
     expect(memory.length).toEqual(0);
     memory.append(10);
     memory.append(20);

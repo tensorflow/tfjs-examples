@@ -32,9 +32,7 @@ describe('SnakeGameAgent', () => {
       replayBufferSize: 100,
       epsilonInit: 1,
       epsilonFinal: 0.1,
-      epsilonNumFrames: 10,
-      batchSize: 32,
-      learningRate: 1e-3
+      epsilonNumFrames: 10
     });
 
     const numGames = 40;
@@ -78,12 +76,10 @@ describe('SnakeGameAgent', () => {
     });
     const replayBufferSize = 1000;
     const agent = new SnakeGameAgent(game, {
-      gamma: 0.95,
       replayBufferSize,
       epsilonInit: 1,
       epsilonFinal: 0.1,
       epsilonNumFrames: 1000,
-      batchSize: 512,
       learningRate: 1e-2
     });
 
@@ -96,10 +92,13 @@ describe('SnakeGameAgent', () => {
       agent.playStep();
     }
     // Burn-in run for memory leak check below.
-    agent.trainOnReplayBatch();
+    const batchSize = 512;
+    const gamma = 0.99;
+    const optimizer = tf.train.adam();
+    agent.trainOnReplayBatch(batchSize, gamma, optimizer);
 
     const numTensors0 = tf.memory().numTensors;
-    agent.trainOnReplayBatch();
+    agent.trainOnReplayBatch(batchSize, gamma, optimizer);
     expect(tf.memory().numTensors).toEqual(numTensors0);
 
     const newOnlineWeights =
@@ -121,26 +120,26 @@ describe('SnakeGameAgent', () => {
     }
   });
 
-  fit('train', () => {
-    const game = new SnakeGame({
-      height: 9,
-      width: 9,
-      numFruits: 1,
-      initLen: 2
-    });
-    const replayBufferSize = 1e4;
-    const agent = new SnakeGameAgent(game, {
-      gamma: 0.99,
-      replayBufferSize,
-      epsilonInit: 1,
-      epsilonFinal: 0.01,
-      epsilonNumFrames: 5e5,
-      batchSize: 64,
-      learningRate: 1e-3
-    });
+  // fit('train', () => {
+  //   const game = new SnakeGame({
+  //     height: 9,
+  //     width: 9,
+  //     numFruits: 1,
+  //     initLen: 2
+  //   });
+  //   const replayBufferSize = 1e4;
+  //   const agent = new SnakeGameAgent(game, {
+  //     gamma: 0.99,
+  //     replayBufferSize,
+  //     epsilonInit: 1,
+  //     epsilonFinal: 0.01,
+  //     epsilonNumFrames: 5e5,
+  //     batchSize: 64,
+  //     learningRate: 1e-3
+  //   });
 
-    const cumulativeRewardThreshold = 1000;
-    const copyPerFrame = 1000;
-    agent.train(cumulativeRewardThreshold, copyPerFrame);
-  });
+  //   const cumulativeRewardThreshold = 1000;
+  //   const copyPerFrame = 1000;
+  //   agent.train(cumulativeRewardThreshold, copyPerFrame);
+  // });
 });

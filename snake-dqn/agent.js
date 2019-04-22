@@ -17,7 +17,7 @@
 
 import * as tf from '@tensorflow/tfjs';
 
-import {copyWeights, createDeepQNetwork} from './dqn';
+import {createDeepQNetwork} from './dqn';
 import {getRandomAction, SnakeGame, NUM_ACTIONS, ALL_ACTIONS, getStateTensor} from './snake_game';
 import {ReplayMemory} from './replay_memory';
 
@@ -37,8 +37,6 @@ export class SnakeGameAgent {
    *   - `epsilonNumFrames` {number} The # of frames over which the value of
    *     `epsilon` decreases from `episloInit` to `epsilonFinal`, via a linear
    *     schedule.
-   *   - `batchSize` {number} Batch size for training.
-   *   - `learningRate` {number} Learning rate for training.
    */
   constructor(game, config) {
     this.game = game;
@@ -46,9 +44,9 @@ export class SnakeGameAgent {
     this.gamma = config.gamma;
     this.epsilonInit = config.epsilonInit;
     this.epsilonFinal = config.epsilonFinal;
-    this.epislonNumFrames = config.epsilonNumFrames;
+    this.epsilonDecayFrames = config.epsilonNumFrames;
     this.epsilonIncrement_ = (this.epsilonFinal - this.epsilonInit) /
-        this.epislonNumFrames;
+        this.epsilonDecayFrames;
     this.batchSize = config.batchSize;
 
     // TODO(cais): Check to make sure that `batchSize` is <= `replayBufferSize`.
@@ -81,7 +79,7 @@ export class SnakeGameAgent {
    *   the total reward from the game as a plain number. Else, `null`.
    */
   playStep() {
-    const epsilon = this.frameCount >= this.epislonNumFrames ?
+    const epsilon = this.frameCount >= this.epsilonDecayFrames ?
         this.epsilonFinal :
         this.epsilonInit + this.epsilonIncrement_  * this.frameCount;
     this.frameCount++;
@@ -119,11 +117,16 @@ export class SnakeGameAgent {
   }
 
   /**
-   * TODO(cais): Doc string.
+   * Perform training on a randomly sampled batch from the replay buffer.
+   *
+   * @param {number} batchSize Batch size.
+   * @param {numebr} gamma Reward discount rate. Must be >= 0 and <= 1.
+   * @param {tf.train.Optimizer} optimizer The optimizer object used to update
+   *   the weights of the online network.
    */
-  trainOnReplayBatch() {
+  trainOnReplayBatch(batchSize, gamma, optimizer) {
     // Get a batch of examples from the replay buffer.
-    const batch = this.replayMemory.sample(this.batchSize);
+    const batch = this.replayMemory.sample(batchSize);
     const lossFunction = () => tf.tidy(() => {
       const stateTensor = getStateTensor(
           batch.map(example => example[0]), this.game.height, this.game.width);
@@ -140,7 +143,7 @@ export class SnakeGameAgent {
       const doneMask = tf.scalar(1).sub(
           tf.tensor1d(batch.map(example => example[3])).asType('float32'));
       const targetQs =
-          rewardTensor.add(nextMaxQTensor.mul(doneMask).mul(this.gamma));
+          rewardTensor.add(nextMaxQTensor.mul(doneMask).mul(gamma));
       return tf.losses.meanSquaredError(targetQs, qs);
     });
 
@@ -148,7 +151,8 @@ export class SnakeGameAgent {
     // trainable flag.
     const grads =
         tf.variableGrads(lossFunction, this.onlineNetwork.getWeights());
-    this.optimizer.applyGradients(grads.grads);
+    optimizer.applyGradients(grads.grads);
     tf.dispose(grads);
+    // TODO(cais): Return the loss value here?
   }
 }

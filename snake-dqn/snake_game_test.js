@@ -17,7 +17,7 @@
 
 import * as tf from '@tensorflow/tfjs';
 
-import {ACTION_DOWN, ACTION_LEFT, ACTION_RIGHT, ACTION_UP, FRUIT_REWARD, getRandomAction, getStateTensor, NO_FRUIT_REWARD, SnakeGame} from "./snake_game";
+import {ACTION_DOWN, ACTION_LEFT, ACTION_RIGHT, ACTION_UP, FRUIT_REWARD, getRandomAction, getStateTensor, NO_FRUIT_REWARD, SnakeGame, DEATH_REWARD} from "./snake_game";
 import {expectArraysClose} from "@tensorflow/tfjs-core/dist/test_util";
 
 describe('getRandomAction', () => {
@@ -186,7 +186,7 @@ describe('SnakeGame', () => {
     game.fruitSquares_ = [[0, 4]];
 
     const {reward, done} = game.step(ACTION_LEFT);
-    expect(reward).toEqual(NO_FRUIT_REWARD);
+    expect(reward).toEqual(DEATH_REWARD);
     expect(done).toEqual(true);
   });
 
@@ -196,7 +196,7 @@ describe('SnakeGame', () => {
     game.fruitSquares_ = [[0, 4]];
 
     const {reward, done} = game.step(ACTION_UP);
-    expect(reward).toEqual(NO_FRUIT_REWARD);
+    expect(reward).toEqual(DEATH_REWARD);
     expect(done).toEqual(true);
   });
 
@@ -206,7 +206,7 @@ describe('SnakeGame', () => {
     game.fruitSquares_ = [[0, 4]];
 
     const {reward, done} = game.step(ACTION_RIGHT);
-    expect(reward).toEqual(NO_FRUIT_REWARD);
+    expect(reward).toEqual(DEATH_REWARD);
     expect(done).toEqual(true);
   });
 
@@ -216,7 +216,7 @@ describe('SnakeGame', () => {
     game.fruitSquares_ = [[0, 4]];
 
     const {reward, done} = game.step(ACTION_DOWN);
-    expect(reward).toEqual(NO_FRUIT_REWARD);
+    expect(reward).toEqual(DEATH_REWARD);
     expect(done).toEqual(true);
   });
 
@@ -226,7 +226,7 @@ describe('SnakeGame', () => {
     game.fruitSquares_ = [[0, 4]];
 
     const {reward, done} = game.step(ACTION_RIGHT);
-    expect(reward).toEqual(NO_FRUIT_REWARD);
+    expect(reward).toEqual(DEATH_REWARD);
     expect(done).toEqual(true);
   });
 
@@ -236,7 +236,7 @@ describe('SnakeGame', () => {
     game.fruitSquares_ = [[0, 4]];
 
     const {reward, done} = game.step(ACTION_DOWN);
-    expect(reward).toEqual(NO_FRUIT_REWARD);
+    expect(reward).toEqual(DEATH_REWARD);
     expect(done).toEqual(true);
   });
 
@@ -266,7 +266,7 @@ describe('SnakeGame', () => {
     game.fruitSquares_ = [[0, 4]];
 
     const {reward, done} = game.step(ACTION_RIGHT);
-    expect(reward).toEqual(NO_FRUIT_REWARD);
+    expect(reward).toEqual(DEATH_REWARD);
     expect(done).toEqual(true);
 
     const {s, f} = game.reset();

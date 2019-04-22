@@ -79,7 +79,7 @@ export class SnakeGameAgent {
    *   the total reward from the game as a plain number. Else, `null`.
    */
   playStep() {
-    const epsilon = this.frameCount >= this.epsilonDecayFrames ?
+    this.epsilon = this.frameCount >= this.epsilonDecayFrames ?
         this.epsilonFinal :
         this.epsilonInit + this.epsilonIncrement_  * this.frameCount;
     this.frameCount++;
@@ -87,7 +87,7 @@ export class SnakeGameAgent {
     // The epsilon-greedy algorithm.
     let action;
     const state = this.game.getState();
-    if (Math.random() < epsilon) {
+    if (Math.random() < this.epsilon) {
       // Pick an action at random.
       action = getRandomAction();
     } else {

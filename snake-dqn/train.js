@@ -90,11 +90,12 @@ export async function train(
       console.log(
           `Frame #${agent.frameCount}: ` +
           `cumulativeReward100 = ${averageReward100} ` +
-          `(${framesPerSecond.toFixed(1)} framesPerSecond)`);
+          `(${framesPerSecond.toFixed(1)} frames/s)`);
       summaryWriter.scalar(
           'cumulativeReward', cumulativeReward, agent.frameCount);
       summaryWriter.scalar(
           'cumulativeReward100', averageReward100, agent.frameCount);
+      summaryWriter.scalar('epsilon', agent.epsilon, agent.frameCount);
       summaryWriter.scalar(
           'framesPerSecond', framesPerSecond, agent.frameCount);
       if (cumulativeReward >= cumulativeRewardThreshold) {

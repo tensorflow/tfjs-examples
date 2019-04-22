@@ -25,6 +25,24 @@ import {SnakeGameAgent} from './agent';
 import {copyWeights} from './dqn';
 import {SnakeGame} from './snake_game';
 
+class MovingAverager {
+  constructor(bufferLength) {
+    this.buffer = [];
+    for (let i = 0; i < bufferLength; ++i) {
+      this.buffer.push(null);
+    }
+  }
+
+  append(x) {
+    this.buffer.shift();
+    this.buffer.push(x);
+  }
+
+  average() {
+    return this.buffer.reduce((x, prev) => x + prev) / this.buffer.length;
+  }
+}
+
 /**
  * Train an agent to play the snake game.
  *
@@ -38,29 +56,55 @@ import {SnakeGame} from './snake_game';
  *   from the online DQN of the agent to the target DQN, in number of frames.
  * @param {string} savePath Path to which the online DQN of the agent will be
  *   saved upon the completion of the training.
+ * @param {string} logDir Directory to which TensorBoard logs will be written
+ *   during the training. Optional.
  */
 export async function train(
     agent, batchSize, gamma, learningRate, cumulativeRewardThreshold,
-    syncEveryFrames, savePath) {
+    syncEveryFrames, savePath, logDir) {
+  const summaryWriter = tf.node.summaryFileWriter(logDir);
+  if (logDir != null) {
+    tf.node.summaryWriter
+  }
+
   for (let i = 0; i < agent.replayBufferSize; ++i) {
     agent.playStep();
   }
 
+  const rewardAverager100 = new MovingAverager(100);
   const optimizer = tf.train.adam(learningRate);
+  let tPrev = new Date().getTime();
+  let frameCountPrev = agent.frameCount;
   while (true) {
     agent.trainOnReplayBatch(batchSize, gamma, optimizer);
     const {cumulativeReward, done} = agent.playStep();
     if (done) {
-      console.log(`Frame #${agent.frameCount}: ` +
-          `cumulativeReward = ${cumulativeReward}`);
+      const t = new Date().getTime();
+      const framesPerSecond =
+          (agent.frameCount - frameCountPrev) / (t - tPrev) * 1e3;
+      tPrev = t;
+      frameCountPrev = agent.frameCount;
+
+      rewardAverager100.append(cumulativeReward);
+      const averageReward100 = rewardAverager100.average();
+      console.log(
+          `Frame #${agent.frameCount}: ` +
+          `cumulativeReward100 = ${averageReward100} ` +
+          `(${framesPerSecond.toFixed(1)} framesPerSecond)`);
+      summaryWriter.scalar(
+          'cumulativeReward', cumulativeReward, agent.frameCount);
+      summaryWriter.scalar(
+          'cumulativeReward100', averageReward100, agent.frameCount);
+      summaryWriter.scalar(
+          'framesPerSecond', framesPerSecond, agent.frameCount);
       if (cumulativeReward >= cumulativeRewardThreshold) {
         // TODO(cais): Save online network.
         break;
       }
     }
     if (agent.frameCount % syncEveryFrames === 0) {
-      console.log('Copying weights from online network to target network');
       copyWeights(agent.targetNetwork, agent.onlineNetwork);
+      console.log('Sync\'ed weights from online network to target network');
     }
   }
 
@@ -114,7 +158,7 @@ export function parseArguments() {
   });
   parser.addArgument('--epsilonFinal', {
     type: 'float',
-    defaultValue: 1,
+    defaultValue: 0.01,
     help: 'Final value of epsilon, used for the epsilon-greedy algorithm.'
   });
   parser.addArgument('--epsilonDecayFrames', {
@@ -149,6 +193,11 @@ export function parseArguments() {
     defaultValue: './models/dqn',
     help: 'File path to which the online DQN will be saved after training.'
   });
+  parser.addArgument('--logDir', {
+    type: 'string',
+    defaultValue: null,
+    help: 'Path to the directory for writing TensorBoard logs in.'
+  });
   return parser.parseArgs();
 }
 
@@ -179,7 +228,8 @@ async function main() {
 
   await train(
       agent, args.batchSize, args.gamma, args.learningRate,
-      args.cumulativeRewardThreshold, args.syncEveryFrames, args.savePath);
+      args.cumulativeRewardThreshold, args.syncEveryFrames, args.savePath,
+      args.logDir);
 }
 
 if (require.main === module) {

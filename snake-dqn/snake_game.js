@@ -27,7 +27,7 @@ const DEFAULT_INIT_LEN = 4;
 // TODO(cais): Tune these parameters.
 export const NO_FRUIT_REWARD = 0;
 export const FRUIT_REWARD = 10;
-export const DEATH_REWARD = -1;
+export const DEATH_REWARD = 0;
 // TODO(cais): Explore adding a "bad fruit" with a negative reward.
 
 export const ACTION_LEFT = 0;

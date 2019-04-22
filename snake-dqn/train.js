@@ -161,7 +161,7 @@ async function main() {
     replayBufferSize: args.replayBufferSize,
     epsilonInit: args.epsilonInit,
     epsilonFinal: args.epsilonFinal,
-    epsilonNumFrames: args.epsilonNumFrames,
+    epsilonDecayFrames: args.epsilonDecayFrames,
     batchSize: args.batchSize,
     learningRate: args.learningRate
   });

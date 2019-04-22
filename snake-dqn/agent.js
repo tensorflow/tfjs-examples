@@ -34,7 +34,7 @@ export class SnakeGameAgent {
    *     greedy algorithm). Must be >= 0 and <= 1.
    *   - `epsilonFinal` {number} The final value of epsilon. Must be >= 0 and
    *     <= 1.
-   *   - `epsilonNumFrames` {number} The # of frames over which the value of
+   *   - `epsilonDecayFrames` {number} The # of frames over which the value of
    *     `epsilon` decreases from `episloInit` to `epsilonFinal`, via a linear
    *     schedule.
    */
@@ -44,7 +44,7 @@ export class SnakeGameAgent {
     this.gamma = config.gamma;
     this.epsilonInit = config.epsilonInit;
     this.epsilonFinal = config.epsilonFinal;
-    this.epsilonDecayFrames = config.epsilonNumFrames;
+    this.epsilonDecayFrames = config.epsilonDecayFrames;
     this.epsilonIncrement_ = (this.epsilonFinal - this.epsilonInit) /
         this.epsilonDecayFrames;
     this.batchSize = config.batchSize;

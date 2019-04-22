@@ -32,7 +32,7 @@ describe('SnakeGameAgent', () => {
       replayBufferSize: 100,
       epsilonInit: 1,
       epsilonFinal: 0.1,
-      epsilonNumFrames: 10
+      epsilonDecayFrames: 10
     });
 
     const numGames = 40;
@@ -79,7 +79,7 @@ describe('SnakeGameAgent', () => {
       replayBufferSize,
       epsilonInit: 1,
       epsilonFinal: 0.1,
-      epsilonNumFrames: 1000,
+      epsilonDecayFrames: 1000,
       learningRate: 1e-2
     });
 
@@ -133,7 +133,7 @@ describe('SnakeGameAgent', () => {
   //     replayBufferSize,
   //     epsilonInit: 1,
   //     epsilonFinal: 0.01,
-  //     epsilonNumFrames: 5e5,
+  //     epsilonDecayFrames: 5e5,
   //     batchSize: 64,
   //     learningRate: 1e-3
   //   });

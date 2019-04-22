@@ -54,12 +54,8 @@ function writeCSV(data, path) {
 function run(outPath) {
   const DATA_FILES = [
     'train_AddToPlaylist_full.json',
-    'train_BookRestaurant_full.json',
     'train_GetWeather_full.json',
     'train_PlayMusic_full.json',
-    'train_RateBook_full.json',
-    'train_SearchCreativeWork_full.json',
-    'train_SearchScreeningEvent_full.json',
   ];
 
   const DATA_PATH = './data/raw/';

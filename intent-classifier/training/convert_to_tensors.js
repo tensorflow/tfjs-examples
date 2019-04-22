@@ -145,7 +145,7 @@ async function run(srcPath, outFolder, batchSize) {
   });
   parser.addArgument('--batchSize', {
     type: 'int',
-    defaultValue: 32,
+    defaultValue: 128,
     help: 'Batch size to be used during model training'
   });
   parser.addArgument('--srcPath', {

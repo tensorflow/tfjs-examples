@@ -20,6 +20,7 @@ import * as tf from '@tensorflow/tfjs';
 import {createDeepQNetwork} from './dqn';
 import {getRandomAction, SnakeGame, NUM_ACTIONS, ALL_ACTIONS, getStateTensor} from './snake_game';
 import {ReplayMemory} from './replay_memory';
+import { assertPositiveInteger } from './utils';
 
 export class SnakeGameAgent {
   /**
@@ -27,7 +28,6 @@ export class SnakeGameAgent {
    *
    * @param {SnakeGame} game A game object.
    * @param {object} config The configuration object with the following keys:
-   *   - `gamma` {number} reward discount rate. Should be a number >= 0 and <= 1.
    *   - `replayBufferSize` {number} Size of the replay memory. Must be a
    *     positive integer.
    *   - `epsilonInit` {number} Initial value of epsilon (for the epsilon-
@@ -39,17 +39,15 @@ export class SnakeGameAgent {
    *     schedule.
    */
   constructor(game, config) {
+    assertPositiveInteger(config.epsilonDecayFrames);
+
     this.game = game;
 
-    this.gamma = config.gamma;
     this.epsilonInit = config.epsilonInit;
     this.epsilonFinal = config.epsilonFinal;
     this.epsilonDecayFrames = config.epsilonDecayFrames;
     this.epsilonIncrement_ = (this.epsilonFinal - this.epsilonInit) /
         this.epsilonDecayFrames;
-    this.batchSize = config.batchSize;
-
-    // TODO(cais): Check to make sure that `batchSize` is <= `replayBufferSize`.
 
     this.onlineNetwork =
         createDeepQNetwork(game.height,  game.width, NUM_ACTIONS);

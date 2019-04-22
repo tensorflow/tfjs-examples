@@ -66,9 +66,9 @@ class MovingAverager {
 export async function train(
     agent, batchSize, gamma, learningRate, cumulativeRewardThreshold,
     syncEveryFrames, savePath, logDir) {
-  const summaryWriter = tf.node.summaryFileWriter(logDir);
+  let summaryWriter;
   if (logDir != null) {
-    tf.node.summaryWriter
+    summaryWriter = tf.node.summaryFileWriter(logDir);
   }
 
   for (let i = 0; i < agent.replayBufferSize; ++i) {
@@ -93,14 +93,15 @@ export async function train(
       const averageReward100 = rewardAverager100.average();
       console.log(
           `Frame #${agent.frameCount}: ` +
-          `cumulatieReward=${cumulativeReward}; `
           `cumulativeReward100=${averageReward100.toFixed(1)} ` +
           `(${framesPerSecond.toFixed(1)} frames/s)`);
-      summaryWriter.scalar(
-          'cumulativeReward100', averageReward100, agent.frameCount);
-      summaryWriter.scalar('epsilon', agent.epsilon, agent.frameCount);
-      summaryWriter.scalar(
-          'framesPerSecond', framesPerSecond, agent.frameCount);
+      if (summaryWriter != null) {
+        summaryWriter.scalar(
+            'cumulativeReward100', averageReward100, agent.frameCount);
+        summaryWriter.scalar('epsilon', agent.epsilon, agent.frameCount);
+        summaryWriter.scalar(
+            'framesPerSecond', framesPerSecond, agent.frameCount);
+      }
       if (averageReward100 >= cumulativeRewardThreshold) {
         // TODO(cais): Save online network.
         break;
@@ -112,10 +113,12 @@ export async function train(
     }
   }
 
-  if (!fs.existsSync(savePath)) {
-    mkdir('-p', savePath);
+  if (savePath != null) {
+    if (!fs.existsSync(savePath)) {
+      mkdir('-p', savePath);
+    }
+    await agent.onlineNetwork.save(`file://${savePath}`);
   }
-  await agent.onlineNetwork.save(`file://${savePath}`);
 }
 
 export function parseArguments() {
@@ -225,13 +228,10 @@ async function main() {
     initLen: args.initLen
   });
   const agent = new SnakeGameAgent(game, {
-    gamma: args.gamma,
     replayBufferSize: args.replayBufferSize,
     epsilonInit: args.epsilonInit,
     epsilonFinal: args.epsilonFinal,
-    epsilonDecayFrames: args.epsilonDecayFrames,
-    batchSize: args.batchSize,
-    learningRate: args.learningRate
+    epsilonDecayFrames: args.epsilonDecayFrames
   });
 
   await train(

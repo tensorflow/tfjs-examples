@@ -248,7 +248,8 @@ describe('SnakeGame', () => {
     const {reward, done} = game.step(ACTION_UP);
     expect(reward).toEqual(FRUIT_REWARD);
     expect(done).toEqual(false);
-    const expectedSnakeSquares = [[1, 3], [2, 3], [3, 3], [3, 4]];
+    // The snake ate a fruit. Its length should grow from 4 to 5.
+    const expectedSnakeSquares = [[1, 3], [2, 3], [3, 3], [3, 4], [2, 4]];
     expect(game.snakeSquares_).toEqual(expectedSnakeSquares);
 
     // Check that a new fruit has been generated.

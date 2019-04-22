@@ -17,7 +17,7 @@
 
 import * as tf from '@tensorflow/tfjs';
 
-import {getRandomInteger} from './utils';
+import {assertPositiveInteger, getRandomInteger} from './utils';
 
 const DEFAULT_HEIGHT = 16;
 const DEFAULT_WIDTH = 16;
@@ -162,19 +162,25 @@ export class SnakeGame {
     }
 
     // Update the position of the snake.
-    this.snakeSquares_.pop();
     this.snakeSquares_.unshift([newHeadY, newHeadX]);
 
     // Check if a fruit is eaten.
     let reward = NO_FRUIT_REWARD;
+    let fruitEaten = false;
     for (let i = 0; i < this.fruitSquares_.length; ++i) {
       const fruitYX = this.fruitSquares_[i];
       if (fruitYX[0] === newHeadY && fruitYX[1] === newHeadX) {
         reward = FRUIT_REWARD;
+        fruitEaten = true;
         this.fruitSquares_.splice(i, 1);
         this.makeFruits_();
         break;
       }
+    }
+    if (!fruitEaten) {
+      // Pop the tail off if and only if the snake didn't eat a fruit in this
+      // step.
+      this.snakeSquares_.pop();
     }
 
     const state = this.getState();
@@ -318,15 +324,4 @@ export function getStateTensor(state, h, w) {
     });
   }
   return buffer.toTensor();
-}
-
-function assertPositiveInteger(x, name) {
-  if (!Number.isInteger(x)) {
-    throw new Error(
-        `Expected ${name} to be an integer, but received ${x}`);
-  }
-  if (!(x > 0)) {
-    throw new Error(
-        `Expected ${name} to be a positive number, but received ${x}`);
-  }
 }

@@ -15,9 +15,35 @@
  * =============================================================================
  */
 
+// import * as tf from '@tensorflow/tfjs-node';
 
-describe('ReplayBuffer', () => {
-  it('TODO(cais)', () => {
+// import {SnakeGameAgent} from './agent';
+// import {SnakeGame} from './snake_game';
+// import {train} from './train';
 
-  });
+describe('train', () => {
+  // it('train', async () => {
+  //   // TODO(cais): Add unit test for train.
+  //   const game = new SnakeGame({
+  //     height: 9,
+  //     width: 9,
+  //     numFruits: 1,
+  //     initLen: 2
+  //   });
+  //   const agent = new SnakeGameAgent(game, {
+  //     replayBufferSize: 1000,
+  //     epsilonInit: 1,
+  //     epsilonFinal: 0.01,
+  //     epsilonDecayFrames: 1000,
+  //   });
+
+  //   const gamma = 0.99;
+  //   const batchSize = 32;
+  //   const learningRate = 1e-3;
+  //   const cumulativeRewardThreshold = 0.1;
+  //   const syncEveryFrames = 100;
+
+  //   await train(agent, batchSize, gamma, learningRate,
+  //       cumulativeRewardThreshold, syncEveryFrames);
+  // });
 });

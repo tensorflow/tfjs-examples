@@ -17,8 +17,7 @@
 
 import * as tf from '@tensorflow/tfjs';
 
-import {getRandomIntegers} from "./utils";
-
+/** Replay buffer for DQN training. */
 export class ReplayMemory {
   /**
    * Constructor of ReplayMemory.
@@ -40,12 +39,25 @@ export class ReplayMemory {
     }
   }
 
-  append(data) {
-    this.buffer[this.index] = data;
+  /**
+   * Append an item to the replay buffer.
+   *
+   * @param {any} item The item to append.
+   */
+  append(item) {
+    this.buffer[this.index] = item;
     this.length = Math.min(this.length + 1, this.maxLen);
     this.index = (this.index + 1) % this.maxLen;
   }
 
+  /**
+   * Randomly sample a batch of items from the replay buffer.
+   *
+   * The sampling is done *without* replacement.
+   *
+   * @param {number} batchSize Size of the batch.
+   * @return {Array<any>} Sampled items.
+   */
   sample(batchSize) {
     if (batchSize > this.maxLen) {
       throw new Error(

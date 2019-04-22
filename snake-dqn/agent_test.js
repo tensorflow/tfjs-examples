@@ -119,27 +119,4 @@ describe('SnakeGameAgent', () => {
           .abs().max().arraySync()).toEqual(0);
     }
   });
-
-  // fit('train', () => {
-  //   const game = new SnakeGame({
-  //     height: 9,
-  //     width: 9,
-  //     numFruits: 1,
-  //     initLen: 2
-  //   });
-  //   const replayBufferSize = 1e4;
-  //   const agent = new SnakeGameAgent(game, {
-  //     gamma: 0.99,
-  //     replayBufferSize,
-  //     epsilonInit: 1,
-  //     epsilonFinal: 0.01,
-  //     epsilonDecayFrames: 5e5,
-  //     batchSize: 64,
-  //     learningRate: 1e-3
-  //   });
-
-  //   const cumulativeRewardThreshold = 1000;
-  //   const copyPerFrame = 1000;
-  //   agent.train(cumulativeRewardThreshold, copyPerFrame);
-  // });
 });

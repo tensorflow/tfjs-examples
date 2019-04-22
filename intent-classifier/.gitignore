@@ -1,0 +1,17 @@
+node_modules
+dist*
+.cache
+yarn-error.log
+*.tgz
+*-ubyte
+*.pyc
+.yalc
+.DS_STORE
+yalc.lock
+model.json
+weights.bin
+metadata.json
+token_embeddings.ndjson
+intents_as_tensors.json
+intents_tagged_tokens.ndjson
+training/models

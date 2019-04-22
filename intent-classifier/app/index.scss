@@ -1,0 +1,97 @@
+html {
+  scroll-behavior: smooth;
+}
+
+.container {
+
+  .app {
+    font-family: -apple-system,BlinkMacSystemFont,avenir next,avenir,helvetica neue,helvetica,ubuntu,roboto,noto,segoe ui,arial,sans-serif;
+    font-size: 16pt;
+
+    // background-color: #ddd;
+    display: flex;
+    flex-direction: column;
+    height: 800px;
+    width: 600px;
+    box-shadow:
+      0 1px 5px rgba(0,0,0,0.12),
+      0 1px 3px rgba(0,0,0,0.24);
+  }
+
+  .title {
+    border-bottom: 0.5px solid #e3e3e3;
+    // background-color: #ccc;
+    // border: 1px solid #d2d2d2;
+    text-align: center;
+  }
+
+  .messages {
+    // background-color: #bbb;
+    flex: 7 0px;
+    display: flex;
+    flex-direction: column;
+    // justify-content: flex-end;
+    overflow-y: scroll;
+
+  }
+
+  .messages > :first-child {
+    margin-top: auto !important;
+  }
+
+  .message {
+    border-radius: 8px;
+    margin: 10px;
+    padding: 10px;
+    // width: 80%;
+
+    &.bot {
+      background-color: #f0f4c3;
+      align-self: flex-start;
+      border-radius: 4px;
+      //width: 20%;
+      font-size: 20pt;
+      margin-left: 50px;
+      // padding-left: 20px;
+    }
+
+    &.bot:before {
+      content: '🤖 ';
+      margin-left: -50px;
+      margin-right: 30px;
+      font-size: 18pt;
+    }
+
+    &.input {
+      background-color: #64d8cb;
+      align-self: flex-end;
+    }
+  }
+
+
+
+  .controls {
+    border-top: 0.5px solid #e3e3e3;
+    padding: 10px;
+
+    form {
+      display: flex;
+      flex-direction: row;
+    }
+
+    #textbox {
+      width: 90%;
+      height: 50px;
+      font-size: 18pt;
+    }
+
+    #submit {
+      margin-left:10px;
+      font-size: 20px;
+      border-radius: 4px;
+      padding: 9px;
+      background-color: white;
+    }
+  }
+
+}

@@ -15,7 +15,10 @@
  * =============================================================================
  */
 
+import * as fs from 'fs';
+
 import * as argparse from 'argparse';
+import {mkdir} from 'shelljs';
 
 // The value of tf (TensorFlow.js-Node module) will be set dynamically
 // depending on the value of the --gpu flag below.
@@ -50,8 +53,9 @@ class MovingAverager {
  * @param {number} batchSize Batch size for training.
  * @param {number} gamma Reward discount rate. Must be a number >= 0 and <= 1.
  * @param {number} learnigRate
- * @param {number} cumulativeRewardThreshold The threshold of cumulative reward
- *   from a single game. The training stops as soon as this threshold is achieved.
+ * @param {number} cumulativeRewardThreshold The threshold of moving-averaged
+ *   cumulative reward from a single game. The training stops as soon as this
+ *   threshold is achieved.
  * @param {number} syncEveryFrames The frequency at which the weights are copied
  *   from the online DQN of the agent to the target DQN, in number of frames.
  * @param {string} savePath Path to which the online DQN of the agent will be
@@ -89,16 +93,15 @@ export async function train(
       const averageReward100 = rewardAverager100.average();
       console.log(
           `Frame #${agent.frameCount}: ` +
-          `cumulativeReward100 = ${averageReward100} ` +
+          `cumulatieReward=${cumulativeReward}; `
+          `cumulativeReward100=${averageReward100.toFixed(1)} ` +
           `(${framesPerSecond.toFixed(1)} frames/s)`);
-      summaryWriter.scalar(
-          'cumulativeReward', cumulativeReward, agent.frameCount);
       summaryWriter.scalar(
           'cumulativeReward100', averageReward100, agent.frameCount);
       summaryWriter.scalar('epsilon', agent.epsilon, agent.frameCount);
       summaryWriter.scalar(
           'framesPerSecond', framesPerSecond, agent.frameCount);
-      if (cumulativeReward >= cumulativeRewardThreshold) {
+      if (averageReward100 >= cumulativeRewardThreshold) {
         // TODO(cais): Save online network.
         break;
       }
@@ -109,6 +112,9 @@ export async function train(
     }
   }
 
+  if (!fs.existsSync(savePath)) {
+    mkdir('-p', savePath);
+  }
   await agent.onlineNetwork.save(`file://${savePath}`);
 }
 
@@ -144,8 +150,9 @@ export function parseArguments() {
   parser.addArgument('--cumulativeRewardThreshold', {
     type: 'float',
     defaultValue: 200,
-    help: 'Threshold for cumulative reward (its moving average over the 100 ' +
-    'latest games. Training stops as soon as this threshold is reached.'
+    help: 'Threshold for cumulative reward (its moving ' +
+    'average) over the 100 latest games. Training stops as soon as this ' +
+    'threshold is reached.'
   });
   parser.addArgument('--replayBufferSize', {
     type: 'int',

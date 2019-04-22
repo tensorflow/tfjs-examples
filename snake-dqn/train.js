@@ -144,6 +144,11 @@ export function parseArguments() {
     help: 'Frequency at which weights are sync\'ed from the online network ' +
     'to the target network.'
   });
+  parser.addArgument('--savePath', {
+    type: 'string',
+    defaultValue: './models/dqn',
+    help: 'File path to which the online DQN will be saved after training.'
+  });
   return parser.parseArgs();
 }
 

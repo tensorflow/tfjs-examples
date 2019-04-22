@@ -261,7 +261,7 @@ describe('SnakeGame', () => {
     });
   });
 
- it('reset after game over', () => {
+  it('reset after game over', () => {
     const game = new SnakeGame({height: 5, width: 5, initLen: 4});
     game.snakeSquares_ = [[2, 3], [3, 3], [3, 4], [2, 4]];
     game.fruitSquares_ = [[0, 4]];
@@ -280,6 +280,34 @@ describe('SnakeGame', () => {
     const action = headY > 0 ? ACTION_UP : ACTION_DOWN;
     const out = game.step(action);
     expect(out.done).toEqual(false);
+  });
+
+  fit('reset after eating fruits and then dies', () => {
+    const game = new SnakeGame({height: 5, width: 5, initLen: 3});
+    game.snakeSquares_ = [[1, 3], [1, 2], [1, 1]];
+    game.fruitSquares_ = [[1, 4]];
+
+    let out = game.step(ACTION_RIGHT);
+    expect(out.reward).toEqual(FRUIT_REWARD);
+    expect(out.done).toEqual(false);
+    expect(game.snakeSquares_).toEqual([[1, 4], [1, 3], [1, 2], [1, 1]]);
+    expect(game.fruitSquares_.length).toEqual(1);
+
+    game.fruitSquares_ = [[0, 4]];
+    out = game.step(ACTION_UP);
+    expect(out.reward).toEqual(FRUIT_REWARD);
+    expect(out.done).toEqual(false);
+    expect(game.snakeSquares_).toEqual(
+        [[0, 4], [1, 4], [1, 3], [1, 2], [1, 1]]);
+    expect(game.fruitSquares_.length).toEqual(1);
+
+    out = game.step(ACTION_UP);
+    expect(out.reward).toEqual(DEATH_REWARD);
+    expect(out.done).toEqual(true);
+
+    const {s, f} = game.reset();
+    expect(s.length).toEqual(3);
+    expect(f.length).toEqual(1);
   });
 });
 

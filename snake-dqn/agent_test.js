@@ -133,8 +133,8 @@ describe('SnakeGameAgent', () => {
       gamma: 0.99,
       replayBufferSize,
       epsilonInit: 1,
-      epsilonFinal: 0.05,
-      epsilonNumFrames: 1e5,
+      epsilonFinal: 0.01,
+      epsilonNumFrames: 5e5,
       batchSize: 64,
       learningRate: 1e-3
     });

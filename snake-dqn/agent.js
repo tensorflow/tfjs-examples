@@ -151,32 +151,4 @@ export class SnakeGameAgent {
     this.optimizer.applyGradients(grads.grads);
     tf.dispose(grads);
   }
-
-  /**
-   *
-   * @param {*} cumulativeRewardThreshold
-   */
-  train(cumulativeRewardThreshold, copyPerFrame) {
-    for (let i = 0; i < this.replayBufferSize; ++i) {
-      this.playStep();
-    }
-
-    while (true) {
-      // console.log('Calling trainOnReplayBatch()');  // DEBUG
-      this.trainOnReplayBatch();
-      const {cumulativeReward, done} = this.playStep();
-      if (done) {
-        console.log(`Frame #${this.frameCount}: ` +
-            `cumulativeReward = ${cumulativeReward}`);
-        if (cumulativeReward > cumulativeRewardThreshold) {
-          // TODO(cais): Save online network.
-          break;
-        }
-      }
-      if (this.frameCount % copyPerFrame === 0) {
-        console.log('Copying weights from online network to target network');
-        copyWeights(this.targetNetwork, this.onlineNetwork);
-      }
-    }
-  }
 }

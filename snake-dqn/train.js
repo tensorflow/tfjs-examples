@@ -34,14 +34,14 @@ import {SnakeGame} from './snake_game';
  * @param {number} learnigRate
  * @param {number} cumulativeRewardThreshold The threshold of cumulative reward
  *   from a single game. The training stops as soon as this threshold is achieved.
- * @param {number} syncPerFrame The frequency at which the weights are copied from
- *   the online DQN of the agent to the target DQN, in number of frames.
- * @param {string} savePath Path to which the online DQN of the agent will be saved
- *   upon the completion of the training.
+ * @param {number} syncEveryFrames The frequency at which the weights are copied
+ *   from the online DQN of the agent to the target DQN, in number of frames.
+ * @param {string} savePath Path to which the online DQN of the agent will be
+ *   saved upon the completion of the training.
  */
 export async function train(
     agent, batchSize, gamma, learningRate, cumulativeRewardThreshold,
-    syncPerFrame, savePath) {
+    syncEveryFrames, savePath) {
   for (let i = 0; i < agent.replayBufferSize; ++i) {
     agent.playStep();
   }
@@ -58,9 +58,9 @@ export async function train(
         break;
       }
     }
-    if (agent.frameCount % syncPerFrame === 0) {
+    if (agent.frameCount % syncEveryFrames === 0) {
       console.log('Copying weights from online network to target network');
-      copyWeights(this.targetNetwork, this.onlineNetwork);
+      copyWeights(agent.targetNetwork, agent.onlineNetwork);
     }
   }
 
@@ -138,7 +138,12 @@ export function parseArguments() {
     defaultValue: 1e-3,
     help: 'Learning rate for DQN training.'
   });
-
+  parser.addArgument('--syncEveryFrames', {
+    type: 'int',
+    defaultValue: 1e3,
+    help: 'Frequency at which weights are sync\'ed from the online network ' +
+    'to the target network.'
+  });
   return parser.parseArgs();
 }
 
@@ -149,6 +154,7 @@ async function main() {
   } else {
     tf = require('@tensorflow/tfjs-node');
   }
+  console.log(`args: ${JSON.stringify(args, null, 2)}`);
 
   const game = new SnakeGame({
     height: args.height,
@@ -168,7 +174,7 @@ async function main() {
 
   await train(
       agent, args.batchSize, args.gamma, args.learningRate,
-      args.cumulativeRewardThreshold, args.syncPerFrame);
+      args.cumulativeRewardThreshold, args.syncEveryFrames, args.savePath);
 }
 
 if (require.main === module) {

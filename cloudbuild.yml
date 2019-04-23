@@ -1,6 +1,10 @@
 steps:
 - name: 'node:10'
   entrypoint: 'yarn'
+  id: 'yarn'
+  args: ['install']
+- name: 'node:10'
+  entrypoint: 'yarn'
   id: 'test'
   args: ['presubmit']
   waitFor: ['yarn']

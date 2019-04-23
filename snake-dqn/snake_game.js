@@ -44,7 +44,7 @@ export const NUM_ACTIONS = ALL_ACTIONS.length;
  * @return {0 | 1 | 2 | 3} Action represented as a number.
  */
 export function getRandomAction() {
-  return ALL_ACTIONS[Math.floor(Math.random() * 4)];
+  return getRandomInteger(0, NUM_ACTIONS);
 }
 
 export class SnakeGame {
@@ -202,8 +202,7 @@ export class SnakeGame {
     // horizontally-posed state.
     const y = getRandomInteger(0, this.height_);
     let x = getRandomInteger(this.initLen_ - 1, this.width_);
-    this.snakeSquares_.push([y, x]);
-    for (let i = 1; i < this.initLen_; ++i) {
+    for (let i = 0; i < this.initLen_; ++i) {
       this.snakeSquares_.push([y, x - i]);
     }
   }

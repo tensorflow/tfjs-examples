@@ -152,7 +152,7 @@ export function parseArguments() {
   });
   parser.addArgument('--cumulativeRewardThreshold', {
     type: 'float',
-    defaultValue: 200,
+    defaultValue: 120,
     help: 'Threshold for cumulative reward (its moving ' +
     'average) over the 100 latest games. Training stops as soon as this ' +
     'threshold is reached.'
@@ -169,12 +169,12 @@ export function parseArguments() {
   });
   parser.addArgument('--epsilonFinal', {
     type: 'float',
-    defaultValue: 0.05,
+    defaultValue: 0.01,
     help: 'Final value of epsilon, used for the epsilon-greedy algorithm.'
   });
   parser.addArgument('--epsilonDecayFrames', {
     type: 'int',
-    defaultValue: 5e5,
+    defaultValue: 2e5,
     help: 'Number of frames of game over which the value of epsilon ' +
     'decays from epsilonInit to epsilonFinal'
   });

@@ -169,12 +169,12 @@ export function parseArguments() {
   });
   parser.addArgument('--epsilonFinal', {
     type: 'float',
-    defaultValue: 0.01,
+    defaultValue: 0.05,
     help: 'Final value of epsilon, used for the epsilon-greedy algorithm.'
   });
   parser.addArgument('--epsilonDecayFrames', {
     type: 'int',
-    defaultValue: 2e5,
+    defaultValue: 5e5,
     help: 'Number of frames of game over which the value of epsilon ' +
     'decays from epsilonInit to epsilonFinal'
   });

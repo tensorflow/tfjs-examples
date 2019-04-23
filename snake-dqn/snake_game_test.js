@@ -282,7 +282,7 @@ describe('SnakeGame', () => {
     expect(out.done).toEqual(false);
   });
 
-  fit('reset after eating fruits and then dies', () => {
+  it('reset after eating fruits and then dies', () => {
     const game = new SnakeGame({height: 5, width: 5, initLen: 3});
     game.snakeSquares_ = [[1, 3], [1, 2], [1, 1]];
     game.fruitSquares_ = [[1, 4]];

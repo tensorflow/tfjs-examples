@@ -61,3 +61,12 @@ tensorboard --logdir /tmp/snake_logs
 
 Once started, the tensorboard backend process will print an `http://` URL to the
 console. Open your browser and navigate to the URL to see the logged curves.
+
+## Running the demo in the browser
+
+After the DQN training completes, you can use the following command to
+launch a demo that shows how the network plays the game in the browser:
+
+```sh
+yarn watch
+```

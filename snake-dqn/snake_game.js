@@ -96,7 +96,7 @@ export class SnakeGame {
    */
   reset() {
     this.initializeSnake_();
-    this.fruits = null;
+    this.fruitSquares_ = null;
     this.makeFruits_();
     return this.getState();
   }

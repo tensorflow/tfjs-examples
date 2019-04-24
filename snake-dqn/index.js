@@ -22,6 +22,8 @@ import {renderSnakeGame} from './snake_graphics';
 
 const gameCanvas = document.getElementById('game-canvas');
 
+const loadHostedModelButton = document.getElementById('load-hosted-model');
+
 const stepButton = document.getElementById('step');
 const resetButton = document.getElementById('reset');
 const autoPlayStopButton = document.getElementById('auto-play-stop');
@@ -86,13 +88,12 @@ async function calcQValuesAndBestAction() {
   if (currentQValues != null) {
     return;
   }
-  const predictOut = tf.tidy(() => {
+  tf.tidy(() => {
     const stateTensor = getStateTensor(game.getState(), game.height, game.width);
-    return qNet.predict(stateTensor);
+    const predictOut = qNet.predict(stateTensor);
+    currentQValues = predictOut.dataSync();
+    bestAction = ALL_ACTIONS[predictOut.argMax(-1).dataSync()[0]];
   });
-  currentQValues = await predictOut.data();
-  bestAction = ALL_ACTIONS[(await predictOut.argMax(-1).data())[0]];
-  tf.dispose(predictOut);
 }
 
 function invalidateQValuesAndBestAction() {
@@ -100,9 +101,16 @@ function invalidateQValuesAndBestAction() {
   bestAction = null;
 }
 
-(async function() {
-  qNet = await tf.loadLayersModel('./dqn/model.json');
+const LOCAL_MODEL_URL = './dqn/model.json';
+const REMOTE_MODEL_URL = 'https://storage.googleapis.com/tfjs-examples/snake-dqn/models/model.json';
 
+function enableGameButtons() {
+  autoPlayStopButton.disabled = false;
+  stepButton.disabled = false;
+  resetButton.disabled = false;
+}
+
+async function initGame() {
   game = new SnakeGame({
     height: 9,
     width: 9,
@@ -136,4 +144,29 @@ function invalidateQValuesAndBestAction() {
   });
 
   resetButton.addEventListener('click',  () => reset(game));
+}
+
+(async function() {
+  try {
+    qNet = await tf.loadLayersModel(LOCAL_MODEL_URL);
+    loadHostedModelButton.textContent = `Loaded model from ${LOCAL_MODEL_URL}`;
+    initGame();
+    enableGameButtons();
+  } catch (err) {
+    console.log('Loading local model failed.');
+    loadHostedModelButton.disabled = false;
+  }
+
+  loadHostedModelButton.addEventListener('click', async () => {
+    try {
+      qNet = await tf.loadLayersModel(REMOTE_MODEL_URL);
+      loadHostedModelButton.textContent = `Loaded hosted model.`;
+      loadHostedModelButton.disabled = true;
+      initGame();
+      enableGameButtons();
+    } catch (err) {
+      loadHostedModelButton.textContent = 'Failed to load model.'
+      loadHostedModelButton.disabled = true;
+    }
+  });
 })();

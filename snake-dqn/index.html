@@ -24,6 +24,11 @@ limitations under the License.
 </head>
 
 <style>
+  #load-model-div {
+    margin-top: 10px;
+    margin-bottom: 10px;
+  }
+
   #reset {
     margin-left: 100px;
   }
@@ -52,12 +57,24 @@ limitations under the License.
         See <a href="https://github.com/tensorflow/tfjs-examples/blob/master/snake-dqn/train.js">train.js</a>.
       </p>
     </section>
+    <section>
+      <p class='section-head'>Algorithm</p>
+      <p>
+        A <a href="https://en.wikipedia.org/wiki/Q-learning#Variants">DQN</a> is trained to estimate the value of actions given the current game state.
+        The DQN is a 2D convolutional network. See <a href="https://github.com/tensorflow/tfjs-examples/blob/master/snake-dqn/dqn.js">dqn.js</a>.
+        The epsilon-greedy algorithm is used to balance exploration and exploitation during training.
+      </p>
+    </section>
 
     <section>
+      <div id="load-model-div">
+        <button id="load-hosted-model" width="200px" disabled>Load hosted model</button>
+      </div>
+
       <div>
-        <button id="auto-play-stop">Auto Play</button>
-        <button id="step">Step</button>
-        <button id="reset">Reset</button>
+        <button id="auto-play-stop" disabled>Auto Play</button>
+        <button id="step" disabled>Step</button>
+        <button id="reset" disabled>Reset</button>
       </div>
       <div id="show-q-values-div">
         <input type="checkbox" id="show-q-values" checked>

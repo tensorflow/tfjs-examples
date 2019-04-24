@@ -64,9 +64,13 @@ export function renderSnakeGame(canvas, game, qValues) {
       ctx.strokeStyle = 'black';
       ctx.lineWidth = '2';
       ctx.beginPath();
-      ctx.rect(
-          (x + 0.25) * gridWidth, (y + 0.25) * gridHeight,
-          gridWidth * 0.5, gridHeight * 0.5);
+      ctx.moveTo((x + 0.25) * gridWidth,  (y + 0.5) * gridHeight);
+      ctx.lineTo((x + 0.75) * gridWidth,  (y + 0.5) * gridHeight);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.arc(
+            (x + 0.5) * gridWidth, (y + 0.5) * gridHeight, gridWidth * 0.25,
+            0, Math.PI);
       ctx.stroke();
     }
   });

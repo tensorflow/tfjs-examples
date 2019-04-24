@@ -152,7 +152,7 @@ export function parseArguments() {
   });
   parser.addArgument('--cumulativeRewardThreshold', {
     type: 'float',
-    defaultValue: 120,
+    defaultValue: 100,
     help: 'Threshold for cumulative reward (its moving ' +
     'average) over the 100 latest games. Training stops as soon as this ' +
     'threshold is reached.'

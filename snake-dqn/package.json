@@ -14,7 +14,8 @@
   "scripts": {
     "link-local": "yalc link",
     "test": "babel-node run_tests.js",
-    "train": "babel-node train.js"
+    "train": "babel-node train.js",
+    "watch": "mkdir -p dist && cp -r models/dqn dist/dqn && cross-env NODE_ENV=development parcel index.html --no-hmr --open"
   },
   "devDependencies": {
     "@tensorflow/tfjs-node": "^1.0.3",

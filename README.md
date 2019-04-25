@@ -359,3 +359,19 @@ If you want to contribute an example, please reach out to us on
 [Github issues](https://github.com/tensorflow/tfjs/issues)
 before sending us a pull request as we are trying to keep this set of examples
 small and highly curated.
+
+### Running Presubmit Tests
+
+Before you send a pull request, it is a good idea to run the presubmit tests
+and make sure they all pass. To do that, execute the following commands in the
+root directory of tfjs-examples:
+
+```sh
+yarn
+yarn presubmit
+```
+
+The `yarn presubmit` command executes the unit tests and lint checks of all
+the exapmles that contain the `yarn test` and/or `yarn lint` scripts. You
+may also run the tests for individual exampls by cd'ing into their respective
+subdirectory and executing `yarn`, followed by `yarn test` and/or `yarn lint`.

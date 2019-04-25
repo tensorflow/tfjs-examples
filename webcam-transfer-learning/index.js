@@ -49,11 +49,7 @@ async function loadTruncatedMobileNet() {
 // it with the class label given by the button. up, down, left, right are
 // labels 0, 1, 2, 3 respectively.
 ui.setExampleHandler(async label => {
-  let img = (await webcam.capture())
-                .expandDims(0)
-                .toFloat()
-                .div(tf.scalar(127))
-                .sub(tf.scalar(1));
+  let img = await getImage();
 
   controllerDataset.addExample(truncatedMobileNet.predict(img), label);
 
@@ -134,11 +130,7 @@ async function predict() {
   ui.isPredicting();
   while (isPredicting) {
     // Capture the frame from the webcam.
-    const img = (await webcam.capture())
-                    .expandDims(0)
-                    .toFloat()
-                    .div(tf.scalar(127))
-                    .sub(tf.scalar(1));
+    const img = await getImage();
 
     // Make a prediction through mobilenet, getting the internal activation of
     // the mobilenet model, i.e., "embeddings" of the input images.
@@ -151,12 +143,25 @@ async function predict() {
     // Returns the index with the maximum probability. This number corresponds
     // to the class the model thinks is the most probable given the input.
     const predictedClass = predictions.as1D().argMax();
+    const classId = (await predictedClass.data())[0];
     img.dispose();
 
     ui.predictClass(classId);
     await tf.nextFrame();
   }
   ui.donePredicting();
+}
+
+/**
+ * Captures a frame from the webcam and normalizes it between -1 and 1.
+ * Returns a batched image (1-element batch) of shape [1, w, h, c].
+ */
+async function getImage() {
+  return (await webcam.capture())
+      .expandDims(0)
+      .toFloat()
+      .div(tf.scalar(127))
+      .sub(tf.scalar(1));
 }
 
 document.getElementById('train').addEventListener('click', async () => {

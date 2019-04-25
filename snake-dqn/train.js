@@ -79,6 +79,7 @@ export async function train(
   const optimizer = tf.train.adam(learningRate);
   let tPrev = new Date().getTime();
   let frameCountPrev = agent.frameCount;
+  let averageReward100Best = -Infinity;
   while (true) {
     agent.trainOnReplayBatch(batchSize, gamma, optimizer);
     const {cumulativeReward, done} = agent.playStep();
@@ -106,18 +107,21 @@ export async function train(
         // TODO(cais): Save online network.
         break;
       }
+      if (averageReward100 > averageReward100Best) {
+        averageReward100Best = averageReward100;
+        if (savePath != null) {
+          if (!fs.existsSync(savePath)) {
+            mkdir('-p', savePath);
+          }
+          await agent.onlineNetwork.save(`file://${savePath}`);
+          console.log(`Saved DQN to ${savePath}`);
+        }
+      }
     }
     if (agent.frameCount % syncEveryFrames === 0) {
       copyWeights(agent.targetNetwork, agent.onlineNetwork);
       console.log('Sync\'ed weights from online network to target network');
     }
-  }
-
-  if (savePath != null) {
-    if (!fs.existsSync(savePath)) {
-      mkdir('-p', savePath);
-    }
-    await agent.onlineNetwork.save(`file://${savePath}`);
   }
 }
 

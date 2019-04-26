@@ -21,14 +21,19 @@ yarn
 
 ## Preparing training data
 
-There are four scripts listed in package.json for preparing the training data. Each writes out one of more new files.
+There are four npm/yarn scripts listed in package.json for preparing the training data. Each writes out one of more new files.
 
-1. convert-to-csv: Converts the raw data into a csv format
-2. convert-to-tensors: Converts the strings in the CSV created in step 1 into tensors.
-3. convert-to-tagged-tokens: Extracts tokens from sentences in the original data and tags each token with a category
-4. convert-tokens: embeds the tokens from the queries using the universal sentence encoder and writes out a look-up-table.
+The two scripts needed to train the intent classifier are:
 
-You can run all of these commands with
+1. `yarn convert-raw-to-csv`: Converts the raw data into a csv format
+2. `yarn convert-csv-to-tensors`: Converts the strings in the CSV created in step 1 into tensors.
+
+The two scripts needed to train the token tagger are:
+
+1. `yarn convert-raw-to-tagged-tokens`: Extracts tokens from sentences in the original data and tags each token with a category
+2. `yarn convert-tokens-to-embeddings`: embeds the tokens from the queries using the universal sentence encoder and writes out a look-up-table.
+
+You can run all four of these commands with
 
 ```
 yarn prep-data

@@ -10,8 +10,5 @@ yarn-error.log
 yalc.lock
 model.json
 weights.bin
-metadata.json
-token_embeddings.ndjson
-intents_as_tensors.json
-intents_tagged_tokens.ndjson
 training/models
+training/data

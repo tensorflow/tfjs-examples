@@ -17,17 +17,14 @@
 
 
 import {ArgumentParser} from 'argparse';
-import { Board } from './game';
+import {Board, Game} from './game';
+import {HumanAgent} from './human_agent';
 
 global.fetch = require('node-fetch');
 
 function parseArguments() {
-  const parser =
-      new ArgumentParser({description: 'Exercises go-moku game'});
-  parser.addArgument('--gpu', {
-    action: 'storeTrue',
-    help: 'Use GPU'
-  });
+  const parser = new ArgumentParser({description: 'Exercises go-moku game'});
+  parser.addArgument('--gpu', {action: 'storeTrue', help: 'Use GPU'});
   return parser.parseArgs();
 }
 
@@ -42,9 +39,24 @@ async function main() {
   }
 
   console.log('I am gomoku');
-  const b = new Board({});
-  console.log(JSON.stringify(b));
-  b.initBoard();
+  const width = 3;
+  const height = 3;
+  const nInRow = 3
+  const board = new Board({width, height, nInRow});
+  board.initBoard();
+  const game = new Game(board);
+
+  // Human vs. Human
+  const human1 = new HumanAgent();
+  human1.setPlayerIndex(1);
+  const human2 = new HumanAgent();
+  human2.setPlayerIndex(2);
+
+  const whoGoesFirst = 0;
+  const showBoardEachTime = true;
+  game.startPlay(human1, human2, whoGoesFirst, showBoardEachTime);
 }
 
-main();
+if (require.main === module) {
+  main();
+}

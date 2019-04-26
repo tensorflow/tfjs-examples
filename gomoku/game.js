@@ -1,3 +1,5 @@
+import {consoleTestResultHandler} from 'tslint/lib/test';
+
 /**
  * @license
  * Copyright 2019 Google LLC. All Rights Reserved.
@@ -31,8 +33,8 @@
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
  *
- * The above copyright notice and this permission notice shall be included in all
- * copies or substantial portions of the Software.
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
@@ -49,18 +51,20 @@
 // `let` is used in lieu of the more conventional `const` here.
 const tf = require('@tensorflow/tfjs');
 
-const INVALID_BOARD_MOVE = null;
-const INVALID_BOARD_LOCATION = null;
-const DEFAULT_BOARD_SIZE = 8;
-const DEFAULT_N_IN_ROW = 5;
-const LAST_MOVE_SENTINEL = -1;
-const NO_WIN_SENTINEL = -1;
+export const INVALID_BOARD_MOVE = null;
+export const INVALID_BOARD_LOCATION = null;
+export const DEFAULT_BOARD_SIZE = 8;
+export const DEFAULT_N_IN_ROW = 5;
+export const LAST_MOVE_SENTINEL = -1;
+export const NO_WIN_SENTINEL = -1;
+export const PLAYER_NAME_0 = 'p0';
+export const PLAYER_NAME_1 = 'p1';
 
 /**
  * Returns an object with keys for integer values up to but not including N.
  * Value for each key is null.
  */
-function createAvailableKeys(N) {
+export function createAvailableKeys(N) {
   const myObj = {};
   for (let i = 0; i < N; i++) {
     myObj[i] = null;
@@ -73,7 +77,7 @@ function createAvailableKeys(N) {
  * Includes pieces placed, which player's turn it is, and game parameters
  * like the size of the board.
  */
-class Board {
+export class Board {
   /**
    * boardConfig
    *  .width = the integer size of the board along the x dimension.
@@ -85,29 +89,29 @@ class Board {
     this.height = boardConfig.height || DEFAULT_BOARD_SIZE;
     // States is an object that contains the all the completed moves on the
     // board.  Keys are the move position.  The value at the position
-    // corresponds to which player made the move.
+    // corresponds to the index of the player which made the move.
     this.states = {};
     this.nInRow = boardConfig.nInRow || DEFAULT_N_IN_ROW;
-    this.players = [0, 1];
-    this.currentPlayer = null;
+    this.playerNames = [PLAYER_NAME_0, PLAYER_NAME_1];
+    this.currentPlayerIndex = null;
   }
 
   /**
    * Resets the board to empty of pieces.
    * Sets the next player to be the starting player.
-   * 
-   * @param startPlayer: Which player should go first, 0 or 1.
+   *
+   * @param startPlayerIndex: Which player should go first, 0 or 1.
    */
-  initBoard(startPlayer = 0) {
+  initBoard(startPlayerIndex = 0) {
     if (this.width < this.nInRow) {
-      throw new Error(`Width (${this.width}) can not be less than winning row size ${
-          this.nInRow}.`);
+      throw new Error(`Width (${
+          this.width}) can not be less than winning row size ${this.nInRow}.`);
     }
     if (this.height < this.nInRow) {
-      throw new Error(`Height (${this.height}) can not be less than winning row size ${
-          this.nInRow}.`);
+      throw new Error(`Height (${
+          this.height}) can not be less than winning row size ${this.nInRow}.`);
     }
-    this.currentPlayer = this.players[startPlayer];
+    this.currentPlayerIndex = startPlayerIndex;
     // Keep available moves as keys in an object.
     this.availables = createAvailableKeys(this.width * this.height);
     this.states = {};
@@ -117,7 +121,7 @@ class Board {
   /** Returns true if the provided move is not already occupied. */
   isAvailable(move) {
     // Would be undefined if not available.
-    this.availables[move] === null;
+    return this.availables[move] === null;
   }
 
   /**
@@ -133,7 +137,7 @@ class Board {
    * Returns undefined on invalid location.
    * */
   moveToLocation(move) {
-    if (move < 0 | move >= this.width * this.height | !Number.isInteger(move)) { 
+    if (move < 0 | move >= this.width * this.height | !Number.isInteger(move)) {
       return INVALID_BOARD_MOVE;
     }
     return {y: Math.floor(move / this.width), x: move % this.width};
@@ -147,7 +151,7 @@ class Board {
    */
   locationToMove(location) {
     if (location.x < 0 | location.x >= this.width | location.y < 0 |
-        location.y >= this.height | !Number.isInteger(location.x) | 
+        location.y >= this.height | !Number.isInteger(location.x) |
         !Number.isInteger(location.y)) {
       return INVALID_BOARD_LOCATION;
     }
@@ -163,11 +167,10 @@ class Board {
    *     format.
    */
   doMove(move) {
-    this.states[move] = this.currentPlayer;
+    this.states[move] = this.currentPlayerIndex;
     delete this.availables[move];
-    this.currentPlayer = (this.currentPlayer === this.players[0]) ?
-        this.players[1] :
-        this.players[0];
+    // Flip-flop the index of the current player.
+    this.currentPlayerIndex = (this.currentPlayerIndex === 0) ? 1 : 0;
     this.lastMove = move;
   }
 
@@ -176,8 +179,8 @@ class Board {
    * Indicates whether the board has a winner.
    *
    * @returns {(boolean, integer)} If the game has been won returns
-   * {win: True, winner: $Player} indicating which player has won the game.  Otherwise
-   * returns {win: False, winner: -1};
+   * {win: True, winner: $Player} indicating the index of the player has won the
+   * game. Otherwise returns {win: False, winner: -1};
    */
   hasAWinner() {
     const moved = Object.keys(this.states);
@@ -187,69 +190,73 @@ class Board {
     if (moved.length < (this.nInRow * 2 - 1)) {
       return {win: false, winner: -1};
     } */
-    moved.forEach(mString => {
+    // TODO(bileschi): Optimize.  Is it possible to only look at the most recent
+    // move?
+    console.log(`states ${JSON.stringify(this.states)}`);
+    console.log(`moved ${JSON.stringify(moved)}`);
+    for (let mString of moved) {
       const m = Number.parseInt(mString);
       const loc = this.moveToLocation(m);
-      const player = this.states[m];
+      const playerIndex = this.states[m];
       // Check if this is the leftmost piece in a horizontal win
       if (loc.x >= 0 && loc.x <= this.width - this.nInRow + 1) {
-        let winner = player;
+        let winnerIndex = playerIndex;
         for (let i = 1; i < this.nInRow; i++) {
           const offsetMove = m + i;
-          if (this.states[offsetMove] != player) {
-            winner = null;
+          if (this.states[offsetMove] != playerIndex) {
+            winnerIndex = null;
             break;
           }
         }
-        if (winner != null) {
-          return {win: true, winner: winner};
+        if (winnerIndex != null) {
+          return {win: true, winner: winnerIndex};
         }
       }
       // Check if this is the bottom-most piece in a vertical win.
       if (loc.y >= 0 && loc.y <= this.height - this.nInRow + 1) {
-        let winner = player;
+        let winnerIndex = playerIndex;
         for (let i = 1; i < this.nInRow; i++) {
           const offsetMove = m + this.width * i;
-          if (this.states[offsetMove] != player) {
-            winner = null;
+          if (this.states[offsetMove] != playerIndex) {
+            winnerIndex = null;
             break;
           }
         }
-        if (winner != null) {
-          return {win: true, winner};
+        if (winnerIndex != null) {
+          return {win: true, winner: winnerIndex};
         }
       }
       // Check if this is the bottom-left piece in a diagonal win like /.
       if (loc.y >= 0 && loc.y <= this.height - this.nInRow + 1 && loc.x >= 0 &&
           loc.x <= this.width - this.nInRow + 1) {
-        let winner = player;
+        let winnerIndex = playerIndex;
         for (let i = 1; i < this.nInRow; i++) {
           const offsetMove = m + (this.width + 1) * i;
-          if (this.states[offsetMove] != player) {
-            winner = null;
+          if (this.states[offsetMove] != playerIndex) {
+            winnerIndex = null;
             break;
           }
         }
-        if (winner != null) {
-          return {win: true, winner};
+        if (winnerIndex != null) {
+          return {win: true, winner: winnerIndex};
         }
       }
       // Check if this is the top-left piece in a diagonal win like \.
       if (loc.y < this.height && loc.y >= this.nInRow - 1 && loc.x >= 0 &&
           loc.x <= this.width - this.nInRow + 1) {
-        let winner = player;
+        let winnerIndex = playerIndex;
         for (let i = 1; i < this.nInRow; i++) {
           const offsetMove = m + (1 - this.width) * i;
-          if (this.states[offsetMove] != player) {
-            winner = null;
+          if (this.states[offsetMove] != playerIndex) {
+            winnerIndex = null;
             break;
           }
         }
-        if (winner != null) {
-          return {win: true, winner};
+        if (winnerIndex != null) {
+          return {win: true, winner: winnerIndex};
         }
       }
-    });
+    };
     return {win: false, winner: NO_WIN_SENTINEL};
   }
 
@@ -258,12 +265,14 @@ class Board {
    * The game is over if either there is a winner, or there are no moves left
    * to make.
    * @returns {{win: boolean, winner: integer}} If the game has been won returns
-   *   {win: True, winner: $Player} indicating which player has won the game.
-   *   If the game is a tie, returns {win: True, winner: -1}
-   *   Otherwise returns {win: False, winner: -1};
+   *   {win: True, winner: $Player} indicating the index of which player has won
+   * the game. If the game is a tie, returns {win: True, winner: -1} Otherwise
+   * returns {win: False, winner: -1};
    */
   gameEnd() {
-    const [win, winner] = this.hasAWinner();
+    console.log(' a');
+    const {win, winner} = this.hasAWinner();
+    console.log(' b');
     if (win) {
       return {win: true, winner: winner};
     } else if (Object.keys(this.availables).length == 0) {
@@ -280,33 +289,34 @@ class Board {
    * Channel 1 is your pieces.
    * Channel 2 is the position of the previous move.
    * Channel 3 alternates ones and zeros, depending on which player is next.
-   * @returns tf.Tensor with shape [3, width, height] 
+   * @returns tf.Tensor with shape [3, width, height]
    */
   currentStateTensor() {
-    const boardBuffer = tf.buffer([3, this.width, this.height], 'float32');
-    // Set channel 0 and channel 1.
-    for (const [move, movePlayer] of Object.entries(this.states)) {
-      const playerIndex = movePlayer === this.currentPlayer;
-      const loc = this.moveToLocation(move);
-      boardBuffer.set(1.0, playerIndex, loc.x, loc.y);
-    }
-    if (this.lastMove !== LAST_MOVE_SENTINEL) {
-      // Set last move channel.
-      const lastLoc = this.moveToLocation(this.lastMove);
-      boardBuffer.set(1.0, 2, lastLoc.x, lastLoc.y);
-    }
-    // Set channel 3 to which player's turn it is, assuming alternate
-    // players.
-    const lastChannelFillVal =
-        (this.currentPlayer === this.players[1]) ? 1.0 : 0.0;
-    const playerTensor =
-        tf.fill([1, this.width, this.height], lastChannelFillVal);
-    return tf.concat([boardBuffer.toTensor(), playerTensor], 0);
+    return tf.tidy(() => {
+      const boardBuffer = tf.buffer([3, this.width, this.height], 'float32');
+      // Set channel 0 and channel 1.
+      for (const [move, movePlayer] of Object.entries(this.states)) {
+        const playerIndex = movePlayer === this.currentPlayerIndex;
+        const loc = this.moveToLocation(Number.parseInt(move));
+        boardBuffer.set(1.0, playerIndex, loc.x, loc.y);
+      }
+      if (this.lastMove !== LAST_MOVE_SENTINEL) {
+        // Set last move channel.
+        const lastLoc = this.moveToLocation(this.lastMove);
+        boardBuffer.set(1.0, 2, lastLoc.x, lastLoc.y);
+      }
+      // Set channel 3 to which player's turn it is, assuming alternate
+      // players.
+      const lastChannelFillVal = (this.currentPlayerIndex === 1) ? 1.0 : 0.0;
+      const playerTensor =
+          tf.fill([1, this.width, this.height], lastChannelFillVal);
+      return tf.concat([boardBuffer.toTensor(), playerTensor], 0);
+    });
   }
 }
 
-class Game {
-  constructor(board, gameConfig = {}) {
+export class Game {
+  constructor(board) {
     this.board = board;
   }
 
@@ -314,12 +324,12 @@ class Game {
     let rowText = iRow + ' ';
     for (let iCol = 0; iCol < this.board.width; iCol++) {
       const move = this.board.locationToMove({x: iCol, y: iRow});
-      const playerMoveVal = this.board.states[move];
-      switch (playerMoveVal) {
-        case this.board.players[0]:
+      const moveToIndex = this.board.states[move];
+      switch (moveToIndex) {
+        case 0:
           rowText += 'X';
           break;
-        case this.board.players[1]:
+        case 1:
           rowText += 'O';
           break;
         default:
@@ -339,11 +349,13 @@ class Game {
 
   /**
    * Returns a string representation of the Game.
+   *
+   * @returns string
    */
   asAsciiArt() {
     const textRows = [];
-    textRows.push(`player ${this.board.players[0]} with X`);
-    textRows.push(`player ${this.board.players[1]} with O`);
+    textRows.push(` player ${this.board.playerNames[0]} with X`);
+    textRows.push(` player ${this.board.playerNames[1]} with O`);
 
     textRows.push(this._colIndexRow(this.board.width));
     for (let iRow = 0; iRow < this.board.height; iRow++) {
@@ -354,41 +366,47 @@ class Game {
 
   /**
    * Begins the game, with agent1 and agent2 representing players.
-   * @param agent1: agent acting as player 1
-   * @param agent2: agent acting as player 2
+   * @param agent0: agent acting as player 1
+   * @param agent1: agent acting as player 2
    * @param startPlayer: 0 if player 1 goes first, 1 otherwise.
    * @param isShown: true to print the game state out to the console.
    * @returns {{win: boolean, winner: integer}} If the game has been won returns
    *   {win: True, winner: $Player} indicating which player has won the game.
    *   If the game is a tie, returns {win: True, winner: -1}
    *   Otherwise returns {win: False, winner: -1};
- 
+
    */
-  startPlay(agent1, agent2, startPlayer = 0, isShown = true) {
+  startPlay(agent0, agent1, startPlayer = 0, isShown = true) {
     if (startPlayer !== 0 && startPlayer !== 1) {
       throw new Error(
           'start_player should be either 0 (agent1 first) ' +
           'or 1 (agent2 first)');
     }
-    self.board.initBoard(startPlayer);
-    const [player1Index, player2Index] = board.players;
-    agent1.setPlayerIndex(player1Index);
-    agent2.setPlayerIndex(player2Index);
-    const agents = { p1: agent1, p2: agent2 };
-    if (isShown) {
-      console.log(this.asAsciiArt());
-    }
+    this.board.initBoard(startPlayer);
+    agent0.setPlayerIndex(0);
+    agent1.setPlayerIndex(1);
+    const agents = [agent0, agent1];
     while (true) {
-      const currentPlayer = this.board.currentPlayer;
-      const currentAgent = agents[currentPlayer];
-      const move = currentAgent.getAction(this.board);
-      this.board.doMove(move);
+      const currentPlayerIndex = this.board.currentPlayerIndex;
+      const currentAgent = agents[currentPlayerIndex];
       if (isShown) {
         console.log(this.asAsciiArt());
       }
-      const [end, winner] = this.board.gameEnd();
-      if (end) {
+      const move = currentAgent.getAction(this.board);
+      console.log('whew');
+      if (this.board.isAvailable(move)) {
+        this.board.doMove(move);
+      } else {
+        console.log('AGENT RETURNED INVALID BOARD MOVE.');
+        console.log('GAME OVER!.');
+        return NO_WIN_SENTINEL;
+      }
+      console.log('a');
+      const {win, winner} = this.board.gameEnd();
+      console.log('b');
+      if (win) {
         if (isShown) {
+          console.log(this.asAsciiArt());
           if (winner !== NO_WIN_SENTINEL) {
             console.log('Game end.  Winner is ', agents[winner]);
           } else {
@@ -400,14 +418,3 @@ class Game {
     }
   }
 }
-
-module.exports = {
-  Board,
-  Game,
-  DEFAULT_BOARD_SIZE,
-  DEFAULT_N_IN_ROW,
-  LAST_MOVE_SENTINEL,
-  INVALID_BOARD_MOVE,
-  INVALID_BOARD_LOCATION,
-  NO_WIN_SENTINEL
-};

@@ -10,14 +10,15 @@
   },
   "dependencies": {
     "@tensorflow/tfjs": "^0.15.3",
-    "@tensorflow/tfjs-vis": "0.4.2"
+    "@tensorflow/tfjs-vis": "0.4.2",
+    "readline-sync": "^1.4.9"
   },
   "scripts": {
     "watch": "cross-env NODE_ENV=development parcel index.html --no-hmr --open",
     "build": "cross-env NODE_ENV=production parcel build index.html --no-minify --public-url ./",
     "link-local": "yalc link",
     "gomoku": "babel-node gomoku.js",
-    "test": "node run_tests.js"
+    "test": "babel-node run_tests.js"
   },
   "devDependencies": {
     "@tensorflow/tfjs-node": "0.3.1",

@@ -15,8 +15,8 @@
  * =============================================================================
  */
 
-const tf = require('@tensorflow/tfjs-node');
-const game = require('./game');
+import * as tf from '@tensorflow/tfjs-node';
+import * as game from './game';
 
 const boardConfig66 = {
   width: 6,
@@ -66,7 +66,7 @@ describe('Board', () => {
       expect(Object.keys(board.availables).length)
           .toEqual(board.width * board.height);
       expect(board.lastMove).toEqual(game.LAST_MOVE_SENTINEL);
-      expect(board.currentPlayer).toEqual(board.players[0]);
+      expect(board.currentPlayerIndex).toEqual(0);
       expect(Object.keys(board.states).length).toEqual(0);
     }
   });
@@ -74,7 +74,7 @@ describe('Board', () => {
   it('can init with player 2 first', () => {
     const board = new game.Board();
     board.initBoard(1);
-    expect(board.currentPlayer).toEqual(board.players[1]);
+    expect(board.currentPlayerIndex).toEqual(1);
   });
 
   it('convert moveToLocation', () => {
@@ -108,18 +108,18 @@ describe('Board', () => {
   it('doMove changes currentPlayer', () => {
     const board = new game.Board(boardConfig66);
     board.initBoard();
-    expect(board.currentPlayer === board.players[0]);
+    expect(board.currentPlayerIndex === 0);
     board.doMove(0);
-    expect(board.currentPlayer === board.players[1]);
+    expect(board.currentPlayerIndex === 1);
     board.doMove(1);
-    expect(board.currentPlayer === board.players[0]);
+    expect(board.currentPlayerIndex === 0);
     board.doMove(2);
-    expect(board.currentPlayer === board.players[1]);
+    expect(board.currentPlayerIndex === 1);
     // Re-init:  second player goes first.
     board.initBoard(1);
-    expect(board.currentPlayer === board.players[1]);
+    expect(board.currentPlayerIndex === 1);
     board.doMove(0);
-    expect(board.currentPlayer === board.players[1]);
+    expect(board.currentPlayerIndex === 1);
   });
 
   it('doMove adds moves', () => {
@@ -129,9 +129,9 @@ describe('Board', () => {
     board.doMove(1);
     board.doMove(2);
     expect(Object.keys(board.states).length).toEqual(3);
-    expect(board.states[0]).toEqual(board.players[0]);
-    expect(board.states[1]).toEqual(board.players[1]);
-    expect(board.states[2]).toEqual(board.players[0]);
+    expect(board.states[0]).toEqual(0);
+    expect(board.states[1]).toEqual(1);
+    expect(board.states[2]).toEqual(0);
   });
 
   it('hasAWinner horizontal', () => {
@@ -140,7 +140,7 @@ describe('Board', () => {
     for (let i = 0; i < board.nInRow; i++) {
       board.states[board.locationToMove({x: i, y: 0})] = 0;
     }
-    expect(board.hasAWinner()).toEqual({win: true, winner: board.players[0]});
+    expect(board.hasAWinner()).toEqual({win: true, winner: 0});
   });
 
   it('hasAWinner vertical', () => {
@@ -149,7 +149,7 @@ describe('Board', () => {
     for (let i = 0; i < board.nInRow; i++) {
       board.states[board.locationToMove({x: 0, y: i})] = 0;
     }
-    expect(board.hasAWinner()).toEqual({win: true, winner: board.players[0]});
+    expect(board.hasAWinner()).toEqual({win: true, winner: 0});
   });
 
   it('hasAWinner diagonal \\', () => {
@@ -158,7 +158,7 @@ describe('Board', () => {
     for (let i = 0; i < board.nInRow; i++) {
       board.states[board.locationToMove({x: 5 - i, y: i})] = 0;
     }
-    expect(board.hasAWinner()).toEqual({win: true, winner: board.players[0]});
+    expect(board.hasAWinner()).toEqual({win: true, winner: 0});
   });
 
 
@@ -168,7 +168,7 @@ describe('Board', () => {
     for (let i = 0; i < board.nInRow; i++) {
       board.states[board.locationToMove({x: i, y: i})] = 0;
     }
-    expect(board.hasAWinner()).toEqual({win: true, winner: board.players[0]});
+    expect(board.hasAWinner()).toEqual({win: true, winner: 0});
   });
 
   // Other hasAWinner tests hack the board state.  Let's test one using the
@@ -185,13 +185,13 @@ describe('Board', () => {
     board.doMove(3);
     board.doMove(12);
     board.doMove(4);
-    expect(board.hasAWinner()).toEqual({win: true, winner: board.players[0]});
+    expect(board.hasAWinner()).toEqual({win: true, winner: 0});
   });
 
   it('gameEnd not finished', () => {
     const board = new game.Board(boardConfig66);
     board.initBoard();
-    expect(board.gameEnd()).toEqual([false, game.NO_WIN_SENTINEL]);
+    expect(board.gameEnd()).toEqual({win: false, winner: game.NO_WIN_SENTINEL});
   });
 
   it('gameEnd winner', () => {
@@ -200,7 +200,7 @@ describe('Board', () => {
     for (let i = 0; i < board.nInRow; i++) {
       board.states[board.locationToMove({x: i, y: i})] = 0;
     }
-    expect(board.gameEnd()).toEqual({win: true, winner: board.players[0]});
+    expect(board.gameEnd()).toEqual({win: true, winner: 0});
   });
 
   it('gameEnd tie', () => {
@@ -237,7 +237,20 @@ describe('Board', () => {
         tf.concat([expectedBuffer.toTensor(), tf.ones([1, 6, 6])]);
     tf.test_util.expectArraysClose(state, expectedState);
   });
+
+  it('currentStateTensor does not leak', () => {
+    const board = new game.Board(boardConfig66);
+    board.initBoard();
+    board.doMove(board.locationToMove({x: 0, y: 0}));
+    const tensorsBefore = tf.memory().numTensors;
+    const state = board.currentStateTensor();
+    const tensorsAfter = tf.memory().numTensors;
+    expect(state).not.toBeNull();
+    expect(tensorsAfter).toEqual(tensorsBefore + 1);
+  });
 });
+
+
 
 describe('GameObject', () => {
   it('is creatable', () => {
@@ -247,8 +260,8 @@ describe('GameObject', () => {
   it('asAsciiArt empty game', () => {
     const myGame = new game.Game(new game.Board());
     const myArt = myGame.asAsciiArt();
-    const expectedArt = `player 0 with X
-player 1 with O
+    const expectedArt = `player p0 with X
+player p1 with O
   01234567
 0 --------
 1 --------
@@ -265,8 +278,8 @@ player 1 with O
     const board = new game.Board(boardConfig66);
     board.initBoard();
     const myGame = new game.Game(board);
-    let expectedArt = `player 0 with X
-player 1 with O
+    let expectedArt = `player p0 with X
+player p1 with O
   012345
 0 ------
 1 ------
@@ -275,10 +288,10 @@ player 1 with O
 4 ------
 5 ------`;
     expect(myGame.asAsciiArt()).toEqual(expectedArt);
-    board.doMove(board.locationToMove({ x: 1, y: 2 }));
-    board.doMove(board.locationToMove({ x: 3, y: 4 }));
-    expectedArt = `player 0 with X
-player 1 with O
+    board.doMove(board.locationToMove({x: 1, y: 2}));
+    board.doMove(board.locationToMove({x: 3, y: 4}));
+    expectedArt = `player p0 with X
+player p1 with O
   012345
 0 ------
 1 ------

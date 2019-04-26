@@ -15,9 +15,9 @@
  * =============================================================================
  */
 
-const tf = require('@tensorflow/tfjs-node');
-const game = require('./game');
-const human_agent = require('./human_agent');
+import * as tf from '@tensorflow/tfjs-node';
+import * as game from './game';
+import * as human_agent from './human_agent';
 
 describe('HumanAgent', () => {
   it('can be created', () => {
@@ -40,9 +40,15 @@ describe('HumanAgent', () => {
     expect(agent._parseAnswer('0, 0', board)).toEqual(0);
     expect(agent._parseAnswer('1, 0', board)).toEqual(1);
     expect(agent._parseAnswer('0, 1', board)).toEqual(8);
-    expect(agent._parseAnswer('9, 9', board))
-        .toEqual(game.INVALID_BOARD_MOVE);
+    expect(agent._parseAnswer('9, 9', board)).toEqual(game.INVALID_BOARD_MOVE);
   });
 
-
+  it('parseAnswers no comma format', () => {
+    const board = new game.Board();
+    const agent = new human_agent.HumanAgent();
+    expect(agent._parseAnswer('0 0', board)).toEqual(0);
+    expect(agent._parseAnswer('1 0', board)).toEqual(1);
+    expect(agent._parseAnswer('0 1', board)).toEqual(8);
+    expect(agent._parseAnswer('9 9', board)).toEqual(game.INVALID_BOARD_MOVE);
+  });
 });

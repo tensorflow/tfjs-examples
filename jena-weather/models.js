@@ -57,10 +57,8 @@ export async function getBaselineMeanAbsoluteError(
         false, lookBack, delay, batchSize, step, VAL_MIN_ROW,
         VAL_MAX_ROW, normalize, includeDateTime));
 
-  console.log('200');  // DEBUG
   const batchMeanAbsoluteErrors = [];
   const batchSizes = [];
-  console.log('240');  // DEBUG
   await dataset.forEach(dataItem => {
     const features = dataItem.xs;
     const targets = dataItem.ys;
@@ -72,7 +70,6 @@ export async function getBaselineMeanAbsoluteError(
             features.gather([timeSteps - 1], 1).gather([1], 2).squeeze([2]))));
   });
 
-  console.log('300');  // DEBUG
   const meanAbsoluteError = tf.tidy(() => {
     const batchSizesTensor = tf.tensor1d(batchSizes);
     const batchMeanAbsoluteErrorsTensor = tf.stack(batchMeanAbsoluteErrors);

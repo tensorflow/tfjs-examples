@@ -17,7 +17,8 @@
 
 import * as tf from '@tensorflow/tfjs-node';
 
-import {buildGRUModel, buildMLPModel, buildSimpleRNNModel} from "./models";
+import {JenaWeatherData} from "./data";
+import {buildGRUModel, buildMLPModel, buildSimpleRNNModel, getBaselineMeanAbsoluteError} from "./models";
 
 describe('Model creation', () => {
   it('MLP', () => {
@@ -68,5 +69,16 @@ describe('RNN', () => {
     expect(model.inputs[0].shape).toEqual([null, 8, 9]);
     expect(model.outputs.length).toEqual(1);
     expect(model.outputs[0].shape).toEqual([null, 1]);
+  });
+});
+
+describe('getBaselineMeanAbsoluteError', () => {
+  it('getBaselineMeanAbsoluteError', async () => {
+    const dataset = new JenaWeatherData();
+    await dataset.load();
+
+    const baselineMAE = await getBaselineMeanAbsoluteError(
+        dataset, true, false, 10 * 24 * 6, 6, 24 * 6);
+    expect(baselineMAE).toBeCloseTo(0.29033);
   });
 });

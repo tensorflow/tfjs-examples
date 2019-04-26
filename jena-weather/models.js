@@ -16,7 +16,8 @@
  */
 
 /**
- * Creating and training `tf.Model`s for the temperature prediction problem.
+ * Creating and training `tf.LayersModel`s for the temperature prediction
+ * problem.
  *
  * This file is used to create models for both
  * - the browser: see [index.js](./index.js), and
@@ -87,7 +88,7 @@ export async function getBaselineMeanAbsoluteError(
  * Build a linear-regression model for the temperature-prediction problem.
  *
  * @param {tf.Shape} inputShape Input shape (without the batch dimenson).
- * @returns {tf.Model} A TensorFlow.js tf.Model instance.
+ * @returns {tf.LayersModel} A TensorFlow.js tf.LayersModel instance.
  */
 function buildLinearRegressionModel(inputShape) {
   const model = tf.sequential();
@@ -106,7 +107,7 @@ function buildLinearRegressionModel(inputShape) {
  * @param {number} dropoutRate Dropout rate of an optional dropout layer
  *   inserted between the two dense layers of the MLP. Optional. If not
  *   specified, no dropout layers will be included in the MLP.
- * @returns {tf.Model} A TensorFlow.js tf.Model instance.
+ * @returns {tf.LayersModel} A TensorFlow.js tf.LayersModel instance.
  */
 export function buildMLPModel(inputShape, kernelRegularizer, dropoutRate) {
   const model = tf.sequential();
@@ -124,9 +125,10 @@ export function buildMLPModel(inputShape, kernelRegularizer, dropoutRate) {
  * Build a simpleRNN-based model for the temperature-prediction problem.
  *
  * @param {tf.Shape} inputShape Input shape (without the batch dimenson).
- * @returns {tf.Model} A TensorFlow.js model consisting of a simpleRNN layer.
+ * @returns {tf.LayersModel} A TensorFlow.js model consisting of a simpleRNN
+ *   layer.
  */
-function buildSimpleRNNModel(inputShape) {
+export function buildSimpleRNNModel(inputShape) {
   const model = tf.sequential();
   const rnnUnits = 32;
   model.add(tf.layers.simpleRNN({
@@ -143,9 +145,9 @@ function buildSimpleRNNModel(inputShape) {
  * @param {tf.Shape} inputShape Input shape (without the batch dimenson).
  * @param {number} dropout Optional input dropout rate
  * @param {number} recurrentDropout Optional recurrent dropout rate.
- * @returns {tf.Model} A TensorFlow.js GRU model.
+ * @returns {tf.LayersModel} A TensorFlow.js GRU model.
  */
-function buildGRUModel(inputShape, dropout, recurrentDropout) {
+export function buildGRUModel(inputShape, dropout, recurrentDropout) {
   // TODO(cais): Recurrent dropout is currently not fully working.
   //   Make it work and add a flag to train-rnn.js.
   const model = tf.sequential();
@@ -167,7 +169,7 @@ function buildGRUModel(inputShape, dropout, recurrentDropout) {
  * @param {number} numTimeSteps Number of time steps in each input.
  *   exapmle
  * @param {number} numFeatures Number of features (for each time step).
- * @returns A compiled instance of `tf.Model`.
+ * @returns A compiled instance of `tf.LayersModel`.
  */
 export function buildModel(modelType, numTimeSteps, numFeatures) {
   const inputShape = [numTimeSteps, numFeatures];
@@ -201,9 +203,9 @@ export function buildModel(modelType, numTimeSteps, numFeatures) {
 /**
  * Train a model on the Jena weather data.
  *
- * @param {tf.Model} model A compiled tf.Model object. It is expected to
- *   have a 3D input shape `[numExamples, timeSteps, numFeatures].` and an
- *   output shape `[numExamples, 1]` for predicting the temperature value.
+ * @param {tf.LayersModel} model A compiled tf.LayersModel object. It is
+ *   expected to have a 3D input shape `[numExamples, timeSteps, numFeatures].`
+ *   and an output shape `[numExamples, 1]` for predicting the temperature value.
  * @param {JenaWeatherData} jenaWeatherData A JenaWeatherData object.
  * @param {boolean} normalize Whether to used normalized data for training.
  * @param {boolean} includeDateTime Whether to include date and time features

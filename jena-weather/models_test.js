@@ -17,11 +17,13 @@
 
 import * as tf from '@tensorflow/tfjs-node';
 
-import {buildMLPModel} from "./models";
+import {buildGRUModel, buildMLPModel, buildSimpleRNNModel} from "./models";
 
 describe('Model creation', () => {
   it('MLP', () => {
     const model = buildMLPModel([8, 9]);
+    const config = model.layers[1].getConfig();
+    expect(config.kernelRegularizer).toEqual(null);
     expect(model.inputs.length).toEqual(1);
     expect(model.inputs[0].shape).toEqual([null, 8, 9]);
     expect(model.outputs.length).toEqual(1);
@@ -32,6 +34,36 @@ describe('Model creation', () => {
     const model = buildMLPModel([8, 9], tf.regularizers.l2({l2: 5e-2}));
     const config = model.layers[1].getConfig();
     expect(config.kernelRegularizer.config.l2).toEqual(5e-2);
+    expect(model.inputs.length).toEqual(1);
+    expect(model.inputs[0].shape).toEqual([null, 8, 9]);
+    expect(model.outputs.length).toEqual(1);
+    expect(model.outputs[0].shape).toEqual([null, 1]);
+  });
+
+  it('MLP with dropout', () => {
+    const model = buildMLPModel([8, 9], null, 0.5);
+    const denseConfig = model.layers[1].getConfig();
+    expect(denseConfig.kernelRegularize).toEqual(undefined);
+    const dropoutConfig = model.layers[model.layers.length - 2].getConfig();
+    expect(dropoutConfig.rate).toEqual(0.5);
+    expect(model.inputs.length).toEqual(1);
+    expect(model.inputs[0].shape).toEqual([null, 8, 9]);
+    expect(model.outputs.length).toEqual(1);
+    expect(model.outputs[0].shape).toEqual([null, 1]);
+  });
+});
+
+describe('RNN', () => {
+  it('simpleRNN', () => {
+    const model = buildSimpleRNNModel([8, 9]);
+    expect(model.inputs.length).toEqual(1);
+    expect(model.inputs[0].shape).toEqual([null, 8, 9]);
+    expect(model.outputs.length).toEqual(1);
+    expect(model.outputs[0].shape).toEqual([null, 1]);
+  });
+
+  it('buildGRUModel', () => {
+    const model = buildGRUModel([8, 9]);
     expect(model.inputs.length).toEqual(1);
     expect(model.inputs[0].shape).toEqual([null, 8, 9]);
     expect(model.outputs.length).toEqual(1);

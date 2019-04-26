@@ -51,16 +51,18 @@ const VAL_MAX_ROW = 300000;
 export async function getBaselineMeanAbsoluteError(
     jenaWeatherData, normalize, includeDateTime, lookBack, step, delay) {
   const batchSize = 128;
-  const nextBatchFn = jenaWeatherData.getNextBatchFunction(
-      false, lookBack, delay, batchSize, step, VAL_MIN_ROW, VAL_MAX_ROW,
-      normalize, includeDateTime);
-  const dataset = tf.data.generator(nextBatchFn);
+  const dataset = tf.data.generator(
+    () => jenaWeatherData.getNextBatchFunction(
+        false, lookBack, delay, batchSize, step, VAL_MIN_ROW,
+        VAL_MAX_ROW, normalize, includeDateTime));
 
+  console.log('200');  // DEBUG
   const batchMeanAbsoluteErrors = [];
   const batchSizes = [];
+  console.log('240');  // DEBUG
   await dataset.forEach(dataItem => {
-    const features = dataItem[0];
-    const targets = dataItem[1];
+    const features = dataItem.xs;
+    const targets = dataItem.ys;
     const timeSteps = features.shape[1];
     batchSizes.push(features.shape[0]);
     batchMeanAbsoluteErrors.push(tf.tidy(
@@ -68,6 +70,8 @@ export async function getBaselineMeanAbsoluteError(
             targets,
             features.gather([timeSteps - 1], 1).gather([1], 2).squeeze([2]))));
   });
+
+  console.log('300');  // DEBUG
   const meanAbsoluteError = tf.tidy(() => {
     const batchSizesTensor = tf.tensor1d(batchSizes);
     const batchMeanAbsoluteErrorsTensor = tf.stack(batchMeanAbsoluteErrors);
@@ -104,7 +108,7 @@ function buildLinearRegressionModel(inputShape) {
  *   specified, no dropout layers will be included in the MLP.
  * @returns {tf.Model} A TensorFlow.js tf.Model instance.
  */
-function buildMLPModel(inputShape, kernelRegularizer, dropoutRate) {
+export function buildMLPModel(inputShape, kernelRegularizer, dropoutRate) {
   const model = tf.sequential();
   model.add(tf.layers.flatten({inputShape}));
   model.add(

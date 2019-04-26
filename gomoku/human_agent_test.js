@@ -51,4 +51,13 @@ describe('HumanAgent', () => {
     expect(agent._parseAnswer('0 1', board)).toEqual(8);
     expect(agent._parseAnswer('9 9', board)).toEqual(game.INVALID_BOARD_MOVE);
   });
+
+  it('parseAnswers fast format', () => {
+    const board = new game.Board();
+    const agent = new human_agent.HumanAgent();
+    expect(agent._parseAnswer('00', board)).toEqual(0);
+    expect(agent._parseAnswer('10', board)).toEqual(1);
+    expect(agent._parseAnswer('01', board)).toEqual(8);
+    expect(agent._parseAnswer('99', board)).toEqual(game.INVALID_BOARD_MOVE);
+  });
 });

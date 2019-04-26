@@ -59,6 +59,7 @@ export const LAST_MOVE_SENTINEL = -1;
 export const NO_WIN_SENTINEL = -1;
 export const PLAYER_NAME_0 = 'p0';
 export const PLAYER_NAME_1 = 'p1';
+export const SYMBOLS = ['X', 'O'];
 
 /**
  * Returns an object with keys for integer values up to but not including N.
@@ -192,8 +193,6 @@ export class Board {
     } */
     // TODO(bileschi): Optimize.  Is it possible to only look at the most recent
     // move?
-    console.log(`states ${JSON.stringify(this.states)}`);
-    console.log(`moved ${JSON.stringify(moved)}`);
     for (let mString of moved) {
       const m = Number.parseInt(mString);
       const loc = this.moveToLocation(m);
@@ -270,9 +269,7 @@ export class Board {
    * returns {win: False, winner: -1};
    */
   gameEnd() {
-    console.log(' a');
     const {win, winner} = this.hasAWinner();
-    console.log(' b');
     if (win) {
       return {win: true, winner: winner};
     } else if (Object.keys(this.availables).length == 0) {
@@ -327,10 +324,8 @@ export class Game {
       const moveToIndex = this.board.states[move];
       switch (moveToIndex) {
         case 0:
-          rowText += 'X';
-          break;
         case 1:
-          rowText += 'O';
+          rowText += SYMBOLS[moveToIndex];
           break;
         default:
           rowText += '-';
@@ -354,8 +349,9 @@ export class Game {
    */
   asAsciiArt() {
     const textRows = [];
-    textRows.push(` player ${this.board.playerNames[0]} with X`);
-    textRows.push(` player ${this.board.playerNames[1]} with O`);
+    const playerPiece = SYMBOLS[this.board.currentPlayerIndex];
+    const playerName = this.board.playerNames[this.board.currentPlayerIndex];
+    textRows.push(`player ${playerName}'s turn  with ${playerPiece}`);
 
     textRows.push(this._colIndexRow(this.board.width));
     for (let iRow = 0; iRow < this.board.height; iRow++) {
@@ -390,10 +386,10 @@ export class Game {
       const currentPlayerIndex = this.board.currentPlayerIndex;
       const currentAgent = agents[currentPlayerIndex];
       if (isShown) {
+        console.log('\n');
         console.log(this.asAsciiArt());
       }
       const move = currentAgent.getAction(this.board);
-      console.log('whew');
       if (this.board.isAvailable(move)) {
         this.board.doMove(move);
       } else {
@@ -401,14 +397,13 @@ export class Game {
         console.log('GAME OVER!.');
         return NO_WIN_SENTINEL;
       }
-      console.log('a');
       const {win, winner} = this.board.gameEnd();
-      console.log('b');
       if (win) {
         if (isShown) {
           console.log(this.asAsciiArt());
           if (winner !== NO_WIN_SENTINEL) {
-            console.log('Game end.  Winner is ', agents[winner]);
+            console.log(`Game end.  Winner is  ${
+                this.board.playerNames[winner]} with ${SYMBOLS[winner]}`);
           } else {
             console.log('Game end.  Tie.');
           }

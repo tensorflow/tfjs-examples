@@ -22,10 +22,15 @@ export class HumanAgent {
   // Answer string should be a pair of numbers inside brackets like "[0, 3]".
   // Dropping the brackets is also acceptable, like "0, 3".
   // The answerString may also drop the comma, like "0 3".
+  // The answerString may also be a pair of numbers without a space like 03
   _parseAnswer(answerString, board) {
     // If answer is empty return invalid.
     if (!answerString) {
       return game.INVALID_BOARD_MOVE;
+    }
+    // If the answer is like 03, add a comma in between.
+    if (answerString.length === 2) {
+      answerString = answerString[0] + ',' + answerString[1];
     }
     // If the answer does not include a comma, place one at the first space.
     if (answerString.indexOf(',') === -1) {
@@ -63,18 +68,12 @@ export class HumanAgent {
   getAction(board) {
     // TODO(bileschi): Make more general. I.e., accept input from a web
     // interface.
-    const answer =
-        readlineSync.question(`Your move player ${this.playerIndex}: `);
-    console.log(`you answered ${answer}`);
-    const move = this._parseAnswer(answer, board);
-    console.log(`move is  ${move}`);
+    const answer = readlineSync.question(`Enter move x↔ y↕ :  `);
+    let move = this._parseAnswer(answer, board);
     if (move === game.INVALID_BOARD_LOCATION || !board.isAvailable(move)) {
-      console.log(`invalid move ${move}`);
-      console.log(move === game.INVALID_BOARD_LOCATION);
-      console.log(board.isAvailable(move));
+      console.log(`invalid move: ${answer}\n please try again!\n`);
       move = this.getAction(board);
     };
-    console.log('DONE WAITING FOR MOVE');
     return move;
   }
 

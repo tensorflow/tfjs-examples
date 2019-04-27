@@ -78,6 +78,11 @@ function parseArguments() {
   parser.addArgument(
       '--epochs',
       {type: 'int', defaultValue: 20, help: 'Number of training epochs'});
+  parser.addArgument( '--earlyStoppingPatience', {
+    type: 'int',
+    defaultValue: 2,
+    help: 'Optional patience number for EarlyStoppingCallback'
+   });
   parser.addArgument('--logDir', {
     type: 'string',
     help: 'Optional tensorboard log directory, to which the loss and ' +
@@ -121,14 +126,23 @@ async function main() {
     const model = buildModel(
         args.modelType, Math.floor(args.lookBack / args.step), numFeatures);
 
-    let callback = null;
+    let callback = [];
     if (args.logDir != null) {
       console.log(
           `Logging to tensorboard. ` +
           `Use the command below to bring up tensorboard server:\n` +
           `  tensorboard --logdir ${args.logDir}`);
-      callback = tfn.node.tensorBoard(
-          args.logDir, {updateFreq: args.logUpdateFreq});
+      callback.push(tfn.node.tensorBoard(args.logDir, {
+        updateFreq: args.logUpdateFreq
+      }));
+    }
+    if (args.earlyStoppingPatience != null) {
+      console.log(
+          `Using earlyStoppingCallback with patience ` +
+          `${args.earlyStoppingPatience}.`);
+      callback.push(tfn.callbacks.earlyStopping({
+        patience: args.earlyStoppingPatience
+      }));
     }
 
     await trainModel(

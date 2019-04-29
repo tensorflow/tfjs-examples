@@ -20,7 +20,8 @@ const tf = require('@tensorflow/tfjs-node');
 /**
  * Return a tf.Model to tag tokens in an input sequence.
  *
- * @param {*} opts
+ * @param {Object} opts
+ * @return {tf.Model} the model instance
  */
 function getModel(opts) {
   const {embeddingDims, sequenceLength, modelType, numLabels, weights} = opts;
@@ -64,8 +65,6 @@ function getModel(opts) {
     model.add(dense);
   }
 
-
-
   model.compile({
     optimizer: 'adam',
     loss: 'categoricalCrossentropy',
@@ -81,4 +80,4 @@ function getModel(opts) {
 }
 
 
-module.exports = {getModel}
+module.exports = {getModel};

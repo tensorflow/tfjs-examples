@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 /**
  * @license
  * Copyright 2019 Google LLC. All Rights Reserved.
@@ -26,15 +27,8 @@
 const fse = require('fs-extra');
 
 try {
-  fse.mkdirpSync('./dist/models');
+  fse.ensureSymlinkSync('./training/models', './dist/models');
 } catch (e) {
-  console.log('Error creating models folde in dist', e);
-  process.exit(1);
-}
-
-try {
-  fse.copySync('./training/models', './dist/models');
-} catch (e) {
-  console.log('Error copying model folder', e);
+  console.log('Error linking models folder to dist', e);
   process.exit(1);
 }

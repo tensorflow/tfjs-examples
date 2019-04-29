@@ -58,7 +58,7 @@ async function run(
 
   parser.addArgument('--gpu', {
     action: 'storeTrue',
-    help: 'Use tfjs-node-gpu for training (required CUDA and CuDNN)'
+    help: 'Use tfjs-node-gpu for training (required CUDA and CuDNN)',
   });
   parser.addArgument('--epochs', {
     type: 'int',

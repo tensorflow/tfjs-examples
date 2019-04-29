@@ -93,13 +93,14 @@ async function convertToTensors(data, labels, use, batchSize) {
   tf.dispose([xsBatchedTensors, ysBatchedTensors]);
 
   return {
-    xs: xsTensor, ys: ysTensor
-  }
+    xs: xsTensor,
+    ys: ysTensor,
+  };
 }
 
 
 async function run(srcPath, outFolder, batchSize) {
-  console.log('Start')
+  console.log('Start');
   const use = await useLoader.load();
   console.log('Loaded Universal Sentence Encoder');
 
@@ -117,7 +118,6 @@ async function run(srcPath, outFolder, batchSize) {
   mkdirp(outFolder);
 
   const dataOutPath = path.resolve(outFolder, 'intents_as_tensors.json');
-  console.log('DATA OUT PATH', dataOutPath)
   const dataStr = JSON.stringify({xsArr, ysArr}, null, 2);
   fs.writeFileSync(dataOutPath, dataStr, {encoding: 'utf8'});
 
@@ -141,12 +141,12 @@ async function run(srcPath, outFolder, batchSize) {
 
   parser.addArgument('--gpu', {
     action: 'storeTrue',
-    help: 'Use tfjs-node-gpu for training (required CUDA and CuDNN)'
+    help: 'Use tfjs-node-gpu for training (required CUDA and CuDNN)',
   });
   parser.addArgument('--batchSize', {
     type: 'int',
-    defaultValue: 128,
-    help: 'Batch size to be used during model training'
+    defaultValue: 32,
+    help: 'Batch size to be used during model training',
   });
   parser.addArgument('--srcPath', {
     type: 'string',

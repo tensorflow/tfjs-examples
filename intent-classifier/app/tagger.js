@@ -19,11 +19,15 @@ import * as useLoader from '@tensorflow-models/universal-sentence-encoder';
 import * as tf from '@tensorflow/tfjs';
 import * as d3 from 'd3';
 
+tf.ENV.set('WEBGL_PACK', false);
 
 const EMBEDDING_DIM = 512;
 const ONES = tf.ones([EMBEDDING_DIM]);
 
 let use;
+/**
+ * Load the universal sentence encoder model
+ */
 async function loadUSE() {
   if (use == null) {
     use = await useLoader.load();
@@ -39,6 +43,10 @@ const modelUrls = {
 };
 
 const taggers = {};
+/**
+ * Load a custom trained token tagger model.
+ * @param {string} name Type of model to load. Should be a key in modelUrls
+ */
 async function loadTagger(name) {
   if (taggers[name] == null) {
     const url = modelUrls[name];
@@ -54,7 +62,10 @@ async function loadTagger(name) {
   return taggers[name];
 }
 
-
+/**
+ * Load metadata for a model.
+ * @param {string} name Name of model. Should be a key in modelUrls
+ */
 async function loadMetadata(name) {
   const metadataUrl =
       modelUrls[name].replace('model.json', 'tagger_metadata.json');
@@ -62,8 +73,9 @@ async function loadMetadata(name) {
   return resp.json();
 }
 
-
-// Load the models and allow the browser to cache them.
+/**
+ * Load a number of models to allow the browser to cache them.
+ */
 async function loadModels() {
   const modelLoadPromises = Object.keys(modelUrls).map(loadTagger);
   return await Promise.all([loadUSE(), ...modelLoadPromises]);
@@ -73,12 +85,23 @@ async function loadModels() {
  * Split an input string into tokens, we use the same tokenization function
  * as we did during training.
  * @param {string} input
+ *
+ * @return {string[]}
  */
 function tokenizeSentence(input) {
   return input.split(/\b/).map(t => t.trim()).filter(t => t.length !== 0);
 }
 
+/**
+ * Tokenize a sentence and tag the tokens.
+ *
+ * @param {string} sentence sentence to tag
+ * @param {string} model name of model to use
+ *
+ * @return {Object} dictionary of tokens, model outputs and embeddings
+ */
 async function tagTokens(sentence, model = 'bidirectional-lstm') {
+  console.time(`tagTokens ${sentence}`);
   const [use, tagger, metadata] =
       await Promise.all([loadUSE(), loadTagger(model), loadMetadata(model)]);
   const {labels, sequenceLength} = metadata;
@@ -94,7 +117,7 @@ async function tagTokens(sentence, model = 'bidirectional-lstm') {
   const toPad = sequenceLength - tokenized.length;
   // Reuse the same padding tensor to save memory.
   const padTensors =
-      tf.tidy(() => tf.stack(Array(toPad).fill(0).map(_ => ONES)))
+      tf.tidy(() => tf.stack(Array(toPad).fill(0).map(_ => ONES)));
 
   const padded = activations.concat(padTensors);
   const batched = tf.stack([padded]);
@@ -105,7 +128,7 @@ async function tagTokens(sentence, model = 'bidirectional-lstm') {
   // Add padding 'tokens' to the end of the values that will be displayed
   // in the UI. These are there for illustration.
   if (tokenized.length < sequenceLength) {
-    tokenized.push(labels[2])
+    tokenized.push(labels[2]);
     predsArr = predsArr.slice(0, tokenized.length);
   }
   const slicedEmbeddings = padded.slice([0], [tokenized.length]);
@@ -115,6 +138,7 @@ async function tagTokens(sentence, model = 'bidirectional-lstm') {
       [activations, padTensors, padded, batched, prediction, slicedEmbeddings]);
 
   console.log('before return', tf.memory());
+  console.timeEnd(`tagTokens ${sentence}`);
   return {
     tokenized: tokenized,
     tokenScores: predsArr,
@@ -122,12 +146,19 @@ async function tagTokens(sentence, model = 'bidirectional-lstm') {
   };
 }
 
-
+/**
+ * Render the tokens
+ *
+ * @param {string[]} tokens the tokens
+ * @param {Array.number[]} tokenScores model scores for each token
+ * @param {Array.number[]} tokenEmbeddings token embeddings
+ * @param {string} model name of model
+ */
 async function displayTokenization(
     tokens, tokenScores, tokenEmbeddings, model) {
   const resultsDiv = document.createElement('div');
   resultsDiv.classList = `tagging`;
-  resultsDiv.innerHTML = `<p class="model-type ${model}">${model}</p>`
+  resultsDiv.innerHTML = `<p class="model-type ${model}">${model}</p>`;
 
   displayTokens(tokens, resultsDiv);
   displayEmbeddingsPlot(tokenEmbeddings, resultsDiv);
@@ -137,7 +168,12 @@ async function displayTokenization(
   document.getElementById('taggings').appendChild(resultsDiv);
 }
 
-
+/**
+ * Render the tokens.
+ *
+ * @param {string[]} tokens tokens to display
+ * @param {HTMLElement} parentEl parent element
+ */
 function displayTokens(tokens, parentEl) {
   const tokensDiv = document.createElement('div');
   tokensDiv.classList = `tokens`;
@@ -150,7 +186,11 @@ const embeddingCol =
     d3.scaleSequential(d3.interpolateSpectral).domain([-0.075, 0.075]);
 embeddingCol.clamp(true);
 
-
+/**
+ * Display an illustrative representation of the embeddings values
+ * @param {*} embeddings
+ * @param {*} parentEl
+ */
 function displayEmbeddingsPlot(embeddings, parentEl) {
   const embeddingDiv = document.createElement('div');
   embeddingDiv.classList = `embeddings`;
@@ -158,6 +198,8 @@ function displayEmbeddingsPlot(embeddings, parentEl) {
   embeddingDiv.innerHTML =
       embeddings
           .map(embedding => {
+            // Note that this slice is arbitraty as the plot is only meant to
+            // be illustrative.
             const embeddingValDivs = embedding.slice(0, 340).map(val => {
               return `<div class="embVal" ` +
                   `style="background-color:${embeddingCol(val)} "` +
@@ -165,14 +207,20 @@ function displayEmbeddingsPlot(embeddings, parentEl) {
                   `></div>`;
             });
 
-            return `<div class="embedding">${
-                embeddingValDivs.join('\n')}</div>`;
+            return `<div class="embedding">` +
+                `${embeddingValDivs.join('\n')}</div>`;
           })
           .join('\n');
 
   parentEl.appendChild(embeddingDiv);
 }
 
+/**
+ *
+ * @param {*} tokenScores
+ * @param {*} parentEl
+ * @param {*} modelName
+ */
 async function displayTags(tokenScores, parentEl, modelName) {
   const metadata = await loadMetadata(modelName);
   const {labels} = metadata;
@@ -187,8 +235,8 @@ async function displayTags(tokenScores, parentEl, modelName) {
             const token = labels[maxIndex];
             const tokenScore = (scores[maxIndex] * 100).toPrecision(3);
             return `<div class="tag ${token}">` +
-                `&nbsp;&nbsp;${token.replace(/__/g, '')}<sup>${
-                       tokenScore}%</sup></div>`;
+                `&nbsp;&nbsp;${token.replace(/__/g, '')}<sup>` +
+                `${tokenScore}%</sup></div>`;
           })
           .join('\n');
   parentEl.appendChild(tagsDiv);
@@ -206,7 +254,7 @@ function setupListeners() {
   const form = document.getElementById('textentry');
   const textbox = document.getElementById('textbox');
   const modelSelect = document.getElementById('model-select');
-  form.addEventListener('submit', (event) => {
+  form.addEventListener('submit', event => {
     event.preventDefault();
     event.stopPropagation();
 
@@ -222,6 +270,7 @@ function setupListeners() {
 window.addEventListener('load', function() {
   setupListeners();
   loadModels();
+  warmup();
 });
 
 

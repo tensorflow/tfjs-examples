@@ -18,7 +18,7 @@
 const fs = require('fs');
 const path = require('path');
 
-const ndjson = require('ndjson')
+const ndjson = require('ndjson');
 const argparse = require('argparse');
 const tf = require('@tensorflow/tfjs');
 const fileIO = require('@tensorflow/tfjs-node/dist/io/file_system');
@@ -48,13 +48,15 @@ async function loadNDJSON(path) {
  *
  * @param {string} embeddingsPath path to ndjson file with token embeddings
  * @param {string} taggedTokensPath path to ndjson with tagged tokens
+ * @param {number} sequenceLength max length of sequence
+ * @param {number} batchSize size of batch
  */
 async function getDataIterator(
     embeddingsPath, taggedTokensPath, sequenceLength, batchSize) {
   // Load token embeddings and convert to tensors
   let tokenEmbeddingsTuples = await loadNDJSON(embeddingsPath);
   tokenEmbeddingsTuples = tokenEmbeddingsTuples.map(([token, embedding]) => {
-    const embeddingAsTensor = tf.tensor1d(embedding)
+    const embeddingAsTensor = tf.tensor1d(embedding);
     return [token, embeddingAsTensor];
   });
   // Add an 'embedding' for the __PAD__ token. We will encode it with tf.ones.
@@ -90,8 +92,8 @@ async function getDataIterator(
       // Each example is converted to an array of length `sequenceLength`,
       // adding padding tokens if necessary and truncating the sentence
       // if it is too long.
-      let exampleX = [];
-      let exampleY = [];
+      const exampleX = [];
+      const exampleY = [];
       for (let index = 0; index < sequenceLength; index++) {
         let token;
         let tag;
@@ -145,7 +147,7 @@ async function getDataIterator(
         const batchedXS = tf.stack(xs);
         const batchedYS = tf.stack(ys);
 
-        yield {xs: batchedXS, ys: batchedYS}
+        yield {xs: batchedXS, ys: batchedYS};
 
         tf.dispose([batchedXS, batchedYS, toDispose]);
         toDispose = [];
@@ -206,7 +208,7 @@ async function run(
 
   parser.addArgument('--gpu', {
     action: 'storeTrue',
-    help: 'Use tfjs-node-gpu for training (required CUDA and CuDNN)'
+    help: 'Use tfjs-node-gpu for training (required CUDA and CuDNN)',
   });
   parser.addArgument('--boostLOCTag', {
     action: 'storeTrue',

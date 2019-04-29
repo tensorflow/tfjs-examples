@@ -17,7 +17,6 @@
 
 const tf = require('@tensorflow/tfjs-node');
 
-
 /**
  * Returns a new ready-to-train tf.Model that classifies 512 dimensional vectors
  * into one of labels.length categories.
@@ -27,6 +26,8 @@ const tf = require('@tensorflow/tfjs-node');
  * sentence into.
  *
  * @param {string[]} labels
+ *
+ * @return {tf.Model} the model instance
  */
 function getModel(labels) {
   const NUM_CLASSES = labels.length;
@@ -50,4 +51,4 @@ function getModel(labels) {
 
 module.exports = {
   getModel,
-}
+};

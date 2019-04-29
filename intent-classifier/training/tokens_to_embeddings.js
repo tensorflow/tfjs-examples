@@ -40,23 +40,25 @@ const useLoader = require('@tensorflow-models/universal-sentence-encoder');
 
 /**
  * Embed the input sentences using univeversal sentence encoder.
- * @param {string[]} sentences
- * @param {UniversalSentenceEncoder}
+ * @param {string[]} sentences sentences to embed
+ * @param {UniversalSentenceEncoder} use instance of the model
+ * @param {number} batchSize how many tokens to embed in one call
  * @param {string} outputPath A path to an outputfile to write to.
  */
 async function embedTokens(sentences, use, batchSize, outputPath) {
   // Set up file writer for ndjson
   const fd = fs.openSync(outputPath, 'w');
   const serialize = ndjson.serialize();
-  serialize.on('data', (line) => {
+  serialize.on('data', line => {
     fs.appendFileSync(fd, line, 'utf8');
   });
 
   const tokens = _.flatMap(sentences, tokenizeSentence);
   const uniqueTokens = _.uniq(tokens);
 
-  console.log(`Got ${sentences.length} sentences with ${
-      tokens.length} tokens where ${uniqueTokens.length} are unique`);
+  console.log(
+      `Got ${sentences.length} sentences with` +
+      ` ${tokens.length} tokens where ${uniqueTokens.length} are unique`);
 
   const batchedTokens = _.chunk(uniqueTokens, batchSize);
 
@@ -103,17 +105,17 @@ async function run(srcPath, outPath, batchSize) {
 
   parser.addArgument('--gpu', {
     action: 'storeTrue',
-    help: 'Use tfjs-node-gpu for training (required CUDA and CuDNN)'
+    help: 'Use tfjs-node-gpu for training (required CUDA and CuDNN)',
   });
   parser.addArgument('--batchSize', {
     type: 'int',
-    defaultValue: 1024,
-    help: 'Batch size to be used during model training'
+    defaultValue: 512,
+    help: 'Batch size to be used during model training',
   });
   parser.addArgument('--logDir', {
     type: 'string',
     help: 'Directory to which the TensorBoard summaries will be saved ' +
-        'during training.'
+        'during training.',
   });
   parser.addArgument('--srcPath', {
     type: 'string',

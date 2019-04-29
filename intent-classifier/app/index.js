@@ -18,6 +18,8 @@
 import * as useLoader from '@tensorflow-models/universal-sentence-encoder';
 import * as tf from '@tensorflow/tfjs';
 
+tf.ENV.set('WEBGL_PACK', false);
+
 const DENSE_MODEL_URL = './models/intent/model.json';
 const METADATA_URL = './models/intent/intent_metadata.json';
 
@@ -52,7 +54,7 @@ async function classify(sentences) {
   const metadata = await loadMetadata();
 
   const {labels} = metadata;
-  console.log('classifying', sentences)
+  console.log('classifying', sentences);
   console.time(`Embedding ${sentences.length} sentences`);
   const activations = await use.embed(sentences);
   console.timeEnd(`Embedding ${sentences.length} sentences`);
@@ -136,7 +138,7 @@ function appendMessage(message, sender, appendAfter) {
 function setupListeners() {
   const form = document.getElementById('textentry');
   const textbox = document.getElementById('textbox');
-  form.addEventListener('submit', (event) => {
+  form.addEventListener('submit', event => {
     event.preventDefault();
     event.stopPropagation();
 

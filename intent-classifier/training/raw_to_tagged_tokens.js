@@ -39,7 +39,7 @@ const {tokenizeSentence, loadJSON, TAGS} = require('./util');
 function writeNDJson(path, collection) {
   const serialize = ndjson.serialize();
   fd = fs.openSync(path, 'w');
-  serialize.on('data', (line) => {
+  serialize.on('data', line => {
     fs.appendFileSync(fd, line, 'utf8');
   });
 
@@ -75,7 +75,7 @@ function parseRecords(data) {
       if (entity == null) {
         tag = TAGS[0];
       } else {
-        tag = entityToTag[entity] ? entityToTag[entity] : TAGS[0]
+        tag = entityToTag[entity] ? entityToTag[entity] : TAGS[0];
       }
 
       for (const token of tokens) {

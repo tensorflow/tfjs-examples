@@ -81,10 +81,11 @@ class Antirectifier extends tf.layers.Layer {
   /**
    * Layers must implement "getClassName".
    */
-  getClassName() {
+  static get className() {
     return 'Antirectifier';
   }
 }
+tf.serialization.registerClass(Antirectifier);
 
 export function antirectifier() {
   return new Antirectifier();

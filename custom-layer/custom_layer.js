@@ -79,7 +79,8 @@ class Antirectifier extends tf.layers.Layer {
   }
 
   /**
-   * Layers must implement "getClassName".
+   * If a custom layer class is to support serializatoin, it must implement
+   * the `className` static getter.
    */
   static get className() {
     return 'Antirectifier';

@@ -22,7 +22,6 @@ import * as d3 from 'd3';
 tf.ENV.set('WEBGL_PACK', false);
 
 const EMBEDDING_DIM = 512;
-const ONES = tf.ones([EMBEDDING_DIM]);
 
 let use;
 /**
@@ -69,8 +68,14 @@ async function loadTagger(name) {
 async function loadMetadata(name) {
   const metadataUrl =
       modelUrls[name].replace('model.json', 'tagger_metadata.json');
-  const resp = await fetch(metadataUrl);
-  return resp.json();
+  try {
+    const resp = await fetch(metadataUrl);
+    return resp.json();
+  } catch (e) {
+    // Could not load that model. This is not necessarily an error
+    // as the user may not have trained all the available model types
+    console.log(`Could not load "${name}" metadata`);
+  }
 }
 
 /**
@@ -101,28 +106,32 @@ function tokenizeSentence(input) {
  * @return {Object} dictionary of tokens, model outputs and embeddings
  */
 async function tagTokens(sentence, model = 'bidirectional-lstm') {
-  console.time(`tagTokens ${sentence}`);
   const [use, tagger, metadata] =
       await Promise.all([loadUSE(), loadTagger(model), loadMetadata(model)]);
   const {labels, sequenceLength} = metadata;
 
-  const tokenized = tokenizeSentence(sentence).slice(0, sequenceLength);
-  console.time(`Embedding ${tokenized.length} tokens`);
-  console.log('before embed', tf.memory());
+
+  let tokenized = tokenizeSentence(sentence);
+  if (tokenized.length > sequenceLength) {
+    console.warn(`Input sentence has more tokens than max allowed tokens (${
+        sequenceLength}). Extra tokens will be dropped.`);
+  }
+  tokenized = tokenized.slice(0, sequenceLength);
   const activations = await use.embed(tokenized);
-  console.log('after embed', tf.memory());
-  console.timeEnd(`Embedding ${tokenized.length} tokens`);
 
-  // Pad the tensor if needed
-  const toPad = sequenceLength - tokenized.length;
-  // Reuse the same padding tensor to save memory.
-  const padTensors =
-      tf.tidy(() => tf.stack(Array(toPad).fill(0).map(_ => ONES)));
+  // get prediction
+  const prediction = tf.tidy(() => {
+    // Make an input tensor of [1, sequence_len, embedding_size];
+    const toPad = sequenceLength - tokenized.length;
 
-  const padded = activations.concat(padTensors);
-  const batched = tf.stack([padded]);
+    const padTensors = tf.ones([toPad, EMBEDDING_DIM]);
+    const padded = activations.concat(padTensors);
 
-  const prediction = tagger.predict(batched);
+    const batched = padded.expandDims();
+    return tagger.predict(batched);
+  })
+
+  // Prediction data
   let predsArr = (await prediction.array())[0];
 
   // Add padding 'tokens' to the end of the values that will be displayed
@@ -131,18 +140,19 @@ async function tagTokens(sentence, model = 'bidirectional-lstm') {
     tokenized.push(labels[2]);
     predsArr = predsArr.slice(0, tokenized.length);
   }
-  const slicedEmbeddings = padded.slice([0], [tokenized.length]);
-  const tokenEmbeddingsArr = await slicedEmbeddings.array();
 
-  tf.dispose(
-      [activations, padTensors, padded, batched, prediction, slicedEmbeddings]);
+  // Add an extra activation to illustrate the padding inputs in the UI.
+  // This is added for illustration.
+  const displayActivations =
+      tf.tidy(() => activations.concat(tf.ones([1, EMBEDDING_DIM])));
+  const displayActicationsArr = await displayActivations.array();
 
-  console.log('before return', tf.memory());
-  console.timeEnd(`tagTokens ${sentence}`);
+  tf.dispose([activations, prediction, displayActivations]);
+
   return {
     tokenized: tokenized,
     tokenScores: predsArr,
-    tokenEmbeddings: tokenEmbeddingsArr,
+    tokenEmbeddings: displayActicationsArr,
   };
 }
 
@@ -163,7 +173,6 @@ async function displayTokenization(
   displayTokens(tokens, resultsDiv);
   displayEmbeddingsPlot(tokenEmbeddings, resultsDiv);
   displayTags(tokenScores, resultsDiv, model);
-
 
   document.getElementById('taggings').appendChild(resultsDiv);
 }

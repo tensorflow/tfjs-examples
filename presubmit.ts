@@ -32,6 +32,10 @@ const dirs = fs.readdirSync(dir)
 
 dirs.forEach(dir => {
   shell.cd(dir);
+  if (!fs.existsSync('package.json')) {
+    shell.cd('..');
+    return;
+  }
   const packageJSON: {} =
       JSON.parse(fs.readFileSync('./package.json', {encoding: 'utf-8'}));
   if (packageJSON['scripts']['test'] != null) {
@@ -47,5 +51,5 @@ dirs.forEach(dir => {
     shell.exec('yarn lint');
     console.log('\n');
   }
-  shell.cd('../');
+  shell.cd('..');
 });

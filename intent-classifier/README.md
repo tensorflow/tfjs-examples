@@ -1,6 +1,6 @@
 # Text Classifer Example
 
-This example uses the universeal sentence encoder to train two text
+This example uses the universal sentence encoder to train two text
 classification models.
 
 1. An 'intent' classifier that classifies sentences into categories representing
@@ -39,28 +39,25 @@ You can run all four of these commands with
 yarn prep-data
 ```
 
-You only need to do this once. This process can take 15-25 mins.
+You only need to do this once. This process can take 15-25 mins. The output of these scripts will be written to the `training/data` folder.
 
 ## Train the models
 
-Run
+To train the intent classifier model run:
 
 ```
 yarn train-intent
 ```
 
-To train the intent classifier model
-
-Run
+To train the token tagging model run:
 
 ```
 yarn train-tagger
 ```
 
-To train the token tagging model
-
-
 Each of these scripts take multiple options, look at `training/train-intent.js` and `training/train-tagger.js` for details.
+
+These scripts will output model artifacts in the `training/models` folder.
 
 ## Run the apps
 

@@ -28,11 +28,10 @@ const fs = require('fs');
 const path = require('path');
 
 const tf = require('@tensorflow/tfjs');
-const _ = require('lodash');
 const ndjson = require('ndjson');
 const argparse = require('argparse');
 
-const {tokenizeSentence, loadCSV} = require('./util');
+const {tokenizeSentence, loadCSV, chunk, flatMap, unique} = require('./util');
 
 // Set up a global fetch variable to allow loading model weights via HTTP.
 global.fetch = require('node-fetch');
@@ -53,14 +52,14 @@ async function embedTokens(sentences, use, batchSize, outputPath) {
     fs.appendFileSync(fd, line, 'utf8');
   });
 
-  const tokens = _.flatMap(sentences, tokenizeSentence);
-  const uniqueTokens = _.uniq(tokens);
+  const tokens = flatMap(sentences, tokenizeSentence);
+  const uniqueTokens = unique(tokens);
 
   console.log(
       `Got ${sentences.length} sentences with` +
       ` ${tokens.length} tokens where ${uniqueTokens.length} are unique`);
 
-  const batchedTokens = _.chunk(uniqueTokens, batchSize);
+  const batchedTokens = chunk(uniqueTokens, batchSize);
 
   for (let i = 0; i < batchedTokens.length; i++) {
     console.time(

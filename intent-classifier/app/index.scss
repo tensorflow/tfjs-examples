@@ -1,3 +1,20 @@
+/**
+ * @license
+ * Copyright 2019 Google LLC. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * =============================================================================
+ */
+
 html {
   scroll-behavior: smooth;
 }
@@ -7,8 +24,6 @@ html {
   .app {
     font-family: -apple-system,BlinkMacSystemFont,avenir next,avenir,helvetica neue,helvetica,ubuntu,roboto,noto,segoe ui,arial,sans-serif;
     font-size: 16pt;
-
-    // background-color: #ddd;
     display: flex;
     flex-direction: column;
     height: 800px;
@@ -20,17 +35,13 @@ html {
 
   .title {
     border-bottom: 0.5px solid #e3e3e3;
-    // background-color: #ccc;
-    // border: 1px solid #d2d2d2;
     text-align: center;
   }
 
-  .messages {
-    // background-color: #bbb;
+  .messages {    
     flex: 7 0px;
     display: flex;
-    flex-direction: column;
-    // justify-content: flex-end;
+    flex-direction: column;    
     overflow-y: scroll;
 
   }
@@ -43,16 +54,13 @@ html {
     border-radius: 8px;
     margin: 10px;
     padding: 10px;
-    // width: 80%;
 
     &.bot {
       background-color: #f0f4c3;
       align-self: flex-start;
       border-radius: 4px;
-      //width: 20%;
       font-size: 20pt;
       margin-left: 50px;
-      // padding-left: 20px;
     }
 
     &.bot:before {
@@ -67,8 +75,6 @@ html {
       align-self: flex-end;
     }
   }
-
-
 
   .controls {
     border-top: 0.5px solid #e3e3e3;

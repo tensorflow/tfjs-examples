@@ -49,9 +49,8 @@ async function loadMetadata() {
 }
 
 async function classify(sentences) {
-  const use = await loadUSE();
-  const intent = await loadIntentClassifer(DENSE_MODEL_URL);
-  const metadata = await loadMetadata();
+  const [use, intent, metadata] = await Promise.all(
+      loadUSE(), loadIntentClassifer(DENSE_MODEL_URL), loadMetadata());
 
   const {labels} = metadata;
   console.log('classifying', sentences);
@@ -148,6 +147,11 @@ function setupListeners() {
   }, false);
 }
 
+function warmup() {
+  classify('hello there');
+}
+
 window.addEventListener('load', function() {
   setupListeners();
+  warmup();
 });

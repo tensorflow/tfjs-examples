@@ -37,6 +37,7 @@ async function run(
 
   const model = getModel(metadata.labels);
 
+  // We use model.fit as the whole dataset comfortably fits in memory.
   await model.fit(xs, ys, {epochs, validationSplit});
 
   mkdirp(outputFolder);

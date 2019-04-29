@@ -39,15 +39,14 @@ const path = require('path');
 const mkdirp = require('mkdirp');
 
 const tf = require('@tensorflow/tfjs');
-const _ = require('lodash');
 const argparse = require('argparse');
 global.fetch = require('node-fetch');
 const useLoader = require('@tensorflow-models/universal-sentence-encoder');
 
-const {loadCSV} = require('./util');
+const {loadCSV, chunk} = require('./util');
 
 
-async function convertToTensors(data, labels, use, batchSize) {
+async function csvToTensors(data, labels, use, batchSize) {
   // Only keep the queries for the intents we are interested in.
   const filtered = data.filter(d => labels.indexOf(d.intent) >= 0);
   console.log(`Converting ${filtered.length} queries to tensors.`);
@@ -58,8 +57,8 @@ async function convertToTensors(data, labels, use, batchSize) {
   const xs = filtered.map(d => d.query);
   const ys = filtered.map(d => labels.indexOf(d.intent));
 
-  const xsBatches = _.chunk(xs, batchSize);
-  const ysBatches = _.chunk(ys, batchSize);
+  const xsBatches = chunk(xs, batchSize);
+  const ysBatches = chunk(ys, batchSize);
 
   tf.util.assert(
       xsBatches.length === ysBatches.length,
@@ -111,7 +110,7 @@ async function run(srcPath, outFolder, batchSize) {
   ];
 
   const csvData = loadCSV(srcPath);
-  const {xs, ys} = await convertToTensors(csvData, LABELS, use, batchSize);
+  const {xs, ys} = await csvToTensors(csvData, LABELS, use, batchSize);
   const [xsArr, ysArr] = await Promise.all([xs.array(), ys.array()]);
 
   // Write out the tensorified data

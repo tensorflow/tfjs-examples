@@ -113,8 +113,9 @@ async function tagTokens(sentence, model = 'bidirectional-lstm') {
 
   let tokenized = tokenizeSentence(sentence);
   if (tokenized.length > sequenceLength) {
-    console.warn(`Input sentence has more tokens than max allowed tokens (${
-        sequenceLength}). Extra tokens will be dropped.`);
+    console.warn(
+        `Input sentence has more tokens than max allowed tokens ` +
+        `(${sequenceLength}). Extra tokens will be dropped.`);
   }
   tokenized = tokenized.slice(0, sequenceLength);
   const activations = await use.embed(tokenized);
@@ -129,7 +130,7 @@ async function tagTokens(sentence, model = 'bidirectional-lstm') {
 
     const batched = padded.expandDims();
     return tagger.predict(batched);
-  })
+  });
 
   // Prediction data
   let predsArr = (await prediction.array())[0];

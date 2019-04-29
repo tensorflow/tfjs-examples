@@ -38,10 +38,9 @@ async function main() {
     require('@tensorflow/tfjs-node');
   }
 
-  console.log('I am gomoku');
-  const width = 3;
-  const height = 3;
-  const nInRow = 3
+  const width = undefined;
+  const height = undefined;
+  const nInRow = undefined;
   const board = new Board({width, height, nInRow});
   board.initBoard();
   const game = new Game(board);

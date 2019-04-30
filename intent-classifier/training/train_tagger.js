@@ -180,6 +180,7 @@ async function run(
   });
 
   mkdirp(outFolder);
+  console.log(`Saving model to ${outFolder}`);
   await model.save(fileIO.fileSystem(outFolder));
 
 
@@ -258,6 +259,7 @@ async function run(
     require('@tensorflow/tfjs-node');
   }
 
+
   const modelOpts = {
     modelType: args.modelType,
     sequenceLength: args.sequenceLength,
@@ -274,7 +276,20 @@ async function run(
     batchSize: args.batchSize,
   };
 
+  let outFolder = args.outFolder;
+  const modelType = modelOpts.modelType;
+  if (modelType != 'bidirectional-lstm' && outFolder === defaultOutFolder) {
+    switch (modelType) {
+      case 'lstm':
+        outFolder = path.resolve(__dirname, './models/lstm-tagger/');
+        break;
+      case 'dense':
+        outFolder = path.resolve(__dirname, './models/dense-tagger/');
+        break;
+    }
+  }
+
   await run(
-      args.embeddingsPath, args.taggedTokensPath, args.outFolder, modelOpts,
+      args.embeddingsPath, args.taggedTokensPath, outFolder, modelOpts,
       trainingOpts);
 })();

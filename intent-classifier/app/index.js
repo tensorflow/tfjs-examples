@@ -50,13 +50,10 @@ async function loadMetadata() {
 
 async function classify(sentences) {
   const [use, intent, metadata] = await Promise.all(
-      loadUSE(), loadIntentClassifer(DENSE_MODEL_URL), loadMetadata());
+      [loadUSE(), loadIntentClassifer(DENSE_MODEL_URL), loadMetadata()]);
 
   const {labels} = metadata;
-  console.log('classifying', sentences);
-  console.time(`Embedding ${sentences.length} sentences`);
   const activations = await use.embed(sentences);
-  console.timeEnd(`Embedding ${sentences.length} sentences`);
 
   const prediction = intent.predict(activations);
 

@@ -37,8 +37,7 @@ async function loadUSE() {
 const modelUrls = {
   'bidirectional-lstm': './models/bidirectional-tagger/model.json',
   'lstm': './models/lstm-tagger/model.json',
-  'weighted-lstm': './models/weighted-tagger/model.json',
-  'dense': './models/dense/model.json',
+  'dense': './models/dense-tagger/model.json',
 };
 
 const taggers = {};
@@ -285,5 +284,5 @@ window.addEventListener('load', function() {
 
 
 async function warmup() {
-  onSendMessage('What is the weather in Cambridge MA?', 'bidirectional-lstm');
+  tagTokens('What is the weather in Cambridge MA?', 'bidirectional-lstm');
 }

@@ -25,11 +25,14 @@ limitations under the License.
 <body>
   <div class="container">
     <div class="app">
+      <div class="header">
+        This neural network is trained to identify <strong>location</strong> related tokens in <strong>weather related
+          queries.</strong>
+      </div>
       <div class="title">
-        <p>LSTM Token Tagger</p>
         <div class="controls">
           <form id="textentry">
-            <input id="textbox" type="text" />
+            <input id="textbox" type="text" placeholder="Enter a weather related query" />
             <input id="submit" type="submit" value="Tag Tokens">
 
             <select id="model-select">
@@ -37,7 +40,6 @@ limitations under the License.
                 Bi-Directional LSTM
               </option>
               <option id='lstm' value='lstm' disabled>LSTM</option>
-              <option id='weighted-lstm' value='weighted-lstm' disabled>Weigted LSTM</option>
               <option id='dense' value='dense' disabled>Dense Network</option>
             </select>
           </form>

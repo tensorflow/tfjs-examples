@@ -17,7 +17,7 @@
     "tagger-app": "yarn prep-client && parcel app/tagger.html --open"
   },
   "author": "",
-  "license": "Apache 2",
+  "license": "Apache-2.0",
   "dependencies": {
     "@tensorflow-models/universal-sentence-encoder": "1.0.1",
     "@tensorflow/tfjs": "1.0.2",

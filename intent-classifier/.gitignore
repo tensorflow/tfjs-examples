@@ -1,0 +1,14 @@
+node_modules
+dist*
+.cache
+yarn-error.log
+*.tgz
+*-ubyte
+*.pyc
+.yalc
+.DS_STORE
+yalc.lock
+model.json
+weights.bin
+training/models
+training/data

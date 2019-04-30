@@ -1,0 +1,39 @@
+{
+  "env": {
+    "browser": true,
+    "es6": true,
+    "node": true
+  },
+  "extends": "google",
+  "globals": {
+    "Atomics": "readonly",
+    "SharedArrayBuffer": "readonly"
+  },
+  "parserOptions": {
+    "ecmaVersion": 2018,
+    "sourceType": "module"
+  },
+  "rules": {
+    "arrow-parens": [
+      2,
+      "as-needed"
+    ],
+    "max-len": [
+      2,
+      {
+        "code": 80,
+        "tabWidth": 2,
+        "ignoreUrls": true,
+        "ignorePattern": "^import |^export"
+      }
+    ],
+    "new-parens": 2,
+    "no-debugger": 2,
+    "no-throw-literal": 2,
+    "no-unused-expression": true,
+    "radix": 2,
+    "switch-default": true,
+    "use-isnan": 2,
+    "require-jsdoc": 0
+  }
+}

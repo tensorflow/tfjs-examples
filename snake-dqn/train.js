@@ -178,7 +178,7 @@ export function parseArguments() {
   });
   parser.addArgument('--epsilonDecayFrames', {
     type: 'int',
-    defaultValue: 2e5,
+    defaultValue: 1e5,
     help: 'Number of frames of game over which the value of epsilon ' +
     'decays from epsilonInit to epsilonFinal'
   });

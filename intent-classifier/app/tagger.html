@@ -1,0 +1,60 @@
+<!-- Copyright 2019 Google LLC. All Rights Reserved.
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+http://www.apache.org/licenses/LICENSE-2.0
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+============================================================================== -->
+
+
+<html>
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <link rel="stylesheet" href="./tagger.scss">
+  <style>
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <div class="app">
+      <div class="header">
+        This neural network is trained to identify <strong>location</strong> related tokens in <strong>weather related
+          queries.</strong>
+      </div>
+      <div class="title">
+        <div class="controls">
+          <form id="textentry">
+            <input id="textbox" type="text" placeholder="Enter a weather related query" />
+            <input id="submit" type="submit" value="Tag Tokens">
+
+            <select id="model-select">
+              <option id='bidirectional-lstm' value='bidirectional-lstm' selected="selected">
+                Bi-Directional LSTM
+              </option>
+              <option id='lstm' value='lstm' disabled>LSTM</option>
+              <option id='dense' value='dense' disabled>Dense Network</option>
+            </select>
+          </form>
+        </div>
+      </div>
+
+      <div id='taggings' class="taggings">
+      </div>
+    </div>
+
+  </div>
+  </div>
+
+
+  <script src="./tagger.js"></script>
+</body>
+
+</html>

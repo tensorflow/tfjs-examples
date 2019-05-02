@@ -110,16 +110,13 @@ export class SnakeGameAgent {
     const output = {
       action,
       cumulativeReward: this.cumulativeReward_,
-      done
+      done,
+      fruitsEaten: this.fruitsEaten_
     };
     if (done) {
       this.reset();
     }
     return output;
-  }
-
-  get fruitsEaten() {
-    return this.fruitsEaten_;
   }
 
   /**

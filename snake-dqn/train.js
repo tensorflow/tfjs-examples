@@ -87,7 +87,7 @@ export async function train(
   let averageReward100Best = -Infinity;
   while (true) {
     agent.trainOnReplayBatch(batchSize, gamma, optimizer);
-    const {cumulativeReward, done} = agent.playStep();
+    const {cumulativeReward, done, fruitsEaten} = agent.playStep();
     if (done) {
       const t = new Date().getTime();
       const framesPerSecond =
@@ -96,14 +96,14 @@ export async function train(
       frameCountPrev = agent.frameCount;
 
       rewardAverager100.append(cumulativeReward);
-      eatenAverager100.append(agent.fruitsEaten);
+      eatenAverager100.append(fruitsEaten);
       const averageReward100 = rewardAverager100.average();
       const averageEaten100 = eatenAverager100.average();
 
       console.log(
           `Frame #${agent.frameCount}: ` +
           `cumulativeReward100=${averageReward100.toFixed(1)}; ` +
-          `eaten100=${averageEaten100.toFixed(2)} ` +
+          `eaten100=${averageEaten100.toFixed(3)} ` +
           `(epsilon=${agent.epsilon.toFixed(2)}) ` +
           `(${framesPerSecond.toFixed(1)} frames/s)`);
       if (summaryWriter != null) {

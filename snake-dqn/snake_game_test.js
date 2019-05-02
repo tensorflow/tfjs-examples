@@ -149,36 +149,44 @@ describe('SnakeGame', () => {
     let out = game.step(ACTION_GO_STRAIGHT);
     let reward = out.reward;
     let done = out.done;
+    let fruitEaten = out.fruitEaten;
     expect(game.snakeDirection).toEqual('r');
     expect(reward).toEqual(NO_FRUIT_REWARD);
     expect(done).toEqual(false);
+    expect(fruitEaten).toEqual(false);
     expect(game.snakeSquares_).toEqual([[4, 2], [4, 1]]);
     expect(game.fruitSquares_).toEqual([[0, 4]]);
 
     out = game.step(ACTION_TURN_LEFT);
     reward = out.reward;
     done = out.done;
+    fruitEaten = out.fruitEaten;
     expect(game.snakeDirection).toEqual('u');
     expect(reward).toEqual(NO_FRUIT_REWARD);
     expect(done).toEqual(false);
+    expect(fruitEaten).toEqual(false);
     expect(game.snakeSquares_).toEqual([[3, 2], [4, 2]]);
     expect(game.fruitSquares_).toEqual([[0, 4]]);
 
     out = game.step(ACTION_TURN_RIGHT);
     reward = out.reward;
     done = out.done;
+    fruitEaten = out.fruitEaten;
     expect(reward).toEqual(NO_FRUIT_REWARD);
     expect(game.snakeDirection).toEqual('r');
     expect(done).toEqual(false);
+    expect(fruitEaten).toEqual(false);
     expect(game.snakeSquares_).toEqual([[3, 3], [3, 2]]);
     expect(game.fruitSquares_).toEqual([[0, 4]]);
 
     out = game.step(ACTION_TURN_RIGHT);
     reward = out.reward;
     done = out.done;
+    fruitEaten = out.fruitEaten;
     expect(game.snakeDirection).toEqual('d');
     expect(reward).toEqual(NO_FRUIT_REWARD);
     expect(done).toEqual(false);
+    expect(fruitEaten).toEqual(false);
     expect(game.snakeSquares_).toEqual([[4, 3], [3, 3]]);
     expect(game.fruitSquares_).toEqual([[0, 4]]);
   });
@@ -244,9 +252,10 @@ describe('SnakeGame', () => {
     game.snakeDirection_ = 'u';
     game.fruitSquares_ = [[1, 3]];
 
-    const {reward, done} = game.step(ACTION_GO_STRAIGHT);
+    const {reward, done, fruitEaten} = game.step(ACTION_GO_STRAIGHT);
     expect(game.snakeDirection).toEqual('u');
     expect(reward).toEqual(FRUIT_REWARD);
+    expect(fruitEaten).toEqual(true);
     expect(done).toEqual(false);
     // The snake ate a fruit. Its length should grow from 4 to 5.
     const expectedSnakeSquares = [[1, 3], [2, 3], [3, 3], [3, 4], [2, 4]];

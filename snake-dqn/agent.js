@@ -67,6 +67,7 @@ export class SnakeGameAgent {
 
   reset() {
     this.cumulativeReward_ = 0;
+    this.fruitsEaten_ = 0;
     this.game.reset();
   }
 
@@ -98,11 +99,14 @@ export class SnakeGameAgent {
       });
     }
 
-    const {state: nextState, reward, done} = this.game.step(action);
+    const {state: nextState, reward, done, fruitEaten} = this.game.step(action);
 
     this.replayMemory.append([state, action, reward, done, nextState]);
 
     this.cumulativeReward_ += reward;
+    if (fruitEaten) {
+      this.fruitsEaten_++;
+    }
     const output = {
       action,
       cumulativeReward: this.cumulativeReward_,
@@ -112,6 +116,10 @@ export class SnakeGameAgent {
       this.reset();
     }
     return output;
+  }
+
+  get fruitsEaten() {
+    return this.fruitsEaten_;
   }
 
   /**

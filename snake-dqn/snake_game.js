@@ -114,6 +114,7 @@ export class SnakeGame {
    *     - 0 if no fruit is eaten in this step
    *     - 1 if a fruit is eaten in this step
    *   - `state` New state of the game after the step.
+   *   - `fruitEaten` {boolean} Whether a fruit is easten in this step.
    *   - `done` {boolean} whether the game has ended after this step.
    *     A game ends when the head of the snake goes off the board or goes
    *     over its own body.
@@ -155,8 +156,9 @@ export class SnakeGame {
       }
     }
 
+    let fruitEaten = false;
     if (done) {
-      return {reward: DEATH_REWARD, done};
+      return {reward: DEATH_REWARD, done, fruitEaten};
     }
 
     // Update the position of the snake.
@@ -164,7 +166,6 @@ export class SnakeGame {
 
     // Check if a fruit is eaten.
     let reward = NO_FRUIT_REWARD;
-    let fruitEaten = false;
     for (let i = 0; i < this.fruitSquares_.length; ++i) {
       const fruitYX = this.fruitSquares_[i];
       if (fruitYX[0] === newHeadY && fruitYX[1] === newHeadX) {
@@ -182,7 +183,7 @@ export class SnakeGame {
     }
 
     const state = this.getState();
-    return {reward, state, done};
+    return {reward, state, done, fruitEaten};
   }
 
   updateDirection_(action) {

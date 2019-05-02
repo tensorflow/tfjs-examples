@@ -18,7 +18,7 @@
 /**
  * This file loads a pre-trained generator part of an ACGAN and demonstrates
  * the generation of fake MNIST images.
- * 
+ *
  * The pre-trained generator model may come from either of the two sources:
  *   1. Running the traning script `gan.js` in the same folder.
  *   2. A hosted model, via HTTPS requests.
@@ -105,14 +105,14 @@ async function generateAndVisualizeImages(generator) {
     return tf.concat(tf.unstack(generatedImages), 1);
   });
 
-  await tf.toPixels(combinedFakes, fakeCanvas);
+  await tf.browser.toPixels(combinedFakes, fakeCanvas);
   tf.dispose(combinedFakes);
 }
 
 /** Refresh examples of real MNIST images. */
 async function drawReals() {
   const combinedReals = sampleFromMnistData(10);
-  await tf.toPixels(combinedReals, realCanvas);
+  await tf.browser.toPixels(combinedReals, realCanvas);
   tf.dispose(combinedReals);
 }
 
@@ -126,7 +126,7 @@ let latentSliders;
  */
 function createSliders(generator) {
   const latentDims = generator.inputs[0].shape[1];
-  latentSliders = [];  
+  latentSliders = [];
   for (let i = 0; i < latentDims; ++i) {
     const slider = document.createElement('input');
     slider.setAttribute('type', 'range');

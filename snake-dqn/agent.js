@@ -130,8 +130,8 @@ export class SnakeGameAgent {
           batch.map(example => example[0]), this.game.height, this.game.width);
       const actionTensor = tf.tensor1d(
           batch.map(example => example[1]), 'int32');
-      const qs = this.onlineNetwork.predict(
-          stateTensor).mul(tf.oneHot(actionTensor, NUM_ACTIONS)).sum(-1);
+      const qs = this.onlineNetwork.apply(stateTensor, {training: true})
+          .mul(tf.oneHot(actionTensor, NUM_ACTIONS)).sum(-1);
 
       const rewardTensor = tf.tensor1d(batch.map(example => example[2]));
       const nextStateTensor = getStateTensor(

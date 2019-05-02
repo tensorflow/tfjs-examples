@@ -213,6 +213,15 @@ export class SnakeGame {
     }
   }
 
+  /**
+   * Get the current direction of the snake.
+   *
+   * @returns {'l' | 'u' | 'r' | 'd'} Current direction of the snake.
+   */
+  get snakeDirection() {
+    return this.snakeDirection_;
+  }
+
   initializeSnake_() {
     /**
      * @private {Array<[number, number]>} Squares currently occupied by the

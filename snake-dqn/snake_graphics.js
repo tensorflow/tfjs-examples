@@ -93,29 +93,85 @@ export function renderSnakeGame(canvas, game, qValues) {
   });
 
   if (qValues != null) {   // If qNet is provided, render the q-values.
-    if (qValues.length !== 4) {
-      throw new Error(`Expected qValues to be of length-4`);
+    if (qValues.length !== 3) {
+      throw new Error(
+          `Expected qValues to be of length 3, ` +
+          `but got length ${qValues.length}`);
     }
     const [headY, headX] = state.s[0];
-    ctx.font = '13px sans serif';
-    ctx.fillStyle = 'magenta';
-    ctx.beginPath();
-    // Left.
-    ctx.fillText(
-        qValues[0].toFixed(1),
-        (headX - 0.9) * gridWidth, (headY + 0.55) * gridHeight);
-    // Up.
-    ctx.fillText(
-        qValues[1].toFixed(1),
-        (headX + 0.15) * gridWidth, (headY - 0.45) * gridHeight);
-    // Right.
-    ctx.fillText(
-        qValues[2].toFixed(1),
-        (headX + 1.1) * gridWidth, (headY + 0.55) * gridHeight);
-    // Down.
-    ctx.fillText(
-        qValues[3].toFixed(1),
-        (headX + 0.15) * gridWidth, (headY + 1.45) * gridHeight);
-    ctx.fill();
+
+
+    let qW;
+    let qN;
+    let qE;
+    let qS;
+    if (game.snakeDirection === 'l') {
+      qW = qValues[0];
+      qS = qValues[1];
+      qN = qValues[2];
+    } else if (game.snakeDirection === 'u') {
+      qN = qValues[0];
+      qW = qValues[1];
+      qE = qValues[2];
+    } else if (game.snakeDirection === 'r') {
+      qE = qValues[0];
+      qN = qValues[1];
+      qS = qValues[2];
+    } else if (game.snakeDirection === 'd') {
+      qS = qValues[0];
+      qE = qValues[1];
+      qW = qValues[2];
+    }
+
+    const {qWNormalized, qNNormalized, qENormalized, qSNormalized} =
+        normalizeQValuesForDisplay(qW, qN, qE, qS);
+    console.log(qWNormalized, qNNormalized, qENormalized, qSNormalized);
+
+    drawQValueOverlay(ctx, qW, qWNormalized,
+        (headX - 1) * gridWidth, headY * gridHeight, gridWidth, gridHeight);
+    drawQValueOverlay(ctx, qN, qNNormalized,
+        headX * gridWidth, (headY - 1) * gridHeight, gridWidth, gridHeight);
+    drawQValueOverlay(ctx, qE, qENormalized,
+        (headX  + 1) * gridWidth, headY * gridHeight, gridWidth, gridHeight);
+    drawQValueOverlay(ctx, qS, qSNormalized,
+        headX * gridWidth, (headY + 1) * gridHeight, gridWidth, gridHeight);
   }
+}
+
+function normalizeQValuesForDisplay(qW, qN, qE, qS) {
+  const scores = [qW, qN, qE, qS].filter(x => x != null);
+  const min = Math.min(...scores);
+  const max = Math.max(...scores);
+
+  const normalize = q => (q - min) / (max - min);
+  return {
+    qWNormalized: qW == null ? qW : normalize(qW),
+    qNNormalized: qN == null ? qN : normalize(qN),
+    qENormalized: qE == null ? qE : normalize(qE),
+    qSNormalized: qS == null ? qE : normalize(qS)
+  };
+}
+
+function drawQValueOverlay(context, q, qNormalized, x, y, w, h) {
+  if (q == null) {
+    return;
+  }
+  context.globalAlpha = 0.2;
+  let r = Math.floor((1 - qNormalized) * 255);
+  let g = 255;
+  let b = Math.floor((1 - qNormalized) * 255);
+  context.fillStyle = `rgb(${r},${g},${b})`;
+  context.beginPath();
+  context.rect(x, y, w, h);
+  context.fill();
+  context.globalAlpha = 1;
+
+  context.font = '13px sans serif';
+  r = Math.floor((1 - qNormalized) * 100 + 64);
+  g = Math.floor((1 - qNormalized) * 100 + 64);
+  b = Math.floor((1 - qNormalized) * 100 + 64);
+  context.fillStyle = `rgb(${r},${g},${b})`;
+  context.beginPath();
+  context.fillText(q.toFixed(1), x + 0.15 * w, y + 0.55 * h);
+  context.fill();
 }

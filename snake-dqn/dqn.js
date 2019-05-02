@@ -57,9 +57,6 @@ export function createDeepQNetwork(h, w, numActions) {
   model.add(tf.layers.dropout({rate: 0.25}));
   model.add(tf.layers.dense({units: numActions}));
 
-  console.log(`DQN input shape: ${JSON.stringify(model.inputs[0].shape)}`);
-  console.log('DQN summary:');
-  model.summary();
   return model;
 }
 

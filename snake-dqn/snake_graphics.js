@@ -125,8 +125,6 @@ export function renderSnakeGame(canvas, game, qValues) {
 
     const {qWNormalized, qNNormalized, qENormalized, qSNormalized} =
         normalizeQValuesForDisplay(qW, qN, qE, qS);
-    console.log(qWNormalized, qNNormalized, qENormalized, qSNormalized);
-
     drawQValueOverlay(ctx, qW, qWNormalized,
         (headX - 1) * gridWidth, headY * gridHeight, gridWidth, gridHeight);
     drawQValueOverlay(ctx, qN, qNNormalized,

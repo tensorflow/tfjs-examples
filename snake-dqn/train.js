@@ -186,7 +186,7 @@ export function parseArguments() {
   });
   parser.addArgument('--epsilonInit', {
     type: 'float',
-    defaultValue: 1,
+    defaultValue: 0.5,
     help: 'Initial value of epsilon, used for the epsilon-greedy algorithm.'
   });
   parser.addArgument('--epsilonFinal', {

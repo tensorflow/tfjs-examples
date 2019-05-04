@@ -34,6 +34,7 @@ let game;
 let qNet;
 
 let cumulativeReward = 0;
+let cumulativeFruits = 0;
 let autoPlaying = false;
 let autoPlayIntervalJob;
 
@@ -61,13 +62,18 @@ async function reset() {
  * - Render the game in the canvas.
  */
 async function step() {
-  const {reward, done} = game.step(bestAction);
+  const {reward, done, fruitEaten} = game.step(bestAction);
   invalidateQValuesAndBestAction();
   cumulativeReward += reward;
-  gameStatusSpan.textContent = `Reward = ${cumulativeReward.toFixed(1)}`;
+  if (fruitEaten) {
+    cumulativeFruits++;
+  }
+  gameStatusSpan.textContent =
+      `Reward=${cumulativeReward.toFixed(1)}; Fruits=${cumulativeFruits}`;
   if (done) {
-    gameStatusSpan.textContent += ' Game Over!';
+    gameStatusSpan.textContent += '. Game Over!';
     cumulativeReward = 0;
+    cumulativeFruits = 0;
     if (autoPlayIntervalJob) {
       clearInterval(autoPlayIntervalJob);
       autoPlayStopButton.click();

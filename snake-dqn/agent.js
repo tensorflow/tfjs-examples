@@ -67,6 +67,7 @@ export class SnakeGameAgent {
 
   reset() {
     this.cumulativeReward_ = 0;
+    this.fruitsEaten_ = 0;
     this.game.reset();
   }
 
@@ -98,15 +99,19 @@ export class SnakeGameAgent {
       });
     }
 
-    const {state: nextState, reward, done} = this.game.step(action);
+    const {state: nextState, reward, done, fruitEaten} = this.game.step(action);
 
     this.replayMemory.append([state, action, reward, done, nextState]);
 
     this.cumulativeReward_ += reward;
+    if (fruitEaten) {
+      this.fruitsEaten_++;
+    }
     const output = {
       action,
       cumulativeReward: this.cumulativeReward_,
-      done
+      done,
+      fruitsEaten: this.fruitsEaten_
     };
     if (done) {
       this.reset();
@@ -130,8 +135,8 @@ export class SnakeGameAgent {
           batch.map(example => example[0]), this.game.height, this.game.width);
       const actionTensor = tf.tensor1d(
           batch.map(example => example[1]), 'int32');
-      const qs = this.onlineNetwork.predict(
-          stateTensor).mul(tf.oneHot(actionTensor, NUM_ACTIONS)).sum(-1);
+      const qs = this.onlineNetwork.apply(stateTensor, {training: true})
+          .mul(tf.oneHot(actionTensor, NUM_ACTIONS)).sum(-1);
 
       const rewardTensor = tf.tensor1d(batch.map(example => example[2]));
       const nextStateTensor = getStateTensor(

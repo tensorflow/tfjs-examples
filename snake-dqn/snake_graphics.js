@@ -23,6 +23,8 @@ import {SnakeGame} from './snake_game';
  * @param {HTMLCanvasElement} canvas The canvas to render the game in.
  * @param {SnakeGame} game The game to render.
  * @param {Float32Array} qValues Q-values of the current step, optional.
+ *   If provided, will overlay Q-values for possible actions on the rendered
+ *   graph.
  */
 export function renderSnakeGame(canvas, game, qValues) {
   const width = canvas.width;

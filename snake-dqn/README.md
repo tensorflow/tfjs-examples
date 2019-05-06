@@ -2,6 +2,8 @@
 
 ![DQN Snake Game](./images/dqn-screenshot.png)
 
+[See this example live!](https://storage.googleapis.com/tfjs-examples/snake-dqn/index.html)
+
 Deep Q-Learning is a reinforcement-learning (RL) algorithm. It is used
 frequently to solve arcade-style games like the Snake game used in this
 example.

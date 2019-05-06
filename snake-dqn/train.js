@@ -103,8 +103,8 @@ export async function train(
       console.log(
           `Frame #${agent.frameCount}: ` +
           `cumulativeReward100=${averageReward100.toFixed(1)}; ` +
-          `eaten100=${averageEaten100.toFixed(3)} ` +
-          `(epsilon=${agent.epsilon.toFixed(2)}) ` +
+          `eaten100=${averageEaten100.toFixed(2)} ` +
+          `(epsilon=${agent.epsilon.toFixed(3)}) ` +
           `(${framesPerSecond.toFixed(1)} frames/s)`);
       if (summaryWriter != null) {
         summaryWriter.scalar(

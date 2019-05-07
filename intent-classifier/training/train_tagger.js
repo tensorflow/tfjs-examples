@@ -218,7 +218,7 @@ async function run(
   });
   parser.addArgument('--epochs', {
     type: 'int',
-    defaultValue: 20,
+    defaultValue: 30,
     help: 'Number of epochs',
   });
   parser.addArgument('--batchSize', {

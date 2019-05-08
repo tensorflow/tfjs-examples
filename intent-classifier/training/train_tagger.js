@@ -84,6 +84,8 @@ async function getDataIterator(
 
     let toDispose = [];
 
+    // Shuffle before each epoch
+    tf.util.shuffle(taggedIntentTokens);
     // Loop through all the tokenized sentences
     for (let idx = 0; idx < taggedIntentTokens.length; idx++) {
       const sentence = taggedIntentTokens[idx];
@@ -218,7 +220,7 @@ async function run(
   });
   parser.addArgument('--epochs', {
     type: 'int',
-    defaultValue: 30,
+    defaultValue: 32,
     help: 'Number of epochs',
   });
   parser.addArgument('--batchSize', {

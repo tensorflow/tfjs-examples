@@ -1,5 +1,9 @@
 # Using Deep Q-Learning to Solve the Snake Game
 
+![DQN Snake Game](./images/dqn-screenshot.png)
+
+[See this example live!](https://storage.googleapis.com/tfjs-examples/snake-dqn/index.html)
+
 Deep Q-Learning is a reinforcement-learning (RL) algorithm. It is used
 frequently to solve arcade-style games like the Snake game used in this
 example.
@@ -59,3 +63,12 @@ tensorboard --logdir /tmp/snake_logs
 
 Once started, the tensorboard backend process will print an `http://` URL to the
 console. Open your browser and navigate to the URL to see the logged curves.
+
+## Running the demo in the browser
+
+After the DQN training completes, you can use the following command to
+launch a demo that shows how the network plays the game in the browser:
+
+```sh
+yarn watch
+```

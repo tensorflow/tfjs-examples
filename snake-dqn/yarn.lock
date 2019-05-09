@@ -2119,6 +2119,11 @@ core-js-pure@3.0.1:
   resolved "https://registry.yarnpkg.com/core-js-pure/-/core-js-pure-3.0.1.tgz#37358fb0d024e6b86d443d794f4e37e949098cbe"
   integrity sha512-mSxeQ6IghKW3MoyF4cz19GJ1cMm7761ON+WObSyLfTu/Jn3x7w4NwNFnrZxgl4MTSvYYepVLNuRtlB4loMwJ5g==
 
+core-js@2.0.0:
+  version "2.0.0"
+  resolved "https://registry.yarnpkg.com/core-js/-/core-js-2.0.0.tgz#bc834a8c48dd62a176145f4866ba8a93e2e3ddbf"
+  integrity sha1-vINKjEjdYqF2FF9IZrqKk+Lj3b8=
+
 core-js@3.0.1:
   version "3.0.1"
   resolved "https://registry.yarnpkg.com/core-js/-/core-js-3.0.1.tgz#1343182634298f7f38622f95e73f54e48ddf4738"

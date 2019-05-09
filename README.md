@@ -273,6 +273,17 @@ to another project.
     <td>Export trained model from tfjs-node and load it in browser</td>
   </tr>
   <tr>
+    <td><a href="./snake-dqn">snake-dqn</a></td>
+    <td><a href="https://storage.googleapis.com/tfjs-examples/snake-dqn/index.html">🔗</a></td>
+    <td></td>
+    <td>Reinforcement learning</td>
+    <td>Deep Q-Network (DQN)</td>
+    <td>Node.js</td>
+    <td>Browser</td>
+    <td>Layers</td>
+    <td>Export trained model from tfjs-node and load it in browser</td>
+  </tr>
+  <tr>
     <td><a href="./translation">translation</a></td>
     <td><a href="https://storage.googleapis.com/tfjs-examples/translation/dist/index.html">🔗</a></td>
     <td>Text</td>

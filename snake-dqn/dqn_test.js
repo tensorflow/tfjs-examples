@@ -68,16 +68,18 @@ describe('copyWeights', () => {
 
     // Initially, the two networks should have different values in their
     // weights.
-    const onlineWeights0 = onlineNetwork.getWeights();
-    const targetWeights0 = targetNetwork.getWeights();
-    expect(onlineWeights0.length).toEqual(targetWeights0.length);
-    // The 1st weight is the first conv layer's kernel.
-    expect(onlineWeights0[0].sub(targetWeights0[0]).abs().mean().arraySync())
+    const conv1Weights0 = onlineNetwork.layers[0].getWeights();
+    const conv1Weights1 = targetNetwork.layers[0].getWeights();
+    expect(conv1Weights0.length).toEqual(conv1Weights1.length);
+    // The 1st weight is the 1st conv layer's kernel.
+    expect(conv1Weights0[0].sub(conv1Weights1[0]).abs().mean().arraySync())
         .toBeGreaterThan(0);
-    // Skip the 2nd weight, because it's the bias of the first conv layer's
-    // kernel, which has an all-zero initializer.
-    // The 3rd weight is the second conv layer's kernel.
-    expect(onlineWeights0[2].sub(targetWeights0[2]).abs().mean().arraySync())
+
+    const conv2Weights0 = onlineNetwork.layers[2].getWeights();
+    const conv2Weights1 = targetNetwork.layers[2].getWeights();
+    expect(conv2Weights0.length).toEqual(conv2Weights1.length);
+    // The 1st weight is the 2nd conv layer's kernel.
+    expect(conv2Weights0[0].sub(conv2Weights1[0]).abs().mean().arraySync())
         .toBeGreaterThan(0);
 
     copyWeights(targetNetwork, onlineNetwork);
@@ -87,7 +89,6 @@ describe('copyWeights', () => {
     const onlineWeights1 = onlineNetwork.getWeights();
     const targetWeights1 = targetNetwork.getWeights();
     expect(onlineWeights1.length).toEqual(targetWeights1.length);
-    expect(onlineWeights1.length).toEqual(onlineWeights0.length);
     for (let i = 0; i < onlineWeights1.length; ++i) {
       expect(onlineWeights1[i].sub(targetWeights1[i]).abs().mean().arraySync())
           .toEqual(0);

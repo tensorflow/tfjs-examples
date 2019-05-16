@@ -120,8 +120,8 @@ limitations under the License.
           <div class="with-cols">
             <div class="with-rows init-model">
               <div class="input-div with-rows">
-                <label class="input-label">Hidden layer size(s) (e.g.: "5", "8,6"):</label>
-                <input id="hidden-layer-sizes" value="4"></input>
+                <label class="input-label">Hidden layer size(s) (e.g.: "256", "32,64"):</label>
+                <input id="hidden-layer-sizes" value="128"></input>
               </div>
               <button id="create-model" disabled="true">Create model</button>
             </div>
@@ -176,13 +176,14 @@ limitations under the License.
         <p class='section-head'>Training Progress</p>
         <div class="with-rows">
           <div class="status">
-            <label id="iteration-status">Game #:</label>
-            <progress value="0" max="100" id="iteration-progress"></progress>
-          </div>
-          <div class="status">
             <label id="train-status">Iteration #:</label>
             <progress value="0" max="100" id="train-progress"></progress>
           </div>
+          <div class="status">
+            <label id="iteration-status">Game #:</label>
+            <progress value="0" max="100" id="iteration-progress"></progress>
+          </div>
+
           <div class="status">
             <label>Training speed:</label>
             <span id="train-speed" class="status-span"></span>

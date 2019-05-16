@@ -1,0 +1,47 @@
+{
+  "name": "intent-classifier",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "lint": "eslint --ext .js app/ training/ copy_models.js",
+    "raw-to-csv": "node training/raw_to_csv.js",
+    "csv-to-tensors": "node training/csv_to_tensors.js",
+    "raw-to-tagged-tokens": "node training/raw_to_tagged_tokens.js",
+    "tokens-to-embeddings": "node training/tokens_to_embeddings.js",
+    "prep-data": "npm-run-all raw-to-csv csv-to-tensors raw-to-tagged-tokens tokens-to-embeddings",
+    "train-intent": "node training/train_intent.js",
+    "train-tagger": "node training/train_tagger.js",
+    "prep-client": "node copy_models.js",
+    "intent-app": "yarn prep-client && parcel app/index.html --open",
+    "tagger-app": "yarn prep-client && parcel app/tagger.html --open"
+  },
+  "author": "",
+  "license": "Apache-2.0",
+  "dependencies": {
+    "@tensorflow-models/universal-sentence-encoder": "1.0.1",
+    "@tensorflow/tfjs": "1.0.2",
+    "@tensorflow/tfjs-node": "1.0.2",
+    "@tensorflow/tfjs-node-gpu": "1.0.2",
+    "argparse": "^1.0.10",
+    "d3": "^5.9.2",
+    "d3-dsv": "^1.1.1",
+    "fs-extra": "^7.0.1",
+    "mkdirp": "^0.5.1",
+    "ndjson": "^1.5.0",
+    "node-fetch": "^2.3.0",
+    "npm-run-all": "^4.1.5"
+  },
+  "devDependencies": {
+    "babel-core": "^6.26.3",
+    "babel-plugin-transform-runtime": "^6.23.0",
+    "babel-preset-env": "^1.7.0",
+    "clang-format": "^1.2.4",
+    "cross-env": "^5.2.0",
+    "eslint": "^5.16.0",
+    "eslint-config-google": "^0.12.0",
+    "http-server": "^0.11.1",
+    "parcel-bundler": "^1.12.3",
+    "sass": "^1.17.4"
+  }
+}

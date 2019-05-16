@@ -51,7 +51,7 @@ describe('SnakeGameAgent', () => {
         expect(agent.replayMemory.buffer[bufferIndex % 100][1])
             .toEqual(out.action);
 
-        expect(agent.replayMemory.buffer[bufferIndex % 100][2]).toEqual(
+        expect(agent.replayMemory.buffer[bufferIndex % 100][2]).toBeCloseTo(
             outPrev == null ? out.cumulativeReward :
             out.cumulativeReward - outPrev.cumulativeReward);
         expect(agent.replayMemory.buffer[bufferIndex % 100][3]).toEqual(out.done);

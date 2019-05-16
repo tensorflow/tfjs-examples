@@ -56,6 +56,7 @@ class MovingAverager {
  * @param {number} cumulativeRewardThreshold The threshold of moving-averaged
  *   cumulative reward from a single game. The training stops as soon as this
  *   threshold is achieved.
+ * @param {number} maxNumFrames Maximum number of frames to train for.
  * @param {number} syncEveryFrames The frequency at which the weights are copied
  *   from the online DQN of the agent to the target DQN, in number of frames.
  * @param {string} savePath Path to which the online DQN of the agent will be
@@ -65,7 +66,7 @@ class MovingAverager {
  */
 export async function train(
     agent, batchSize, gamma, learningRate, cumulativeRewardThreshold,
-    syncEveryFrames, savePath, logDir) {
+    maxNumFrames, syncEveryFrames, savePath, logDir) {
   let summaryWriter;
   if (logDir != null) {
     summaryWriter = tf.node.summaryFileWriter(logDir);
@@ -75,13 +76,18 @@ export async function train(
     agent.playStep();
   }
 
+  // Moving averager: cumulative reward across 100 most recent 100 episodes.
   const rewardAverager100 = new MovingAverager(100);
+  // Moving averager: fruits eaten across 100 most recent 100 episodes.
+  const eatenAverager100 = new MovingAverager(100);
+
   const optimizer = tf.train.adam(learningRate);
   let tPrev = new Date().getTime();
   let frameCountPrev = agent.frameCount;
+  let averageReward100Best = -Infinity;
   while (true) {
     agent.trainOnReplayBatch(batchSize, gamma, optimizer);
-    const {cumulativeReward, done} = agent.playStep();
+    const {cumulativeReward, done, fruitsEaten} = agent.playStep();
     if (done) {
       const t = new Date().getTime();
       const framesPerSecond =
@@ -90,34 +96,44 @@ export async function train(
       frameCountPrev = agent.frameCount;
 
       rewardAverager100.append(cumulativeReward);
+      eatenAverager100.append(fruitsEaten);
       const averageReward100 = rewardAverager100.average();
+      const averageEaten100 = eatenAverager100.average();
+
       console.log(
           `Frame #${agent.frameCount}: ` +
-          `cumulativeReward100=${averageReward100.toFixed(1)} ` +
+          `cumulativeReward100=${averageReward100.toFixed(1)}; ` +
+          `eaten100=${averageEaten100.toFixed(2)} ` +
+          `(epsilon=${agent.epsilon.toFixed(3)}) ` +
           `(${framesPerSecond.toFixed(1)} frames/s)`);
       if (summaryWriter != null) {
         summaryWriter.scalar(
             'cumulativeReward100', averageReward100, agent.frameCount);
+        summaryWriter.scalar('eaten100', averageEaten100, agent.frameCount);
         summaryWriter.scalar('epsilon', agent.epsilon, agent.frameCount);
         summaryWriter.scalar(
             'framesPerSecond', framesPerSecond, agent.frameCount);
       }
-      if (averageReward100 >= cumulativeRewardThreshold) {
+      if (averageReward100 >= cumulativeRewardThreshold ||
+          agent.frameCount >= maxNumFrames) {
         // TODO(cais): Save online network.
         break;
+      }
+      if (averageReward100 > averageReward100Best) {
+        averageReward100Best = averageReward100;
+        if (savePath != null) {
+          if (!fs.existsSync(savePath)) {
+            mkdir('-p', savePath);
+          }
+          await agent.onlineNetwork.save(`file://${savePath}`);
+          console.log(`Saved DQN to ${savePath}`);
+        }
       }
     }
     if (agent.frameCount % syncEveryFrames === 0) {
       copyWeights(agent.targetNetwork, agent.onlineNetwork);
       console.log('Sync\'ed weights from online network to target network');
     }
-  }
-
-  if (savePath != null) {
-    if (!fs.existsSync(savePath)) {
-      mkdir('-p', savePath);
-    }
-    await agent.onlineNetwork.save(`file://${savePath}`);
   }
 }
 
@@ -152,10 +168,16 @@ export function parseArguments() {
   });
   parser.addArgument('--cumulativeRewardThreshold', {
     type: 'float',
-    defaultValue: 120,
+    defaultValue: 100,
     help: 'Threshold for cumulative reward (its moving ' +
     'average) over the 100 latest games. Training stops as soon as this ' +
-    'threshold is reached.'
+    'threshold is reached (or when --maxNumFrames is reached).'
+  });
+  parser.addArgument('--maxNumFrames', {
+    type: 'float',
+    defaultValue: 1e6,
+    help: 'Maximum number of frames to run durnig the training. ' +
+    'Training ends immediately when this frame count is reached.'
   });
   parser.addArgument('--replayBufferSize', {
     type: 'int',
@@ -164,7 +186,7 @@ export function parseArguments() {
   });
   parser.addArgument('--epsilonInit', {
     type: 'float',
-    defaultValue: 1,
+    defaultValue: 0.5,
     help: 'Initial value of epsilon, used for the epsilon-greedy algorithm.'
   });
   parser.addArgument('--epsilonFinal', {
@@ -174,7 +196,7 @@ export function parseArguments() {
   });
   parser.addArgument('--epsilonDecayFrames', {
     type: 'int',
-    defaultValue: 2e5,
+    defaultValue: 1e5,
     help: 'Number of frames of game over which the value of epsilon ' +
     'decays from epsilonInit to epsilonFinal'
   });
@@ -236,8 +258,8 @@ async function main() {
 
   await train(
       agent, args.batchSize, args.gamma, args.learningRate,
-      args.cumulativeRewardThreshold, args.syncEveryFrames, args.savePath,
-      args.logDir);
+      args.cumulativeRewardThreshold, args.maxNumFrames,
+      args.syncEveryFrames, args.savePath, args.logDir);
 }
 
 if (require.main === module) {

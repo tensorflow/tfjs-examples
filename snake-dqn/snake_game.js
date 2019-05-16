@@ -25,23 +25,22 @@ const DEFAULT_NUM_FRUITS = 1;
 const DEFAULT_INIT_LEN = 4;
 
 // TODO(cais): Tune these parameters.
-export const NO_FRUIT_REWARD = 0;
+export const NO_FRUIT_REWARD = -0.2;
 export const FRUIT_REWARD = 10;
-export const DEATH_REWARD = 0;
+export const DEATH_REWARD = -10;
 // TODO(cais): Explore adding a "bad fruit" with a negative reward.
 
-export const ACTION_LEFT = 0;
-export const ACTION_UP = 1;
-export const ACTION_RIGHT = 2;
-export const ACTION_DOWN = 3;
+export const ACTION_GO_STRAIGHT = 0;
+export const ACTION_TURN_LEFT = 1;
+export const ACTION_TURN_RIGHT = 2;
 
-export const ALL_ACTIONS = [ACTION_LEFT, ACTION_UP, ACTION_RIGHT, ACTION_DOWN];
+export const ALL_ACTIONS = [ACTION_GO_STRAIGHT, ACTION_TURN_LEFT, ACTION_TURN_RIGHT];
 export const NUM_ACTIONS = ALL_ACTIONS.length;
 
 /**
  * Generate a random action among all possible actions.
  *
- * @return {0 | 1 | 2 | 3} Action represented as a number.
+ * @return {0 | 1 | 2} Action represented as a number.
  */
 export function getRandomAction() {
   return getRandomInteger(0, NUM_ACTIONS);
@@ -96,6 +95,7 @@ export class SnakeGame {
    */
   reset() {
     this.initializeSnake_();
+    this.fruitSquares_ = null;
     this.makeFruits_();
     return this.getState();
   }
@@ -114,6 +114,7 @@ export class SnakeGame {
    *     - 0 if no fruit is eaten in this step
    *     - 1 if a fruit is eaten in this step
    *   - `state` New state of the game after the step.
+   *   - `fruitEaten` {boolean} Whether a fruit is easten in this step.
    *   - `done` {boolean} whether the game has ended after this step.
    *     A game ends when the head of the snake goes off the board or goes
    *     over its own body.
@@ -126,26 +127,24 @@ export class SnakeGame {
     let done;
     let newHeadY;
     let newHeadX;
-    if (action === ACTION_LEFT) {
+
+    this.updateDirection_(action);
+    if (this.snakeDirection_ === 'l') {
       newHeadY = headY;
       newHeadX = headX - 1;
       done = newHeadX < 0;
-    } else if (action === ACTION_UP) {
+    } else if (this.snakeDirection_ === 'u') {
       newHeadY = headY - 1;
       newHeadX = headX;
       done = newHeadY < 0
-    } else if (action === ACTION_RIGHT) {
+    } else if (this.snakeDirection_ === 'r') {
       newHeadY = headY;
       newHeadX = headX + 1;
       done = newHeadX >= this.width_;
-    } else if (action === ACTION_DOWN) {
+    } else if (this.snakeDirection_ === 'd') {
       newHeadY = headY + 1;
       newHeadX = headX;
       done = newHeadY >= this.height_;
-    } else {
-      throw new Error(
-          `Invalid action: ${action}. Valid actions are: ` +
-          `${ACTOIN_LEFT}, ${ACTION_UP}, ${ACTION_RIGHT}, ${ACTION_DOWN}`);
     }
 
     // Check if the head goes over the snake's body, in which case the
@@ -157,8 +156,9 @@ export class SnakeGame {
       }
     }
 
+    let fruitEaten = false;
     if (done) {
-      return {reward: DEATH_REWARD, done};
+      return {reward: DEATH_REWARD, done, fruitEaten};
     }
 
     // Update the position of the snake.
@@ -166,7 +166,6 @@ export class SnakeGame {
 
     // Check if a fruit is eaten.
     let reward = NO_FRUIT_REWARD;
-    let fruitEaten = false;
     for (let i = 0; i < this.fruitSquares_.length; ++i) {
       const fruitYX = this.fruitSquares_[i];
       if (fruitYX[0] === newHeadY && fruitYX[1] === newHeadX) {
@@ -184,7 +183,44 @@ export class SnakeGame {
     }
 
     const state = this.getState();
-    return {reward, state, done};
+    return {reward, state, done, fruitEaten};
+  }
+
+  updateDirection_(action) {
+    if (this.snakeDirection_ === 'l') {
+      if (action === ACTION_TURN_LEFT) {
+        this.snakeDirection_ = 'd';
+      } else if (action === ACTION_TURN_RIGHT) {
+        this.snakeDirection_ = 'u';
+      }
+    } else if (this.snakeDirection_ === 'u') {
+      if (action === ACTION_TURN_LEFT) {
+        this.snakeDirection_ = 'l';
+      } else if (action === ACTION_TURN_RIGHT) {
+        this.snakeDirection_ = 'r';
+      }
+    } else if (this.snakeDirection_ === 'r') {
+      if (action === ACTION_TURN_LEFT) {
+        this.snakeDirection_ = 'u';
+      } else if (action === ACTION_TURN_RIGHT) {
+        this.snakeDirection_ = 'd';
+      }
+    } else if (this.snakeDirection_ === 'd') {
+      if (action === ACTION_TURN_LEFT) {
+        this.snakeDirection_ = 'r';
+      } else if (action === ACTION_TURN_RIGHT) {
+        this.snakeDirection_ = 'l';
+      }
+    }
+  }
+
+  /**
+   * Get the current direction of the snake.
+   *
+   * @returns {'l' | 'u' | 'r' | 'd'} Current direction of the snake.
+   */
+  get snakeDirection() {
+    return this.snakeDirection_;
   }
 
   initializeSnake_() {
@@ -205,6 +241,14 @@ export class SnakeGame {
     for (let i = 0; i < this.initLen_; ++i) {
       this.snakeSquares_.push([y, x - i]);
     }
+
+    /**
+     * Current snake direction {'l' | 'u' | 'r' | 'd'}.
+     *
+     * Currently, the snake will start from a completely-straight and
+     * horizontally-posed state. The initial direction is always right.
+     */
+    this.snakeDirection_ = 'r';
   }
 
   /**

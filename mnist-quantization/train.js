@@ -16,6 +16,9 @@
  */
 
 import * as argparse from 'argparse';
+import * as fs from 'fs';
+import * as path from 'path';
+import * as shelljs from 'shelljs';
 
 import {MnistDataset} from './data';
 import {createModel} from './model';
@@ -42,6 +45,7 @@ function parseArgs() {
   });
   parser.addArgument('--modelSavePath', {
     type: 'string',
+    defaultValue: './models/original',
     help: 'Path to which the model will be saved after training.'
   });
   parser.addArgument('--gpu', {
@@ -83,6 +87,9 @@ async function main() {
       `Accuracy = ${evalOutput[1].dataSync()[0].toFixed(3)}`);
 
   if (args.modelSavePath != null) {
+    if (!fs.existsSync(path.dirname(args.modelSavePath))) {
+      shelljs.mkdir('-p', path.dirname(args.modelSavePath));
+    }
     await model.save(`file://${args.modelSavePath}`);
     console.log(`Saved model to path: ${args.modelSavePath}`);
   }

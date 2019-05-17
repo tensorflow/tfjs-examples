@@ -8,19 +8,18 @@
   "engines": {
     "node": ">=8.11.0"
   },
-  "dependencies": {
+  "scripts": {
+    "train": "babel-node train.js"
+  },
+  "devDependencies": {
     "@tensorflow/tfjs-node": "^1.1.2",
     "@tensorflow/tfjs-node-gpu": "^1.1.2",
     "argparse": "^1.0.10",
     "babel-cli": "^6.26.0",
     "babel-core": "^6.26.3",
     "babel-plugin-transform-runtime": "~6.23.0",
-    "babel-preset-env": "~1.6.1"
-  },
-  "scripts": {
-    "train": "babel-node main.js"
-  },
-  "devDependencies": {
-    "clang-format": "~1.2.2"
+    "babel-preset-env": "~1.6.1",
+    "clang-format": "~1.2.2",
+    "shelljs": "^0.8.3"
   }
 }

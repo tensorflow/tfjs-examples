@@ -20,6 +20,22 @@
 
 set -e
 
+# Make sure model is available.
+MODEL_PATH="models/original/model.json"
+if [[ ! -f "${MODEL_PATH}" ]]; then
+  echo "ERROR: Cannot find model JSON file at ${MODEL_PATH}"
+  echo "       Make sure you train and save a model with the"
+  echo "       following command first: yarn train"
+  exit 1
+fi
+
+# Make sure pip is available.
+if [[ -z "$(which pip)" ]]; then
+  echo "ERROR: Cannot find pip on path."
+  echo "       Make sure you have python and pip installed."
+  exit 1
+fi
+
 if [[ -z "$(which virtualenv)" ]]; then
   echo "Installing virtualenv..."
   pip install virtualenv
@@ -32,6 +48,27 @@ source "${VENV_DIR}/bin/activate"
 
 pip install tensorflowjs
 
+# Perform 16-bit quantization.
+MODEL_PATH_16BIT="models/quantized-16bit"
+tensorflowjs_converter \
+    --input_format tfjs_layers_model \
+    --output_format tfjs_layers_model \
+    --quantization_bytes 2 \
+    "${MODEL_PATH}" "${MODEL_PATH_16BIT}"
+
+# Perform float8 quantization.
+MODEL_PATH_8BIT="models/quantized-8bit"
+tensorflowjs_converter \
+    --input_format tfjs_layers_model \
+    --output_format tfjs_layers_model \
+    --quantization_bytes 1 \
+    "${MODEL_PATH}" "${MODEL_PATH_8BIT}"
+
+# Evaluate accuracy under 16-bit quantization.
+yarn eval "${MODEL_PATH_16BIT}"
+
+# Evaluate accuracy under 8-bit quantization.
+yarn eval "${MODEL_PATH_8BIT}"
 
 # Clean up the virtualenv
 rm -rf "${VENV_DIR}"

@@ -9,6 +9,7 @@
     "node": ">=8.11.0"
   },
   "scripts": {
+    "eval": "babel-node eval.js",
     "train": "babel-node train.js",
     "quantize-and-evaluate": "./quantize_evaluate.sh"
   },

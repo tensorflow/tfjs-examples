@@ -48,12 +48,15 @@ export function createModel() {
   model.add(tf.layers.dropout({rate: 0.5}));
   model.add(tf.layers.dense({units: 10, activation: 'softmax'}));
 
+  compileModel(model);
+  return model;
+}
+
+export function compileModel(model) {
   const optimizer = 'rmsprop';
   model.compile({
     optimizer: optimizer,
     loss: 'categoricalCrossentropy',
     metrics: ['accuracy'],
   });
-
-  return model;
 }

@@ -16,41 +16,32 @@
  */
 
 import * as argparse from 'argparse';
-import * as fs from 'fs';
-import * as path from 'path';
-import * as shelljs from 'shelljs';
 
 import {MnistDataset} from './data';
-import {createModel} from './model';
+import {compileModel} from './model';
+
+// The `tf` module will be loaded dynamically depending on whether
+// `--gpu` is specified in the command-line flags.
+let tf;
 
 function parseArgs() {
   const parser = new argparse.ArgumentParser({
-    description: 'TensorFlow.js Quantization Example: Training an MNIST Model',
+    description:
+        'TensorFlow.js Quantization Example: Evaluating an MNIST Model',
     addHelp: true
   });
-  parser.addArgument('--epochs', {
-    type: 'int',
-    defaultValue: 20,
-    help: 'Number of epochs to train the model for.'
+  parser.addArgument('modelSavePath', {
+    type: 'string',
+    help: 'Path at which the model to be evaluated is saved.'
   });
   parser.addArgument('--batchSize', {
     type: 'int',
     defaultValue: 128,
     help: 'Batch size to be used during model training.'
   });
-  parser.addArgument('--validationSplit', {
-    type: 'float',
-    defaultValue: 0.15,
-    help: 'Validation split used for training.'
-  });
-  parser.addArgument('--modelSavePath', {
-    type: 'string',
-    defaultValue: './models/original',
-    help: 'Path to which the model will be saved after training.'
-  });
   parser.addArgument('--gpu', {
     action: 'storeTrue',
-    help: 'Use tfjs-node-gpu for training (requires CUDA-enabled ' +
+    help: 'Use tfjs-node-gpu for evaluation (requires CUDA-enabled ' +
     'GPU and supporting drivers and libraries.'
   });
   return parser.parseArgs();
@@ -59,40 +50,28 @@ function parseArgs() {
 async function main() {
   const args = parseArgs();
   if (args.gpu) {
-    require('@tensorflow/tfjs-node-gpu');
+    tf = require('@tensorflow/tfjs-node-gpu');
   } else {
-    require('@tensorflow/tfjs-node');
+    tf = require('@tensorflow/tfjs-node');
   }
 
   const mnistDataset = new MnistDataset();
   await mnistDataset.loadData();
-  const {images: trainImages, labels: trainLabels} =
-      mnistDataset.getTrainData();
-
-  const model = createModel();
-  model.summary();
-
-  await model.fit(trainImages, trainLabels, {
-    epochs: args.epochs,
-    batchSize: args.batchSize,
-    validationSplit: args.validationSplit
-  });
-
   const {images: testImages, labels: testLabels} = mnistDataset.getTestData();
-  const evalOutput = model.evaluate(testImages, testLabels);
 
+  console.log(`Loading model from ${args.modelSavePath}...`);
+  const model = await tf.loadLayersModel(`file://${args.modelSavePath}`);
+  compileModel(model);
+
+  console.log(`Performing evaluation...`);
+  const t0 = tf.util.now();
+  const evalOutput = model.evaluate(testImages, testLabels);
+  const t1 = tf.util.now();
+  console.log(`\nEvaluation took ${(t1 - t0).toFixed(2)} ms.`);
   console.log(
       `\nEvaluation result:\n` +
       `  Loss = ${evalOutput[0].dataSync()[0].toFixed(6)}; `+
       `Accuracy = ${evalOutput[1].dataSync()[0].toFixed(6)}`);
-
-  if (args.modelSavePath != null) {
-    if (!fs.existsSync(path.dirname(args.modelSavePath))) {
-      shelljs.mkdir('-p', path.dirname(args.modelSavePath));
-    }
-    await model.save(`file://${args.modelSavePath}`);
-    console.log(`Saved model to path: ${args.modelSavePath}`);
-  }
 }
 
 if (require.main === module) {

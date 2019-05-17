@@ -16,7 +16,7 @@
 # =============================================================================
 
 # Quantize the MNIST model saved from the command `yarn train` and evaluates
-# the accuracy of it.
+# the test accuracy under different levels of quantization (8-bit and 16-bit).
 
 set -e
 
@@ -32,4 +32,6 @@ source "${VENV_DIR}/bin/activate"
 
 pip install tensorflowjs
 
+
+# Clean up the virtualenv
 rm -rf "${VENV_DIR}"

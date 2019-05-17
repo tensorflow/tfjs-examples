@@ -9,7 +9,8 @@
     "node": ">=8.11.0"
   },
   "scripts": {
-    "train": "babel-node train.js"
+    "train": "babel-node train.js",
+    "quantize-and-evaluate": "./quantize_evaluate.sh"
   },
   "devDependencies": {
     "@tensorflow/tfjs-node": "^1.1.2",

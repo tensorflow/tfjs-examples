@@ -62,7 +62,8 @@ async function main() {
 
   const mnistDataset = new MnistDataset();
   await mnistDataset.loadData();
-  const {images: trainImages, labels: trainLabels} = data.getTrainData();
+  const {images: trainImages, labels: trainLabels} =
+      mnistDataset.getTrainData();
 
   const model = createModel();
   model.summary();
@@ -73,7 +74,7 @@ async function main() {
     validationSplit: args.validationSplit
   });
 
-  const {images: testImages, labels: testLabels} = data.getTestData();
+  const {images: testImages, labels: testLabels} = mnistDataset.getTestData();
   const evalOutput = model.evaluate(testImages, testLabels);
 
   console.log(

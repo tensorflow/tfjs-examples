@@ -56,13 +56,15 @@ tensorflowjs_converter \
     --quantization_bytes 2 \
     "${MODEL_PATH}" "${MODEL_PATH_16BIT}"
 
-# Perform float8 quantization.
+# Perform 8-bit quantization.
 MODEL_PATH_8BIT="models/quantized-8bit"
 tensorflowjs_converter \
     --input_format tfjs_layers_model \
     --output_format tfjs_layers_model \
     --quantization_bytes 1 \
     "${MODEL_PATH}" "${MODEL_PATH_8BIT}"
+
+yarn
 
 # Evaluate accuracy under 16-bit quantization.
 yarn eval "${MODEL_PATH_16BIT}"

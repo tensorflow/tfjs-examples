@@ -9,9 +9,10 @@
     "node": ">=8.11.0"
   },
   "scripts": {
-    "eval": "babel-node eval.js",
-    "train": "babel-node train.js",
-    "quantize-and-evaluate": "./quantize_evaluate.sh"
+    "eval-mnist": "babel-node eval_mnist.js",
+    "train-autompg": "babel-node train_autompg.js",
+    "train-mnist": "babel-node train_mnist.js",
+    "quantize-and-evaluate-mnist": "./quantize_evaluate_mnist.sh"
   },
   "devDependencies": {
     "@tensorflow/tfjs-node": "^1.1.2",

@@ -67,7 +67,6 @@ export async function getDatasetStats() {
     const moments = tf.moments(labelValues);
     const labelMean = moments.mean.arraySync();
     const labelStddev = tf.sqrt(moments.variance).arraySync();
-    console.log(labelMean, labelStddev);  // DEBUG
     return {
       count,
       featureMeans,
@@ -78,8 +77,45 @@ export async function getDatasetStats() {
   });
 }
 
+/**
+ * Get a dataset with the features and label z-normalized,
+ * the dataset is split into three xs-ys tensor pairs: for training,
+ * validation and evaluation.
+ *
+ * @param {number} count Number of rows in the CSV dataset, computed beforehand.
+ * @param {{[feature: string]: number}} featureMeans Arithmetic means of the
+ *   features. Use for normalization.
+ * @param {[feature: string]: number} featureStddevs Standard deviations of the
+ *   features. Used for normalization.
+ * @param {number} labelMean Arithmetic mean of the label. Used for
+ *   normalization.
+ * @param {number} labelStddev Standard deviation of the label. Used for
+ *   normalization.
+ * @param {number} validationSplit Validation spilt, must be >0 and <1.
+ * @param {number} evaluationSplit Evaluation split, must be >0 and <1.
+ * @returns An object consisting of the following keys:
+ *   trainXs {tf.Tensor} training feature tensor
+ *   trainYs {tf.Tensor} training label tensor
+ *   valXs {tf.Tensor} validation feature tensor
+ *   valYs {tf.Tensor} validation label tensor
+ *   evalXs {tf.Tensor} evaluation feature tensor
+ *   evalYs {tf.Tensor} evaluation label tensor.
+ */
 export async function getNormalizedDatasets(
-    count, featureMeans, featureStddevs, labelMean, labelStddev, batchSize) {
+    count, featureMeans, featureStddevs, labelMean, labelStddev,
+    validationSplit, evaluationSplit) {
+  tf.util.assert(
+      validationSplit > 0 && validationSplit < 1,
+      () => `validationSplit is expected to be >0 and <1, ` +
+            `but got ${validationSplit}`);
+  tf.util.assert(
+      evaluationSplit > 0 && evaluationSplit < 1,
+      () => `evaluationSplit is expected to be >0 and <1, ` +
+            `but got ${evaluationSplit}`);
+  tf.util.assert(
+      validationSplit + evaluationSplit < 1,
+      () => `The sum of validationSplit and evaluationSplit exceeds 1`);
+
   const dataset = tf.data.csv(HOUSING_CSV_URL, {
     columnConfigs: {
       [labelColumn]: {
@@ -107,39 +143,22 @@ export async function getNormalizedDatasets(
   }
 
   const xs = tf.tensor2d(featureValues, [count, featureColumns.length]);
-  xs.print();
   const ys = tf.tensor2d(labelValues, [count, 1]);
-  ys.print();
 
+  // Sed random seed to fix shuffling order and therefore to fix the
+  // training, validation and evaluation split.
   Math.seedrandom('1337');
   tf.util.shuffle(indices);
-  console.log(indices);
 
-  const numTrain = Math.round(count * 0.7);
-  // const numVal = count - numTrain;
+  const numTrain = Math.round(count * (1 - validationSplit - evaluationSplit));
+  const numVal = Math.round(count * validationSplit);
   const trainXs = xs.gather(indices.slice(0, numTrain));
   const trainYs = ys.gather(indices.slice(0, numTrain));
-  const valXs = xs.gather(indices.slice(numTrain));
-  const valYs = ys.gather(indices.slice(numTrain));
+  const valXs = xs.gather(indices.slice(numTrain, numTrain + numVal));
+  const valYs = ys.gather(indices.slice(numTrain, numTrain + numVal));
+  const evalXs = xs.gather(indices.slice(numTrain + numVal));
+  const evalYs = ys.gather(indices.slice(numTrain + numVal));
 
-  // console.log(trainXs.shape);
-  return {trainXs, trainYs, valXs, valYs};
+  return {trainXs, trainYs, valXs, valYs, evalXs, evalYs};
 
-  // .shuffle(count).map(data => {
-  //   const xs = data.xs;
-  //   const xsTensor = tf.tensor1d(featureColumns.map(feature =>
-  //       (xs[feature] - featureMeans[feature]) / featureStddevs[feature]));
-  //   const ysTensor =
-  //       tf.tensor1d([(data.ys[labelColumn] - labelMean) / labelStddev]);
-  //   return {
-  //     xs: xsTensor,
-  //     ys: ysTensor
-  //   };
-  // }).batch(batchSize);
-
-  // const numTrain = Math.round(count * 0.7);
-  // const numVal = count - numTrain;
-  // const traintDataset = dataset.take(numTrain);
-  // const valDataset = dataset.take(numVal);
-  // return {traintDataset, valDataset};
 }

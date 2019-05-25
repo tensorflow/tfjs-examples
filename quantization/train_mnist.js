@@ -20,7 +20,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as shelljs from 'shelljs';
 
-import {MnistDataset} from './data_mnist';
+import {FashionMnistDataset, MnistDataset} from './data_mnist';
 import {createModel} from './model_mnist';
 
 function parseArgs() {

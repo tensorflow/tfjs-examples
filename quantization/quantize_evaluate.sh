@@ -15,14 +15,20 @@
 # limitations under the License.
 # =============================================================================
 
-# Quantize the MNIST model saved from the command `yarn train` and evaluates
+# Quantize a specified model saved from the command `yarn train` and evaluates
 # the test accuracy under different levels of quantization (8-bit and 16-bit).
 
 set -e
 
+MODEL_NAME=$1
+if [[ -z "${MODEL_NAME}" ]]; then
+  echo "Usage: quantize_evaluate <MODEL_NAME>"
+  exit 1
+fi
+
 # Make sure model is available.
-MNIST_ROOT="models/mnist"
-MODEL_PATH="${MNIST_ROOT}/original/model.json"
+MODEL_ROOT="models/${MODEL_NAME}"
+MODEL_PATH="${MODEL_ROOT}/original/model.json"
 if [[ ! -f "${MODEL_PATH}" ]]; then
   echo "ERROR: Cannot find model JSON file at ${MODEL_PATH}"
   echo "       Make sure you train and save a model with the"
@@ -50,7 +56,7 @@ source "${VENV_DIR}/bin/activate"
 pip install tensorflowjs
 
 # Perform 16-bit quantization.
-MODEL_PATH_16BIT="${MNIST_ROOT}/quantized-16bit"
+MODEL_PATH_16BIT="${MODEL_ROOT}/quantized-16bit"
 rm -rf "${MODEL_PATH_16BIT}"
 tensorflowjs_converter \
     --input_format tfjs_layers_model \
@@ -59,7 +65,7 @@ tensorflowjs_converter \
     "${MODEL_PATH}" "${MODEL_PATH_16BIT}"
 
 # Perform 8-bit quantization.
-MODEL_PATH_8BIT="${MNIST_ROOT}/quantized-8bit"
+MODEL_PATH_8BIT="${MODEL_ROOT}/quantized-8bit"
 rm -rf "${MODEL_PATH_8BIT}"
 tensorflowjs_converter \
     --input_format tfjs_layers_model \
@@ -70,10 +76,10 @@ tensorflowjs_converter \
 yarn
 
 # Evaluate accuracy under 16-bit quantization.
-yarn eval-mnist "${MODEL_PATH_16BIT}/model.json"
+yarn "eval-${MODEL_NAME}" "${MODEL_PATH_16BIT}/model.json"
 
 # Evaluate accuracy under 8-bit quantization.
-yarn eval-mnist "${MODEL_PATH_8BIT}/model.json"
+yarn "eval-${MODEL_NAME}" "${MODEL_PATH_8BIT}/model.json"
 
 # Clean up the virtualenv
 rm -rf "${VENV_DIR}"

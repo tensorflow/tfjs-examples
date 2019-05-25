@@ -16,12 +16,9 @@
  */
 
 import * as argparse from 'argparse';
-import * as fs from 'fs';
-import * as path from 'path';
-import * as shelljs from 'shelljs';
 
 import {getDatasetStats, getNormalizedDatasets} from './data_housing';
-import {createModel} from './model_housing';
+import {compileModel} from './model_housing';
 
 // tf will be imported dynamically depending on whether the flag `--gpu` is
 // set.
@@ -33,30 +30,9 @@ function parseArgs() {
     'California Housing Price dataset.',
     addHelp: true
   });
-  parser.addArgument('--epochs', {
-    type: 'int',
-    defaultValue: 200,
-    help: 'Number of epochs to train the model for.'
-  });
-  parser.addArgument('--batchSize', {
-    type: 'int',
-    defaultValue: 128,
-    help: 'Batch size to be used during model training.'
-  });
-  parser.addArgument('--validationSplit', {
-    type: 'float',
-    defaultValue: 0.2,
-    help: 'Validation split used for training.'
-  });
-  parser.addArgument('--evaluationSplit', {
-    type: 'float',
-    defaultValue: 0.1,
-    help: 'Validation split used for testing after training (evaluation).'
-  });
-  parser.addArgument('--modelSavePath', {
+  parser.addArgument('modelSavePath', {
     type: 'string',
-    defaultValue: './models/housing/original',
-    help: 'Path to which the model will be saved after training.'
+    help: 'Path at which the model to be evaluated is saved.'
   });
   parser.addArgument('--gpu', {
     action: 'storeTrue',
@@ -76,32 +52,26 @@ async function main() {
 
   const {count, featureMeans, featureStddevs, labelMean, labelStddev} =
       await getDatasetStats();
-  const {trainXs, trainYs, valXs, valYs, evalXs, evalYs} =
+
+  const validationSplit = 0.2;
+  const evaluationSplit = 0.1;
+  const {evalXs, evalYs} =
       await getNormalizedDatasets(
           count, featureMeans, featureStddevs, labelMean, labelStddev,
-          args.validationSplit, args.evaluationSplit);
+          validationSplit, evaluationSplit);
 
-  const model = createModel();
-  model.summary();
+  console.log(`Loading model from ${args.modelSavePath}...`);
+  const model = await tf.loadLayersModel(`file://${args.modelSavePath}`);
+  compileModel(model);
 
-  await model.fit(trainXs, trainYs,  {
-    epochs: args.epochs,
-    batchSize: args.batchSize,
-    validationData: [valXs, valYs]
-  });
-
+  console.log(`Performing evaluation...`);
+  const t0 = tf.util.now();
   const evalOutput = model.evaluate(evalXs, evalYs);
+  const t1 = tf.util.now();
+  console.log(`\nEvaluation took ${(t1 - t0).toFixed(2)} ms.`);
   console.log(
       `\nEvaluation result:\n` +
       `  Loss = ${evalOutput.dataSync()[0].toFixed(6)}`);
-
-  if (args.modelSavePath != null) {
-    if (!fs.existsSync(path.dirname(args.modelSavePath))) {
-      shelljs.mkdir('-p', path.dirname(args.modelSavePath));
-    }
-    await model.save(`file://${args.modelSavePath}`);
-    console.log(`Saved model to path: ${args.modelSavePath}`);
-  }
 }
 
 if (require.main === module) {

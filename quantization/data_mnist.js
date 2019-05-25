@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2018 Google LLC. All Rights Reserved.
+ * Copyright 2019 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,21 +15,25 @@
  * =============================================================================
  */
 
+/**
+ * Provides methods and classes that support loading data from
+ * both MNIST and Fashion MNIST datasets.
+ */
+
 import * as tf from '@tensorflow/tfjs';
-import * as assert from 'assert';
 import * as fs from 'fs';
+import * as http from 'http';
 import * as https from 'https';
+import * as path from 'path';
 import * as util from 'util';
 import * as zlib from 'zlib';
 
+const exists = util.promisify(fs.exists);
+const mkdir = util.promisify(fs.mkdir);
 const readFile = util.promisify(fs.readFile);
+const rename = util.promisify(fs.rename);
 
-// MNIST data constants:
-const BASE_URL = 'https://storage.googleapis.com/cvdf-datasets/mnist/';
-const TRAIN_IMAGES_FILE = 'train-images-idx3-ubyte';
-const TRAIN_LABELS_FILE = 'train-labels-idx1-ubyte';
-const TEST_IMAGES_FILE = 't10k-images-idx3-ubyte';
-const TEST_LABELS_FILE = 't10k-labels-idx1-ubyte';
+// Shared specs for the MNIST and Fashion MNIST datasets.
 const IMAGE_HEADER_MAGIC_NUM = 2051;
 const IMAGE_HEADER_BYTES = 16;
 const IMAGE_HEIGHT = 28;
@@ -41,20 +45,35 @@ const LABEL_RECORD_BYTE = 1;
 const LABEL_FLAT_SIZE = 10;
 
 // Downloads a test file only once and returns the buffer for the file.
-async function fetchOnceAndSaveToDiskWithBuffer(filename) {
-  return new Promise(resolve => {
-    const url = `${BASE_URL}${filename}.gz`;
-    if (fs.existsSync(filename)) {
-      resolve(readFile(filename));
+export async function fetchOnceAndSaveToDiskWithBuffer(
+    baseURL, destDir, filename) {
+  // DEBUG
+  console.log(
+       `baseURL=${baseURL}, destDir=${destDir}, filename=${filename}`);
+  return new Promise(async (resolve, reject) => {
+    const url = `${baseURL}${filename}.gz`;
+    const localPath = path.join(destDir, filename);
+    if (await exists(localPath)) {
+      resolve(readFile(localPath));
       return;
     }
     const file = fs.createWriteStream(filename);
     console.log(`  * Downloading from: ${url}`);
-    https.get(url, (response) => {
+    let httpModule;
+    if (url.indexOf('https://') === 0) {
+      httpModule = https;
+    } else if (url.indexOf('http://') === 0) {
+      httpModule =  http;
+    } else {
+      return reject(`Unrecognized protocol in URL: ${url}`);
+    }
+
+    httpModule.get(url, (response) => {
       const unzip = zlib.createGunzip();
       response.pipe(unzip).pipe(file);
-      unzip.on('end', () => {
-        resolve(readFile(filename));
+      unzip.on('end', async () => {
+        await rename(filename, localPath);
+        resolve(readFile(localPath));
       });
     });
   });
@@ -69,16 +88,25 @@ function loadHeaderValues(buffer, headerLength) {
   return headerValues;
 }
 
-async function loadImages(filename) {
-  const buffer = await fetchOnceAndSaveToDiskWithBuffer(filename);
+async function loadImages(baseURL, destDir, filename) {
+  const buffer =
+      await fetchOnceAndSaveToDiskWithBuffer(baseURL, destDir, filename);
 
   const headerBytes = IMAGE_HEADER_BYTES;
   const recordBytes = IMAGE_HEIGHT * IMAGE_WIDTH;
 
   const headerValues = loadHeaderValues(buffer, headerBytes);
-  assert.equal(headerValues[0], IMAGE_HEADER_MAGIC_NUM);
-  assert.equal(headerValues[2], IMAGE_HEIGHT);
-  assert.equal(headerValues[3], IMAGE_WIDTH);
+  tf.util.assert(
+      headerValues[0] === IMAGE_HEADER_MAGIC_NUM,
+      () => `Image file header doesn't match expected magic num.`);
+  tf.util.assert(
+      headerValues[2] === IMAGE_HEIGHT,
+      () => `Value in file header (${headerValues[2]}) doesn't ` +
+      `match the expected image height ${IMAGE_HEIGHT}`);
+  tf.util.assert(
+      headerValues[3] === IMAGE_WIDTH,
+      () => `Value in file header (${headerValues[3]}) doesn't ` +
+      `match the expected image height ${IMAGE_WIDTH}`);
 
   const images = [];
   let index = headerBytes;
@@ -92,18 +120,24 @@ async function loadImages(filename) {
     images.push(array);
   }
 
-  assert.equal(images.length, headerValues[1]);
+  tf.util.assert(
+      images.length === headerValues[1],
+      () => `Actual images length (${images.length} doesn't match ` +
+      `value in header (${headerValues[1]})`);
   return images;
 }
 
-async function loadLabels(filename) {
-  const buffer = await fetchOnceAndSaveToDiskWithBuffer(filename);
+async function loadLabels(baseURL, destDir, filename) {
+  const buffer =
+      await fetchOnceAndSaveToDiskWithBuffer(baseURL, destDir, filename);
 
   const headerBytes = LABEL_HEADER_BYTES;
   const recordBytes = LABEL_RECORD_BYTE;
 
   const headerValues = loadHeaderValues(buffer, headerBytes);
-  assert.equal(headerValues[0], LABEL_HEADER_MAGIC_NUM);
+  tf.util.assert(
+      headerValues[0] === LABEL_HEADER_MAGIC_NUM,
+      () => `Label file header doesn't match expected magic num.`);
 
   const labels = [];
   let index = headerBytes;
@@ -115,12 +149,16 @@ async function loadLabels(filename) {
     labels.push(array);
   }
 
-  assert.equal(labels.length, headerValues[1]);
+  tf.util.assert(
+      labels.length === headerValues[1],
+      () => `Actual labels length (${images.length} doesn't match ` +
+      `value in header (${headerValues[1]})`);
   return labels;
 }
 
 /** Helper class to handle loading training and test data. */
 export class MnistDataset {
+  // MNIST data constants:
   constructor() {
     this.dataset = null;
     this.trainSize = 0;
@@ -129,11 +167,31 @@ export class MnistDataset {
     this.testBatchIndex = 0;
   }
 
+  getBaseUrlAndFilePaths() {
+    return {
+      baseUrl: 'https://storage.googleapis.com/cvdf-datasets/mnist/',
+      destDir: 'data-mnist',
+      trainImages: 'train-images-idx3-ubyte',
+      trainLabels: 'train-labels-idx1-ubyte',
+      testImages: 't10k-images-idx3-ubyte',
+      testLabels: 't10k-labels-idx1-ubyte'
+    }
+  }
+
   /** Loads training and test data. */
   async loadData() {
+    const baseUrlAndFilePaths = this.getBaseUrlAndFilePaths();
+    const baseUrl = baseUrlAndFilePaths.baseUrl;
+    const destDir = baseUrlAndFilePaths.destDir;
+    if (!(await exists(destDir))) {
+      await mkdir(destDir);
+    }
+
     this.dataset = await Promise.all([
-      loadImages(TRAIN_IMAGES_FILE), loadLabels(TRAIN_LABELS_FILE),
-      loadImages(TEST_IMAGES_FILE), loadLabels(TEST_LABELS_FILE)
+      loadImages(baseUrl, destDir, baseUrlAndFilePaths.trainImages),
+      loadLabels(baseUrl, destDir, baseUrlAndFilePaths.trainLabels),
+      loadImages(baseUrl, destDir, baseUrlAndFilePaths.testImages),
+      loadLabels(baseUrl, destDir, baseUrlAndFilePaths.testLabels)
     ]);
     this.trainSize = this.dataset[0].length;
     this.testSize = this.dataset[2].length;
@@ -181,5 +239,18 @@ export class MnistDataset {
       images: tf.tensor4d(images, imagesShape),
       labels: tf.oneHot(tf.tensor1d(labels, 'int32'), LABEL_FLAT_SIZE).toFloat()
     };
+  }
+}
+
+export class FashionMnistDataset extends MnistDataset {
+  getBaseUrlAndFilePaths() {
+    return {
+      baseUrl: 'http://fashion-mnist.s3-website.eu-central-1.amazonaws.com/',
+      destDir: 'data-fashion-mnist',
+      trainImages: 'train-images-idx3-ubyte',
+      trainLabels: 'train-labels-idx1-ubyte',
+      testImages: 't10k-images-idx3-ubyte',
+      testLabels: 't10k-labels-idx1-ubyte'
+    }
   }
 }

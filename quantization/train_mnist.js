@@ -28,6 +28,10 @@ function parseArgs() {
     description: 'TensorFlow.js Quantization Example: Training an MNIST Model',
     addHelp: true
   });
+  parser.addArgument('dataset', {
+    type: 'string',
+    help: 'Name of the dataset ({mnist, fashion-mnist}).'
+  });
   parser.addArgument('--epochs', {
     type: 'int',
     defaultValue: 20,
@@ -64,10 +68,16 @@ async function main() {
     require('@tensorflow/tfjs-node');
   }
 
-  const mnistDataset = new MnistDataset();
-  await mnistDataset.loadData();
-  const {images: trainImages, labels: trainLabels} =
-      mnistDataset.getTrainData();
+  let dataset;
+  if (args.dataset === 'fashion-mnist') {
+    dataset = new FashionMnistDataset();
+  } else if (args.dataset === 'mnist') {
+    dataset = new MnistDataset();
+  } else {
+    throw new Error(`Unrecognized dataset name: ${args.dataset}`);
+  }
+  await dataset.loadData();
+  const {images: trainImages, labels: trainLabels} = dataset.getTrainData();
 
   const model = createModel();
   model.summary();
@@ -78,7 +88,7 @@ async function main() {
     validationSplit: args.validationSplit
   });
 
-  const {images: testImages, labels: testLabels} = mnistDataset.getTestData();
+  const {images: testImages, labels: testLabels} = dataset.getTestData();
   const evalOutput = model.evaluate(testImages, testLabels);
 
   console.log(

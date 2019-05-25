@@ -49,7 +49,7 @@ function parseArgs() {
   });
   parser.addArgument('--modelSavePath', {
     type: 'string',
-    defaultValue: './models/mnist/original',
+    defaultValue: './models/',
     help: 'Path to which the model will be saved after training.'
   });
   parser.addArgument('--gpu', {
@@ -96,12 +96,13 @@ async function main() {
       `  Loss = ${evalOutput[0].dataSync()[0].toFixed(6)}; `+
       `Accuracy = ${evalOutput[1].dataSync()[0].toFixed(6)}`);
 
-  if (args.modelSavePath != null) {
-    if (!fs.existsSync(path.dirname(args.modelSavePath))) {
-      shelljs.mkdir('-p', path.dirname(args.modelSavePath));
+  const modelSavePath = path.join(args.modelSavePath, args.dataset, 'original');
+  if (modelSavePath != null) {
+    if (!fs.existsSync(path.dirname(modelSavePath))) {
+      shelljs.mkdir('-p', path.dirname(modelSavePath));
     }
-    await model.save(`file://${args.modelSavePath}`);
-    console.log(`Saved model to path: ${args.modelSavePath}`);
+    await model.save(`file://${modelSavePath}`);
+    console.log(`Saved model to path: ${modelSavePath}`);
   }
 }
 

@@ -86,21 +86,60 @@ export async function getNormalizedDatasets(
         isLabel: true
       }
     }
-  }).shuffle(count).map(data => {
-    const xs = data.xs;
-    const xsTensor = tf.tensor1d(featureColumns.map(feature =>
-        (xs[feature] - featureMeans[feature]) / featureStddevs[feature]));
-    const ysTensor =
-        tf.tensor1d([(data.ys[labelColumn] - labelMean) / labelStddev]);
-    return {
-      xs: xsTensor,
-      ys: ysTensor
-    };
-  }).batch(batchSize);
+  });
+
+  const featureValues = [];
+  const labelValues = [];
+  const indices = [];
+  const iterator = await dataset.iterator();
+  for (let i = 0; i < count; ++i) {
+    const {value, done} = await iterator.next();
+    if (done) {
+      break;
+    }
+    featureColumns.map(feature => {
+      featureValues.push(
+          (value.xs[feature] - featureMeans[feature]) /
+          featureStddevs[feature]);
+    });
+    labelValues.push((value.ys[labelColumn] - labelMean) / labelStddev);
+    indices.push(i);
+  }
+
+  const xs = tf.tensor2d(featureValues, [count, featureColumns.length]);
+  xs.print();
+  const ys = tf.tensor2d(labelValues, [count, 1]);
+  ys.print();
+
+  Math.seedrandom('1337');
+  tf.util.shuffle(indices);
+  console.log(indices);
 
   const numTrain = Math.round(count * 0.7);
-  const numVal = count - numTrain;
-  const traintDataset = dataset.take(numTrain);
-  const valDataset = dataset.take(numVal);
-  return {traintDataset, valDataset};
+  // const numVal = count - numTrain;
+  const trainXs = xs.gather(indices.slice(0, numTrain));
+  const trainYs = ys.gather(indices.slice(0, numTrain));
+  const valXs = xs.gather(indices.slice(numTrain));
+  const valYs = ys.gather(indices.slice(numTrain));
+
+  // console.log(trainXs.shape);
+  return {trainXs, trainYs, valXs, valYs};
+
+  // .shuffle(count).map(data => {
+  //   const xs = data.xs;
+  //   const xsTensor = tf.tensor1d(featureColumns.map(feature =>
+  //       (xs[feature] - featureMeans[feature]) / featureStddevs[feature]));
+  //   const ysTensor =
+  //       tf.tensor1d([(data.ys[labelColumn] - labelMean) / labelStddev]);
+  //   return {
+  //     xs: xsTensor,
+  //     ys: ysTensor
+  //   };
+  // }).batch(batchSize);
+
+  // const numTrain = Math.round(count * 0.7);
+  // const numVal = count - numTrain;
+  // const traintDataset = dataset.take(numTrain);
+  // const valDataset = dataset.take(numVal);
+  // return {traintDataset, valDataset};
 }

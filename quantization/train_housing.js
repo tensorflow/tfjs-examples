@@ -18,26 +18,38 @@
 let tf;
 
 // TODO(cais): Fix.
-tf = require('@tensorflow/tfjs-node');
+tf = require('@tensorflow/tfjs-node-gpu');  // TODO(cais): Parameterize.
 
 import {featureColumns, getDatasetStats, getNormalizedDatasets} from './data_housing';
 
 export function createModel() {
   const model = tf.sequential();
   model.add(tf.layers.dense({
-    units: 8,
+    units: 80,
     activation: 'relu',
     inputShape: [featureColumns.length]
   }));
+  model.add(tf.layers.dropout({rate: 0.2}));
   model.add(tf.layers.dense({
-    units: 8,
+    units: 120,
     activation: 'relu',
   }));
+  model.add(tf.layers.dropout({rate: 0.1}));
+  model.add(tf.layers.dense({
+    units: 20,
+    activation: 'relu',
+  }));
+  model.add(tf.layers.dropout({rate: 0.1}));
+  model.add(tf.layers.dense({
+    units: 10,
+    activation: 'relu',
+  }));
+  model.add(tf.layers.dropout({rate: 0.1}));
   model.add(tf.layers.dense({units: 1}));
-  const optimizer = tf.train.sgd(0.02);
+  // const optimizer = tf.train.rmsprop(1e-3);
   model.compile({
     loss: 'meanAbsoluteError',
-    optimizer
+    optimizer: 'adam'
   });
   return model;
 }
@@ -45,27 +57,17 @@ export function createModel() {
 async function main() {
   const {count, featureMeans, featureStddevs, labelMean, labelStddev} =
       await getDatasetStats();
-  const batchSize = 32;
-  const {traintDataset, valDataset} = await getNormalizedDatasets(
+  const batchSize = 128;
+  const {trainXs, trainYs, valXs, valYs} = await getNormalizedDatasets(
       count, featureMeans, featureStddevs, labelMean, labelStddev, batchSize);
 
   const model = createModel();
   model.summary();
 
-  await model.fitDataset(traintDataset,  {
-    epochs: 10,
-    validationData: valDataset
+  await model.fit(trainXs, trainYs,  {
+    epochs: 500,
+    validationData: [valXs, valYs]
   });
-  // console.log(normalizedDataset);  // DEBUG
-  // const iterator = await normalizedDataset.iterator();
-  // const item = await iterator.next();
-  // item.value.ys.print();
-
-  // console.log(item.value.xs);
-  // console.log(item.value.ys);
-  // const moments = tf.moments(item.value.xs);
-  // moments.mean.print();
-  // moments.variance.print();
 }
 
 if (require.main === module) {

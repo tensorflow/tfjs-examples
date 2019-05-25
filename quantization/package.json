@@ -11,6 +11,7 @@
   "scripts": {
     "eval-mnist": "babel-node eval_mnist.js",
     "train-autompg": "babel-node train_autompg.js",
+    "train-housing": "babel-node traing_housing.js",
     "train-mnist": "babel-node train_mnist.js",
     "quantize-and-evaluate-mnist": "./quantize_evaluate_mnist.sh"
   },

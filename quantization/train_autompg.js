@@ -17,7 +17,7 @@
 
 let tf;
 
-tf = require('@tensorflow/tfjs-node');
+tf = require('@tensorflow/tfjs-node-gpu');  // TODO(cais): Parameterize.
 
 const AUTO_MPG_CSV_URL = 'https://raw.githubusercontent.com/plotly/datasets/master/auto-mpg.csv';
 

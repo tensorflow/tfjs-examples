@@ -28,9 +28,10 @@ fi
 
 # Make sure model is available.
 MODEL_ROOT="models/${MODEL_NAME}"
-MODEL_PATH="${MODEL_ROOT}/original/model.json"
-if [[ ! -f "${MODEL_PATH}" ]]; then
-  echo "ERROR: Cannot find model JSON file at ${MODEL_PATH}"
+MODEL_PATH="${MODEL_ROOT}/original"
+MODEL_JSON_PATH="${MODEL_PATH}/model.json"
+if [[ ! -f "${MODEL_JSON_PATH}" ]]; then
+  echo "ERROR: Cannot find model JSON file at ${MODEL_JSON_PATH}"
   echo "       Make sure you train and save a model with the"
   echo "       following command first: yarn train"
   exit 1
@@ -62,7 +63,7 @@ tensorflowjs_converter \
     --input_format tfjs_layers_model \
     --output_format tfjs_layers_model \
     --quantization_bytes 2 \
-    "${MODEL_PATH}" "${MODEL_PATH_16BIT}"
+    "${MODEL_JSON_PATH}" "${MODEL_PATH_16BIT}"
 
 # Perform 8-bit quantization.
 MODEL_PATH_8BIT="${MODEL_ROOT}/quantized-8bit"
@@ -71,9 +72,12 @@ tensorflowjs_converter \
     --input_format tfjs_layers_model \
     --output_format tfjs_layers_model \
     --quantization_bytes 1 \
-    "${MODEL_PATH}" "${MODEL_PATH_8BIT}"
+    "${MODEL_JSON_PATH}" "${MODEL_PATH_8BIT}"
 
 yarn
+
+# Evaluate accuracy under no quantization (i.e., full 32-bit weight precision).
+yarn "eval-${MODEL_NAME}" "${MODEL_JSON_PATH}"
 
 # Evaluate accuracy under 16-bit quantization.
 yarn "eval-${MODEL_NAME}" "${MODEL_PATH_16BIT}/model.json"

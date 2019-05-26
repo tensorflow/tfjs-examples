@@ -9,12 +9,14 @@
     "node": ">=8.11.0"
   },
   "scripts": {
+    "eval-fashion-mnist": "babel-node eval_mnist.js fashion-mnist",
     "eval-housing": "babel-node eval_housing.js",
-    "eval-mnist": "babel-node eval_mnist.js",
+    "eval-mnist": "babel-node eval_mnist.js mnist",
     "train-autompg": "babel-node train_autompg.js",
     "train-fashion-mnist": "babel-node train_mnist.js fashion-mnist",
     "train-housing": "babel-node train_housing.js",
     "train-mnist": "babel-node train_mnist.js mnist",
+    "quantize-and-evaluate-fashion-mnist": "./quantize_evaluate.sh fashion-mnist",
     "quantize-and-evaluate-housing": "./quantize_evaluate.sh housing",
     "quantize-and-evaluate-mnist": "./quantize_evaluate.sh mnist"
   },

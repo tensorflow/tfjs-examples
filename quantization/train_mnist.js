@@ -20,8 +20,13 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as shelljs from 'shelljs';
 
+// tf will be imported dynamically depending on whether the flag `--gpu` is
+// set.
+let tf;
+
 import {FashionMnistDataset, MnistDataset} from './data_mnist';
-import {createModel} from './model_mnist';
+import {createModel as createMnistModel} from './model_mnist';
+import {createModel as createFashionMnistModel} from './model_fashion_mnist';
 
 function parseArgs() {
   const parser = new argparse.ArgumentParser({
@@ -34,7 +39,7 @@ function parseArgs() {
   });
   parser.addArgument('--epochs', {
     type: 'int',
-    defaultValue: 20,
+    defaultValue: 100,
     help: 'Number of epochs to train the model for.'
   });
   parser.addArgument('--batchSize', {
@@ -63,29 +68,32 @@ function parseArgs() {
 async function main() {
   const args = parseArgs();
   if (args.gpu) {
-    require('@tensorflow/tfjs-node-gpu');
+    tf = require('@tensorflow/tfjs-node-gpu');
   } else {
-    require('@tensorflow/tfjs-node');
+    tf = require('@tensorflow/tfjs-node');
   }
 
   let dataset;
+  let model;
   if (args.dataset === 'fashion-mnist') {
     dataset = new FashionMnistDataset();
+    model = createFashionMnistModel();
   } else if (args.dataset === 'mnist') {
     dataset = new MnistDataset();
+    model = createMnistModel();
   } else {
     throw new Error(`Unrecognized dataset name: ${args.dataset}`);
   }
   await dataset.loadData();
   const {images: trainImages, labels: trainLabels} = dataset.getTrainData();
 
-  const model = createModel();
   model.summary();
 
   await model.fit(trainImages, trainLabels, {
     epochs: args.epochs,
     batchSize: args.batchSize,
-    validationSplit: args.validationSplit
+    validationSplit: args.validationSplit,
+    callbacks: tf.callbacks.earlyStopping({patience: 20})
   });
 
   const {images: testImages, labels: testLabels} = dataset.getTestData();

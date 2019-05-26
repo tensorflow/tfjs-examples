@@ -47,9 +47,7 @@ const LABEL_FLAT_SIZE = 10;
 // Downloads a test file only once and returns the buffer for the file.
 export async function fetchOnceAndSaveToDiskWithBuffer(
     baseURL, destDir, filename) {
-  // DEBUG
-  console.log(
-       `baseURL=${baseURL}, destDir=${destDir}, filename=${filename}`);
+
   return new Promise(async (resolve, reject) => {
     const url = `${baseURL}${filename}.gz`;
     const localPath = path.join(destDir, filename);

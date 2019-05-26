@@ -17,7 +17,7 @@
 
 import * as argparse from 'argparse';
 
-import {MnistDataset} from './data_mnist';
+import {FashionMnistDataset, MnistDataset} from './data_mnist';
 import {compileModel} from './model_mnist';
 
 // The `tf` module will be loaded dynamically depending on whether
@@ -29,6 +29,10 @@ function parseArgs() {
     description:
         'TensorFlow.js Quantization Example: Evaluating an MNIST Model',
     addHelp: true
+  });
+  parser.addArgument('dataset', {
+    type: 'string',
+    help: 'Name of the dataset ({mnist, fashion-mnist}).'
   });
   parser.addArgument('modelSavePath', {
     type: 'string',
@@ -55,9 +59,16 @@ async function main() {
     tf = require('@tensorflow/tfjs-node');
   }
 
-  const mnistDataset = new MnistDataset();
-  await mnistDataset.loadData();
-  const {images: testImages, labels: testLabels} = mnistDataset.getTestData();
+  let dataset;
+  if (args.dataset === 'fashion-mnist') {
+    dataset = new FashionMnistDataset();
+  } else if (args.dataset === 'mnist') {
+    dataset = new MnistDataset();
+  } else {
+    throw new Error(`Unrecognized dataset name: ${args.dataset}`);
+  }
+  await dataset.loadData();
+  const {images: testImages, labels: testLabels} = dataset.getTestData();
 
   console.log(`Loading model from ${args.modelSavePath}...`);
   const model = await tf.loadLayersModel(`file://${args.modelSavePath}`);

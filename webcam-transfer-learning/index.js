@@ -157,7 +157,11 @@ async function predict() {
  * Returns a batched image (1-element batch) of shape [1, w, h, c].
  */
 async function getImage() {
-  return (await webcam.capture()).expandDims(0).toFloat().div(127).sub(1);
+  const img = await webcam.capture();
+  const processedImg =
+      tf.tidy(() => img.expandDims(0).toFloat().div(127).sub(1));
+  img.dispose();
+  return processedImg;
 }
 
 document.getElementById('train').addEventListener('click', async () => {

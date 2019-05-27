@@ -16,7 +16,11 @@
  */
 
 import * as argparse from 'argparse';
+import * as fs from 'fs';
 import * as jimp from 'jimp';
+import * as path from 'path';
+
+import {IMAGENET_CLASSES} from './imagenet_classes';
 
 // The `tf` module will be loaded dynamically depending on whether
 // `--gpu` is specified in the command-line flags.
@@ -32,9 +36,9 @@ function parseArgs() {
     type: 'string',
     help: 'Path at which the model to be evaluated is saved.'
   });
-  parser.addArgument('imageFilePath', {  // TODO(cais): Change to image dir path.
+  parser.addArgument('imageDir', {
     type: 'string',
-    help: 'Path at which the image for inference is stored.'
+    help: 'Path at the directory under which the test images are stored.'
   });
   parser.addArgument('--gpu', {
     action: 'storeTrue',
@@ -58,8 +62,8 @@ async function readImageTensorFromFile(filePath, height, width) {
         buffer.set(image.bitmap.data[index + 1], 0, y, x, 1);
         buffer.set(image.bitmap.data[index + 2], 0, y, x, 2);
       });
-      resolve(tf.tidy(
-          () => tf.image.resizeBilinear(buffer.toTensor(), [height, width])));
+      resolve(tf.tidy(() => tf.image.resizeBilinear(
+          buffer.toTensor(), [height, width]).div(255)));
       }
     });
   });
@@ -80,15 +84,48 @@ async function main() {
   const imageH = model.inputs[0].shape[2];
   const imageW = model.inputs[0].shape[2];
   console.log(`imageH = ${imageH}; imageW = ${imageW}`);
-  let imageTensor =
-      await readImageTensorFromFile(args.imageFilePath, imageH, imageW);
-//   imageTensor.print();  // DEBUG
-  imageTensor = imageTensor.div(255);
-  // TODO(cais): Put normalization in readImageTensorFromFile();
+
+  const dirContent = fs.readdirSync(args.imageDir);
+  dirContent.sort();
+  const imageTensors = [];
+  const truthLabels = [];
+  for (const fileName of dirContent) {
+    const truthLabel = fileName.split('.')[0].split('_')[2];
+    truthLabels.push(truthLabel);
+    const imageFilePath = path.join(args.imageDir, fileName);
+    const imageTensor =
+        await readImageTensorFromFile(imageFilePath, imageH, imageW);
+    imageTensors.push(imageTensor);
+  }
+
+  const stackedImageTensor = tf.concat(imageTensors, 0);
+  console.log(stackedImageTensor.shape);
+
+  console.log('Calling model.predict()...');
+  const t0 = new Date().getTime();
+  const top1Indices = tf.tidy(() => model.predict(stackedImageTensor, {
+    batchSize: 64
+  }).argMax(-1).arraySync());
+  console.log(`model.predict() took ${(new Date().getTime() - t0).toFixed(2)} ms`);
+
+  let nCorrect = 0;
+  top1Indices.forEach((top1Index, i) => {
+    const top1Label = IMAGENET_CLASSES[top1Index];
+    if (top1Label.indexOf(truthLabels[i]) !== -1) {
+      nCorrect++;
+    }
+  });
+  console.log(
+      `#correct = ${nCorrect}; #total = ${truthLabels.length}; ` +
+      `accuracy = ${(nCorrect / truthLabels.length).toFixed(3)}`);
+  tf.dispose([imageTensors, stackedImageTensor])
+
+  // let imageTensor =
+      // await readImageTensorFromFile(args.imageFilePath, imageH, imageW);
 //   imageTensor.min().print();
 //   imageTensor.max().print();
 //   console.log(imageTensor.shape);  // DEBUG
-  model.predict(imageTensor).argMax(-1).print();
+  // model.predict(imageTensor).argMax(-1).print();
   // TODO(cais): tidy().
 
 //   console.log(`Performing prediction...`);

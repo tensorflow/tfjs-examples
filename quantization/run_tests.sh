@@ -28,6 +28,12 @@ if [[ -d "models" ]]; then
   exit 1
 fi
 
+if [[ -z "$(which pip)" ]]; then
+  echo "pip is not on path. Attempting to install it..."
+  apt-get update
+  apt-get install -y python-pip
+fi
+
 yarn
 
 # Call housing model training script.
@@ -70,3 +76,6 @@ if [[ ! -f "${MNIST_MODEL_JSON_PATH}" ]]; then
 fi
 
 yarn quantize-and-evaluate-mnist
+
+# Clean up models/ directory
+rm -rf models/

@@ -19,6 +19,7 @@ import * as argparse from 'argparse';
 import * as fs from 'fs';
 import * as jimp from 'jimp';
 import * as path from 'path';
+const ProgressBar = require('progress');
 
 import {IMAGENET_CLASSES} from './imagenet_classes';
 
@@ -87,6 +88,13 @@ async function main() {
 
   const dirContent = fs.readdirSync(args.imageDir);
   dirContent.sort();
+  const numImages = dirContent.length;
+  console.log(`Reading ${numImages} images...`);
+  const progressBar = new ProgressBar('[:bar]', {
+    total: numImages,
+    width: 80,
+    head: '>'
+  });
   const imageTensors = [];
   const truthLabels = [];
   for (const fileName of dirContent) {
@@ -96,47 +104,41 @@ async function main() {
     const imageTensor =
         await readImageTensorFromFile(imageFilePath, imageH, imageW);
     imageTensors.push(imageTensor);
+    progressBar.tick();
   }
 
   const stackedImageTensor = tf.concat(imageTensors, 0);
-  console.log(stackedImageTensor.shape);
-
   console.log('Calling model.predict()...');
   const t0 = new Date().getTime();
-  const top1Indices = tf.tidy(() => model.predict(stackedImageTensor, {
-    batchSize: 64
-  }).argMax(-1).arraySync());
+  const {top1Indices, top5Indices} = tf.tidy(() => {
+    const probs = model.predict(stackedImageTensor, {batchSize: 64});
+    return {
+      top1Indices: probs.argMax(-1).arraySync(),
+      top5Indices: probs.topk(5).indices.arraySync()
+    };
+  });
   console.log(`model.predict() took ${(new Date().getTime() - t0).toFixed(2)} ms`);
 
-  let nCorrect = 0;
+  let numCorrectTop1 = 0;
+  let numCorrectTop5 = 0;
   top1Indices.forEach((top1Index, i) => {
-    const top1Label = IMAGENET_CLASSES[top1Index];
-    if (top1Label.indexOf(truthLabels[i]) !== -1) {
-      nCorrect++;
+    const truthLabel = truthLabels[i];
+    if (IMAGENET_CLASSES[top1Index].indexOf(truthLabel) !== -1) {
+      numCorrectTop1++;
+    }
+    for (let k = 0; k < 5; ++k) {
+      if (IMAGENET_CLASSES[top5Indices[i][k]].indexOf(truthLabel) !== -1) {
+        numCorrectTop5++;
+        break;
+      }
     }
   });
   console.log(
-      `#correct = ${nCorrect}; #total = ${truthLabels.length}; ` +
-      `accuracy = ${(nCorrect / truthLabels.length).toFixed(3)}`);
-  tf.dispose([imageTensors, stackedImageTensor])
-
-  // let imageTensor =
-      // await readImageTensorFromFile(args.imageFilePath, imageH, imageW);
-//   imageTensor.min().print();
-//   imageTensor.max().print();
-//   console.log(imageTensor.shape);  // DEBUG
-  // model.predict(imageTensor).argMax(-1).print();
-  // TODO(cais): tidy().
-
-//   console.log(`Performing prediction...`);
-//   const t0 = tf.util.now();
-//   const evalOutput = model.evaluate(testImages, testLabels);
-//   const t1 = tf.util.now();
-//   console.log(`\nEvaluation took ${(t1 - t0).toFixed(2)} ms.`);
-//   console.log(
-//       `\nEvaluation result:\n` +
-//       `  Loss = ${evalOutput[0].dataSync()[0].toFixed(6)}; `+
-//       `Accuracy = ${evalOutput[1].dataSync()[0].toFixed(6)}`);
+      `#total = ${numImages}; #correct(top-1) = ${numCorrectTop1}; ` +
+      `accuracy(top-1) = ${(numCorrectTop1 / numImages).toFixed(3)}; ` +
+      `#correct(top-5) = ${numCorrectTop5}; ` +
+      `accuracy(top-5) = ${(numCorrectTop5 / numImages).toFixed(3)}`);
+  tf.dispose([imageTensors, stackedImageTensor]);
 }
 
 if (require.main === module) {

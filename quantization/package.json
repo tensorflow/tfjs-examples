@@ -31,6 +31,7 @@
     "babel-preset-env": "~1.6.1",
     "clang-format": "~1.2.2",
     "jimp": "^0.6.4",
+    "progress": "^2.0.3",
     "shelljs": "^0.8.3"
   }
 }

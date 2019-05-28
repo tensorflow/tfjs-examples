@@ -16,12 +16,11 @@ This demo on quantization consists of three examples:
    [ImageNet](http://www.image-net.org/) dataset. This subset is based on the
    sampling done by https://github.com/ajschumacher/imagen.
 
-In the first three cases, quantizing the weights to 16 or 8 bits does not
-have any significant effect on the accuracy. In the MobileNetV2 case, however,
+In the first three demos, quantizing the weights to 16 or 8 bits does not
+have any significant effect on the accuracy. In the MobileNetV2 demo, however,
 quantizing the weights to 8 bits leads to a significant deterioration in
-accuracy, as measured by the top-1 and top-5 accuracies.
-
-Exapmle results are listed in the table below:
+accuracy, as measured by the top-1 and top-5 accuracies. See example results
+in the table below:
 
 | Dataset and Mdoel      | Original (no-quantization) | 16-bit quantization | 8-bit quantization |
 | ---------------------- | -------------------------- | ------------------- | ------------------ |

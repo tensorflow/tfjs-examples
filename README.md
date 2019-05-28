@@ -91,7 +91,7 @@ to another project.
     <td></td>
     <td>Building a tf.data.Dataset using a generator</td>
     <td>Regression</td>
-    <td>Multilayer perceptron</td>
+    <td>Browser</td>
     <td>Browser</td>
     <td>Layers</td>
     <td></td>
@@ -248,6 +248,17 @@ to another project.
     <td>Browser</td>
     <td>Browser</td>
     <td>Core (Ops)</td>
+    <td></td>
+  </tr>
+  <tr>
+    <td><a href="./quantization">quantization</a></td>
+    <td></td>
+    <td>Various</td>
+    <td>Demonstrates the effect of post-training weight quantization</td>
+    <td>Various</td>
+    <td>Node.js</td>
+    <td>Node.js</td>
+    <td>Layers</td>
     <td></td>
   </tr>
   <tr>

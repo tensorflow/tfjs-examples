@@ -18,7 +18,7 @@
 import * as tf from '@tensorflow/tfjs';
 
 // Convert an image vector (length 784) representing an MNIST image into
-// human-friendly a text representation.
+// a human-friendly text representation.
 //
 // Args:
 //   imageVector: An Array of Numbers of length `imageSize * imageSize`.

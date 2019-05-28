@@ -18,7 +18,7 @@
 import * as tf from '@tensorflow/tfjs';
 import * as loader from './loader';
 import * as ui from './ui';
-
+import {OOV_INDEX, padSequences} from './sequence_utils';
 
 const HOSTED_URLS = {
   model:
@@ -28,8 +28,8 @@ const HOSTED_URLS = {
 };
 
 const LOCAL_URLS = {
-  model: 'http://localhost:1235/resources/model.json',
-  metadata: 'http://localhost:1235/resources/metadata.json'
+  model: './resources/model.json',
+  metadata: './resources/metadata.json'
 };
 
 class SentimentPredictor {
@@ -52,23 +52,27 @@ class SentimentPredictor {
     console.log('indexFrom = ' + this.indexFrom);
     console.log('maxLen = ' + this.maxLen);
 
-    this.wordIndex = sentimentMetadata['word_index']
+    this.wordIndex = sentimentMetadata['word_index'];
+    this.vocabularySize = sentimentMetadata['vocabulary_size'];
+    console.log('vocabularySize = ', this.vocabularySize);
   }
 
   predict(text) {
     // Convert to lower case and remove all punctuations.
     const inputText =
         text.trim().toLowerCase().replace(/(\.|\,|\!)/g, '').split(' ');
-    // Look up word indices.
-    const inputBuffer = tf.buffer([1, this.maxLen], 'float32');
-    for (let i = 0; i < inputText.length; ++i) {
-      // TODO(cais): Deal with OOV words.
-      const word = inputText[i];
-      inputBuffer.set(this.wordIndex[word] + this.indexFrom, 0, i);
-    }
-    const input = inputBuffer.toTensor();
+    // Convert the words to a sequence of word indices.
+    const sequence = inputText.map(word => {
+      let wordIndex = this.wordIndex[word] + this.indexFrom;
+      if (wordIndex > this.vocabularySize) {
+        wordIndex = OOV_INDEX;
+      }
+      return wordIndex;
+    });
+    // Perform truncation and padding.
+    const paddedSequence = padSequences([sequence], this.maxLen);
+    const input = tf.tensor2d(paddedSequence, [1, this.maxLen]);
 
-    ui.status('Running inference');
     const beginMs = performance.now();
     const predictOut = this.model.predict(input);
     const score = predictOut.dataSync()[0];
@@ -78,7 +82,6 @@ class SentimentPredictor {
     return {score: score, elapsed: (endMs - beginMs)};
   }
 };
-
 
 /**
  * Loads the pretrained model and metadata, and registers the predict

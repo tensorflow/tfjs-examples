@@ -32,7 +32,7 @@ import argparse
 import json
 import os
 
-import keras
+import tensorflow as tf
 import tensorflowjs as tfjs
 
 
@@ -50,7 +50,7 @@ def get_word_index(reverse=False):
   Returns:
     The word index as a `dict`.
   """
-  word_index = keras.datasets.imdb.get_word_index()
+  word_index = tf.keras.datasets.imdb.get_word_index()
   if reverse:
     word_index = dict((word_index[key], key) for key in word_index)
   return word_index
@@ -85,10 +85,10 @@ def get_imdb_data(vocabulary_size, max_len):
     y_test: Same as `y_train`, but for test.
   """
   print("Getting IMDB data with vocabulary_size %d" % vocabulary_size)
-  (x_train, y_train), (x_test, y_test) = keras.datasets.imdb.load_data(
+  (x_train, y_train), (x_test, y_test) = tf.keras.datasets.imdb.load_data(
       num_words=vocabulary_size)
-  x_train = keras.preprocessing.sequence.pad_sequences(x_train, maxlen=max_len)
-  x_test = keras.preprocessing.sequence.pad_sequences(x_test, maxlen=max_len)
+  x_train = tf.keras.preprocessing.sequence.pad_sequences(x_train, maxlen=max_len)
+  x_test = tf.keras.preprocessing.sequence.pad_sequences(x_test, maxlen=max_len)
   return x_train, y_train, x_test, y_test
 
 
@@ -122,38 +122,30 @@ def train_model(model_type,
     ValueError: on invalid model type.
   """
 
-  model = keras.Sequential()
-  model.add(keras.layers.Embedding(vocabulary_size, embedding_size))
+  model = tf.keras.Sequential()
+  model.add(tf.keras.layers.Embedding(vocabulary_size, embedding_size))
   if model_type == 'bidirectional_lstm':
     # TODO(cais): Uncomment the following once bug b/74429960 is fixed.
-    # model.add(keras.layers.Embedding(
+    # model.add(tf.keras.layers.Embedding(
     #     vocabulary_size, 128, input_length=maxlen))
-    # model.add(keras.layers.Bidirectional(
-    #     keras.layers.LSTM(64,
-    #                       kernel_initializer='glorot_normal',
-    #                       recurrent_initializer ='glorot_normal')))
-    # model.add(keras.layers.Dropout(0.5))
+    # model.add(tf.keras.layers.Bidirectional(
+    #     tf.keras.layers.LSTM(64))
+    # model.add(tf.keras.layers.Dropout(0.5))
     raise NotImplementedError()
   elif model_type == 'cnn':
-    model.add(keras.layers.Dropout(0.2))
-    model.add(keras.layers.Conv1D(250,
+    model.add(tf.keras.layers.Dropout(0.2))
+    model.add(tf.keras.layers.Conv1D(250,
                                   3,
                                   padding='valid',
                                   activation='relu',
                                   strides=1))
-    model.add(keras.layers.GlobalMaxPooling1D())
-    model.add(keras.layers.Dense(250, activation='relu'))
+    model.add(tf.keras.layers.GlobalMaxPooling1D())
+    model.add(tf.keras.layers.Dense(250, activation='relu'))
   elif model_type == 'lstm':
-    model.add(
-        keras.layers.LSTM(
-            128,
-            kernel_initializer='glorot_normal',
-            recurrent_initializer='glorot_normal'))
-    # TODO(cais): Remove glorot_normal and use the default orthogonal once
-    #   SVD is available.
+    model.add(tf.keras.layers.LSTM(128))
   else:
     raise ValueError("Invalid model type: '%s'" % model_type)
-  model.add(keras.layers.Dense(1, activation='sigmoid'))
+  model.add(tf.keras.layers.Dense(1, activation='sigmoid'))
 
   model.compile('adam', 'binary_crossentropy', metrics=['accuracy'])
   model.fit(x_train, y_train,
@@ -210,7 +202,7 @@ def main():
   tfjs.converters.save_keras_model(model, FLAGS.artifacts_dir)
   print('\nSaved model artifacts in directory: %s' % FLAGS.artifacts_dir)
 
-
+ 
 if __name__ == '__main__':
   parser = argparse.ArgumentParser('IMDB sentiment classification model')
   parser.add_argument(

@@ -35,7 +35,7 @@ are too many training examples generated. In the meantime, having a large
 number of training examples benefits the accuracy of the model after
 training. The default number of examples is 2000. You can adjust the number
 of examples by using the `--numExamples` flag of the `yarn train` command.
-For example, the hosted model is trained with the 10000 examples, using
+For example, the hosted model is trained with the 20000 examples, using
 the command line:
 
 ```sh
@@ -52,18 +52,51 @@ See `train.js` for other adjustable parameters.
 Note that by default, the model is trained using the CPU version of tfjs-node.
 If you machine is equipped with a CUDA(R) GPU, you may switch to using
 tfjs-node-gpu, which will significantly shorten the training time. Specifically,
-in `package.json`, change the dependency `tfjs-node` to `tfjs-node-gpu`. Then,
-in `train.js`, change the line 
+add the `--gpu` flag to the command above, i.e.,
 
-```js
-require('@tensorflow/tfjs-node');
+```sh
+yarn train --gpu \
+    --numExamples 20000 \
+    --initialTransferEpochs 100 \
+    --fineTuningEpochs 200
 ```
 
-to
+[See this example live!](https://storage.googleapis.com/tfjs-examples/simple-object-detection/dist/index.html)
 
-```js
-require('@tensorflow/tfjs-node-gpu');
+### Monitoring model training with TensorBoard
+
+The Node.js-based training script allows you to log the loss values to
+[TensorBoard](https://www.tensorflow.org/guide/summaries_and_tensorboard).
+Compared to printing loss values to the console, which the
+training script performs by default, logging to tensorboard has the following
+advantanges:
+
+ 1. Persistence of the loss values, so you can have a copy of the training
+   history available even if the system crashes in the middle of the training
+   for some reason, while logs in consoles are more ephemeral.
+2. Visualizing the loss values as curves makes the trends easier to see (e.g.,
+   see the screenshot below).
+
+To do this in this example, add the flag `--logDir` to the `yarn train`
+command, followed by the directory to which you want the logs to
+be written, e.g.,
+
+ ```sh
+yarn train
+    --numExamples 20000 \
+    --initialTransferEpochs 100 \
+    --fineTuningEpochs 200 \
+    --logDir /tmp/simple-object-detection-logs
 ```
 
-TODO(cais): Add the link below.
-[See this example live!](./README.md)
+ Then install tensorboard and start it by pointing it to the log directory:
+
+ ```sh
+# Skip this step if you have already installed tensorboard.
+pip install tensorboard
+ tensorboard --logdir /tmp/simple-object-detection-logs
+```
+
+ tensorboard will print an HTTP URL in the terminal. Open your browser and
+navigate to the URL to view the loss curves in the Scalar dashboard of
+TensorBoard.

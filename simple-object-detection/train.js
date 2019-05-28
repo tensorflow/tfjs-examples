@@ -22,18 +22,6 @@ const argparse = require('argparse');
 const canvas = require('canvas');
 const tf = require('@tensorflow/tfjs');
 const synthesizer = require('./synthetic_images');
-const fetch = require('node-fetch');
-
-// To train the model using CUDA/CuDNN,
-//   1) Make sure you have a CUDA-enabled GPU on your system.
-//   2) Install the necessary NVIDIA driver, CUDA toolkit and CuDNN library.
-//   3) Change the "@tensorflow/tfjs-node" dependency to
-//      "@tensorflow/tfjs-node-gpu" in package.json.
-//   4) Change the following line to:
-//      require('@tensorflow/tfjs-node-gpu');
-require('@tensorflow/tfjs-node');
-
-global.fetch = fetch;
 
 const CANVAS_SIZE = 224;  // Matches the input size of MobileNet.
 
@@ -47,7 +35,7 @@ const topLayerName =
 // Used to scale the first column (0-1 shape indicator) of `yTrue`
 // in order to ensure balanced contributions to the final loss value
 // from shape and bounding-box predictions.
-const LABEL_MULTIPLIER = tf.tensor1d([CANVAS_SIZE, 1, 1, 1, 1]);
+const LABEL_MULTIPLIER = [CANVAS_SIZE, 1, 1, 1, 1];
 
 /**
  * Custom loss function for object detection.
@@ -86,7 +74,8 @@ function customLossFunction(yTrue, yPred) {
  * @return {tf.Model} The truncated MobileNet, with all layers frozen.
  */
 async function loadTruncatedBase() {
-  const mobilenet = await tf.loadModel(
+  // TODO(cais): Add unit test.
+  const mobilenet = await tf.loadLayersModel(
       'https://storage.googleapis.com/tfjs-models/tfjs/mobilenet_v1_0.25_224/model.json');
 
   // Return a model that outputs an internal activation.
@@ -155,6 +144,10 @@ async function buildObjectDetectionModel() {
   const numLines = 10;
 
   const parser = new argparse.ArgumentParser();
+  parser.addArgument('--gpu', {
+    action: 'storeTrue',
+    help: 'Use tfjs-node-gpu for training (required CUDA and CuDNN)'
+  });
   parser.addArgument(
       '--numExamples',
       {type: 'int', defaultValue: 2000, help: 'Number of training exapmles'});
@@ -179,7 +172,27 @@ async function buildObjectDetectionModel() {
     defaultValue: 100,
     help: 'Number of training epochs in the fine-tuning (i.e., 2nd) phase'
   });
+  parser.addArgument('--logDir', {
+    type: 'string',
+    help: 'Optional tensorboard log directory, to which the loss ' +
+    'values will be logged during model training.'
+  });
+  parser.addArgument('--logUpdateFreq', {
+    type: 'string',
+    defaultValue: 'batch',
+    optionStrings: ['batch', 'epoch'],
+    help: 'Frequency at which the loss will be logged to tensorboard.'
+  });
   const args = parser.parseArgs();
+
+  let tfn;
+  if (args.gpu) {
+    console.log('Training using GPU.');
+    tfn = require('@tensorflow/tfjs-node-gpu');
+  } else {
+    console.log('Training using CPU.');
+    tfn = require('@tensorflow/tfjs-node');
+  }
 
   const modelSaveURL = 'file://./dist/object_detection_model';
 
@@ -200,7 +213,10 @@ async function buildObjectDetectionModel() {
   await model.fit(images, targets, {
     epochs: args.initialTransferEpochs,
     batchSize: args.batchSize,
-    validationSplit: args.validationSplit
+    validationSplit: args.validationSplit,
+    callbacks: args.logDir == null ? null : tfn.node.tensorBoard(args.logDir, {
+      updateFreq: args.logUpdateFreq
+    })
   });
 
   // Fine-tuning phase of transfer learning.
@@ -219,7 +235,10 @@ async function buildObjectDetectionModel() {
   await model.fit(images, targets, {
     epochs: args.fineTuningEpochs,
     batchSize: args.batchSize / 2,
-    validationSplit: args.validationSplit
+    validationSplit: args.validationSplit,
+    callbacks: args.logDir == null ? null : tfn.node.tensorBoard(args.logDir, {
+      updateFreq: args.logUpdateFreq
+    })
   });
 
   // Save model.

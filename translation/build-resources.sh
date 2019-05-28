@@ -65,12 +65,9 @@ mkdir -p "${RESOURCES_ROOT}"
 
 python "${DEMO_DIR}/python/translation.py" \
     "${TRAIN_DATA_PATH}" \
-    --recurrent_initializer glorot_uniform \
+    --recurrent_initializer orthogonal \
     --artifacts_dir "${RESOURCES_ROOT}" \
     --epochs "${TRAIN_EPOCHS}"
-# TODO(cais): This --recurrent_initializer is a workaround for the limitation
-# in TensorFlow.js Layers that the default recurrent initializer "Orthogonal" is
-# currently not supported. Remove this once "Orthogonal" becomes available.
 
 cd ${DEMO_DIR}
 yarn

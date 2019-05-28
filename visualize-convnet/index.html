@@ -1,0 +1,85 @@
+<!--
+Copyright 2019 Google LLC. All Rights Reserved.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+==============================================================================
+-->
+
+<!doctype html>
+
+<head>
+  <title>TensorFlow.js: Visualize Convnet Internals</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="../shared/tfjs-examples.css" />
+  <link rel="stylesheet" href="./style.css" />
+</head>
+
+<body>
+  <div class="tfjs-example-container">
+    <section class='title-area'>
+      <h1>TensorFlow.js: Visualize Convnet Internals</h1>
+    </section>
+
+    <section>
+      <p class='section-head'>Description</p>
+      <p>
+        This example demonstrates some techniques of visualizing
+        the internal workings of a convolutional neural network (convnet)
+        in TensorFlow.js, including:
+
+        <ul>
+          <li>
+            Finding what convolutional layers' filters are sensitive to after
+            training: calculating maximally-activating input image for
+            convolutional filters through gradient ascent in the input space.
+          </li>
+          <li>
+            Getting the internal activation of a convnet by uisng the
+            functional model API of TensorFlow.js
+          </li>
+          <li>
+            Finding which part of an input image is most relevant to the
+            classification decision made by a convnet (
+            <a href="https://keras.io/applications/#vgg16">VGG16</a>
+            in this case), using the gradient-based class activation map (CAM)
+            approach.
+          </li>
+        </ul>
+      </p>
+    </section>
+
+    <section>
+      <p class='section-head image-result-heading'>
+        Input image and classification result
+      </p>
+
+      <div id="image-result"></div>
+
+      <p class='section-head'>Visualization</p>
+
+      <div>
+        <span>What to visualize:</span>
+        <select id="viz-type">
+          <option value="activation">Filter activation</option>
+          <option value="filters">Maximally-activating input images</option>
+          <option value="cam">Class activation map (CAM)</option>
+        </select>
+      </div>
+
+      <div id="viz-section"></div>
+    </section>
+
+    <script src="index.js"></script>
+  </div>
+</body>

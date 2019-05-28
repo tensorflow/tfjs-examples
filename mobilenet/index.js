@@ -30,7 +30,7 @@ let mobilenet;
 const mobilenetDemo = async () => {
   status('Loading model...');
 
-  mobilenet = await tf.loadModel(MOBILENET_MODEL_PATH);
+  mobilenet = await tf.loadLayersModel(MOBILENET_MODEL_PATH);
 
   // Warmup the model. This isn't necessary, but makes the first prediction
   // faster. Call `dispose` to release the WebGL memory allocated for the return
@@ -61,10 +61,15 @@ const mobilenetDemo = async () => {
 async function predict(imgElement) {
   status('Predicting...');
 
-  const startTime = performance.now();
+  // The first start time includes the time it takes to extract the image
+  // from the HTML and preprocess it, in additon to the predict() call.
+  const startTime1 = performance.now();
+  // The second start time excludes the extraction and preprocessing and
+  // includes only the predict() call.
+  let startTime2;
   const logits = tf.tidy(() => {
-    // tf.fromPixels() returns a Tensor from an image element.
-    const img = tf.fromPixels(imgElement).toFloat();
+    // tf.browser.fromPixels() returns a Tensor from an image element.
+    const img = tf.browser.fromPixels(imgElement).toFloat();
 
     const offset = tf.scalar(127.5);
     // Normalize the image from [0, 255] to [-1, 1].
@@ -73,14 +78,17 @@ async function predict(imgElement) {
     // Reshape to a single-element batch so we can pass it to predict.
     const batched = normalized.reshape([1, IMAGE_SIZE, IMAGE_SIZE, 3]);
 
+    startTime2 = performance.now();
     // Make a prediction through mobilenet.
     return mobilenet.predict(batched);
   });
 
   // Convert logits to probabilities and class names.
   const classes = await getTopKClasses(logits, TOPK_PREDICTIONS);
-  const totalTime = performance.now() - startTime;
-  status(`Done in ${Math.floor(totalTime)}ms`);
+  const totalTime1 = performance.now() - startTime1;
+  const totalTime2 = performance.now() - startTime2;
+  status(`Done in ${Math.floor(totalTime1)} ms ` +
+      `(not including preprocessing: ${Math.floor(totalTime2)} ms)`);
 
   // Show the classes in the DOM.
   showResults(imgElement, classes);

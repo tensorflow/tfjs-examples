@@ -42,27 +42,25 @@ let bostonData;
 // features.
 export async function loadDataAndNormalize() {
   // TODO(kangyizhang): Statistics should be generated from trainDataset
-  // directly. Update following codes after
+  // directly. Update following code after
   // https://github.com/tensorflow/tfjs-data/issues/32 is resolved.
 
   // Gets mean and standard deviation of data.
   // row[0] is feature data.
   const featureStats = await computeDatasetStatistics(
-    bostonData.trainDataset.map((row) => row[0]));
+      bostonData.trainDataset.map((row) => row.xs));
 
   // Normalizes data.
   preparedData.trainData =
-    bostonData.trainDataset
-    .map(row => normalizeFeatures(row, featureStats))
-    .batch(BATCH_SIZE);
+      bostonData.trainDataset.map(row => normalizeFeatures(row, featureStats))
+          .batch(BATCH_SIZE);
   preparedData.validationData =
-    bostonData.validationDataset
-    .map(row => normalizeFeatures(row, featureStats))
-    .batch(BATCH_SIZE);
+      bostonData.validationDataset
+          .map(row => normalizeFeatures(row, featureStats))
+          .batch(BATCH_SIZE);
   preparedData.testData =
-    bostonData.testDataset
-    .map(row => normalizeFeatures(row, featureStats))
-    .batch(BATCH_SIZE);
+      bostonData.testDataset.map(row => normalizeFeatures(row, featureStats))
+          .batch(BATCH_SIZE);
 }
 
 /**
@@ -71,12 +69,12 @@ export async function loadDataAndNormalize() {
 // TODO(kangyizhang, bileschi): Replace these with preprocessing layers once
 // they are available.
 function normalizeFeatures(row, featureStats) {
-  const features = row[0];
+  const features = row.xs;
   const normalizedFeatures = [];
   features.forEach(
-    (value, index) => normalizedFeatures.push(
-      (value - featureStats[index].mean) / featureStats[index].stddev));
-  return [normalizedFeatures, row[1]];
+      (value, index) => normalizedFeatures.push(
+          (value - featureStats[index].mean) / featureStats[index].stddev));
+  return {xs: normalizedFeatures, ys: row.ys};
 }
 
 /**
@@ -125,14 +123,9 @@ export function multiLayerPerceptronRegressionModel2Hidden() {
     activation: 'sigmoid',
     kernelInitializer: 'leCunNormal'
   }));
-  model.add(tf.layers.dense({
-    units: 50,
-    activation: 'sigmoid',
-    kernelInitializer: 'leCunNormal'
-  }));
-  model.add(tf.layers.dense({
-    units: 1
-  }));
+  model.add(tf.layers.dense(
+      {units: 50, activation: 'sigmoid', kernelInitializer: 'leCunNormal'}));
+  model.add(tf.layers.dense({units: 1}));
 
   model.summary();
   return model;
@@ -146,7 +139,7 @@ export function multiLayerPerceptronRegressionModel2Hidden() {
  * @returns {List} List of objects, each with a string feature name, and value
  *     feature weight.
  */
-export function describeKerenelElements(kernel) {
+export function describeKernelElements(kernel) {
   tf.util.assert(
       kernel.length == 12,
       `kernel must be a array of length 12, got ${kernel.length}`);
@@ -167,7 +160,7 @@ export function describeKerenelElements(kernel) {
  */
 export async function run(model, modelName, weightsIllustration) {
   model.compile(
-    {optimizer: tf.train.sgd(LEARNING_RATE), loss: 'meanSquaredError'});
+      {optimizer: tf.train.sgd(LEARNING_RATE), loss: 'meanSquaredError'});
 
   let trainLogs = [];
   const container = document.querySelector(`#${modelName} .chart`);
@@ -181,18 +174,15 @@ export async function run(model, modelName, weightsIllustration) {
     callbacks: {
       onEpochEnd: async (epoch, logs) => {
         await ui.updateModelStatus(
-          `Epoch ${epoch + 1} of ${NUM_EPOCHS} completed.`, modelName);
+            `Epoch ${epoch + 1} of ${NUM_EPOCHS} completed.`, modelName);
         // TODO(kangyizhang): Update this once
         // https://github.com/tensorflow/tfjs/issues/984 is fixed.
-        trainLogs.push({
-          loss: logs.loss,
-          val_loss: logs.val_loss
-        });
+        trainLogs.push({loss: logs.loss, val_loss: logs.val_loss});
         tfvis.show.history(container, trainLogs, ['loss', 'val_loss']);
 
         if (weightsIllustration) {
           model.layers[0].getWeights()[0].data().then(kernelAsArr => {
-            const weightsList = describeKerenelElements(kernelAsArr);
+            const weightsList = describeKernelElements(kernelAsArr);
             ui.updateWeightDescription(weightsList);
           });
         }
@@ -201,24 +191,23 @@ export async function run(model, modelName, weightsIllustration) {
   });
 
   ui.updateStatus('Running on test data...');
-  const result =
-    (await model.evaluateDataset(preparedData.testData, {}));
+  const result = (await model.evaluateDataset(preparedData.testData, {}));
   const testLoss = result.dataSync()[0];
 
   const trainLoss = trainLogs[trainLogs.length - 1].loss;
   const valLoss = trainLogs[trainLogs.length - 1].val_loss;
   await ui.updateModelStatus(
-    `Final train-set loss: ${trainLoss.toFixed(4)}\n` +
-    `Final validation-set loss: ${valLoss.toFixed(4)}\n` +
-    `Test-set loss: ${testLoss.toFixed(4)}`,
-    modelName);
+      `Final train-set loss: ${trainLoss.toFixed(4)}\n` +
+          `Final validation-set loss: ${valLoss.toFixed(4)}\n` +
+          `Test-set loss: ${testLoss.toFixed(4)}`,
+      modelName);
 };
 
 export const computeBaseline = async () => {
   // TODO(kangyizhang): Remove this once statistics support nested object.
   // row[1] is target data.
   const targetStats = await computeDatasetStatistics(
-    bostonData.trainDataset.map((row) => row[1]));
+      bostonData.trainDataset.map((row) => row.ys));
   const avgPrice = targetStats[0].mean;
   console.log(`Average price: ${avgPrice}`);
 
@@ -226,7 +215,7 @@ export const computeBaseline = async () => {
   let testCount = 0;
 
   await bostonData.testDataset.forEach((row) => {
-    testSquareError += Math.pow(row[1] - avgPrice, 2);
+    testSquareError += Math.pow(row.ys - avgPrice, 2);
     testCount++;
   });
 
@@ -236,7 +225,7 @@ export const computeBaseline = async () => {
   const baseline = testSquareError / testCount;
   console.log(`Baseline loss: ${baseline}`);
   const baselineMsg =
-    `Baseline loss (meanSquaredError) is ${baseline.toFixed(2)}`;
+      `Baseline loss (meanSquaredError) is ${baseline.toFixed(2)}`;
   ui.updateBaselineStatus(baselineMsg);
 };
 

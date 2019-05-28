@@ -19,7 +19,7 @@ import * as tf from '@tensorflow/tfjs';
 
 // Boston Housing data constants:
 const BASE_URL =
-  'https://storage.googleapis.com/tfjs-examples/multivariate-linear-regression/data/';
+    'https://storage.googleapis.com/tfjs-examples/multivariate-linear-regression/data/';
 
 const TRAIN_FILENAME = 'boston-housing-train.csv';
 const VALIDATION_FILENAME = 'boston-housing-validation.csv';
@@ -27,12 +27,7 @@ const TEST_FILENAME = 'boston-housing-test.csv';
 
 /** Helper class to handle loading training and test data. */
 export class BostonHousingDataset {
-  constructor() {
-    this.trainDataset = null;
-    this.validationDataset = null;
-    this.testDataset = null;
-    this.numFeatures = null;
-  }
+  constructor() {}
 
   static async create() {
     const result = new BostonHousingDataset();
@@ -50,33 +45,29 @@ export class BostonHousingDataset {
     this.trainDataset = trainData.dataset;
     this.numFeatures = trainData.numFeatures;
     this.validationDataset =
-      (await this.prepareDataset(`${BASE_URL}${VALIDATION_FILENAME}`))
-      .dataset;
+        (await this.prepareDataset(`${BASE_URL}${VALIDATION_FILENAME}`))
+            .dataset;
     this.testDataset =
-      (await this.prepareDataset(`${BASE_URL}${TEST_FILENAME}`)).dataset;
+        (await this.prepareDataset(`${BASE_URL}${TEST_FILENAME}`)).dataset;
   }
 
   /**
-   * Prepare dataset from provided url.
+   * Sets the column configuration such that 'medv' is the label column.
+   * Reduces object-type data to an array of numbers. Shuffles the features and
+   * provide number of features.
    */
   async prepareDataset(url) {
     // We want to predict the column "medv", which represents a median value of
     // a home (in $1000s), so we mark it as a label.
-    const csvDataset = tf.data.csv(url, {
-      columnConfigs: {
-        medv: {
-          isLabel: true
-        }
-      }
-    });
+    const csvDataset =
+        tf.data.csv(url, {columnConfigs: {medv: {isLabel: true}}});
 
     // Convert rows from object form (keyed by column name) to array form.
-    const convertedDataset =
-      csvDataset.map(([rawFeatures, rawLabel]) => {
-        const convertedFeatures = Object.values(rawFeatures);
-        const convertedLabel = Object.values(rawLabel);
-        return [convertedFeatures, convertedLabel];
-      });
+    const convertedDataset = csvDataset.map(row => {
+      const convertedFeatures = Object.values(row.xs);
+      const convertedLabel = Object.values(row.ys);
+      return {xs: convertedFeatures, ys: convertedLabel};
+    });
 
     return {
       dataset: convertedDataset.shuffle(100),

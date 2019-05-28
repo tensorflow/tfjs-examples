@@ -39,4 +39,3 @@ node_modules/parcel-bundler/bin/cli.js serve index.html -d dist --open --no-hmr 
 
 # When the Parcel server exits, kill the http-server too.
 kill $HTTP_SERVER_PID
-

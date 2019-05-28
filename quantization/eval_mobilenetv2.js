@@ -80,12 +80,12 @@ async function main() {
 
   console.log(`Loading model from ${args.modelSavePath}...`);
   const model = await tf.loadLayersModel(`file://${args.modelSavePath}`);
-  model.summary();
 
   const imageH = model.inputs[0].shape[2];
   const imageW = model.inputs[0].shape[2];
   console.log(`imageH = ${imageH}; imageW = ${imageW}`);
 
+  // Load the images into a tensor.
   const dirContent = fs.readdirSync(args.imageDir);
   dirContent.sort();
   const numImages = dirContent.length;
@@ -137,7 +137,7 @@ async function main() {
       `#total = ${numImages}; #correct(top-1) = ${numCorrectTop1}; ` +
       `accuracy(top-1) = ${(numCorrectTop1 / numImages).toFixed(3)}; ` +
       `#correct(top-5) = ${numCorrectTop5}; ` +
-      `accuracy(top-5) = ${(numCorrectTop5 / numImages).toFixed(3)}`);
+      `accuracy(top-5) = ${(numCorrectTop5 / numImages).toFixed(3)}\n`);
   tf.dispose([imageTensors, stackedImageTensor]);
 }
 

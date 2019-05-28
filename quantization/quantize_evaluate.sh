@@ -30,12 +30,6 @@ fi
 MODEL_ROOT="models/${MODEL_NAME}"
 MODEL_PATH="${MODEL_ROOT}/original"
 MODEL_JSON_PATH="${MODEL_PATH}/model.json"
-if [[ ! -f "${MODEL_JSON_PATH}" ]]; then
-  echo "ERROR: Cannot find model JSON file at ${MODEL_JSON_PATH}"
-  echo "       Make sure you train and save a model with the"
-  echo "       following command first: yarn train"
-  exit 1
-fi
 
 # Make sure pip is available.
 if [[ -z "$(which pip)" ]]; then
@@ -56,6 +50,21 @@ source "${VENV_DIR}/bin/activate"
 
 pip install tensorflowjs
 
+if [[ "${MODEL_NAME}" == "MobileNetV2" ]]; then
+  # Save the MobilNetV2 model first.
+  if [[ ! -f "${MODEL_JSON_PATH}" ]]; then
+    python save_mobilenetv2.py
+  fi
+fi
+
+if [[ ! -f "${MODEL_JSON_PATH}" ]]; then
+  echo "ERROR: Cannot find model JSON file at ${MODEL_JSON_PATH}"
+  echo "       Make sure you train and save a model with the"
+  echo "       following command first: yarn train"
+  rm -rf "${VENV_DIR}"
+  exit 1
+fi
+
 # Perform 16-bit quantization.
 MODEL_PATH_16BIT="${MODEL_ROOT}/quantized-16bit"
 rm -rf "${MODEL_PATH_16BIT}"
@@ -74,16 +83,41 @@ tensorflowjs_converter \
     --quantization_bytes 1 \
     "${MODEL_JSON_PATH}" "${MODEL_PATH_8BIT}"
 
-yarn
-
-# Evaluate accuracy under no quantization (i.e., full 32-bit weight precision).
-yarn "eval-${MODEL_NAME}" "${MODEL_JSON_PATH}"
-
-# Evaluate accuracy under 16-bit quantization.
-yarn "eval-${MODEL_NAME}" "${MODEL_PATH_16BIT}/model.json"
-
-# Evaluate accuracy under 8-bit quantization.
-yarn "eval-${MODEL_NAME}" "${MODEL_PATH_8BIT}/model.json"
-
 # Clean up the virtualenv
 rm -rf "${VENV_DIR}"
+
+yarn
+
+if [[ "${MODEL_NAME}" == "MobileNetV2" ]]; then
+  # Download the data required for evaluating MobileNetV2.
+  IMAGENET_1000_SAMPLES_DIR="imagenet-1000-samples"
+
+  if [[ ! -d "${IMAGENET_1000_SAMPLES_DIR}" ]]; then
+    curl -o imagenet-1000-samples.tar.gz \
+        https://storage.googleapis.com/tfjs-examples/quantization/data/imagenet-1000-samples.tar.gz
+    mkdir -p ${IMAGENET_1000_SAMPLES_DIR}
+    tar xf imagenet-1000-samples.tar.gz
+    rm imagenet-1000-samples.tar.gz
+  fi
+
+  # Evaluate accuracy under no quantization (i.e., full 32-bit weight precision).
+  yarn "eval-${MODEL_NAME}" "${MODEL_JSON_PATH}" \
+      "${IMAGENET_1000_SAMPLES_DIR}"
+
+  # Evaluate accuracy under 16-bit quantization.
+  yarn "eval-${MODEL_NAME}" "${MODEL_PATH_16BIT}/model.json" \
+      "${IMAGENET_1000_SAMPLES_DIR}"
+
+  # Evaluate accuracy under 8-bit quantization.
+  yarn "eval-${MODEL_NAME}" "${MODEL_PATH_8BIT}/model.json" \
+      "${IMAGENET_1000_SAMPLES_DIR}"
+else
+  # Evaluate accuracy under no quantization (i.e., full 32-bit weight precision).
+  yarn "eval-${MODEL_NAME}" "${MODEL_JSON_PATH}"
+
+  # Evaluate accuracy under 16-bit quantization.
+  yarn "eval-${MODEL_NAME}" "${MODEL_PATH_16BIT}/model.json"
+
+  # Evaluate accuracy under 8-bit quantization.
+  yarn "eval-${MODEL_NAME}" "${MODEL_PATH_8BIT}/model.json"
+fi

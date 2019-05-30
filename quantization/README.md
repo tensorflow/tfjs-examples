@@ -1,14 +1,33 @@
-# TensorFlow.js Example: Effects of Weight Quantization
+# TensorFlow.js Example: Effects of Post-Training Weight Quantization
 
-This demo on quantization consists of three examples:
+Post-training quantization is a model-size reducing technique useful for
+deploying model on the web and in storage-limited environments such as
+mobile devices. TensorFlow.js's
+[converter module](https://github.com/tensorflow/tfjs-converter)
+supports reducing the numeric precision of weights to 16-bit and 8-bit
+integers after the completion of the model training, which leads to
+approximately 50% and 75% reduction in the sizeofthe model, respectively.
+
+The following figure provides an intuitive understanding of the degree
+to which weight values are discretized under the 16- and 8-bit quantization
+regimes.
+
+![Weight quantization: 16-bit and 8-bit](./quantization.png)
+
+This example focuses on how such quantization of weights affect the
+model's predicton accuracy.
+
+## What's in this demo
+
+This demo on quantization consists of four examples:
 1. housing: this demo evaluates the effect of quantization on the accuracy
    of a multi-layer perceptron regression model.
 2. mnist: this demo evaluates the effect of quantization on the accuracy
-   of a relatively small deep convnet on the MNIST handwritten digits
+   of a relatively small deep convnet trained on the MNIST handwritten digits
    dataset. Without quantization, the convnet can achieve close-to-perfect
-   (i.e., ~99.5%) accuracy.
+   (i.e., ~99.5%) test accuracy.
 3. fashion-mnist: this demo evaluates the effect of quantization on the
-   accuracy of another small deep convnet traind or a problem slightly harder
+   accuracy of another small deep convnet traind on a problem slightly harder
    than MNIST. In particular, it is based on the Fashion MNIST dataset. The
    original, non-quantized model has an accuracy of 92%-93%.
 4. MobileNetV2: this demo evaluates quantized and non-quantizd versions of

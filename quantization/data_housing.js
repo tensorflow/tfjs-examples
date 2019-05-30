@@ -24,6 +24,18 @@ export const featureColumns = [
   'total_bedrooms', 'population', 'households',  'median_income'];
 const labelColumn = 'median_house_value';
 
+/**
+ * Calculate the column-by-column statistics of the housing CSV dataset.
+ *
+ * @return An object consisting of the following fields:
+ *   count {number} Number of data rows.
+ *   featureMeans {number[]} Each element is the arithmetic mean over all values
+ *     in a column. Ordered by the feature columns in the CSV dataset.
+ *   featureStddevs {number[]} Each element is the standard deviation over all
+ *     values in a column. Ordered by the columsn in the in the CSV dataset.
+ *   labelMean {number} The arithmetic mean of the label column.
+ *   labeStddev {number} The standard deviation of the albel column.
+ */
 export async function getDatasetStats() {
   const featureValues = {};
   featureColumns.forEach(feature => {
@@ -145,8 +157,8 @@ export async function getNormalizedDatasets(
   const xs = tf.tensor2d(featureValues, [count, featureColumns.length]);
   const ys = tf.tensor2d(labelValues, [count, 1]);
 
-  // Sed random seed to fix shuffling order and therefore to fix the
-  // training, validation and evaluation split.
+  // Set random seed to fix shuffling order and therefore to fix the
+  // training, validation, and evaluation splits.
   Math.seedrandom('1337');
   tf.util.shuffle(indices);
 

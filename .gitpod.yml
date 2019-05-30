@@ -1,0 +1,17 @@
+ports:
+- port: 1025-30000
+tasks:
+- command: |
+    if [ -e "$EXAMPLE/yarn.lock" ]
+    then
+      cd $EXAMPLE
+      yarn
+      yarn watch
+    else
+      echo ""
+      echo "Hello. Thank you for looking at the Tensorflow-JS Examples."
+      echo ""
+      echo "To try an an example, do"
+      echo "1. cd to the directory of the example"
+      echo "2. run the example, as it is specified in the readme"
+    fi

@@ -12,6 +12,7 @@ to another project.
   <tr>
     <th>Example name</th>
     <th>Demo link</th>
+    <th>Online IDE</th>
     <th>Input data type</th>
     <th>Task type</th>
     <th>Model type</th>
@@ -22,6 +23,7 @@ to another project.
   <tr>
     <td><a href="./addition-rnn">addition-rnn</a></td>
     <td><a href="https://storage.googleapis.com/tfjs-examples/addition-rnn/dist/index.html">🔗</a></td>
+    <td></td>
     <td>Text</td>
     <td>Sequence-to-sequence</td>
     <td>RNN: SimpleRNN, GRU and LSTM</td>
@@ -32,6 +34,7 @@ to another project.
   </tr>
   <tr>
     <td><a href="./baseball-node">baseball-node</a></td>
+    <td></td>
     <td></td>
     <td>Numeric</td>
     <td>Multiclass classification</td>
@@ -44,6 +47,7 @@ to another project.
   <tr>
     <td><a href="./boston-housing">boston-housing</a></td>
     <td><a href="https://storage.googleapis.com/tfjs-examples/boston-housing/dist/index.html">🔗</a></td>
+    <td><a href="https://gitpod.io/#EXAMPLE=boston-housing/https://github.com/tensorflow/tfjs-examples">🔗</a></td>
     <td>Numeric</td>
     <td>Regression</td>
     <td>Multilayer perceptron</td>
@@ -56,6 +60,7 @@ to another project.
     <td><a href="./cart-pole">cart-pole</a></td>
     <td><a href="https://storage.googleapis.com/tfjs-examples/cart-pole/dist/index.html">🔗</a></td>
     <td></td>
+    <td></td>
     <td>Reinforcement learning</td>
     <td>Policy gradient</td>
     <td>Browser</td>
@@ -66,6 +71,7 @@ to another project.
   <tr>
     <td><a href="./custom-layer">custom-layer</a></td>
     <td><a href="https://storage.googleapis.com/tfjs-examples/custom-layer/dist/index.html">🔗</a></td>
+    <td></td>
     <td></td>
     <td>(Defining a custom Layer subtype)</td>
     <td></td>
@@ -78,6 +84,7 @@ to another project.
     <td><a href="./data-csv">data-csv</a></td>
     <td><a href="https://storage.googleapis.com/tfjs-examples/data-csv/dist/index.html">🔗</a></td>
     <td></td>
+    <td></td>
     <td>Building a tf.data.Dataset from a remote CSV</td>
     <td></td>
     <td></td>
@@ -89,6 +96,7 @@ to another project.
     <td><a href="./data-generator">data-generator</a></td>
     <td><a href="https://storage.googleapis.com/tfjs-examples/data-generator/dist/index.html">🔗</a></td>
     <td></td>
+    <td></td>
     <td>Building a tf.data.Dataset using a generator</td>
     <td>Regression</td>
     <td>Browser</td>
@@ -99,6 +107,7 @@ to another project.
   <tr>
     <td><a href="./date-conversion-attention">date-conversion-attention</a></td>
     <td><a href="https://storage.googleapis.com/tfjs-examples/date-conversion-attention/dist/index.html">🔗</a></td>
+    <td></td>
     <td>Text</td>
     <td>Text-to-text conversion</td>
     <td>Attention mechanism, RNN</td>
@@ -109,6 +118,7 @@ to another project.
   </tr>
   <tr>
     <td><a href="./fashion-mnist-vae">fashion-mnist-vae</a></td>
+    <td></td>
     <td></td>
     <td>Image</td>
     <td>Generative</td>
@@ -121,6 +131,7 @@ to another project.
   <tr>
     <td><a href="./iris">iris</a></td>
     <td><a href="https://storage.googleapis.com/tfjs-examples/iris/dist/index.html">🔗</a></td>
+    <td></td>
     <td>Numeric</td>
     <td>Multiclass classification</td>
     <td>Multilayer perceptron</td>
@@ -132,6 +143,7 @@ to another project.
   <tr>
     <td><a href="./iris-fitDataset">iris-fitDataset</a></td>
     <td><a href="https://storage.googleapis.com/tfjs-examples/iris-fitDataset/dist/index.html">🔗</a></td>
+    <td></td>
     <td>Numeric</td>
     <td>Multiclass classification</td>
     <td>Multilayer perceptron</td>
@@ -143,6 +155,7 @@ to another project.
   <tr>
     <td><a href="./jena-weather">jena-weather</a></td>
     <td><a href="https://storage.googleapis.com/tfjs-examples/jena-weather/dist/index.html">🔗</a></td>
+    <td></td>
     <td>Sequence</td>
     <td>Sequence-to-prediction</td>
     <td>MLP and RNNs</td>
@@ -154,6 +167,7 @@ to another project.
   <tr>
     <td><a href="./lstm-text-generation">lstm-text-generation</a></td>
     <td><a href="https://storage.googleapis.com/tfjs-examples/lstm-text-generation/dist/index.html">🔗</a></td>
+    <td></td>
     <td>Text</td>
     <td>Sequence prediction</td>
     <td>RNN: LSTM</td>
@@ -165,6 +179,7 @@ to another project.
   <tr>
     <td><a href="./mnist">mnist</a></td>
     <td><a href="https://storage.googleapis.com/tfjs-examples/mnist/dist/index.html">🔗</a></td>
+    <td></td>
     <td>Image</td>
     <td>Multiclass classification</td>
     <td>Convolutional neural network</td>
@@ -176,6 +191,7 @@ to another project.
   <tr>
     <td><a href="./mnist-acgan">mnist-acgan</a></td>
     <td><a href="https://storage.googleapis.com/tfjs-examples/mnist-acgan/dist/index.html">🔗</a></td>
+    <td></td>
     <td>Image</td>
     <td>Generative Adversarial Network (GAN)</td>
     <td>Convolutional neural network; GAN</td>
@@ -187,6 +203,7 @@ to another project.
   <tr>
     <td><a href="./mnist-core">mnist-core</a></td>
     <td><a href="https://storage.googleapis.com/tfjs-examples/mnist-core/dist/index.html">🔗</a></td>
+    <td></td>
     <td>Image</td>
     <td>Multiclass classification</td>
     <td>Convolutional neural network</td>
@@ -197,6 +214,7 @@ to another project.
   </tr>
   <tr>
     <td><a href="./mnist-node">mnist-node</a></td>
+    <td></td>
     <td></td>
     <td>Image</td>
     <td>Multiclass classification</td>
@@ -209,6 +227,7 @@ to another project.
   <tr>
     <td><a href="./mnist-transfer-cnn">mnist-transfer-cnn</a></td>
     <td><a href="https://storage.googleapis.com/tfjs-examples/mnist-transfer-cnn/dist/index.html">🔗</a></td>
+    <td></td>
     <td>Image</td>
     <td>Multiclass classification (transfer learning)</td>
     <td>Convolutional neural network</td>
@@ -220,6 +239,7 @@ to another project.
   <tr>
     <td><a href="./mobilenet">mobilenet</a></td>
     <td><a href="https://storage.googleapis.com/tfjs-examples/mobilenet/dist/index.html">🔗</a></td>
+    <td></td>
     <td>Image</td>
     <td>Multiclass classification</td>
     <td>Convolutional neural network</td>
@@ -231,6 +251,7 @@ to another project.
   <tr>
     <td><a href="./polynomial-regression">polynomial-regression</a></td>
     <td><a href="https://storage.googleapis.com/tfjs-examples/polynomial-regression/dist/index.html">🔗</a></td>
+    <td></td>
     <td>Numeric</td>
     <td>Regression</td>
     <td>Shallow neural network</td>
@@ -242,6 +263,7 @@ to another project.
   <tr>
     <td><a href="./polynomial-regression-core">polynomial-regression-core</a></td>
     <td><a href="https://storage.googleapis.com/tfjs-examples/polynomial-regression-core/dist/index.html">🔗</a></td>
+    <td></td>
     <td>Numeric</td>
     <td>Regression</td>
     <td>Shallow neural network</td>
@@ -264,6 +286,7 @@ to another project.
   <tr>
     <td><a href="./sentiment">sentiment</a></td>
     <td><a href="https://storage.googleapis.com/tfjs-examples/sentiment/dist/index.html">🔗</a></td>
+    <td></td>
     <td>Text</td>
     <td>Sequence-to-binary-prediction</td>
     <td>LSTM, 1D convnet</td>
@@ -275,6 +298,7 @@ to another project.
   <tr>
     <td><a href="./simple-object-detection">simple-object-detection</a></td>
     <td><a href="https://storage.googleapis.com/tfjs-examples/simple-object-detection/dist/index.html">🔗</a></td>
+    <td></td>
     <td>Image</td>
     <td>Object detection</td>
     <td>Convolutional neural network (transfer learning)</td>
@@ -287,6 +311,7 @@ to another project.
     <td><a href="./snake-dqn">snake-dqn</a></td>
     <td><a href="https://storage.googleapis.com/tfjs-examples/snake-dqn/index.html">🔗</a></td>
     <td></td>
+    <td></td>
     <td>Reinforcement learning</td>
     <td>Deep Q-Network (DQN)</td>
     <td>Node.js</td>
@@ -297,6 +322,7 @@ to another project.
   <tr>
     <td><a href="./translation">translation</a></td>
     <td><a href="https://storage.googleapis.com/tfjs-examples/translation/dist/index.html">🔗</a></td>
+    <td></td>
     <td>Text</td>
     <td>Sequence-to-sequence</td>
     <td>LSTM encoder and decoder</td>
@@ -309,6 +335,7 @@ to another project.
     <td><a href="./tsne-mnist-canvas">tsne-mnist-canvas</a></td>
     <td></td>
     <td></td>
+    <td></td>
     <td>Dimension reduction and data visualization</td>
     <td>tSNE</td>
     <td>Browser</td>
@@ -319,6 +346,7 @@ to another project.
   <tr>
     <td><a href="./webcam-transfer-learning">webcam-transfer-learning</a></td>
     <td><a href="https://storage.googleapis.com/tfjs-examples/webcam-transfer-learning/dist/index.html">🔗</a></td>
+    <td></td>
     <td>Image</td>
     <td>Multiclass classification (transfer learning)</td>
     <td>Convolutional neural network</td>
@@ -330,6 +358,7 @@ to another project.
   <tr>
     <td><a href="./website-phishing">website-phishing</a></td>
     <td><a href="https://storage.googleapis.com/tfjs-examples/website-phishing/dist/index.html">🔗</a></td>
+    <td></td>
     <td>Numeric</td>
     <td>Binary classification</td>
     <td>Multilayer perceptron</td>
@@ -339,6 +368,12 @@ to another project.
     <td></td>
   </tr>
 </table>
+
+# Try an example:
+
+A quick and easy way to try these examples is to open them in the Gitpod online IDE:
+
+[![Open in Gitpod](https://gitpod.io/button/open-in-gitpod.svg)](https://gitpod.io/#https://github.com/tensorflow/tfjs-examples/)
 
 # Dependencies
 

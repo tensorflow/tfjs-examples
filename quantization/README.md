@@ -6,7 +6,7 @@ mobile devices. TensorFlow.js's
 [converter module](https://github.com/tensorflow/tfjs-converter)
 supports reducing the numeric precision of weights to 16-bit and 8-bit
 integers after the completion of the model training, which leads to
-approximately 50% and 75% reduction in the sizeofthe model, respectively.
+approximately 50% and 75% reduction in model size, respectively.
 
 The following figure provides an intuitive understanding of the degree
 to which weight values are discretized under the 16- and 8-bit quantization
@@ -43,10 +43,12 @@ in the table below:
 
 | Dataset and Mdoel      | Original (no-quantization) | 16-bit quantization | 8-bit quantization |
 | ---------------------- | -------------------------- | ------------------- | ------------------ |
-| housing: multi-layer regressor  |  loss=0.311984    | loss=0.311983       | loss=0.312780      |
+| housing: multi-layer regressor  |  MAE=0.311984     | MAE=0.311983        | MAE=0.312780       |
 | MNIST: convnet         | accuracy=0.9952            | accuracy=0.9952     | accuracy=0.9952    |
 | Fashion MNIST: convnet | accuracy=0.922             | accuracy=0.922      | accuracy=0.9211    |
 | MobileNetV2            | top-1 accuracy=0.618; top-5 accuracy=0.788 | top-1 accuracy=0.624; top-5 accuracy=0.789 | top-1 accuracy=0.280; top-5 accuracy=0.490 |
+
+MAE Stands for mean absolute error.
 
 They demonstrate different effects of the same quantization technique
 on different problems.

@@ -10,7 +10,7 @@ approximately 50% and 75% reduction in model size, respectively.
 
 The following figure provides an intuitive understanding of the degree
 to which weight values are discretized under the 16- and 8-bit quantization
-regimes.
+regimes. The figure is based on a zoomed-in view of a sinusoidal wave.
 
 ![Weight quantization: 16-bit and 8-bit](./quantization.png)
 

@@ -1,7 +1,13 @@
 ports:
-- port: 1025-30000
+- port: 1234
+  onOpen: ignore
+- port: 1235
+  onOpen: ignore
+- port: 1236
+  onOpen: ignore
 tasks:
 - command: |
+    export BROWSER="$(pwd)/.gitpod-preview.sh"
     if [ -e "$EXAMPLE/yarn.lock" ]
     then
       cd $EXAMPLE

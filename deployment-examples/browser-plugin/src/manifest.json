@@ -2,7 +2,15 @@
   "name": "TF.js mobilenet in a Chrome extension",
   "version": "1.0",
   "description": "Right click an image on google.com to classify.  Output in console.",
-  "permissions": ["activeTab", "contextMenus", "declarativeContent", "storage"],
+  "permissions": [
+    "activeTab",
+    "contextMenus",
+    "declarativeContent",
+    "notifications",
+    "storage",
+    "tabs",
+    "*://*/*"
+  ],
   "manifest_version": 2,
   "background": {
     "scripts": ["background.js"],

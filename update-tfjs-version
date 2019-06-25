@@ -47,6 +47,10 @@ for (const item of dirItems) {
     if (fs.existsSync(packageJsonPath)) {
       const packageJson = JSON.parse(fs.readFileSync(packageJsonPath));
       const deps = packageJson['dependencies'];
+      if (deps == null) {
+        continue;
+      }
+
       const devDeps = packageJson['devDependencies'];
       if (deps[tfjsNodeTag] != null ||
           devDeps != null && devDeps[tfjsNodeTag] != null) {

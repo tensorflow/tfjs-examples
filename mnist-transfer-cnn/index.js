@@ -155,6 +155,7 @@ class MnistTransferCNNPredictor {
     const epochs = ui.getEpochs();
 
     const surfaceInfo = {name: trainingMode, tab: 'Transfer Learning'};
+    console.log('Calling model.fit()');
     await this.model.fit(this.gte5TrainData.x, this.gte5TrainData.y, {
       batchSize: batchSize,
       epochs: epochs,
@@ -169,6 +170,7 @@ class MnistTransferCNNPredictor {
         }),
       ]
     });
+    console.log('DONE Calling model.fit()');
   }
 }
 

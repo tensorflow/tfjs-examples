@@ -114,19 +114,27 @@ chrome.runtime.onInstalled.addListener(function() {
   });
 });
 
-chrome.runtime.onMessage.addListener(
+/*chrome.runtime.onMessage.addListener(
   function(message, callback) {
     if (message == "predict") {
     }
   }
-);
+); */
 
+// Registers a context menu option for the predict handler.
 chrome.contextMenus.create({
   title: "Use URL of image somehow",
   contexts:["image"],
   onclick: function(info) {
     console.log(info);
     handleImageURL(info.srcUrl);
-  }
+    chrome.runtime.sendMessage({
+      msg: "something_completed",
+      data: {
+        subject: "stansSubject",
+        content: "stansContent"
+      }
+    })
+  }  
 });
 

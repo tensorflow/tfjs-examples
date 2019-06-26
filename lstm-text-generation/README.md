@@ -1,5 +1,5 @@
 # TensorFlow.js Example: Train LSTM to Generate Text
- 
+
 [See this example live!](https://storage.googleapis.com/tfjs-examples/lstm-text-generation/dist/index.html)
 
 ## Overview
@@ -76,7 +76,7 @@ should give you a further performance boost.
 
 ### Generating Text in Node.js using Saved Model Files
 
-The example command line above generates a set of model files in the 
+The example command line above generates a set of model files in the
 `./my-shakespeare-model` folder after the completion of the training. You can
 load the model and use it to generate text. For example:
 

@@ -1,140 +1,179 @@
-/**
- * @license
- * Copyright 2019 Google LLC. All Rights Reserved.
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- * =============================================================================
- */
+import 'babel-polyfill';
+import * as tf from '@tensorflow/tfjs';
+import { IMAGENET_CLASSES } from './imagenet_classes';
 
-// import * as tf from '@tensorflow/tfjs';
+const MOBILENET_MODEL_PATH = 'https://storage.googleapis.com/tfjs-models/tfjs/mobilenet_v1_0.25_224/model.json';
+const IMAGE_SIZE = 224;
+const TOPK_PREDICTIONS = 10;
 
-// import {IMAGENET_CLASSES} from './imagenet_classes';
-
-// const MOBILENET_MODEL_PATH =
-//     // tslint:disable-next-line:max-line-length
-//     'https://storage.googleapis.com/tfjs-models/tfjs/mobilenet_v1_0.25_224/model.json';
-
-// const IMAGE_SIZE = 224;
-// const TOPK_PREDICTIONS = 10;
-
-// let mobilenet;
-
-/**
- * Loads the model and calls predict on some garbage data to make subsequet
- * calls faster.
- */
-/*const loadMobilenetDemo = async () => {
-  status('Loading model...');
-  mobilenet = await tf.loadLayersModel(MOBILENET_MODEL_PATH);
-  mobilenet.predict(tf.zeros([1, IMAGE_SIZE, IMAGE_SIZE, 3])).dispose();
-  status('Model warmed up....');
-};
-*/
-/**
- * Given an image element, makes a prediction through mobilenet returning the
- * probabilities of the top K classes.
- */
-/*async function predict(imgElement) {
-  status('Predicting...');
-  // The first start time includes the time it takes to extract the image
-  // from the HTML and preprocess it, in additon to the predict() call.
-  const startTime1 = performance.now();
-  // The second start time excludes the extraction and preprocessing and
-  // includes only the predict() call.
-  let startTime2;
-  const logits = tf.tidy(() => {
-    // tf.browser.fromPixels() returns a Tensor from an image element.
-    const img = tf.browser.fromPixels(imgElement).toFloat();
-    const offset = tf.scalar(127.5);
-    // Normalize the image from [0, 255] to [-1, 1].
-    const normalized = img.sub(offset).div(offset);
-    // Reshape to a single-element batch so we can pass it to predict.
-    const batched = normalized.reshape([1, IMAGE_SIZE, IMAGE_SIZE, 3]);
-    startTime2 = performance.now();
-    // Make a prediction through mobilenet.
-    return mobilenet.predict(batched);
-  });
-  // Convert logits to probabilities and class names.
-  const classes = await getTopKClasses(logits, TOPK_PREDICTIONS);
-  const totalTime1 = performance.now() - startTime1;
-  const totalTime2 = performance.now() - startTime2;
-  status(`Done in ${Math.floor(totalTime1)} ms ` +
-      `(not including preprocessing: ${Math.floor(totalTime2)} ms)`);
-  // Show the classes in the DOM.
-  showResults(imgElement, classes);
+function myfunc(info, tab) {
+  console.log('XXX Im the context menu click handler');
+  console.log(JSON.stringify(info));
+  console.log(JSON.stringify(info.srcUrl));
+  bg.addImageRequest(info.srcUrl, tab);
+  console.log('YYY');
+  bg.analyzeClickedImage(info.srcUrl);
 }
-*/
 
-function handleImageURL(url) {
-  console.log('IM HANDLING IM HANDLING');
-  // TODO: Create a div element in the main page's DOM
-  // TODO: Load the image into that div
-  // TODO: Execute `predict` on the image element.
-};
-
-/**
- * Illustrates the results (currently logs to console).
- * @param {*} imgElement
- * @param {*} classes
- */
-/*function showResults(imgElement, classes) {
-  console.log("I'm showResults!");
-  for (let i = 0; i < TOPK_PREDICTIONS; i++) {
-    console.log(IMAGENET_CLASSES[i]);
-  }
-}
-*/
-const status = (x) => console.log(x);
-
-//loadMobilenetDemo();
-
-/**
- * @fileoverview Description of this file.
- */
-chrome.runtime.onInstalled.addListener(function() {
-  chrome.storage.sync.set({color: '#3aa757'}, function() {
-    console.log("The color is green.");
-  });
-  chrome.declarativeContent.onPageChanged.removeRules(undefined, function() {
-    chrome.declarativeContent.onPageChanged.addRules([{
-      conditions: [new chrome.declarativeContent.PageStateMatcher({
-        pageUrl: {hostEquals: 'google.com'},
-      })],
-      actions: [new chrome.declarativeContent.ShowPageAction()]
-    }]);
-  });
+chrome.contextMenus.create({
+  title: "Classify image with TensorFlow.js ", 
+  contexts:["image"], 
+  onclick: myfunc
 });
 
-/*chrome.runtime.onMessage.addListener(
-  function(message, callback) {
-    if (message == "predict") {
+class BackgroundProcessing {
+
+  constructor() {
+    this.imageRequests = {};
+  //  this.addListeners();
+    this.loadModel();
+  }
+
+  addImageRequest(url, tabId) {
+    this.imageRequests[url] = this.imageRequests[url] || {tabId: tabId};
+  }
+
+  // addListeners() {
+  //   chrome.webRequest.onCompleted.addListener(req => {
+  //     if (req && req.tabId > 0) {
+  //       this.imageRequests[req.url] = this.imageRequests[req.url] || req;
+  //       this.analyzeImage(req.url);
+  //     }
+  //   }, { urls: ["<all_urls>"], types: ["image", "object"] });
+  // }
+
+  async loadModel() {
+    console.log('Loading model...');
+    const startTime = performance.now();
+    this.model = await tf.loadModel(MOBILENET_MODEL_PATH);
+    this.model.predict(tf.zeros([1, IMAGE_SIZE, IMAGE_SIZE, 3])).dispose();
+
+    const totalTime = Math.floor(performance.now() - startTime);
+    console.log(`Model loaded and initialized in ${totalTime}ms...`);
+  }
+
+  async loadImage(src) {
+    return new Promise(resolve => {
+      var img = document.createElement('img');
+      img.crossOrigin = "anonymous";
+      img.onerror = function(e) {
+        resolve(null);
+      };
+      img.onload = function(e) {
+        if ((img.height && img.height > 128) || (img.width && img.width > 128)) {
+          // Set image size for tf!
+          img.width = IMAGE_SIZE;
+          img.height = IMAGE_SIZE;
+          resolve(img);
+        }
+        // Let's skip all tiny images
+        resolve(null);
+      }
+      img.src = src;
+    });
+  }
+
+  async getTopKClasses(logits, topK) {
+    const values = await logits.data();
+    const valuesAndIndices = [];
+    for (let i = 0; i < values.length; i++) {
+      valuesAndIndices.push({value: values[i], index: i});
+    }
+    valuesAndIndices.sort((a, b) => {
+      return b.value - a.value;
+    });
+    const topkValues = new Float32Array(topK);
+    const topkIndices = new Int32Array(topK);
+    for (let i = 0; i < topK; i++) {
+      topkValues[i] = valuesAndIndices[i].value;
+      topkIndices[i] = valuesAndIndices[i].index;
+    }
+
+    const topClassesAndProbs = [];
+    for (let i = 0; i < topkIndices.length; i++) {
+      topClassesAndProbs.push({
+        className: IMAGENET_CLASSES[topkIndices[i]],
+        probability: topkValues[i]
+      })
+    }
+    return topClassesAndProbs;
+  }
+
+
+  async predict(imgElement) {
+    console.log('Predicting...');
+    const startTime = performance.now();
+    const logits = tf.tidy(() => {
+      const img = tf.fromPixels(imgElement).toFloat();
+      const offset = tf.scalar(127.5);
+      const normalized = img.sub(offset).div(offset);
+      const batched = normalized.reshape([1, IMAGE_SIZE, IMAGE_SIZE, 3]);
+      return this.model.predict(batched);
+    });
+
+    // Convert logits to probabilities and class names.
+    const predictions = await this.getTopKClasses(logits, TOPK_PREDICTIONS);
+    const totalTime = Math.floor(performance.now() - startTime);
+    console.log(`Prediction done in ${totalTime}ms:`, predictions);
+    return predictions;
+  }
+
+  // async analyzeImage(src) {
+
+  //   if (!this.model) {
+  //     console.log('Model not loaded yet, delaying...');
+  //     setTimeout(() => { this.analyzeImage(src) }, 5000);
+  //     return;
+  //   }
+
+  //   var meta = this.imageRequests[src];
+  //   if (meta && meta.tabId) {
+  //     if (!meta.predictions) {
+  //       const img = await this.loadImage(src);
+  //       if (img) {
+  //         meta.predictions = await this.predict(img);
+  //       }
+  //     }
+
+  //     if (meta.predictions) {
+  //       chrome.tabs.sendMessage(meta.tabId, {
+  //         action: 'IMAGE_PROCESSED',
+  //         payload: meta,
+  //       });
+  //     }
+  //   }
+  // }
+
+  async analyzeClickedImage(src) {
+    console.log('ZZZ analyzeClickedImage...')
+    if (!this.model) {
+      console.log('Model not loaded yet, delaying...');
+      setTimeout(() => { this.analyzeClickedImage(src) }, 5000);
+      return;
+    }
+
+    var meta = this.imageRequests[src];
+    console.log('ZZZ ' + JSON.stringify(meta));
+    if (meta && meta.tabId) {
+      if (!meta.predictions) {
+        const img = await this.loadImage(src);
+        if (img) {
+          meta.predictions = await this.predict(img);
+        }
+      }
+
+      if (meta.predictions) {
+        console.log('ZZZ sending predictions');
+        chrome.tabs.sendMessage(meta.tabId, {
+          action: 'IMAGE_CLICK_PROCESSED',
+          payload: meta,
+        });
+      } else {
+        console.log('zzz NOT sending predictions');
+      }
     }
   }
-); */
 
-// Registers a context menu option for the predict handler.
-chrome.contextMenus.create({
-  title: "Use URL of image somehow",
-  contexts:["image"],
-  onclick: function(info) {
-    console.log(info);
-    handleImageURL(info.srcUrl);
-    chrome.runtime.sendMessage({
-      msg: "something_completed",
-      data: {
-        subject: "stansSubject",
-        content: "stansContent"
-      }
-    })
-  }  
-});
+}
 
+var bg = new BackgroundProcessing();

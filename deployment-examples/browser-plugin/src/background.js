@@ -165,6 +165,9 @@ class BackgroundProcessing {
           meta.predictions = await this.predict(img);
         }
       }
+      if (!meta.url) {
+        meta.url = src;
+      }
 
       if (meta.predictions) {
         console.log('ZZZ sending predictions');

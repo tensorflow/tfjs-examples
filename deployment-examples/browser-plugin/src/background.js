@@ -6,11 +6,11 @@ const MOBILENET_MODEL_PATH = 'https://storage.googleapis.com/tfjs-models/tfjs/mo
 const IMAGE_SIZE = 224;
 const TOPK_PREDICTIONS = 10;
 
-function myfunc(info, tab) {
+function clickMenuFn(info, tab) {
   console.log('XXX Im the context menu click handler');
   console.log(JSON.stringify(info));
   console.log(JSON.stringify(info.srcUrl));
-  bg.addImageRequest(info.srcUrl, tab);
+  bg.addImageRequest(info.srcUrl, tab.id);
   console.log('YYY');
   bg.analyzeClickedImage(info.srcUrl);
 }
@@ -18,7 +18,7 @@ function myfunc(info, tab) {
 chrome.contextMenus.create({
   title: "Classify image with TensorFlow.js ", 
   contexts:["image"], 
-  onclick: myfunc
+  onclick: clickMenuFn
 });
 
 class BackgroundProcessing {
@@ -45,11 +45,15 @@ class BackgroundProcessing {
   async loadModel() {
     console.log('Loading model...');
     const startTime = performance.now();
-    this.model = await tf.loadModel(MOBILENET_MODEL_PATH);
-    this.model.predict(tf.zeros([1, IMAGE_SIZE, IMAGE_SIZE, 3])).dispose();
+    try {
+      this.model = await tf.loadLayersModel(MOBILENET_MODEL_PATH);
+      this.model.predict(tf.zeros([1, IMAGE_SIZE, IMAGE_SIZE, 3])).dispose();
 
-    const totalTime = Math.floor(performance.now() - startTime);
-    console.log(`Model loaded and initialized in ${totalTime}ms...`);
+      const totalTime = Math.floor(performance.now() - startTime);
+      console.log(`Model loaded and initialized in ${totalTime}ms...`);
+    } catch {
+      console.error(`Unable to load model from URL: ${MOBILENET_MODEL_PATH}`);
+    }
   }
 
   async loadImage(src) {
@@ -104,7 +108,7 @@ class BackgroundProcessing {
     console.log('Predicting...');
     const startTime = performance.now();
     const logits = tf.tidy(() => {
-      const img = tf.fromPixels(imgElement).toFloat();
+      const img = tf.browser.fromPixels(imgElement).toFloat();
       const offset = tf.scalar(127.5);
       const normalized = img.sub(offset).div(offset);
       const batched = normalized.reshape([1, IMAGE_SIZE, IMAGE_SIZE, 3]);
@@ -153,7 +157,7 @@ class BackgroundProcessing {
     }
 
     var meta = this.imageRequests[src];
-    console.log('ZZZ ' + JSON.stringify(meta));
+    console.log('ZZZ ' + JSON.stringify(meta.predictions));
     if (meta && meta.tabId) {
       if (!meta.predictions) {
         const img = await this.loadImage(src);
@@ -164,10 +168,15 @@ class BackgroundProcessing {
 
       if (meta.predictions) {
         console.log('ZZZ sending predictions');
-        chrome.tabs.sendMessage(meta.tabId, {
+        const tabId = meta.tabId;
+        const message = {
           action: 'IMAGE_CLICK_PROCESSED',
           payload: meta,
-        });
+        };
+        console.log('   AAA  About to send');
+        console.log(`   aaa  ${JSON.stringify(tabId)}`);
+        console.log(`   aaa  ${JSON.stringify(message)}`);
+        chrome.tabs.sendMessage(tabId, message);
       } else {
         console.log('zzz NOT sending predictions');
       }

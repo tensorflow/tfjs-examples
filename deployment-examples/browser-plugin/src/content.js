@@ -17,23 +17,6 @@
 
 var imageMeta = {};
 
-const setImageTitles = () => {
-  const images = document.getElementsByTagName('img');
-  const keys = Object.keys(imageMeta);
-  for(u = 0; u < keys.length; u++) {
-    const url = keys[u];
-    const meta = imageMeta[url];
-    for (i = 0; i < images.length; i++) {
-      var img = images[i];
-      if (img.src === meta.url) {
-        img.title = img.src + `:\n\n${img.title}\n\n` + JSON.stringify(meta.predictions);
-        delete keys[u];
-        delete imageMeta[url];
-      }
-    }
-  }
-}
-
 const setClickedImageTitles = () => {
   console.log("RUNNING setClickedImageTitles");
   const images = document.getElementsByTagName('img');
@@ -52,6 +35,38 @@ const setClickedImageTitles = () => {
   }
 }
 
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  console.log(`the tab was ${sender.tab}`);
+  console.log(`the message was ${message}`);
+  if (message && message.payload && message.action === 'IMAGE_CLICK_PROCESSED') {
+    console.log("Heared IMAGE_CLICK_PROCESSED");
+    const { payload } = message;
+    if (payload && payload.url) {
+      imageMeta[payload.url] = payload;
+      setClickedImageTitles();
+    }
+  }
+});
+
+// const setImageTitles = () => {
+//   const images = document.getElementsByTagName('img');
+//   const keys = Object.keys(imageMeta);
+//   for(u = 0; u < keys.length; u++) {
+//     const url = keys[u];
+//     const meta = imageMeta[url];
+//     for (i = 0; i < images.length; i++) {
+//       var img = images[i];
+//       if (img.src === meta.url) {
+//         img.title = img.src + `:\n\n${img.title}\n\n` + JSON.stringify(meta.predictions);
+//         delete keys[u];
+//         delete imageMeta[url];
+//       }
+//     }
+//   }
+// }
+
+
+
 
 // chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 //   if (message && message.payload && message.action === 'IMAGE_PROCESSED') {
@@ -63,16 +78,7 @@ const setClickedImageTitles = () => {
 //   }
 // });
 
-chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-  if (message && message.payload && message.action === 'IMAGE_CLICK_PROCESSED') {
-    console.log("Heared IMAGE_CLICK_PROCESSED");
-    const { payload } = message;
-    if (payload && payload.url) {
-      imageMeta[payload.url] = payload;
-      setClickedImageTitles();
-    }
-  }
-});
 
 
-window.addEventListener('load', setImageTitles, false);
+// window.addEventListener('load', setImageTitles, false);
+// window.addEventListener('load', setClickedImageTitles, false);

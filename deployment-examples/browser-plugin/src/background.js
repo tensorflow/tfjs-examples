@@ -2,46 +2,35 @@ import 'babel-polyfill';
 import * as tf from '@tensorflow/tfjs';
 import { IMAGENET_CLASSES } from './imagenet_classes';
 
+// Where to load the model from.
 const MOBILENET_MODEL_PATH = 'https://storage.googleapis.com/tfjs-models/tfjs/mobilenet_v1_0.25_224/model.json';
 const IMAGE_SIZE = 224;
-const TOPK_PREDICTIONS = 10;
+const TOPK_PREDICTIONS = 2;
 
 function clickMenuFn(info, tab) {
-  console.log('XXX Im the context menu click handler');
-  console.log(JSON.stringify(info));
-  console.log(JSON.stringify(info.srcUrl));
-  bg.addImageRequest(info.srcUrl, tab.id);
-  console.log('YYY');
-  bg.analyzeClickedImage(info.srcUrl);
+  imageClassifier.analyzeImage(info.srcUrl, tab.id);
 }
 
+// Add a right-click menu option to trigger classifying the image.
+// Menu option should only appear when right-clicking an image.
 chrome.contextMenus.create({
   title: "Classify image with TensorFlow.js ", 
   contexts:["image"], 
   onclick: clickMenuFn
 });
 
-class BackgroundProcessing {
+// Async loads a mobilenet on construction.  Subsequently handles
+// requests to classify images through the .analyzeImage API.
+// Successful requests will post a chrome message with
+// 'IMAGE_CLICK_PROCESSED' action, which the content.js can
+// hear and use to manipulate the DOM.
+class ImageClassifier {
 
   constructor() {
-    this.imageRequests = {};
-  //  this.addListeners();
     this.loadModel();
   }
 
-  addImageRequest(url, tabId) {
-    this.imageRequests[url] = this.imageRequests[url] || {tabId: tabId};
-  }
-
-  // addListeners() {
-  //   chrome.webRequest.onCompleted.addListener(req => {
-  //     if (req && req.tabId > 0) {
-  //       this.imageRequests[req.url] = this.imageRequests[req.url] || req;
-  //       this.analyzeImage(req.url);
-  //     }
-  //   }, { urls: ["<all_urls>"], types: ["image", "object"] });
-  // }
-
+  // Loads mobilenet from URL and keeps a reference to it in the object.
   async loadModel() {
     console.log('Loading model...');
     const startTime = performance.now();
@@ -54,6 +43,34 @@ class BackgroundProcessing {
     } catch {
       console.error(`Unable to load model from URL: ${MOBILENET_MODEL_PATH}`);
     }
+  }
+
+  async analyzeImage(url, tabId) {
+    if (!tabId) {
+      console.log('No tab.  No prediction.');
+      return;
+    }
+    if (!this.model) {
+      console.log('Waiting for model to load...');
+      setTimeout(() => { this.analyzeImage(url) }, 5000);
+      return;
+    }
+    const img = await this.loadImage(url);
+    if (!img) {
+      console.log('could not load image');
+      return;
+    }
+    const predictions = await this.predict(img);
+    if (!predictions) {
+      console.log('failed to create predictions.');
+      return;
+    }
+    const message = {
+      action: 'IMAGE_CLICK_PROCESSED',
+      url,
+      predictions
+    };
+    chrome.tabs.sendMessage(tabId, message);
   }
 
   async loadImage(src) {
@@ -106,86 +123,31 @@ class BackgroundProcessing {
 
   async predict(imgElement) {
     console.log('Predicting...');
-    const startTime = performance.now();
+    // The first start time includes the time it takes to extract the image
+    // from the HTML and preprocess it, in additon to the predict() call.
+    const startTime1 = performance.now();
+    // The second start time excludes the extraction and preprocessing and
+    // includes only the predict() call.
+    let startTime2;
     const logits = tf.tidy(() => {
       const img = tf.browser.fromPixels(imgElement).toFloat();
       const offset = tf.scalar(127.5);
       const normalized = img.sub(offset).div(offset);
       const batched = normalized.reshape([1, IMAGE_SIZE, IMAGE_SIZE, 3]);
+      startTime2 = performance.now();
       return this.model.predict(batched);
     });
 
     // Convert logits to probabilities and class names.
-    const predictions = await this.getTopKClasses(logits, TOPK_PREDICTIONS);
-    const totalTime = Math.floor(performance.now() - startTime);
-    console.log(`Prediction done in ${totalTime}ms:`, predictions);
-    return predictions;
+    const classes = await this.getTopKClasses(logits, TOPK_PREDICTIONS);
+    const totalTime1 = performance.now() - startTime1;
+    const totalTime2 = performance.now() - startTime2;
+    console.log(`Done in ${Math.floor(totalTime1)} ms ` +
+      `(not including preprocessing: ${Math.floor(totalTime2)} ms)`);
+    return classes;
   }
 
-  // async analyzeImage(src) {
-
-  //   if (!this.model) {
-  //     console.log('Model not loaded yet, delaying...');
-  //     setTimeout(() => { this.analyzeImage(src) }, 5000);
-  //     return;
-  //   }
-
-  //   var meta = this.imageRequests[src];
-  //   if (meta && meta.tabId) {
-  //     if (!meta.predictions) {
-  //       const img = await this.loadImage(src);
-  //       if (img) {
-  //         meta.predictions = await this.predict(img);
-  //       }
-  //     }
-
-  //     if (meta.predictions) {
-  //       chrome.tabs.sendMessage(meta.tabId, {
-  //         action: 'IMAGE_PROCESSED',
-  //         payload: meta,
-  //       });
-  //     }
-  //   }
-  // }
-
-  async analyzeClickedImage(src) {
-    console.log('ZZZ analyzeClickedImage...')
-    if (!this.model) {
-      console.log('Model not loaded yet, delaying...');
-      setTimeout(() => { this.analyzeClickedImage(src) }, 5000);
-      return;
-    }
-
-    var meta = this.imageRequests[src];
-    console.log('ZZZ ' + JSON.stringify(meta.predictions));
-    if (meta && meta.tabId) {
-      if (!meta.predictions) {
-        const img = await this.loadImage(src);
-        if (img) {
-          meta.predictions = await this.predict(img);
-        }
-      }
-      if (!meta.url) {
-        meta.url = src;
-      }
-
-      if (meta.predictions) {
-        console.log('ZZZ sending predictions');
-        const tabId = meta.tabId;
-        const message = {
-          action: 'IMAGE_CLICK_PROCESSED',
-          payload: meta,
-        };
-        console.log('   AAA  About to send');
-        console.log(`   aaa  ${JSON.stringify(tabId)}`);
-        console.log(`   aaa  ${JSON.stringify(message)}`);
-        chrome.tabs.sendMessage(tabId, message);
-      } else {
-        console.log('zzz NOT sending predictions');
-      }
-    }
-  }
 
 }
 
-var bg = new BackgroundProcessing();
+var imageClassifier = new ImageClassifier();

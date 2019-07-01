@@ -11,11 +11,11 @@
     "clang-format": "~1.2.3",
     "mkdirp": "~0.5.1",
     "webpack": "~4.28.4",
-    "webpack-cli": "^3.2.1",
-    "webpack-dev-server": "~3.1.14"
+    "webpack-cli": "^3.3.2",
+    "webpack-dev-server": "~3.4.1"
   },
   "dependencies": {
-    "@tensorflow/tfjs-node": "^1.0.1",
+    "@tensorflow/tfjs-node": "^1.1.2",
     "argparse": "^1.0.10",
     "socket.io": "~2.2.0"
   }

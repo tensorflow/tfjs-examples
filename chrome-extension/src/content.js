@@ -17,8 +17,8 @@
 
 // class name for all text nodes added by this script.
 const TEXT_DIV_CLASSNAME = 'tfjs_mobilenet_extension_text';
-// Thresholds for LOW_CONFIDENCE and HIGH_CONFIDENCE, controlling which
-// messages are printed.
+// Thresholds for LOW_CONFIDENCE_THRESHOLD and HIGH_CONFIDENCE_THRESHOLD,
+// controlling which messages are printed.
 const HIGH_CONFIDENCE_THRESHOLD = 0.5;
 const LOW_CONFIDENCE_THRESHOLD = 0.1;
 
@@ -34,17 +34,17 @@ function textContentFromPrediction(predictions) {
     return `No prediction 🙁`;
   }
   // Confident.
-  if (predictions[0].probability >= HIGH_CONFIDENCE) {
+  if (predictions[0].probability >= HIGH_CONFIDENCE_THRESHOLD) {
     return `😄 ${predictions[0].className}!`;
   }
   // Not Confident.
-  if (predictions[0].probability >= LOW_CONFIDENCE &&
-      predictions[0].probability < HIGH_CONFIDENCE) {
+  if (predictions[0].probability >= LOW_CONFIDENCE_THRESHOLD &&
+      predictions[0].probability < HIGH_CONFIDENCE_THRESHOLD) {
     return `${predictions[0].className}?...\n Maybe ${
         predictions[1].className}?`;
   }
   // Very not confident.
-  if (predictions[0].probability < LOW_CONFIDENCE) {
+  if (predictions[0].probability < LOW_CONFIDENCE_THRESHOLD) {
     return `😕  ${predictions[0].className}????...\n Maybe ${
         predictions[1].className}????`;
   }

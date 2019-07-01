@@ -20,24 +20,36 @@ import * as tf from '@tensorflow/tfjs';
 import {IMAGENET_CLASSES} from './imagenet_classes';
 
 // Where to load the model from.
-const MOBILENET_MODEL_PATH =
-    'https://storage.googleapis.com/tfjs-models/tfjs/mobilenet_v1_0.25_224/model.json';
+const MOBILENET_MODEL_TFHUB_URL =
+    'https://tfhub.dev/google/imagenet/mobilenet_v2_100_224/classification/2'
+// 'https://tfhub.dev/google/imagenet/mobilenet_v1_100_224/classification/1'
+// Size of the image expected by mobilenet.
 const IMAGE_SIZE = 224;
-const TOPK_PREDICTIONS = 2;
+// The minimum image size to consider classifying.  Below this limit the
+// extension will refuse to classify the image.
+const MIN_IMG_SIZE = 128;
 
-function clickMenuFn(info, tab) {
+// How many predictions to take.
+const TOPK_PREDICTIONS = 2;
+const FIVE_SECONDS_IN_MS = 5000;
+/**
+ * What action to take when someone clicks the right-click menu option.
+ *  Here it takes the url of the right-clicked image and the current tabId
+ *  and forwards it to the imageClassifier's analyzeImage method.
+ */
+function clickMenuCallback(info, tab) {
   imageClassifier.analyzeImage(info.srcUrl, tab.id);
 }
 
-// Add a right-click menu option to trigger classifying the image.
-// Menu option should only appear when right-clicking an image.
+/**
+ * Adds a right-click menu option to trigger classifying the image.
+ * The menu option should only appear when right-clicking an image.
+ */
 chrome.contextMenus.create({
   title: 'Classify image with TensorFlow.js ',
   contexts: ['image'],
-  onclick: clickMenuFn
+  onclick: clickMenuCallback
 });
-
-
 
 /**
  * Async loads a mobilenet on construction.  Subsequently handles
@@ -58,70 +70,106 @@ class ImageClassifier {
     console.log('Loading model...');
     const startTime = performance.now();
     try {
-      this.model = await tf.loadLayersModel(MOBILENET_MODEL_PATH);
-      this.model.predict(tf.zeros([1, IMAGE_SIZE, IMAGE_SIZE, 3])).dispose();
-
+      this.model =
+          await tf.loadGraphModel(MOBILENET_MODEL_TFHUB_URL, {fromTFHub: true});
+      // Warms up the model by causing intermediate tensor values
+      // to be built and pushed to GPU.
+      tf.tidy(() => {
+        this.model.predict(tf.zeros([1, IMAGE_SIZE, IMAGE_SIZE, 3]));
+      });
       const totalTime = Math.floor(performance.now() - startTime);
-      console.log(`Model loaded and initialized in ${totalTime}ms...`);
+      console.log(`Model loaded and initialized in ${totalTime} ms...`);
     } catch {
-      console.error(`Unable to load model from URL: ${MOBILENET_MODEL_PATH}`);
+      console.error(
+          `Unable to load model from URL: ${MOBILENET_MODEL_TFHUB_URL}`);
     }
   }
 
   /**
-   * Triggers the model to make a prediction on the image pointed to at the url.
-   * Sends a IMAGE_CLICK_PROCESSED message when complete, for teh content.js
-   * script to hear and update the dom with the results.
+   * Triggers the model to make a prediction on the image referenced by url.
+   * After a successful prediction a IMAGE_CLICK_PROCESSED message when
+   * complete, for the content.js script to hear and update the DOM with the
+   * results of the prediction.
+   *
    * @param {string} url url of image to analyze.
    * @param {number} tabId which tab the request comes from.
    */
   async analyzeImage(url, tabId) {
     if (!tabId) {
-      console.log('No tab.  No prediction.');
+      console.error('No tab.  No prediction.');
       return;
     }
     if (!this.model) {
       console.log('Waiting for model to load...');
-      setTimeout(() => {this.analyzeImage(url)}, 5000);
+      setTimeout(() => {this.analyzeImage(url)}, FIVE_SECONDS_IN_MS);
       return;
     }
-    const img = await this.loadImage(url);
-    if (!img) {
-      console.log('could not load image');
-      return;
-    }
-    const predictions = await this.predict(img);
-    if (!predictions) {
-      console.log('failed to create predictions.');
-      return;
-    }
-    const message = {action: 'IMAGE_CLICK_PROCESSED', url, predictions};
-    chrome.tabs.sendMessage(tabId, message);
+    let message;
+    this.loadImage(url).then(
+        async (img) => {
+          if (!img) {
+            console.error(
+                'Could not load image.  Either too small or unavailable.');
+            return;
+          }
+          const predictions = await this.predict(img);
+          message = {action: 'IMAGE_CLICK_PROCESSED', url, predictions};
+          chrome.tabs.sendMessage(tabId, message);
+        },
+        (reason) => {
+          console.error(`Failed to analyze: ${reason}`);
+        });
   }
 
+  /**
+   * Creates a dom element and loads the image pointed to by the provided src.
+   * @param {string} src URL of the image to load.
+   */
   async loadImage(src) {
-    return new Promise(resolve => {
-      var img = document.createElement('img');
+    return new Promise((resolve, reject) => {
+      const img = document.createElement('img');
       img.crossOrigin = 'anonymous';
       img.onerror = function(e) {
-        resolve(null);
+        reject(`Could not load image from external source ${src}.`);
       };
       img.onload = function(e) {
-        if ((img.height && img.height > 128) ||
-            (img.width && img.width > 128)) {
-          // Set image size for tf!
+        if ((img.height && img.height > MIN_IMG_SIZE) ||
+            (img.width && img.width > MIN_IMG_SIZE)) {
           img.width = IMAGE_SIZE;
           img.height = IMAGE_SIZE;
           resolve(img);
         }
-        // Let's skip all tiny images
-        resolve(null);
-      } img.src = src;
+        // Fail out if either dimension is less than MIN_IMG_SIZE.
+        reject(`Image size too small. [${img.height} x ${
+            img.width}] vs. minimum [${MIN_IMG_SIZE} x ${MIN_IMG_SIZE}]`);
+      };
+      img.src = src;
     });
   }
 
+  /**
+   * Sorts predictions by score and keeps only topK
+   * @param {Tensor} logits A tensor with one element per predicatable class
+   *   type of mobilenet.  Return of executing model.predict on an Image.
+   * @param {number} topK how many to keep.
+   */
   async getTopKClasses(logits, topK) {
-    const values = await logits.data();
+    // const {values, indices} = tf.topk(logits, topK, true);
+    // const valuesArr = values.dataSync();
+    // const indicesArr = indices.dataSync();
+    // console.log(`indicesArr ${indicesArr}`);
+    // const topClassesAndProbs = [];
+    // for (let i = 0; i < topK; i++) {
+    //   topClassesAndProbs.push({
+    //     className: IMAGENET_CLASSES[indicesArr[i]],
+    //     probability: valuesArr[i]
+    //   })
+    // }
+    // return topClassesAndProbs;
+    const softmax = logits.softmax();
+    const values = await softmax.data();
+    softmax.dispose();
+
     const valuesAndIndices = [];
     for (let i = 0; i < values.length; i++) {
       valuesAndIndices.push({value: values[i], index: i});
@@ -141,12 +189,17 @@ class ImageClassifier {
       topClassesAndProbs.push({
         className: IMAGENET_CLASSES[topkIndices[i]],
         probability: topkValues[i]
-      })
+      });
     }
     return topClassesAndProbs;
   }
 
-
+  /**
+   * Executes the model on the input image, and returns the top predicted
+   * classes.
+   * @param {HTMLElement} imgElement HTML element holding the image to predict
+   *     from.  Should have the correct size ofr mobilenet.
+   */
   async predict(imgElement) {
     console.log('Predicting...');
     // The first start time includes the time it takes to extract the image
@@ -156,12 +209,16 @@ class ImageClassifier {
     // includes only the predict() call.
     let startTime2;
     const logits = tf.tidy(() => {
+      // Mobilenet expects images to be normalized between -1 and 1.
       const img = tf.browser.fromPixels(imgElement).toFloat();
-      const offset = tf.scalar(127.5);
-      const normalized = img.sub(offset).div(offset);
+      // const offset = tf.scalar(127.5);
+      // const normalized = img.sub(offset).div(offset);
+      const normalized = img.div(tf.scalar(256.0));
       const batched = normalized.reshape([1, IMAGE_SIZE, IMAGE_SIZE, 3]);
       startTime2 = performance.now();
-      return this.model.predict(batched);
+      const logits1001 = this.model.predict(batched);
+      // Remove the very first logit (background noise).
+      return logits1001.slice([0, 1], [-1, 1000]);
     });
 
     // Convert logits to probabilities and class names.
@@ -175,4 +232,4 @@ class ImageClassifier {
   }
 }
 
-var imageClassifier = new ImageClassifier();
+const imageClassifier = new ImageClassifier();

@@ -32,6 +32,7 @@ const LOW_CONFIDENCE = 0.1;
  *     of objects, each with a prediction class and score
  */
 function textContentFromPrediction(predictions) {
+  console.log(predictions);
   if (!predictions || predictions.length < 1) {
     return `No prediction 🙁`;
   }
@@ -125,9 +126,6 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       message.predictions) {
     // Get the list of images with this srcUrl.
     const imgElements = getImageElementsWithSrcUrl(message.url);
-    if (imgElements.length === 0) {
-      console.log(`Could not find an image with url ${message.url}`)
-    }
     for (const imgNode of imgElements) {
       const textContent = textContentFromPrediction(message.predictions);
       addTextElementToImageNode(imgNode, textContent);

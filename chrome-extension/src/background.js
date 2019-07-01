@@ -22,7 +22,6 @@ import {IMAGENET_CLASSES} from './imagenet_classes';
 // Where to load the model from.
 const MOBILENET_MODEL_TFHUB_URL =
     'https://tfhub.dev/google/imagenet/mobilenet_v2_100_224/classification/2'
-// 'https://tfhub.dev/google/imagenet/mobilenet_v1_100_224/classification/1'
 // Size of the image expected by mobilenet.
 const IMAGE_SIZE = 224;
 // The minimum image size to consider classifying.  Below this limit the
@@ -155,8 +154,8 @@ class ImageClassifier {
    */
   async getTopKClasses(logits, topK) {
     const {values, indices} = tf.topk(logits, topK, true);
-    const valuesArr = values.dataSync();
-    const indicesArr = indices.dataSync();
+    const valuesArr = await values.data();
+    const indicesArr = await indices.data();
     console.log(`indicesArr ${indicesArr}`);
     const topClassesAndProbs = [];
     for (let i = 0; i < topK; i++) {
@@ -190,9 +189,15 @@ class ImageClassifier {
       const normalized = img.div(tf.scalar(256.0));
       const batched = normalized.reshape([1, IMAGE_SIZE, IMAGE_SIZE, 3]);
       startTime2 = performance.now();
-      const logits1001 = this.model.predict(batched);
-      // Remove the very first logit (background noise).
-      return logits1001.slice([0, 1], [-1, 1000]);
+      const output = this.model.predict(batched);
+      if (output.shape[output.shape.length - 1] === 1001) {
+        // Remove the very first logit (background noise).
+        return output.slice([0, 1], [-1, 1000]);
+      } else if (output.shape[output.shape.length - 1] === 1000) {
+        return output;
+      } else {
+        throw new Error('Unexpected shape...');
+      }
     });
 
     // Convert logits to probabilities and class names.
@@ -200,7 +205,7 @@ class ImageClassifier {
     const totalTime1 = performance.now() - startTime1;
     const totalTime2 = performance.now() - startTime2;
     console.log(
-        `Done in ${Math.floor(totalTime1)} ms ` +
+        `Done in ${totalTime1.toFixed(1)} ms ` +
         `(not including preprocessing: ${Math.floor(totalTime2)} ms)`);
     return classes;
   }

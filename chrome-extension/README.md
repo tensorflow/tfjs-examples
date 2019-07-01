@@ -1,8 +1,8 @@
-# TensorFlow.js Deployment Example : Browser Plugin
+# TensorFlow.js Deployment Example : Browser Extension
 
 This example creates a Chrome extension, enabling users to right-click on images
 within a web page, and perform multi-class object detection on them. The
-extension will will apply a mobilenet classifier to the image, and then print
+extension will will apply a MobileNetV2 classifier to the image, and then print
 the predicted class on top of the image.
 
 To build the extension, use the command:

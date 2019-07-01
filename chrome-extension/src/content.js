@@ -19,8 +19,8 @@
 const TEXT_DIV_CLASSNAME = 'tfjs_mobilenet_extension_text';
 // Thresholds for LOW_CONFIDENCE and HIGH_CONFIDENCE, controlling which
 // messages are printed.
-const HIGH_CONFIDENCE = 0.5;
-const LOW_CONFIDENCE = 0.1;
+const HIGH_CONFIDENCE_THRESHOLD = 0.5;
+const LOW_CONFIDENCE_THRESHOLD = 0.1;
 
 /**
  * Produces a short text string summarizing the prediction

@@ -20,7 +20,6 @@
  */
 
 import * as fs from 'fs';
-import * as https from 'https';
 import * as os from 'os';
 import * as path from 'path';
 

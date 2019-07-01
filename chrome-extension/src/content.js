@@ -22,8 +22,6 @@ const TEXT_DIV_CLASSNAME = 'tfjs_mobilenet_extension_text';
 const HIGH_CONFIDENCE = 0.5;
 const LOW_CONFIDENCE = 0.1;
 
-
-
 /**
  * Produces a short text string summarizing the prediction
  * Input prediction should be a list of {className: string, prediction: float}
@@ -32,7 +30,6 @@ const LOW_CONFIDENCE = 0.1;
  *     of objects, each with a prediction class and score
  */
 function textContentFromPrediction(predictions) {
-  console.log(predictions);
   if (!predictions || predictions.length < 1) {
     return `No prediction 🙁`;
   }

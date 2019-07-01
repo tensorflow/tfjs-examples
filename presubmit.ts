@@ -26,16 +26,9 @@ process.on('unhandledRejection', e => {
 });
 
 const dir = '.';
-const DEPLOYMENT_DIR = 'deployment';
-// Testable dirs are all subdirectories of this except those which
-// begin with '.', 'node_modules', or the deployment root dir.
-const mainDirs = fs.readdirSync(dir)
-                 .filter(f => fs.statSync(join(dir, f)).isDirectory())
-                 .filter(f => !f.startsWith('.') && f !== 'node_modules' && f !== DEPLOYMENT_DIR);
-const deploymentDirs = fs.readdirSync(join(dir, DEPLOYMENT_DIR))
+const dirs = fs.readdirSync(dir)
                  .filter(f => fs.statSync(join(dir, f)).isDirectory())
                  .filter(f => !f.startsWith('.') && f !== 'node_modules');
-const dirs = mainDirs.concat(deploymentDirs);
 
 dirs.forEach(dir => {
   shell.cd(dir);

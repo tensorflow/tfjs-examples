@@ -154,42 +154,16 @@ class ImageClassifier {
    * @param {number} topK how many to keep.
    */
   async getTopKClasses(logits, topK) {
-    // const {values, indices} = tf.topk(logits, topK, true);
-    // const valuesArr = values.dataSync();
-    // const indicesArr = indices.dataSync();
-    // console.log(`indicesArr ${indicesArr}`);
-    // const topClassesAndProbs = [];
-    // for (let i = 0; i < topK; i++) {
-    //   topClassesAndProbs.push({
-    //     className: IMAGENET_CLASSES[indicesArr[i]],
-    //     probability: valuesArr[i]
-    //   })
-    // }
-    // return topClassesAndProbs;
-    const softmax = logits.softmax();
-    const values = await softmax.data();
-    softmax.dispose();
-
-    const valuesAndIndices = [];
-    for (let i = 0; i < values.length; i++) {
-      valuesAndIndices.push({value: values[i], index: i});
-    }
-    valuesAndIndices.sort((a, b) => {
-      return b.value - a.value;
-    });
-    const topkValues = new Float32Array(topK);
-    const topkIndices = new Int32Array(topK);
-    for (let i = 0; i < topK; i++) {
-      topkValues[i] = valuesAndIndices[i].value;
-      topkIndices[i] = valuesAndIndices[i].index;
-    }
-
+    const {values, indices} = tf.topk(logits, topK, true);
+    const valuesArr = values.dataSync();
+    const indicesArr = indices.dataSync();
+    console.log(`indicesArr ${indicesArr}`);
     const topClassesAndProbs = [];
-    for (let i = 0; i < topkIndices.length; i++) {
+    for (let i = 0; i < topK; i++) {
       topClassesAndProbs.push({
-        className: IMAGENET_CLASSES[topkIndices[i]],
-        probability: topkValues[i]
-      });
+        className: IMAGENET_CLASSES[indicesArr[i]],
+        probability: valuesArr[i]
+      })
     }
     return topClassesAndProbs;
   }

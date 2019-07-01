@@ -1,9 +1,27 @@
+/**
+ * @license
+ * Copyright 2019 Google LLC. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * =============================================================================
+ */
+
 import 'babel-polyfill';
 import * as tf from '@tensorflow/tfjs';
-import { IMAGENET_CLASSES } from './imagenet_classes';
+import {IMAGENET_CLASSES} from './imagenet_classes';
 
 // Where to load the model from.
-const MOBILENET_MODEL_PATH = 'https://storage.googleapis.com/tfjs-models/tfjs/mobilenet_v1_0.25_224/model.json';
+const MOBILENET_MODEL_PATH =
+    'https://storage.googleapis.com/tfjs-models/tfjs/mobilenet_v1_0.25_224/model.json';
 const IMAGE_SIZE = 224;
 const TOPK_PREDICTIONS = 2;
 
@@ -14,23 +32,28 @@ function clickMenuFn(info, tab) {
 // Add a right-click menu option to trigger classifying the image.
 // Menu option should only appear when right-clicking an image.
 chrome.contextMenus.create({
-  title: "Classify image with TensorFlow.js ", 
-  contexts:["image"], 
+  title: 'Classify image with TensorFlow.js ',
+  contexts: ['image'],
   onclick: clickMenuFn
 });
 
-// Async loads a mobilenet on construction.  Subsequently handles
-// requests to classify images through the .analyzeImage API.
-// Successful requests will post a chrome message with
-// 'IMAGE_CLICK_PROCESSED' action, which the content.js can
-// hear and use to manipulate the DOM.
-class ImageClassifier {
 
+
+/**
+ * Async loads a mobilenet on construction.  Subsequently handles
+ * requests to classify images through the .analyzeImage API.
+ * Successful requests will post a chrome message with
+ * 'IMAGE_CLICK_PROCESSED' action, which the content.js can
+ * hear and use to manipulate the DOM.
+ */
+class ImageClassifier {
   constructor() {
     this.loadModel();
   }
 
-  // Loads mobilenet from URL and keeps a reference to it in the object.
+  /**
+   * Loads mobilenet from URL and keeps a reference to it in the object.
+   */
   async loadModel() {
     console.log('Loading model...');
     const startTime = performance.now();
@@ -45,6 +68,13 @@ class ImageClassifier {
     }
   }
 
+  /**
+   * Triggers the model to make a prediction on the image pointed to at the url.
+   * Sends a IMAGE_CLICK_PROCESSED message when complete, for teh content.js
+   * script to hear and update the dom with the results.
+   * @param {string} url url of image to analyze.
+   * @param {number} tabId which tab the request comes from.
+   */
   async analyzeImage(url, tabId) {
     if (!tabId) {
       console.log('No tab.  No prediction.');
@@ -52,7 +82,7 @@ class ImageClassifier {
     }
     if (!this.model) {
       console.log('Waiting for model to load...');
-      setTimeout(() => { this.analyzeImage(url) }, 5000);
+      setTimeout(() => {this.analyzeImage(url)}, 5000);
       return;
     }
     const img = await this.loadImage(url);
@@ -65,23 +95,20 @@ class ImageClassifier {
       console.log('failed to create predictions.');
       return;
     }
-    const message = {
-      action: 'IMAGE_CLICK_PROCESSED',
-      url,
-      predictions
-    };
+    const message = {action: 'IMAGE_CLICK_PROCESSED', url, predictions};
     chrome.tabs.sendMessage(tabId, message);
   }
 
   async loadImage(src) {
     return new Promise(resolve => {
       var img = document.createElement('img');
-      img.crossOrigin = "anonymous";
+      img.crossOrigin = 'anonymous';
       img.onerror = function(e) {
         resolve(null);
       };
       img.onload = function(e) {
-        if ((img.height && img.height > 128) || (img.width && img.width > 128)) {
+        if ((img.height && img.height > 128) ||
+            (img.width && img.width > 128)) {
           // Set image size for tf!
           img.width = IMAGE_SIZE;
           img.height = IMAGE_SIZE;
@@ -89,8 +116,7 @@ class ImageClassifier {
         }
         // Let's skip all tiny images
         resolve(null);
-      }
-      img.src = src;
+      } img.src = src;
     });
   }
 
@@ -142,12 +168,11 @@ class ImageClassifier {
     const classes = await this.getTopKClasses(logits, TOPK_PREDICTIONS);
     const totalTime1 = performance.now() - startTime1;
     const totalTime2 = performance.now() - startTime2;
-    console.log(`Done in ${Math.floor(totalTime1)} ms ` +
-      `(not including preprocessing: ${Math.floor(totalTime2)} ms)`);
+    console.log(
+        `Done in ${Math.floor(totalTime1)} ms ` +
+        `(not including preprocessing: ${Math.floor(totalTime2)} ms)`);
     return classes;
   }
-
-
 }
 
 var imageClassifier = new ImageClassifier();

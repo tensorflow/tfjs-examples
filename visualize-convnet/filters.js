@@ -139,7 +139,7 @@ function inputGradientAscent(model, layerName, filterIndex, iterations = 40) {
       const scaledGrads = tf.tidy(() => {
         const grads = gradFunction(image);
         const norm =
-            tf.sqrt(tf.mean(tf.square(grads))).add(tf.ENV.get('EPSILON'));
+            tf.sqrt(tf.mean(tf.square(grads))).add(tf.backend().epsilon());
         // Important trick: scale the gradient with the magnitude (norm)
         // of the gradient.
         return grads.div(norm);
@@ -159,7 +159,7 @@ function deprocessImage(x) {
     x = x.sub(mean);
     // Add a small positive number (EPSILON) to the denominator to prevent
     // division-by-zero.
-    x = x.div(tf.sqrt(variance).add(tf.ENV.get('EPSILON')));
+    x = x.div(tf.sqrt(variance).add(tf.backend().epsilon()));
     // Clip to [0, 1].
     x = x.add(0.5);
     x = tf.clipByValue(x, 0, 1);

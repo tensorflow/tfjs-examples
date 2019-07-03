@@ -17,8 +17,8 @@ key words.
    ```
 
 2. Specify the words you want to search for in the text field labeled
-   "What to search for? ..." There can be one or more search words.
-   If there are multiple search words, they should be separated with
+   "What to search for? ..." You can use one or more search words.
+   If there are multiple search words, they should be separated by
    commas.
 
 3. Click one of the "Search in files" and "Search in folders" buttons
@@ -29,7 +29,7 @@ key words.
 
   ![screenshot-1](./screenshot-1.png)
 
-  If folders are selected, the app will search for
+  If folders are selected, the app will search over
   all image files (with extension names .jpg, .jpeg and .png) in the
   folders recursively.
 

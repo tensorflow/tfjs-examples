@@ -119,6 +119,17 @@ to another project.
     <td>Saving to filesystem and loading in browser</td>
   </tr>
   <tr>
+    <td><a href="./electron">electron</a></td>
+    <td></td>
+    <td>Image</td>
+    <td>(Deploying TF.js in Electron-based desktop apps)</td>
+    <td>Convnet</td>
+    <td></td>
+    <td>Node.js</td>
+    <td></td>
+    <td></td>
+  </tr>
+  <tr>
     <td><a href="./fashion-mnist-vae">fashion-mnist-vae</a></td>
     <td></td>
     <td>Image</td>

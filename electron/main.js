@@ -15,6 +15,7 @@
  * =============================================================================
  */
 
+import * as fs from 'fs';
 import * as path from 'path';
 
 import {app, dialog, ipcMain, BrowserWindow} from 'electron';
@@ -32,10 +33,7 @@ let mainWindow;
 function createWindow() {
   mainWindow = new BrowserWindow({
     height: 800,
-    width: 1200,
-    webPreferences: {
-      preload: path.join(__dirname, 'preload.js')
-    }
+    width: 1200
   });
 
   mainWindow.loadFile('index.html');
@@ -62,6 +60,31 @@ app.on('activate', () => {
 });
 
 const IMAGE_EXTENSION_NAMES = ['jpg', 'jpeg', 'png'];
+
+function findImagesFromDirectoriesRecursive(dirPath) {
+  const imageFilePaths = [];
+  const items = fs.readdirSync(dirPath);
+  for (const item of items) {
+    const fullPath = path.join(dirPath, item);
+    if (fs.lstatSync(fullPath).isDirectory()) {
+      try {
+        imageFilePaths.push(...findImagesFromDirectoriesRecursive(fullPath));
+      } catch (err) {}
+    } else {
+      let extMatch = false;
+      for (const extName of IMAGE_EXTENSION_NAMES) {
+        if (item.toLowerCase().endsWith(extName)) {
+          extMatch = true;
+          break;
+        }
+      }
+      if (extMatch) {
+        imageFilePaths.push(fullPath);
+      }
+    }
+  }
+  return imageFilePaths;
+}
 
 let imageClassifier;
 
@@ -128,19 +151,27 @@ ipcMain.on('get-files', (event, arg) => {
       extensions: IMAGE_EXTENSION_NAMES
     }]
   }, async (filePaths) => {
-    console.log(`files:`, filePaths);  // DEBUG
     if (filePaths == null || filePaths.length === 0) {
       // TODO(cais): This should send an IPC to the renderer and show a
       // snackbar.
       dialog.showErrorBox(`You didn't select any files!`);
       return;
     }
-
     const results = await searchFromFiles(filePaths, arg.targetWords);
     event.sender.send('get-files-response', results);
   });
 });
 
 ipcMain.on('get-directories', (event, arg) => {
-  // TODO(cais): Implement.
+  dialog.showOpenDialog({
+    properties: ['openDirectory', 'multiSelections']
+  }, async (dirPaths) => {
+    const imageFilePaths = [];
+    for (const dirPath of dirPaths) {
+      imageFilePaths.push(...findImagesFromDirectoriesRecursive(dirPath));
+    }
+
+    const results = await searchFromFiles(imageFilePaths, arg.targetWords);
+    event.sender.send('get-files-response', results);
+  });
 });

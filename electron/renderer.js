@@ -51,10 +51,19 @@ const filesDialogButton = document.getElementById('files-dialog-button');
 filesDialogButton.addEventListener('click', () => {
   const targetWords = getTargetWords();
   if (targetWords == null || targetWords.length === 0) {
-    // TODO(cais):
-    return;
+    showSnackbar(`You didn't specify any search words!`);
   }
   ipcRenderer.send('get-files', {targetWords});
+});
+
+const directoriesDialogButton =
+    document.getElementById('directories-dialog-button');
+directoriesDialogButton.addEventListener('click', () => {
+  const targetWords = getTargetWords();
+  if (targetWords == null || targetWords.length === 0) {
+    showSnackbar(`You didn't specify any search words!`);
+  }
+  ipcRenderer.send('get-directories', {targetWords});
 });
 
 function limitStringToLength(str, limit = 50) {

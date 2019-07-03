@@ -65,7 +65,7 @@ to another project.
   </tr>
   <tr>
     <td><a href="./chrome-extension">chrome-extension</a></td>
-    <td><a href="https://storage.googleapis.com/tfjs-examples/custom-layer/dist/index.html">🔗</a></td>
+    <td></td>
     <td>Image</td>
     <td>(Deploying TF.js in Chrome extension)</td>
     <td>Convnet</td>

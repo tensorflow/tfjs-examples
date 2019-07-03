@@ -16,6 +16,16 @@ key words.
    yarn start
    ```
 
+   If you have a CUDA-enabled GPU on your machine and have set up
+   the CUDA and CuDNN libraries properly, you can add the `--gpu`
+   flag to `yarn start` to use CUDA-accelerate inference, which
+   will lead to faster searches.
+
+   ```sh
+   yarn
+   yarn start --gpu
+   ```
+
 2. Specify the words you want to search for in the text field labeled
    "What to search for? ..." You can use one or more search words.
    If there are multiple search words, they should be separated by

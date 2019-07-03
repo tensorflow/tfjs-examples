@@ -1,0 +1,14 @@
+{
+  "name": "tfjs-examples-electron",
+  "version": "0.1.0",
+  "description": "An example for deploying TensorFlow.js models in an Electron.js-based desktop app",
+  "license": "Apache-2.0",
+  "dependencies": {
+    "electron": "^5.0.6",
+    "@tensorflow/tfjs": "^1.2.2"
+  },
+  "main": "main.js",
+  "scripts": {
+    "start": "electron ."
+  }
+}

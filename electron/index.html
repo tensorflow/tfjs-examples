@@ -24,6 +24,14 @@
         text-align: middle;
       }
 
+      #progress-container {
+        height: 14px;
+        line-height: 14px;
+        overflow: hidden;
+        padding: 5px;
+        white-space: nowrap;
+      }
+
       .search-result {
         display: inline-block;
         margin: 10px;
@@ -84,6 +92,12 @@
         <div class="mdc-snackbar__label" role="status" id="main-snackbar-message"></div>
       </div>
     </div>
+
+    <div id="progress-container">
+      <div class="mdl-typography--text" id="progress-text">Hello</div>
+      <div id="progress-bar" class="mdl-progress mdl-js-progress mdl-progress__indeterminate"></div>
+    </div>
+
 
     <div id="search-results"></div>
 

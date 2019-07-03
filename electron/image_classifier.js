@@ -28,10 +28,19 @@ export class ImageClassifier {
   }
 
   /**
-   * TODO(cais): Doc string.
-   * @param {*} images
-   * @param {*} topK
-   * @return
+   * Perform classification on a batch of image tensors.
+   *
+   * @param {tf.Tensor} images Batch image tensor of shape
+   *   `[numExamples, height, width, channels]`. The values of `heigth`,
+   *   `width` and `channel` must match the underlying MobileNetV2 model
+   *   (default: 224, 224, 3).
+   * @param {number} topK How many results with top probability / logit values
+   *   to return for each example.
+   * @return {Array<{className: string, prob: number}>} An array of classes
+   *   with the highest `topK` probability scores, sorted in the descending
+   *   order of the probability scores. Each element of the array corresponds
+   *   to one example in `images`. The order of the elements matches that
+   *   of `images`.
    */
   async classify(images, topK = 5) {
     await this.ensureModelLoaded();
@@ -64,7 +73,7 @@ export class ImageClassifier {
       console.log('Loading image classifier model...');
       this.model =
           await tf.loadGraphModel(MOBILENET_MODEL_TFHUB_URL, {fromTFHub: true});
-      console.log('Done loading image classifier model...');
+
     }
   }
 

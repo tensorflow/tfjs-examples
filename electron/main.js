@@ -88,9 +88,16 @@ function findImagesFromDirectoriesRecursive(dirPath) {
 
 let imageClassifier;
 
-async function searchFromFiles(filePaths, targetWords) {
+async function searchFromFiles(
+    filePaths,
+    targetWords,
+    modelLoadingCallback,
+    inferenceCallback) {
   if (imageClassifier == null) {
     imageClassifier = new ImageClassifier();
+    if (modelLoadingCallback != null) {
+      modelLoadingCallback();
+    }
     await imageClassifier.ensureModelLoaded();
   }
   const {height, width} = imageClassifier.getImageSize();
@@ -103,8 +110,13 @@ async function searchFromFiles(filePaths, targetWords) {
 
   const axis = 0;
   const batchImageTensor = tf.concat(imageTensors, axis);
+  if (inferenceCallback != null) {
+    inferenceCallback();
+  }
+
+  const t0 = tf.util.now();
   const classNamesAndProbs = await imageClassifier.classify(batchImageTensor);
-  console.log(classNamesAndProbs);  // DEBUG
+  const tElapsedMillis = tf.util.now() - t0;
 
   // Filter through the output class names and probilities.
   const foundItems = [];
@@ -126,12 +138,18 @@ async function searchFromFiles(filePaths, targetWords) {
       }
     }
     if (matchWord != null) {
-      foundItems.push(Object.assign({
-        filePath: filePaths[i],
-        matchWord,
-        imageBase64: await readImageAsBase64(filePaths[i]),
-        topClasses: namesAndProbs
-      }))
+      let imageBase64;
+      try {
+        imageBase64 = await readImageAsBase64(filePaths[i]);
+        foundItems.push({
+          filePath: filePaths[i],
+          matchWord,
+          imageBase64,
+          topClasses: namesAndProbs,
+        });
+      } catch (err) {
+        // Guards against `readImageAsBase64` failures.
+      }
     }
   }
 
@@ -139,7 +157,8 @@ async function searchFromFiles(filePaths, targetWords) {
   return {
     targetWords,
     numSearchedFiles: filePaths.length,
-    foundItems
+    foundItems,
+    tElapsedMillis
   };
 }
 
@@ -157,7 +176,10 @@ ipcMain.on('get-files', (event, arg) => {
       dialog.showErrorBox(`You didn't select any files!`);
       return;
     }
-    const results = await searchFromFiles(filePaths, arg.targetWords);
+    const results = await searchFromFiles(
+        filePaths, arg.targetWords,
+        () => event.sender.send('loading-model'),
+        () => event.sender.send('inference-ongoing'));
     event.sender.send('get-files-response', results);
   });
 });
@@ -171,7 +193,10 @@ ipcMain.on('get-directories', (event, arg) => {
       imageFilePaths.push(...findImagesFromDirectoriesRecursive(dirPath));
     }
 
-    const results = await searchFromFiles(imageFilePaths, arg.targetWords);
+    const results = await searchFromFiles(
+        imageFilePaths, arg.targetWords,
+        () => event.sender.send('loading-model'),
+        () => event.sender.send('inference-ongoing'));
     event.sender.send('get-files-response', results);
   });
 });

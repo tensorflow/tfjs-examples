@@ -20,18 +20,29 @@ import {ipcRenderer} from 'electron';
 
 const searchResultsDiv = document.getElementById('search-results');
 ipcRenderer.on('get-files-response', (event, arg) => {
+  hideProgress();
   if (arg.foundItems.length === 0) {
     showSnackbar(
         `No match for "${arg.targetWords.join(',')}" ` +
-        `after searching ${arg.numSearchedFiles} file(s).`)
+        `after searching ${arg.numSearchedFiles} file(s). ` +
+        `Elapsed time: ${arg.tElapsedMillis.toFixed(1)} ms`);
   } else {
     showSnackbar(
         `Found ${arg.foundItems.length} ` +
-        `matches from ${arg.numSearchedFiles} image(s).`);
+        `matches from ${arg.numSearchedFiles} image(s). ` +
+        `Elapsed time: ${arg.tElapsedMillis.toFixed(1)} ms`);
     arg.foundItems.forEach(foundItem => {
       createFoundCard(searchResultsDiv, foundItem);
     });
   }
+});
+
+ipcRenderer.on('loading-model', (event) => {
+  showProgress('Loading model...');
+});
+
+ipcRenderer.on('inference-ongoing', (event) => {
+  showProgress('Classifying images...');
 });
 
 const targetWordsInput = document.getElementById('target-words');
@@ -116,3 +127,19 @@ function createFoundCard(rootDiv, foundItem) {
   rootDiv.insertBefore(cardDiv, rootDiv.firstChild);
   cardDiv.scrollIntoView();
 }
+
+const progressBar = document.getElementById('progress-bar');
+const progressText = document.getElementById('progress-text');
+
+function showProgress(message) {
+  progressText.textContent = message;
+  progressBar.style.display = 'block';
+  progressText.style.display = 'block';
+}
+
+function hideProgress(message) {
+  progressBar.style.display = 'none';
+  progressText.style.display = 'none';
+}
+
+hideProgress();

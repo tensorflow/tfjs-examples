@@ -50,6 +50,12 @@ export async function readImageAsTensor(filePath, height, width) {
   });
 }
 
+/**
+ * Read an image file as a Base64 encoded string.
+ *
+ * @param {string} filePath Path to the input image file.
+ * @return {string} Base64 encoded image content.
+ */
 export async function readImageAsBase64(filePath) {
   let mimeType;
   if (filePath.toLowerCase().endsWith('.png')) {

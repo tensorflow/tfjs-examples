@@ -19,6 +19,18 @@ import {MDCSnackbar} from '@material/snackbar';
 import {ipcRenderer} from 'electron';
 
 const searchResultsDiv = document.getElementById('search-results');
+
+/**
+ * IPC handle for classification results.
+ *
+ * `arg` is expected to contain the following fields:
+ *   - targetWords: What words were used for the search.
+ *   - numSearchedFiles: How many files have been searched over.
+ *   - tElapsedMillis: How long the inference part of the search took
+ *     (in milliseconds).
+ *   - foundItems: Image files with classification results that match
+ *     any of the target words.
+ */
 ipcRenderer.on('get-files-response', (event, arg) => {
   hideProgress();
   if (arg.foundItems.length === 0) {
@@ -37,14 +49,17 @@ ipcRenderer.on('get-files-response', (event, arg) => {
   }
 });
 
+/** IPC handle for the "model is be loaded" event. */
 ipcRenderer.on('loading-model', (event) => {
   showProgress('Loading model...');
 });
 
+/** IPC handle for the "model is running inference" event. */
 ipcRenderer.on('inference-ongoing', (event) => {
   showProgress('Classifying images...');
 });
 
+/** Parse the target words for search from the text box. */
 const targetWordsInput = document.getElementById('target-words');
 function getTargetWords() {
   return targetWordsInput.value.trim().split(',')
@@ -52,13 +67,23 @@ function getTargetWords() {
 }
 
 const snackbar = new MDCSnackbar(document.getElementById('main-snackbar'));
-function showSnackbar(message, timeoutMs = 4000) {
+
+/**
+ * Display a snackbar message on the screen.
+ *
+ * @param {string} message The message to be displayed.
+ * @param {number} timeoutMillis How many millliseconds the message
+ *   will stay on the screen before disappearing.
+ */
+function showSnackbar(message, timeoutMillis = 4000) {
   snackbar.labelText = message;
-  snackbar.timeoutMs = timeoutMs;
+  snackbar.timeoutMs = timeoutMillis;
   snackbar.open();
 }
 
 const filesDialogButton = document.getElementById('files-dialog-button');
+
+/** The callback for selecting a number of files to search over. */
 filesDialogButton.addEventListener('click', () => {
   const targetWords = getTargetWords();
   if (targetWords == null || targetWords.length === 0) {
@@ -69,6 +94,8 @@ filesDialogButton.addEventListener('click', () => {
 
 const directoriesDialogButton =
     document.getElementById('directories-dialog-button');
+
+/** The callback for selecting a number of folder to search in, recursively. */
 directoriesDialogButton.addEventListener('click', () => {
   const targetWords = getTargetWords();
   if (targetWords == null || targetWords.length === 0) {
@@ -77,6 +104,7 @@ directoriesDialogButton.addEventListener('click', () => {
   ipcRenderer.send('get-directories', {targetWords});
 });
 
+/** Helper method for limiting the number of characters shown on screen. */
 function limitStringToLength(str, limit = 50) {
   if (str.length <= limit) {
     return str;
@@ -131,12 +159,14 @@ function createFoundCard(rootDiv, foundItem) {
 const progressBar = document.getElementById('progress-bar');
 const progressText = document.getElementById('progress-text');
 
+/** Display an indeterminate progress bar with message. */
 function showProgress(message) {
   progressText.textContent = message;
   progressBar.style.display = 'block';
   progressText.style.display = 'block';
 }
 
+/** Display the indeterminate progress bar. */
 function hideProgress(message) {
   progressBar.style.display = 'none';
   progressText.style.display = 'none';

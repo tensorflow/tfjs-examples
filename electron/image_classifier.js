@@ -68,15 +68,16 @@ export class ImageClassifier {
     });
   }
 
+  /** If the underlying model is not loaded, load it. */
   async ensureModelLoaded() {
     if (this.model == null) {
       console.log('Loading image classifier model...');
       this.model =
           await tf.loadGraphModel(MOBILENET_MODEL_TFHUB_URL, {fromTFHub: true});
-
     }
   }
 
+  /** Get the required image sizes (height and width). */
   getImageSize() {
     if (this.model == null) {
       throw new Error(

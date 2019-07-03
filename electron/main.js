@@ -86,8 +86,20 @@ function findImagesFromDirectoriesRecursive(dirPath) {
   return imageFilePaths;
 }
 
-let imageClassifier;
+let imageClassifier;  // The ImageClassifier instance to be loaded dynamically.
 
+/**
+ * Search for images with content matching target wrods.
+ *
+ * @param {string[]} filePaths An array of paths to image files
+ * @param {string[]} targetWords What target words to search for. An image
+ *   will be considered a match if its content (as determined by
+ *   `imageClassifer`) matches any of the target words.
+ * @param {() => any} modelLoadingCallback An optional callback that will
+ *   be invoked during loading of the model.
+ * @param {() => any} inferenceCallback An optional callback that will
+ *   be invoked when the model is running inference on image data.
+ */
 async function searchFromFiles(
     filePaths,
     targetWords,
@@ -102,23 +114,28 @@ async function searchFromFiles(
   }
   const {height, width} = imageClassifier.getImageSize();
 
+  // Read the content of the image files as tensors with dimensions
+  // that match the requirement of the image classifier.
   const imageTensors = [];
   for (const file of filePaths) {
     const imageTensor = await readImageAsTensor(file, height, width);
     imageTensors.push(imageTensor);
   }
 
+  // Combine images to a batch for accelerated inference.
   const axis = 0;
   const batchImageTensor = tf.concat(imageTensors, axis);
   if (inferenceCallback != null) {
     inferenceCallback();
   }
 
+  // Run inference.
   const t0 = tf.util.now();
   const classNamesAndProbs = await imageClassifier.classify(batchImageTensor);
   const tElapsedMillis = tf.util.now() - t0;
 
-  // Filter through the output class names and probilities.
+  // Filter through the output class names and probilities to look for
+  // matches.
   const foundItems = [];
   for (let i = 0; i < classNamesAndProbs.length; ++i) {
     const namesAndProbs = classNamesAndProbs[i];
@@ -153,7 +170,9 @@ async function searchFromFiles(
     }
   }
 
+  // Memory cleanup.
   tf.dispose([imageTensors, batchImageTensor, imageTensors]);
+
   return {
     targetWords,
     numSearchedFiles: filePaths.length,
@@ -162,6 +181,7 @@ async function searchFromFiles(
   };
 }
 
+/** IPC handle for searching over files. */
 ipcMain.on('get-files', (event, arg) => {
   dialog.showOpenDialog({
     properties: ['openFile', 'multiSelections'],
@@ -184,6 +204,7 @@ ipcMain.on('get-files', (event, arg) => {
   });
 });
 
+/** IPC handle for searching in directories, recursively. */
 ipcMain.on('get-directories', (event, arg) => {
   dialog.showOpenDialog({
     properties: ['openDirectory', 'multiSelections']

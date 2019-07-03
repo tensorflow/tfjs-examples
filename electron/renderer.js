@@ -15,28 +15,98 @@
  * =============================================================================
  */
 
-import * as tf from '@tensorflow/tfjs';
+import {MDCSnackbar} from '@material/snackbar';
 import {ipcRenderer} from 'electron';
 
-console.log('In renderer.js');  // DEBUG
-console.log(tf);
+const searchResultsDiv = document.getElementById('search-results');
+ipcRenderer.on('get-files-response', (event, found) => {
+  if (found.length === 0) {
 
-ipcRenderer.on('get-files-or-directories-response', (event, arg) => {
-  console.log('get-files-or-directories-response:', arg);  // DEBUG
-  console.log(arg.xs);
-  console.log(arg.ys);
-  console.log(arg.ys.print());
+  } else {
+    found.forEach(foundItem => {
+      createFoundCard(searchResultsDiv, foundItem);
+    });
+  }
 });
+
+const targetWordsInput = document.getElementById('target-words');
+function getTargetWords() {
+  return targetWordsInput.value.trim().split(',')
+      .filter(x => x.length > 0).map(x => x.trim().toLowerCase());
+}
+
+const snackbar = new MDCSnackbar(document.getElementById('main-snackbar'));
+function showSnackbar(message, timeoutMs = 4000) {
+  snackbar.labelText = message;
+  snackbar.timeoutMs = timeoutMs;
+  snackbar.open();
+}
+
+showSnackbar('ready!!');  // DEBUG
 
 const filesDialogButton = document.getElementById('files-dialog-button');
 filesDialogButton.addEventListener('click', () => {
-  ipcRenderer.send('get-files');
+  const targetWords = getTargetWords();
+  if (targetWords == null || targetWords.length === 0) {
+    // TODO(cais):
+    return;
+  }
+  ipcRenderer.send('get-files', {targetWords});
 });
 
-const directoriesDialogButton = document.getElementById('directories-dialog-button');
-directoriesDialogButton.addEventListener('click', () => {
-  ipcRenderer.send('get-directories');
-});
+// TODO(cais):
+// const directoriesDialogButton =
+//     document.getElementById('directories-dialog-button');
+// directoriesDialogButton.addEventListener('click', () => {
+//   ipcRenderer.send('get-directories');
+// });
 
-const searchButton = document.getElementById('search-button');
-searchButton.style.display = 'none';
+function limitStringToLength(str, limit = 50) {
+  if (str.length <= limit) {
+    return str;
+  } else {
+    return `...${str.slice(limit + 3)}`;
+  }
+}
+
+/**
+ * Create and material-design card for a search match.
+ */
+function createFoundCard(rootDiv, foundItem) {
+  const cardDiv = document.createElement('div');
+  cardDiv.classList.add('mdl-card');
+  cardDiv.classList.add('mdl-shadow--2dp');
+  cardDiv.classList.add('search-result');
+
+  const titleDiv = document.createElement('div');
+  titleDiv.classList.add('mdl-card__title');
+  titleDiv.textContent = foundItem.matchWord;
+  cardDiv.appendChild(titleDiv);
+
+  const imgDiv = document.createElement('img');
+  imgDiv.classList.add('search-result-thumbnail')
+  imgDiv.src = foundItem.imageBase64;
+  cardDiv.appendChild(imgDiv);
+
+  const pathDiv = document.createElement('div');
+  pathDiv.classList.add('mdl-card--border');
+  pathDiv.classList.add('search-result-file-path');
+  pathDiv.textContent = limitStringToLength(foundItem.filePath);
+  cardDiv.appendChild(pathDiv);
+
+  const topKDiv = document.createElement('div');
+  topKDiv.classList.add('mdl-card--border');
+  topKDiv.classList.add('search-result-top-k');
+  const ul = document.createElement('ul');
+  for (const classNameAndProb of foundItem.topClasses) {
+    const li = document.createElement('li');
+    li.textContent =
+        `${classNameAndProb.className}: ${classNameAndProb.prob.toFixed(2)}`;
+    ul.appendChild(li);
+  }
+  topKDiv.appendChild(ul);
+  cardDiv.appendChild(topKDiv);
+
+  rootDiv.appendChild(cardDiv);
+  cardDiv.scrollIntoView();
+}

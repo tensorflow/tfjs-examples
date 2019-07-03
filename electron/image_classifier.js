@@ -34,36 +34,29 @@ export class ImageClassifier {
    * @return
    */
   async classify(images, topK = 5) {
-    images.min().print();  // DEBUG
-    images.max().print();  // DEBUG
     await this.ensureModelLoaded();
+    return tf.tidy(() => {
+      const probs = this.model.predict(images);
+      const sorted = true;
+      const {values, indices} = tf.topk(probs, topK, sorted);
 
-    console.log('Calling predict()');  // DEBUG
-    const probs = this.model.predict(images);
-    console.log('DONE calling predict()');  // DEBUG
-    probs.print();  // DEBUG
-    const sorted = true;
-    const {values, indices} = tf.topk(probs, topK, sorted);
-    values.print();  // DEBUG
-    indices.print();  // DEBUG
+      const classProbs = values.arraySync();
+      const classIndices = indices.arraySync();
 
-    const classProbs = await values.array();
-    const classIndices = await indices.array();
-
-    const results = [];
-    classIndices.forEach((indices, i) => {
-      const classesAndProbs = [];
-      indices.forEach((index, j) => {
-        classesAndProbs.push({
-          className: IMAGENET_CLASSES[index - 1],
-          prob: classProbs[i][j]
+      const results = [];
+      classIndices.forEach((indices, i) => {
+        const classesAndProbs = [];
+        indices.forEach((index, j) => {
+          classesAndProbs.push({
+            className: IMAGENET_CLASSES[index - 1],
+            prob: classProbs[i][j]
+          });
         });
-      });
-      results.push(classesAndProbs);
-    })
+        results.push(classesAndProbs);
+      })
 
-    console.log(results);  // DEBUG
-    return results;
+      return results;
+    });
   }
 
   async ensureModelLoaded() {
@@ -71,6 +64,7 @@ export class ImageClassifier {
       console.log('Loading image classifier model...');
       this.model =
           await tf.loadGraphModel(MOBILENET_MODEL_TFHUB_URL, {fromTFHub: true});
+      console.log('Done loading image classifier model...');
     }
   }
 

@@ -24,7 +24,7 @@ const tf = process.argv.indexOf('--gpu') === -1 ?
     require('@tensorflow/tfjs-node') :
     require('@tensorflow/tfjs-node-gpu');
 
-import {readImageTensorFromFile} from './image_utils';
+import {readImageAsBase64, readImageAsTensor} from './image_utils';
 import {ImageClassifier} from './image_classifier';
 
 let mainWindow;
@@ -64,7 +64,7 @@ app.on('activate', () => {
 let imageClassifier;
 
 ipcMain.on('get-files', (event, arg) => {
-  console.log('get-files:');  // DEBUG
+  console.log('get-files: targetWords:', arg.targetWords);  // DEBUG
 
   dialog.showOpenDialog({
     properties: ['openFile', 'multiSelections'],
@@ -89,15 +89,47 @@ ipcMain.on('get-files', (event, arg) => {
 
     const imageTensors = [];
     for (const file of files) {
-      const imageTensor = await readImageTensorFromFile(file, height, width);
+      const imageTensor = await readImageAsTensor(file, height, width);
       imageTensors.push(imageTensor);
     }
 
-    const axis = 0
+    const axis = 0;
     const batchImageTensor = tf.concat(imageTensors, axis);
-    imageClassifier.classify(batchImageTensor);
+    const classNamesAndProbs = await imageClassifier.classify(batchImageTensor);
+    console.log(classNamesAndProbs);  // DEBUG
+
+    // Filter through the output class names and probilities.
+    const found = [];
+    for (let i = 0; i < classNamesAndProbs.length; ++i) {
+      const namesAndProbs = classNamesAndProbs[i];
+      let matchWord = null;
+      for (const nameAndProb of namesAndProbs) {
+        for (const word of arg.targetWords) {
+          const classTokens = nameAndProb.className.toLowerCase().trim()
+              .replace(/[,\/]/g, ' ')
+              .split(' ').filter(x => x.length > 0);
+          console.log(classTokens);  // DEBUG
+          if (classTokens.indexOf(word) !== -1) {
+            matchWord = word;
+            break;
+          }
+        }
+        if (matchWord != null) {
+          break;
+        }
+      }
+      if (matchWord != null) {
+        found.push(Object.assign({
+          filePath: files[i],
+          matchWord,
+          imageBase64: await readImageAsBase64(files[i]),
+          topClasses: namesAndProbs
+        }))
+      }
+    }
 
     tf.dispose([imageTensors, batchImageTensor, imageTensors]);
+    event.sender.send('get-files-response', found);
   });
 });
 

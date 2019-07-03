@@ -29,7 +29,7 @@ import * as tf from '@tensorflow/tfjs';
  * @return {tf.Tensor4D} The read float32-type tf.Tensor of shape
  *   `[1, height, width, 3]`
  */
-export async function readImageTensorFromFile(filePath, height, width) {
+export async function readImageAsTensor(filePath, height, width) {
   return new Promise((resolve, reject) => {
     jimp.read(filePath, (err, image) => {
       if (err) {
@@ -45,6 +45,29 @@ export async function readImageTensorFromFile(filePath, height, width) {
         });
         resolve(tf.tidy(() => tf.image.resizeBilinear(
             buffer.toTensor(), [height, width]).div(255)));
+      }
+    });
+  });
+}
+
+export async function readImageAsBase64(filePath) {
+  let mimeType;
+  if (filePath.toLowerCase().endsWith('.png')) {
+    mimeType = jimp.MIME_PNG;
+  } else if (filePath.toLowerCase().endsWith('.bmp')) {
+    mimeType = jimp.MIME_BMP;
+  } else if (filePath.toLowerCase().endsWith('jpg') ||
+             filePath.toLowerCase().endsWith('jpeg')) {
+    mimeType = jimp.MIME_JPEG;
+  } else {
+    throw new Error(`Unsupported image file extension name in: ${filePath}`);
+  }
+  return new Promise((resolve, reject) => {
+    jimp.read(filePath, async (err, image) => {
+      if (err) {
+        reject(err);
+      } else {
+        resolve(await image.getBase64Async(mimeType));
       }
     });
   });

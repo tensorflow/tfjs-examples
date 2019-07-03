@@ -11,17 +11,43 @@
 
     <style>
       body {
-        margin: 25px;
+        margin: 35px;
+      }
+
+      .search-result {
+        display: inline-block;
+        margin: 10px;
+      }
+
+      .search-result-file-path {
+        color: rgb(128, 128, 128);
+        font-size: 70%;
+        padding: 5px;
+      }
+
+      .search-result-top-k {
+        color: rgb(80, 80, 80);
+        font-size: 70%;
+        padding: 1px;
+      }
+
+      .search-result-thumbnail {
+        height: 240px;
+        width: 320px;
       }
     </style>
   </head>
 
   <body>
-    <p>Search for images by content usnig TensorFlow.js</p>
+    <p><em>Search for images by content using TensorFlow.js</em></p>
 
     <form action="#">
       <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
-        <input class="mdl-textfield__input" type="text" id="sample3">
+        <input
+            class="mdl-textfield__input"
+            type="text"
+            id="target-words"
+            value="Tiger">
         <label class="mdl-textfield__label" for="sample3">What to search for?</label>
       </div>
     </form>
@@ -41,6 +67,20 @@
         Search in folders...
       </button>
     </div>
+
+    <div class="mdc-snackbar" id="main-snackbar">
+      <div class="mdc-snackbar__surface">
+        <div class="mdc-snackbar__label"
+              role="status"
+              aria-live="polite">
+        </div>
+      </div>
+    </div>
+
+    <div id="search-results">
+
+    </div>
+
 
     <script src="renderer.js"></script>
   </body>

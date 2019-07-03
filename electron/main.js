@@ -61,6 +61,14 @@ app.on('activate', () => {
 
 const IMAGE_EXTENSION_NAMES = ['jpg', 'jpeg', 'png'];
 
+/**
+ * Recursively find all image files with matching extension names.
+ *
+ * @param {string} dirPath Path to a directory to perform the
+ *   recursive search in.
+ * @return {string[]} An array of full paths to all the image files
+ *   under the directory.
+ */
 function findImagesFromDirectoriesRecursive(dirPath) {
   const imageFilePaths = [];
   const items = fs.readdirSync(dirPath);

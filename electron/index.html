@@ -6,12 +6,18 @@
     <title>TensorFlow.js: Electron Demo</title>
 
     <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+    <link href="https://unpkg.com/material-components-web@latest/dist/material-components-web.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://code.getmdl.io/1.3.0/material.indigo-pink.min.css">
     <script defer src="https://code.getmdl.io/1.3.0/material.min.js"></script>
 
     <style>
       body {
         margin: 35px;
+      }
+
+      #main-snackbar-message {
+        font-size: 13px;
+        text-align: middle;
       }
 
       .search-result {
@@ -34,6 +40,7 @@
       .search-result-thumbnail {
         height: 240px;
         width: 320px;
+        margin: 4px;
       }
     </style>
   </head>
@@ -47,8 +54,8 @@
             class="mdl-textfield__input"
             type="text"
             id="target-words"
-            value="Tiger">
-        <label class="mdl-textfield__label" for="sample3">What to search for?</label>
+            value="Turtle, ship">
+        <label class="mdl-textfield__label" for="sample3">What to search for? (Try tiger, turtle, ship)</label>
       </div>
     </form>
 
@@ -70,17 +77,11 @@
 
     <div class="mdc-snackbar" id="main-snackbar">
       <div class="mdc-snackbar__surface">
-        <div class="mdc-snackbar__label"
-              role="status"
-              aria-live="polite">
-        </div>
+        <div class="mdc-snackbar__label" role="status" id="main-snackbar-message"></div>
       </div>
     </div>
 
-    <div id="search-results">
-
-    </div>
-
+    <div id="search-results"></div>
 
     <script src="renderer.js"></script>
   </body>

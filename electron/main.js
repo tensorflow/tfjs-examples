@@ -31,8 +31,8 @@ let mainWindow;
 
 function createWindow() {
   mainWindow = new BrowserWindow({
-    height: 660,
-    width: 1000,
+    height: 800,
+    width: 1200,
     webPreferences: {
       preload: path.join(__dirname, 'preload.js')
     }
@@ -61,75 +61,83 @@ app.on('activate', () => {
   }
 });
 
+const IMAGE_EXTENSION_NAMES = ['jpg', 'jpeg', 'png'];
+
 let imageClassifier;
 
-ipcMain.on('get-files', (event, arg) => {
-  console.log('get-files: targetWords:', arg.targetWords);  // DEBUG
+async function searchFromFiles(filePaths, targetWords) {
+  if (imageClassifier == null) {
+    imageClassifier = new ImageClassifier();
+    await imageClassifier.ensureModelLoaded();
+  }
+  const {height, width} = imageClassifier.getImageSize();
 
+  const imageTensors = [];
+  for (const file of filePaths) {
+    const imageTensor = await readImageAsTensor(file, height, width);
+    imageTensors.push(imageTensor);
+  }
+
+  const axis = 0;
+  const batchImageTensor = tf.concat(imageTensors, axis);
+  const classNamesAndProbs = await imageClassifier.classify(batchImageTensor);
+  console.log(classNamesAndProbs);  // DEBUG
+
+  // Filter through the output class names and probilities.
+  const foundItems = [];
+  for (let i = 0; i < classNamesAndProbs.length; ++i) {
+    const namesAndProbs = classNamesAndProbs[i];
+    let matchWord = null;
+    for (const nameAndProb of namesAndProbs) {
+      for (const word of targetWords) {
+        const classTokens = nameAndProb.className.toLowerCase().trim()
+            .replace(/[,\/]/g, ' ')
+            .split(' ').filter(x => x.length > 0);
+        if (classTokens.indexOf(word) !== -1) {
+          matchWord = word;
+          break;
+        }
+      }
+      if (matchWord != null) {
+        break;
+      }
+    }
+    if (matchWord != null) {
+      foundItems.push(Object.assign({
+        filePath: filePaths[i],
+        matchWord,
+        imageBase64: await readImageAsBase64(filePaths[i]),
+        topClasses: namesAndProbs
+      }))
+    }
+  }
+
+  tf.dispose([imageTensors, batchImageTensor, imageTensors]);
+  return {
+    targetWords,
+    numSearchedFiles: filePaths.length,
+    foundItems
+  };
+}
+
+ipcMain.on('get-files', (event, arg) => {
   dialog.showOpenDialog({
     properties: ['openFile', 'multiSelections'],
     filters: [{
       name: 'Images',
-      extensions: ['jpg', 'jpeg', 'png']
+      extensions: IMAGE_EXTENSION_NAMES
     }]
-  }, async (files) => {
-    console.log(`files:`, files);  // DEBUG
-    if (files == null || files.length === 0) {
+  }, async (filePaths) => {
+    console.log(`files:`, filePaths);  // DEBUG
+    if (filePaths == null || filePaths.length === 0) {
       // TODO(cais): This should send an IPC to the renderer and show a
       // snackbar.
       dialog.showErrorBox(`You didn't select any files!`);
       return;
     }
 
-    if (imageClassifier == null) {
-      imageClassifier = new ImageClassifier();
-      await imageClassifier.ensureModelLoaded();
-    }
-    const {height, width} = imageClassifier.getImageSize();
-
-    const imageTensors = [];
-    for (const file of files) {
-      const imageTensor = await readImageAsTensor(file, height, width);
-      imageTensors.push(imageTensor);
-    }
-
-    const axis = 0;
-    const batchImageTensor = tf.concat(imageTensors, axis);
-    const classNamesAndProbs = await imageClassifier.classify(batchImageTensor);
-    console.log(classNamesAndProbs);  // DEBUG
-
-    // Filter through the output class names and probilities.
-    const found = [];
-    for (let i = 0; i < classNamesAndProbs.length; ++i) {
-      const namesAndProbs = classNamesAndProbs[i];
-      let matchWord = null;
-      for (const nameAndProb of namesAndProbs) {
-        for (const word of arg.targetWords) {
-          const classTokens = nameAndProb.className.toLowerCase().trim()
-              .replace(/[,\/]/g, ' ')
-              .split(' ').filter(x => x.length > 0);
-          console.log(classTokens);  // DEBUG
-          if (classTokens.indexOf(word) !== -1) {
-            matchWord = word;
-            break;
-          }
-        }
-        if (matchWord != null) {
-          break;
-        }
-      }
-      if (matchWord != null) {
-        found.push(Object.assign({
-          filePath: files[i],
-          matchWord,
-          imageBase64: await readImageAsBase64(files[i]),
-          topClasses: namesAndProbs
-        }))
-      }
-    }
-
-    tf.dispose([imageTensors, batchImageTensor, imageTensors]);
-    event.sender.send('get-files-response', found);
+    const results = await searchFromFiles(filePaths, arg.targetWords);
+    event.sender.send('get-files-response', results);
   });
 });
 

@@ -19,11 +19,16 @@ import {MDCSnackbar} from '@material/snackbar';
 import {ipcRenderer} from 'electron';
 
 const searchResultsDiv = document.getElementById('search-results');
-ipcRenderer.on('get-files-response', (event, found) => {
-  if (found.length === 0) {
-
+ipcRenderer.on('get-files-response', (event, arg) => {
+  if (arg.foundItems.length === 0) {
+    showSnackbar(
+        `No match for "${arg.targetWords.join(',')}" ` +
+        `after searching ${arg.numSearchedFiles} file(s).`)
   } else {
-    found.forEach(foundItem => {
+    showSnackbar(
+        `Found ${arg.foundItems.length} ` +
+        `matches from ${arg.numSearchedFiles} image(s).`);
+    arg.foundItems.forEach(foundItem => {
       createFoundCard(searchResultsDiv, foundItem);
     });
   }
@@ -42,8 +47,6 @@ function showSnackbar(message, timeoutMs = 4000) {
   snackbar.open();
 }
 
-showSnackbar('ready!!');  // DEBUG
-
 const filesDialogButton = document.getElementById('files-dialog-button');
 filesDialogButton.addEventListener('click', () => {
   const targetWords = getTargetWords();
@@ -54,23 +57,17 @@ filesDialogButton.addEventListener('click', () => {
   ipcRenderer.send('get-files', {targetWords});
 });
 
-// TODO(cais):
-// const directoriesDialogButton =
-//     document.getElementById('directories-dialog-button');
-// directoriesDialogButton.addEventListener('click', () => {
-//   ipcRenderer.send('get-directories');
-// });
-
 function limitStringToLength(str, limit = 50) {
   if (str.length <= limit) {
     return str;
   } else {
-    return `...${str.slice(limit + 3)}`;
+    return `...${str.slice(str.length - limit)}`;
   }
 }
 
 /**
- * Create and material-design card for a search match.
+ * Create and material-design card for a search match and add
+ * it to the root div for search results.
  */
 function createFoundCard(rootDiv, foundItem) {
   const cardDiv = document.createElement('div');
@@ -107,6 +104,6 @@ function createFoundCard(rootDiv, foundItem) {
   topKDiv.appendChild(ul);
   cardDiv.appendChild(topKDiv);
 
-  rootDiv.appendChild(cardDiv);
+  rootDiv.insertBefore(cardDiv, rootDiv.firstChild);
   cardDiv.scrollIntoView();
 }

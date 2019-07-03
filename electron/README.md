@@ -32,6 +32,9 @@ key words.
   If folders are selected, the app will search over
   all image files (with extension names .jpg, .jpeg and .png) in the
   folders recursively.
+  This example comes with an image/ folder in which there are about
+  a dozen images with various contents such as animals, car, ship
+  and furniture.
 
 4. Once files or folders are selected, the app will load the image
    files and search over their contents by applying a convolutional

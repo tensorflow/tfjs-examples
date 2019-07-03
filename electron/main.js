@@ -15,15 +15,24 @@
  * =============================================================================
  */
 
-const {app, BrowserWindow} = require('electron');
-const path = require('path');
+import * as path from 'path';
+
+import {app, dialog, ipcMain, BrowserWindow} from 'electron';
+// Will be dynamically imported depending on whether the --gpu flag
+// is specified.
+const tf = process.argv.indexOf('--gpu') === -1 ?
+    require('@tensorflow/tfjs-node') :
+    require('@tensorflow/tfjs-node-gpu');
+
+import {readImageTensorFromFile} from './image_utils';
+import {ImageClassifier} from './image_classifier';
 
 let mainWindow;
 
 function createWindow() {
   mainWindow = new BrowserWindow({
-    height: 600,
-    width: 800,
+    height: 660,
+    width: 1000,
     webPreferences: {
       preload: path.join(__dirname, 'preload.js')
     }
@@ -36,7 +45,9 @@ function createWindow() {
   });
 }
 
-app.on('ready', createWindow);
+app.on('ready', () => {
+  createWindow();
+});
 
 app.on('window-all-closed', () => {
   if (process.platfor !== 'darwin') {
@@ -48,4 +59,48 @@ app.on('activate', () => {
   if (mainWindow === null) {
     createWindow();
   }
+});
+
+let imageClassifier;
+
+ipcMain.on('get-files', (event, arg) => {
+  console.log('get-files:');  // DEBUG
+
+  dialog.showOpenDialog({
+    properties: ['openFile', 'multiSelections'],
+    filters: [{
+      name: 'Images',
+      extensions: ['jpg', 'jpeg', 'png']
+    }]
+  }, async (files) => {
+    console.log(`files:`, files);  // DEBUG
+    if (files == null || files.length === 0) {
+      // TODO(cais): This should send an IPC to the renderer and show a
+      // snackbar.
+      dialog.showErrorBox(`You didn't select any files!`);
+      return;
+    }
+
+    if (imageClassifier == null) {
+      imageClassifier = new ImageClassifier();
+      await imageClassifier.ensureModelLoaded();
+    }
+    const {height, width} = imageClassifier.getImageSize();
+
+    const imageTensors = [];
+    for (const file of files) {
+      const imageTensor = await readImageTensorFromFile(file, height, width);
+      imageTensors.push(imageTensor);
+    }
+
+    const axis = 0
+    const batchImageTensor = tf.concat(imageTensors, axis);
+    imageClassifier.classify(batchImageTensor);
+
+    tf.dispose([imageTensors, batchImageTensor, imageTensors]);
+  });
+});
+
+ipcMain.on('get-directories', (event, arg) => {
+  // TODO(cais): Implement.
 });

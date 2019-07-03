@@ -64,6 +64,17 @@ to another project.
     <td>IndexedDB</td>
   </tr>
   <tr>
+    <td><a href="./chrome-extension">chrome-extension</a></td>
+    <td><a href="https://storage.googleapis.com/tfjs-examples/custom-layer/dist/index.html">🔗</a></td>
+    <td>Image</td>
+    <td>(Deploying TF.js models as Chrome extensions)</td>
+    <td>Convnet</td>
+    <td></td>
+    <td>Browser</td>
+    <td></td>
+    <td></td>
+  </tr>
+  <tr>
     <td><a href="./custom-layer">custom-layer</a></td>
     <td><a href="https://storage.googleapis.com/tfjs-examples/custom-layer/dist/index.html">🔗</a></td>
     <td></td>

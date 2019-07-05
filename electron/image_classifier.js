@@ -19,8 +19,8 @@ import * as tf from '@tensorflow/tfjs';
 
 import {IMAGENET_CLASSES} from './imagenet_classes';
 
-const MOBILENET_MODEL_TFHUB_URL =
-    'https://tfhub.dev/google/imagenet/mobilenet_v2_100_224/classification/2'
+const MOBILENET_MODEL_URL =
+    'https://storage.googleapis.com/tfjs-models/tfjs/mobilenet_v1_1.0_224/model.json'
 
 export class ImageClassifier {
   constructor() {
@@ -57,7 +57,7 @@ export class ImageClassifier {
         const classesAndProbs = [];
         indices.forEach((index, j) => {
           classesAndProbs.push({
-            className: IMAGENET_CLASSES[index - 1],
+            className: IMAGENET_CLASSES[index],
             prob: classProbs[i][j]
           });
         });
@@ -72,8 +72,37 @@ export class ImageClassifier {
   async ensureModelLoaded() {
     if (this.model == null) {
       console.log('Loading image classifier model...');
-      this.model =
-          await tf.loadGraphModel(MOBILENET_MODEL_TFHUB_URL, {fromTFHub: true});
+
+      let cachedModelJsonUrl;
+      if (isNode()) {
+        // Attempt to find and load model cached on file system if running
+        // in Node.js.
+        const fs = require('fs');
+        const path = require('path');
+        const cachedModelJsonPath = path.join(
+            this.getFileSystemCacheDirectory_(), 'model.json');
+        if (fs.existsSync(cachedModelJsonPath)) {
+          cachedModelJsonUrl = `file://${cachedModelJsonPath}`;
+          console.log(`Found cached model at ${cachedModelJsonUrl}`);
+        }
+      }
+
+      console.time('Model loading');
+      this.model = await tf.loadLayersModel(
+          cachedModelJsonUrl == null ?
+          MOBILENET_MODEL_URL : cachedModelJsonUrl);
+      console.timeEnd('Model loading');
+
+      if (isNode() && cachedModelJsonUrl == null) {
+        // Cache model on file system if running in Node.js.
+        const cacheDir = this.getFileSystemCacheDirectory_();
+        try {
+          await this.model.save(`file://${cacheDir}`);
+          console.log(`Cached model at ${cacheDir}`);
+        } catch (err) {
+          console.warn(`Failed to save model at cache directory: ${cacheDir}`);
+        }
+      }
     }
   }
 
@@ -89,4 +118,23 @@ export class ImageClassifier {
     }
   }
 
+  getFileSystemCacheDirectory_() {
+    const path = require('path');
+    return path.join(getUserHomeDirectory(), '.tfjs-examples-electron');
+  }
+}
+
+/** Is the current environment Node.js? */
+function isNode() {
+  return (
+      typeof process === 'object' &&
+      typeof process.versions === 'object' &&
+      typeof process.versions.node !== 'undefined');
+}
+
+/** Get the user's home directory (Node.js only). */
+function getUserHomeDirectory() {
+  // Based on:
+  // https://stackoverflow.com/questions/9080085/node-js-find-home-directory-in-platform-agnostic-way
+  return process.env[process.platform === 'win32' ? 'USERPROFILE' : 'HOME'];
 }

@@ -19,6 +19,11 @@
         color: gray;
       }
 
+      #clear-search-results {
+        float: left;
+        margin-top: 15px;
+      }
+
       #main-snackbar-message {
         font-size: 13px;
         text-align: middle;
@@ -67,7 +72,7 @@
             type="text"
             id="target-words"
             value="Turtle, ship">
-        <label class="mdl-textfield__label" for="sample3">What to search for? (Try tiger, book, rose, ...)</label>
+        <label class="mdl-textfield__label" for="sample3">What to search for? (Try tiger, burrito, rose, ...)</label>
       </div>
     </form>
 
@@ -99,7 +104,16 @@
     </div>
 
 
-    <div id="search-results"></div>
+    <div id="results-section">
+      <button
+        class="mdl-button mdl-js-button mdl-button--fab mdl-js-ripple-effect"
+        id="clear-search-results">
+        <i class="material-icons mdc-button__icon">delete</i>
+      </button>
+
+      <div id="search-results"></div>
+    </div>
+
 
     <script src="renderer.js"></script>
   </body>

@@ -31,7 +31,7 @@ const searchResultsDiv = document.getElementById('search-results');
  *   - foundItems: Image files with classification results that match
  *     any of the target words.
  */
-ipcRenderer.on('get-files-response', (event, arg) => {
+ipcRenderer.on('search-response', (event, arg) => {
   hideProgress();
   if (arg.foundItems.length === 0) {
     showSnackbar(
@@ -47,6 +47,7 @@ ipcRenderer.on('get-files-response', (event, arg) => {
       createFoundCard(searchResultsDiv, foundItem);
     });
   }
+  updateClearSearchResultsButtonStatus();
 });
 
 /** IPC handle for the "model is be loaded" event. */
@@ -155,6 +156,21 @@ function createFoundCard(rootDiv, foundItem) {
   rootDiv.insertBefore(cardDiv, rootDiv.firstChild);
   cardDiv.scrollIntoView();
 }
+
+const clearSearchResultsButton =
+    document.getElementById('clear-search-results');
+function updateClearSearchResultsButtonStatus() {
+  clearSearchResultsButton.style.display =
+      searchResultsDiv.firstChild ? 'block' : 'none';
+}
+updateClearSearchResultsButtonStatus();
+
+clearSearchResultsButton.addEventListener('click', () => {
+  while(searchResultsDiv.firstChild) {
+    searchResultsDiv.removeChild(searchResultsDiv.firstChild);
+  }
+  updateClearSearchResultsButtonStatus();
+});
 
 const progressBar = document.getElementById('progress-bar');
 const progressText = document.getElementById('progress-text');

@@ -109,10 +109,7 @@ let imageClassifier;  // The ImageClassifier instance to be loaded dynamically.
  *   be invoked when the model is running inference on image data.
  */
 async function searchFromFiles(
-    filePaths,
-    targetWords,
-    modelLoadingCallback,
-    inferenceCallback) {
+    filePaths, targetWords, modelLoadingCallback, inferenceCallback) {
   if (imageClassifier == null) {
     imageClassifier = new ImageClassifier();
     if (modelLoadingCallback != null) {
@@ -207,7 +204,7 @@ ipcMain.on('get-files', (event, arg) => {
         filePaths, arg.targetWords,
         () => event.sender.send('loading-model'),
         () => event.sender.send('inference-ongoing'));
-    event.sender.send('get-files-response', results);
+    event.sender.send('search-response', results);
   });
 });
 
@@ -229,6 +226,6 @@ ipcMain.on('get-directories', (event, arg) => {
         imageFilePaths, arg.targetWords,
         () => event.sender.send('loading-model'),
         () => event.sender.send('inference-ongoing'));
-    event.sender.send('get-files-response', results);
+    event.sender.send('search-response', results);
   });
 });

@@ -86,8 +86,8 @@ def main():
   w_16bit = dequantize(*quantize(w, 16))
   w_8bit = dequantize(*quantize(w, 8))
 
-  plot_delta = 5e-3
-  plot_range = range(int(n_points * 0.5),
+  plot_delta = 1.2e-4
+  plot_range = range(int(n_points * (0.5 - plot_delta)),
                      int(n_points * (0.5 + plot_delta)))
 
   plt.figure(figsize=(20, 6))

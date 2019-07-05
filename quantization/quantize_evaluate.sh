@@ -121,3 +121,32 @@ else
   # Evaluate accuracy under 8-bit quantization.
   yarn "eval-${MODEL_NAME}" "${MODEL_PATH_8BIT}/model.json"
 fi
+
+function calc_gzip_ratio() {
+  ORIGINAL_FILES_SIZE_BYTES="$(ls -lAR ${1} | grep -v '^d' | awk '{total += $5} END {print total}')"
+  TEMP_TARBALL="$(mktemp)"
+  tar czf "${TEMP_TARBALL}" "${1}"
+  TARBALL_SIZE="$(wc -c < ${TEMP_TARBALL})"
+  ZIP_RATIO="$(awk "BEGIN { print(${ORIGINAL_FILES_SIZE_BYTES} / ${TARBALL_SIZE}) }")"
+  rm "${TEMP_TARBALL}"
+
+  echo "  Total file size: ${ORIGINAL_FILES_SIZE_BYTES} bytes"
+  echo "  gzipped tarball size: ${TARBALL_SIZE} bytes"
+  echo "  gzip ratio: ${ZIP_RATIO}"
+  echo
+}
+
+echo
+echo "=== gzip ratios ==="
+
+# Calculate the gzip ratio of the original (unquantized) model.
+echo "Original model:"
+calc_gzip_ratio "${MODEL_PATH}"
+
+# Calculate the gzip ratio of the 16-bit-quantized model.
+echo "16-bit-quantized model:"
+calc_gzip_ratio "${MODEL_PATH_16BIT}"
+
+# Calculate the gzip ratio of the 8-bit-quantized model.
+echo "8-bit-quantized model:"
+calc_gzip_ratio "${MODEL_PATH_8BIT}"

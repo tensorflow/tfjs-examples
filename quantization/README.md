@@ -105,6 +105,10 @@ and evaluate the effects on the model's test accuracy, do:
 yarn quantize-and-evaluate-mnist
 ```
 
+The command also calculates the ratio of gzip compression for the
+model's saved artifacts under the three different levels of quantization
+(no-quantization, 16-bit, and 8-bit).
+
 ## Running the Fashion-MNIST quantization demo
 
 In preparation, do:

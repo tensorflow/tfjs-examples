@@ -198,10 +198,9 @@ ipcMain.on('get-files', (event, arg) => {
       extensions: IMAGE_EXTENSION_NAMES
     }]
   }, async (filePaths) => {
-    if (filePaths == null || filePaths.length === 0) {
-      // TODO(cais): This should send an IPC to the renderer and show a
-      // snackbar.
-      dialog.showErrorBox(`You didn't select any files!`);
+    if (filePaths == null ||
+        Array.isArray(filePaths) && filePaths.length === 0) {
+      // Handle cases in which no file is selected.
       return;
     }
     const results = await searchFromFiles(
@@ -217,6 +216,10 @@ ipcMain.on('get-directories', (event, arg) => {
   dialog.showOpenDialog({
     properties: ['openDirectory', 'multiSelections']
   }, async (dirPaths) => {
+    if (dirPaths == null || Array.isArray(dirPaths) && dirPaths.length === 0) {
+      // Handle cases in which no directory is selected.
+      return;
+    }
     const imageFilePaths = [];
     for (const dirPath of dirPaths) {
       imageFilePaths.push(...findImagesFromDirectoriesRecursive(dirPath));

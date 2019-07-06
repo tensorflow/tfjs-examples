@@ -60,9 +60,33 @@ key words.
 
 ## Deploying the example as desktop apps
 
-TODO(cais): To be added.
+There are several options for packaging and deploying electron-based desktop
+apps, including
+- [electron-builder](http://https://www.electron.build/)
+- [electron-forge](https://github.com/electron-userland/electron-forge)
+- [electron-packager](https://github.com/electron-userland/electron-packager)
 
+For official guidance, see
+[Electron Documentation](https://electronjs.org/docs/tutorial/application-distribution).
 
+This example uses [electron-builder] to package the app as Linux Debian (.deb)
+package. To perform the packaging, do:
+
+```sh
+yarn
+yarn electron-builder
+```
+
+The resulting .deb package will be generated in the dist/ directory.
+The following fields in the [package.json](./package.json) file are required
+by the build process of electron-builder:
+- name
+- description
+- author.name
+- author.email
+- license
+- repository
+- build
 
 ## Origin of images
 

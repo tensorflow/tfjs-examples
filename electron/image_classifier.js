@@ -170,12 +170,18 @@ export function searchForKeywords(classNamesAndProbs, filePaths, targetWords) {
   return foundItems;
 }
 
-/** Is the current environment Node.js? */
+/**
+ * Is the current environment Node.js?
+ *
+ * This logic is specific to Electron, because it checks
+ * `process.type`.
+ */
 function isNode() {
   return (
       typeof process === 'object' &&
       typeof process.versions === 'object' &&
-      typeof process.versions.node !== 'undefined');
+      typeof process.versions.node !== 'undefined' &&
+      process.type !== 'renderer');
 }
 
 /** Get the user's home directory (Node.js only). */

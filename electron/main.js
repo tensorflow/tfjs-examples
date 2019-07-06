@@ -122,6 +122,27 @@ async function searchFromFiles(
   };
 }
 
+/**
+ * Read a number of image files as a structured, batched number array.
+ *
+ * @param {string[]} imageFilePaths Paths to the image files to read from.
+ * @param {number} height Image height, in pixels.
+ * @param {number} width Image width, in pixels.
+ * @return {number[][][][][]} A nested number array of effective shape
+ *   `[numImages, height, width, channels]`.
+ */
+async function readImagesAsBatchedStructuredArray(
+    imageFilePaths, height, width) {
+  const imageTensors = [];
+  for (const filePath of imageFilePaths) {
+    imageTensors.push(await readImageAsTensor(filePath, height, width));
+  }
+  const axis = 0;
+  const imageTensorData = await tf.concat(imageTensors, axis).array();
+  tf.dispose(imageTensors);
+  return imageTensorData;
+}
+
 /** IPC handle for searching over files. */
 ipcMain.on('get-files', (event, arg) => {
   dialog.showOpenDialog({
@@ -130,20 +151,29 @@ ipcMain.on('get-files', (event, arg) => {
       name: 'Images',
       extensions: IMAGE_EXTENSION_NAMES
     }]
-  }, async (filePaths) => {
-    if (filePaths == null ||
-        Array.isArray(filePaths) && filePaths.length === 0) {
+  }, async (imageFilePaths) => {
+    if (imageFilePaths == null ||
+        Array.isArray(imageFilePaths) && imageFilePaths.length === 0) {
       // Handle cases in which no file is selected.
       return;
     }
     if (arg.frontendInference) {
+      event.sender.send('reading-images');
       // Perform inference using frontend model.
       // Read images and send them to the frontend via IPC.
-      throw new Error('Not implemented');
+      const imageTensorData = await readImagesAsBatchedStructuredArray(
+          imageFilePaths, arg.imageHeight, arg.imageWidth);
+      console.log(
+          `Sending data from ${imageTensorData.length} image(s) to frontend ` +
+          `for inferene`);
+      event.sender.send('frontend-inference-data', {
+        imageFilePaths,
+        imageTensorData
+      });
     } else {
       // Perform inference in the backend (i.e., in this process).
       const results = await searchFromFiles(
-          filePaths, arg.targetWords,
+          imageFilePaths, arg.targetWords,
           () => event.sender.send('loading-model'),
           () => event.sender.send('inference-ongoing'));
       event.sender.send('search-response', results);
@@ -171,17 +201,13 @@ ipcMain.on('get-directories', (event, arg) => {
     }
     if (arg.frontendInference) {
       event.sender.send('reading-images');
-
       // Perform inference using frontend model.
       // Read images and send them to the frontend via IPC.
-      const imageTensors = [];
-      for (const filePath of imageFilePaths) {
-        imageTensors.push(await readImageAsTensor(
-            filePath, arg.imageHeight, arg.imageWidth));
-      }
-      const axis = 0;
-      const imageTensorData = await tf.concat(imageTensors, axis).array();
-      tf.dispose(imageTensors);
+      const imageTensorData = await readImagesAsBatchedStructuredArray(
+          imageFilePaths, arg.imageHeight, arg.imageWidth);
+      console.log(
+          `Sending data from ${imageTensorData.length} image(s) to frontend ` +
+          `for inferene`);
       event.sender.send('frontend-inference-data', {
         imageFilePaths,
         imageTensorData

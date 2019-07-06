@@ -50,7 +50,6 @@ ipcRenderer.on('search-response', (event, arg) => {
       createFoundCard(searchResultsDiv, foundItem);
     });
   }
-  updateClearSearchResultsButtonStatus();
 });
 
 /** IPC handler for the backend's "Reading images" status. */
@@ -115,6 +114,7 @@ let imageClassifer;
 
 async function loadImageClassifer() {
   if (imageClassifer == null) {
+    showProgress('Loading model in frontend...');
     imageClassifer = new ImageClassifier();
     await imageClassifer.ensureModelLoaded();
   }
@@ -147,12 +147,25 @@ const frontendInferenceCheckbox =
     document.getElementById('frontend-inference-checkbox');
 
 /** The callback for selecting a number of files to search over. */
-filesDialogButton.addEventListener('click', () => {
+filesDialogButton.addEventListener('click', async () => {
   const targetWords = getTargetWords();
   if (targetWords == null || targetWords.length === 0) {
     showSnackbar(`You didn't specify any search words!`);
   }
-  ipcRenderer.send('get-files', {targetWords});
+  const frontendInference = frontendInferenceCheckbox.checked;
+  let imageHeight;
+  let imageWidth;
+  if (frontendInference) {
+    await loadImageClassifer();
+    imageHeight = imageClassifer.getImageSize().height;
+    imageWidth = imageClassifer.getImageSize().width;
+  }
+  ipcRenderer.send('get-files', {
+    targetWords,
+    frontendInference,
+    imageHeight,
+    imageWidth
+  });
 });
 
 const directoriesDialogButton =
@@ -204,8 +217,6 @@ function createFoundCard(rootDiv, foundItem) {
   titleDiv.textContent = foundItem.matchWord;
   cardDiv.appendChild(titleDiv);
 
-
-
   if (foundItem.imageBase64 != null) {
     const imgDiv = document.createElement('img');
     imgDiv.classList.add('search-result-thumbnail');
@@ -240,6 +251,8 @@ function createFoundCard(rootDiv, foundItem) {
 
   rootDiv.insertBefore(cardDiv, rootDiv.firstChild);
   cardDiv.scrollIntoView();
+
+  updateClearSearchResultsButtonStatus();
 }
 
 const clearSearchResultsButton =

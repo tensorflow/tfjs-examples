@@ -37,6 +37,14 @@
         white-space: nowrap;
       }
 
+      .mdl-button {
+        margin: 10px;
+      }
+
+      .mdl-checkbox {
+        margin: 10px;
+      }
+
       .search-result {
         display: inline-block;
         margin: 10px;
@@ -98,11 +106,15 @@
       </div>
     </div>
 
+    <label class="mdl-checkbox mdl-js-checkbox mdl-js-ripple-effect" for="frontend-inference-checkbox">
+      <input type="checkbox" id="frontend-inference-checkbox" class="mdl-checkbox__input">
+      <span class="mdl-checkbox__label">Classify images using frontend model (slower)</span>
+    </label>
+
     <div id="progress-container">
       <div class="mdl-typography--text" id="progress-text">Hello</div>
       <div id="progress-bar" class="mdl-progress mdl-js-progress mdl-progress__indeterminate"></div>
     </div>
-
 
     <div id="results-section">
       <button

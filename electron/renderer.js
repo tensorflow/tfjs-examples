@@ -16,7 +16,10 @@
  */
 
 import {MDCSnackbar} from '@material/snackbar';
+import * as tf from '@tensorflow/tfjs';
 import {ipcRenderer} from 'electron';
+
+import {ImageClassifier, searchForKeywords} from './image_classifier';
 
 const searchResultsDiv = document.getElementById('search-results');
 
@@ -37,12 +40,12 @@ ipcRenderer.on('search-response', (event, arg) => {
     showSnackbar(
         `No match for "${arg.targetWords.join(',')}" ` +
         `after searching ${arg.numSearchedFiles} file(s). ` +
-        `Elapsed time: ${arg.tElapsedMillis.toFixed(1)} ms`);
+        `Model inference took ${arg.tElapsedMillis.toFixed(1)} ms`);
   } else {
     showSnackbar(
         `Found ${arg.foundItems.length} ` +
         `matches from ${arg.numSearchedFiles} image(s). ` +
-        `Elapsed time: ${arg.tElapsedMillis.toFixed(1)} ms`);
+        `Model inference took ${arg.tElapsedMillis.toFixed(1)} ms`);
     arg.foundItems.forEach(foundItem => {
       createFoundCard(searchResultsDiv, foundItem);
     });
@@ -50,15 +53,72 @@ ipcRenderer.on('search-response', (event, arg) => {
   updateClearSearchResultsButtonStatus();
 });
 
-/** IPC handle for the "model is be loaded" event. */
+/** IPC handler for the backend's "Reading images" status. */
+ipcRenderer.on('reading-images', (event) => {
+  showProgress('Reading images...');
+});
+
+/** IPC handler for the "model is be loaded" event. */
 ipcRenderer.on('loading-model', (event) => {
   showProgress('Loading model...');
 });
 
-/** IPC handle for the "model is running inference" event. */
+/** IPC handler for the "model is running inference" event. */
 ipcRenderer.on('inference-ongoing', (event) => {
   showProgress('Classifying images...');
 });
+
+/**
+ * IPC handler for image data read from the backend process.
+ *
+ * The image classifier model will be used to perform inference
+ * on the images, and the matches (if any) will be displayed on
+ * screen.
+ */
+ipcRenderer.on('frontend-inference-data', async (event, arg) => {
+  showProgress('Classifying model in frontend...');
+  const {imageFilePaths, imageTensorData} = arg;
+  if (imageFilePaths.length !== imageTensorData.length) {
+    showSnackbar(
+        `Error: Mismatch in number of image files and tensor shape`);
+    return;
+  }
+
+  const batchedImages = tf.tensor4d(imageTensorData);
+
+  const t0 = tf.util.now();
+  const classNamesAndProbs = await imageClassifer.classify(batchedImages);
+  const tElapsedMillis = tf.util.now() - t0;
+
+  tf.dispose([batchedImages]);
+
+  const targetWords = getTargetWords();
+  const foundItems = searchForKeywords(
+      classNamesAndProbs, imageFilePaths, targetWords);
+
+  for (const foundItem of foundItems) {
+    const imageIndex = imageFilePaths.indexOf(foundItem.filePath);
+    foundItem.imageData = imageTensorData[imageIndex];
+  }
+
+  foundItems.forEach(foundItem => {
+    createFoundCard(searchResultsDiv, foundItem);
+  });
+  hideProgress();
+  showSnackbar(
+    `No match for "${targetWords.join(',')}" ` +
+    `after searching ${imageFilePaths.length} file(s). ` +
+    `Model inference took ${tElapsedMillis.toFixed(1)} ms`);
+});
+
+let imageClassifer;
+
+async function loadImageClassifer() {
+  if (imageClassifer == null) {
+    imageClassifer = new ImageClassifier();
+    await imageClassifer.ensureModelLoaded();
+  }
+}
 
 /** Parse the target words for search from the text box. */
 const targetWordsInput = document.getElementById('target-words');
@@ -83,6 +143,8 @@ function showSnackbar(message, timeoutMillis = 4000) {
 }
 
 const filesDialogButton = document.getElementById('files-dialog-button');
+const frontendInferenceCheckbox =
+    document.getElementById('frontend-inference-checkbox');
 
 /** The callback for selecting a number of files to search over. */
 filesDialogButton.addEventListener('click', () => {
@@ -97,12 +159,25 @@ const directoriesDialogButton =
     document.getElementById('directories-dialog-button');
 
 /** The callback for selecting a number of folder to search in, recursively. */
-directoriesDialogButton.addEventListener('click', () => {
+directoriesDialogButton.addEventListener('click', async () => {
   const targetWords = getTargetWords();
   if (targetWords == null || targetWords.length === 0) {
     showSnackbar(`You didn't specify any search words!`);
   }
-  ipcRenderer.send('get-directories', {targetWords});
+  const frontendInference = frontendInferenceCheckbox.checked;
+  let imageHeight;
+  let imageWidth;
+  if (frontendInference) {
+    await loadImageClassifer();
+    imageHeight = imageClassifer.getImageSize().height;
+    imageWidth = imageClassifer.getImageSize().width;
+  }
+  ipcRenderer.send('get-directories', {
+    targetWords,
+    frontendInference,
+    imageHeight,
+    imageWidth
+  });
 });
 
 /** Helper method for limiting the number of characters shown on screen. */
@@ -129,10 +204,20 @@ function createFoundCard(rootDiv, foundItem) {
   titleDiv.textContent = foundItem.matchWord;
   cardDiv.appendChild(titleDiv);
 
-  const imgDiv = document.createElement('img');
-  imgDiv.classList.add('search-result-thumbnail')
-  imgDiv.src = foundItem.imageBase64;
-  cardDiv.appendChild(imgDiv);
+
+
+  if (foundItem.imageBase64 != null) {
+    const imgDiv = document.createElement('img');
+    imgDiv.classList.add('search-result-thumbnail');
+    imgDiv.src = foundItem.imageBase64;
+    cardDiv.appendChild(imgDiv);
+  } else if (foundItem.imageData != null) {
+    const canvas = document.createElement('canvas');
+    const imageTensor = tf.tensor3d(foundItem.imageData);
+    tf.browser.toPixels(imageTensor, canvas);
+    // TODO(cais): Dispose imageTensor.
+    cardDiv.appendChild(canvas);
+  }
 
   const pathDiv = document.createElement('div');
   pathDiv.classList.add('mdl-card--border');

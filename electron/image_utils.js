@@ -15,6 +15,9 @@
  * =============================================================================
  */
 
+import * as fs from 'fs';
+import * as path from 'path';
+
 import * as jimp from 'jimp';
 import * as tf from '@tensorflow/tfjs';
 
@@ -77,4 +80,39 @@ export async function readImageAsBase64(filePath) {
       }
     });
   });
+}
+
+export const IMAGE_EXTENSION_NAMES = ['jpg', 'jpeg', 'png'];
+
+/**
+ * Recursively find all image files with matching extension names.
+ *
+ * @param {string} dirPath Path to a directory to perform the
+ *   recursive search in.
+ * @return {string[]} An array of full paths to all the image files
+ *   under the directory.
+ */
+export function findImagesFromDirectoriesRecursive(dirPath) {
+  const imageFilePaths = [];
+  const items = fs.readdirSync(dirPath);
+  for (const item of items) {
+    const fullPath = path.join(dirPath, item);
+    if (fs.lstatSync(fullPath).isDirectory()) {
+      try {
+        imageFilePaths.push(...findImagesFromDirectoriesRecursive(fullPath));
+      } catch (err) {}
+    } else {
+      let extMatch = false;
+      for (const extName of IMAGE_EXTENSION_NAMES) {
+        if (item.toLowerCase().endsWith(extName)) {
+          extMatch = true;
+          break;
+        }
+      }
+      if (extMatch) {
+        imageFilePaths.push(fullPath);
+      }
+    }
+  }
+  return imageFilePaths;
 }

@@ -124,6 +124,52 @@ export class ImageClassifier {
   }
 }
 
+/**
+ * Search for target words in an array of class names and corresponding
+ * probabilities.
+ *
+ * @param {Array<{className: string, prob: number}>} classNamesAndProbs
+ *   An array of `N` classification results, each of which is an object
+ *   mapping a class name (`className`) to a probability score (`prob`).
+ * @param {string[]} The file paths of the image files. Must have the
+ *   same length as `classNamesAndProbs`.
+ * @param {string[]} targetWords An array of target words to search for
+ *   in the results.
+ * @returns {Array<{filePath: string, matchWord: string, topClasses: string}>}
+ *   All matches to the target words.
+ */
+export function searchForKeywords(classNamesAndProbs, filePaths, targetWords) {
+   // Filter through the output class names and probilities to look for
+  // matches.
+  const foundItems = [];
+  for (let i = 0; i < classNamesAndProbs.length; ++i) {
+    const namesAndProbs = classNamesAndProbs[i];
+    let matchWord = null;
+    for (const nameAndProb of namesAndProbs) {
+      for (const word of targetWords) {
+        const classTokens = nameAndProb.className.toLowerCase().trim()
+            .replace(/[,\/]/g, ' ')
+            .split(' ').filter(x => x.length > 0);
+        if (classTokens.indexOf(word) !== -1) {
+          matchWord = word;
+          break;
+        }
+      }
+      if (matchWord != null) {
+        break;
+      }
+    }
+    if (matchWord != null) {
+      foundItems.push({
+        filePath: filePaths[i],
+        matchWord,
+        topClasses: namesAndProbs,
+      });
+    }
+  }
+  return foundItems;
+}
+
 /** Is the current environment Node.js? */
 function isNode() {
   return (
@@ -138,3 +184,4 @@ function getUserHomeDirectory() {
   // https://stackoverflow.com/questions/9080085/node-js-find-home-directory-in-platform-agnostic-way
   return process.env[process.platform === 'win32' ? 'USERPROFILE' : 'HOME'];
 }
+

@@ -15,9 +15,6 @@
  * =============================================================================
  */
 
-import * as fs from 'fs';
-import * as path from 'path';
-
 import {app, dialog, ipcMain, BrowserWindow} from 'electron';
 // Will be dynamically imported depending on whether the --gpu flag
 // is specified.
@@ -25,8 +22,8 @@ const tf = process.argv.indexOf('--gpu') === -1 ?
     require('@tensorflow/tfjs-node') :
     require('@tensorflow/tfjs-node-gpu');
 
-import {readImageAsBase64, readImageAsTensor} from './image_utils';
-import {ImageClassifier} from './image_classifier';
+import {IMAGE_EXTENSION_NAMES, findImagesFromDirectoriesRecursive, readImageAsBase64, readImageAsTensor} from './image_utils';
+import {ImageClassifier, searchForKeywords} from './image_classifier';
 
 let mainWindow;
 
@@ -58,41 +55,6 @@ app.on('activate', () => {
     createWindow();
   }
 });
-
-const IMAGE_EXTENSION_NAMES = ['jpg', 'jpeg', 'png'];
-
-/**
- * Recursively find all image files with matching extension names.
- *
- * @param {string} dirPath Path to a directory to perform the
- *   recursive search in.
- * @return {string[]} An array of full paths to all the image files
- *   under the directory.
- */
-function findImagesFromDirectoriesRecursive(dirPath) {
-  const imageFilePaths = [];
-  const items = fs.readdirSync(dirPath);
-  for (const item of items) {
-    const fullPath = path.join(dirPath, item);
-    if (fs.lstatSync(fullPath).isDirectory()) {
-      try {
-        imageFilePaths.push(...findImagesFromDirectoriesRecursive(fullPath));
-      } catch (err) {}
-    } else {
-      let extMatch = false;
-      for (const extName of IMAGE_EXTENSION_NAMES) {
-        if (item.toLowerCase().endsWith(extName)) {
-          extMatch = true;
-          break;
-        }
-      }
-      if (extMatch) {
-        imageFilePaths.push(fullPath);
-      }
-    }
-  }
-  return imageFilePaths;
-}
 
 let imageClassifier;  // The ImageClassifier instance to be loaded dynamically.
 
@@ -139,43 +101,17 @@ async function searchFromFiles(
   const classNamesAndProbs = await imageClassifier.classify(batchImageTensor);
   const tElapsedMillis = tf.util.now() - t0;
 
-  // Filter through the output class names and probilities to look for
-  // matches.
-  const foundItems = [];
-  for (let i = 0; i < classNamesAndProbs.length; ++i) {
-    const namesAndProbs = classNamesAndProbs[i];
-    let matchWord = null;
-    for (const nameAndProb of namesAndProbs) {
-      for (const word of targetWords) {
-        const classTokens = nameAndProb.className.toLowerCase().trim()
-            .replace(/[,\/]/g, ' ')
-            .split(' ').filter(x => x.length > 0);
-        if (classTokens.indexOf(word) !== -1) {
-          matchWord = word;
-          break;
-        }
-      }
-      if (matchWord != null) {
-        break;
-      }
-    }
-    if (matchWord != null) {
-      let imageBase64;
-      try {
-        imageBase64 = await readImageAsBase64(filePaths[i]);
-        foundItems.push({
-          filePath: filePaths[i],
-          matchWord,
-          imageBase64,
-          topClasses: namesAndProbs,
-        });
-      } catch (err) {
-        // Guards against `readImageAsBase64` failures.
-      }
+  const foundItems = searchForKeywords(
+      classNamesAndProbs, filePaths, targetWords);
+  for (const foundItem of foundItems) {
+    try {
+      foundItem.imageBase64 = await readImageAsBase64(foundItem.filePath);
+    } catch (err) {
+      // Guards against `readImageAsBase64` failures.
     }
   }
 
-  // Memory cleanup.
+  // TensorFlow.js memory cleanup.
   tf.dispose([imageTensors, batchImageTensor, imageTensors]);
 
   return {
@@ -200,11 +136,18 @@ ipcMain.on('get-files', (event, arg) => {
       // Handle cases in which no file is selected.
       return;
     }
-    const results = await searchFromFiles(
-        filePaths, arg.targetWords,
-        () => event.sender.send('loading-model'),
-        () => event.sender.send('inference-ongoing'));
-    event.sender.send('search-response', results);
+    if (arg.frontendInference) {
+      // Perform inference using frontend model.
+      // Read images and send them to the frontend via IPC.
+      throw new Error('Not implemented');
+    } else {
+      // Perform inference in the backend (i.e., in this process).
+      const results = await searchFromFiles(
+          filePaths, arg.targetWords,
+          () => event.sender.send('loading-model'),
+          () => event.sender.send('inference-ongoing'));
+      event.sender.send('search-response', results);
+    }
   });
 });
 
@@ -221,11 +164,35 @@ ipcMain.on('get-directories', (event, arg) => {
     for (const dirPath of dirPaths) {
       imageFilePaths.push(...findImagesFromDirectoriesRecursive(dirPath));
     }
+    if (imageFilePaths.length === 0) {
+      // TODO(cais): in case no image exists in the selected directories (in a
+      // recursive fashion), use IPC to show a snackbar in the frontend.
+      return;
+    }
+    if (arg.frontendInference) {
+      event.sender.send('reading-images');
 
-    const results = await searchFromFiles(
-        imageFilePaths, arg.targetWords,
-        () => event.sender.send('loading-model'),
-        () => event.sender.send('inference-ongoing'));
-    event.sender.send('search-response', results);
+      // Perform inference using frontend model.
+      // Read images and send them to the frontend via IPC.
+      const imageTensors = [];
+      for (const filePath of imageFilePaths) {
+        imageTensors.push(await readImageAsTensor(
+            filePath, arg.imageHeight, arg.imageWidth));
+      }
+      const axis = 0;
+      const imageTensorData = await tf.concat(imageTensors, axis).array();
+      tf.dispose(imageTensors);
+      event.sender.send('frontend-inference-data', {
+        imageFilePaths,
+        imageTensorData
+      });
+    } else {
+      // Perform inference in the backend (i.e., in this process).
+      const results = await searchFromFiles(
+          imageFilePaths, arg.targetWords,
+          () => event.sender.send('loading-model'),
+          () => event.sender.send('inference-ongoing'));
+      event.sender.send('search-response', results);
+    }
   });
 });

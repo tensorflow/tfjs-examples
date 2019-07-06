@@ -58,6 +58,25 @@ key words.
 
   ![screenshot-2](./screenshot-2.png)
 
+### Inferernce in the main process vs. in the renderer process
+
+In an Electron desktop app, you can load and run a TensorFlow.js model in
+two different ways:
+
+1. In the backend environment of the main process, and/or
+2. In the Chromium-based frontend environment of the renderer process.
+
+The code in this example shows how to use models in both ways. The app
+loads and runs the model in the backend main process by default. However,
+you can check the "Classify images using frontend model" checkbox in the
+app's UI to switch to model inference in the frontend renderer process.
+
+Backend inference is usually faster due to the utilization of libtensorflow
+(potentially with CUDA acceleration), whereas frontend inferernce
+has the advantage of smaller app package size, due to the fact that the
+browser JavaScript package of TensorFlow.js is much smaller compared to
+libtensorflow.
+
 ## Deploying the example as desktop apps
 
 There are several options for packaging and deploying electron-based desktop

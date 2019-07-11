@@ -62,23 +62,15 @@ ipcRenderer.on('inference-ongoing', (event) => {
  */
 ipcRenderer.on('frontend-inference-data', async (event, arg) => {
   showProgress('Classifying images in frontend...');
-
-  await ensureImageClassiferLoaded();
+  await imageClassifer.ensureModelLoaded(
+      () => showProgress('Loading frontend model...'));
   const results = await imageClassifer.searchFromFiles(
       arg.imageFilePaths, getTargetWords(),
       () => showProgress('Running image search in frontend...'));
   displaySearchResults(results);
 });
 
-let imageClassifer;
-
-async function ensureImageClassiferLoaded() {
-  if (imageClassifer == null) {
-    showProgress('Loading model in frontend...');
-    imageClassifer = new ImageClassifier();
-    await imageClassifer.ensureModelLoaded();
-  }
-}
+const imageClassifer = new ImageClassifier();
 
 /** Parse the target words for search from the text box. */
 const targetWordsInput = document.getElementById('target-words');
@@ -143,19 +135,11 @@ filesDialogButton.addEventListener('click', async () => {
     showSnackbar(`You didn't specify any search words!`);
   }
   const frontendInference = frontendInferenceCheckbox.checked;
-  let imageHeight;
-  let imageWidth;
   if (frontendInference) {
-    await ensureImageClassiferLoaded();
-    imageHeight = imageClassifer.getImageSize().height;
-    imageWidth = imageClassifer.getImageSize().width;
+    await imageClassifer.ensureModelLoaded(
+        () => showProgress('Loading frontend model...'));
   }
-  ipcRenderer.send('get-files', {
-    targetWords,
-    frontendInference,
-    imageHeight,
-    imageWidth
-  });
+  ipcRenderer.send('get-files', {targetWords, frontendInference});
 });
 
 const directoriesDialogButton =
@@ -168,19 +152,11 @@ directoriesDialogButton.addEventListener('click', async () => {
     showSnackbar(`You didn't specify any search words!`);
   }
   const frontendInference = frontendInferenceCheckbox.checked;
-  let imageHeight;
-  let imageWidth;
   if (frontendInference) {
-    await ensureImageClassiferLoaded();
-    imageHeight = imageClassifer.getImageSize().height;
-    imageWidth = imageClassifer.getImageSize().width;
+    await imageClassifer.ensureModelLoaded(
+        () => showProgress('Loading frontend model...'));
   }
-  ipcRenderer.send('get-directories', {
-    targetWords,
-    frontendInference,
-    imageHeight,
-    imageWidth
-  });
+  ipcRenderer.send('get-directories', {targetWords, frontendInference});
 });
 
 /** Helper method for limiting the number of characters shown on screen. */

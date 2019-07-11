@@ -56,16 +56,7 @@ app.on('activate', () => {
   }
 });
 
-let imageClassifier;  // The ImageClassifier instance to be loaded dynamically.
-async function ensureImageClassierLoaded(modelLoadingCallback) {
-  if (imageClassifier == null) {
-    imageClassifier = new ImageClassifier();
-    if (modelLoadingCallback != null) {
-      modelLoadingCallback();
-    }
-    await imageClassifier.ensureModelLoaded();
-  }
-}
+const imageClassifier = new ImageClassifier();
 
 /** IPC handle for searching over files. */
 ipcMain.on('get-files', (event, arg) => {
@@ -84,7 +75,8 @@ ipcMain.on('get-files', (event, arg) => {
     if (arg.frontendInference) {
       event.sender.send('frontend-inference-data', {imageFilePaths});
     } else {
-      await ensureImageClassierLoaded(() => event.sender.send('loading-model'));
+      await imageClassifier.ensureModelLoaded(
+          () => event.sender.send('loading-model'));
       // Perform inference in the backend (i.e., in this process).
       const results = await imageClassifier.searchFromFiles(
           imageFilePaths, arg.targetWords,
@@ -115,7 +107,8 @@ ipcMain.on('get-directories', (event, arg) => {
     if (arg.frontendInference) {
       event.sender.send('frontend-inference-data', {imageFilePaths});
     } else {
-      await ensureImageClassierLoaded(() => event.sender.send('loading-model'));
+      await imageClassifier.ensureModelLoaded(
+          () => event.sender.send('loading-model'));
       // Perform inference in the backend (i.e., in this process).
       const results = await imageClassifier.searchFromFiles(
           imageFilePaths, arg.targetWords,

@@ -76,10 +76,18 @@ export class ImageClassifier {
     });
   }
 
-  /** If the underlying model is not loaded, load it. */
-  async ensureModelLoaded() {
+  /**
+   * If the underlying model is not loaded, load it.
+   *
+   * @param {() => any} loadingCallback An optional callback function that will
+   *   be invoked when the model is being loaded.
+   */
+  async ensureModelLoaded(loadingCallback) {
     if (this.model == null) {
       console.log('Loading image classifier model...');
+      if (loadingCallback != null) {
+        loadingCallback();
+      }
 
       let cachedModelJsonUrl;
       if (isNode()) {

@@ -19,7 +19,7 @@ import {MDCSnackbar} from '@material/snackbar';
 import * as tf from '@tensorflow/tfjs';
 import {ipcRenderer} from 'electron';
 
-import {ImageClassifier, searchForKeywords} from './image_classifier';
+import {ImageClassifier} from './image_classifier';
 
 const searchResultsDiv = document.getElementById('search-results');
 
@@ -35,21 +35,7 @@ const searchResultsDiv = document.getElementById('search-results');
  *     any of the target words.
  */
 ipcRenderer.on('search-response', (event, arg) => {
-  hideProgress();
-  if (arg.foundItems.length === 0) {
-    showSnackbar(
-        `No match for "${arg.targetWords.join(',')}" ` +
-        `after searching ${arg.numSearchedFiles} file(s). ` +
-        `Model inference took ${arg.tElapsedMillis.toFixed(1)} ms`);
-  } else {
-    showSnackbar(
-        `Found ${arg.foundItems.length} ` +
-        `matches from ${arg.numSearchedFiles} image(s). ` +
-        `Model inference took ${arg.tElapsedMillis.toFixed(1)} ms`);
-    arg.foundItems.forEach(foundItem => {
-      createFoundCard(searchResultsDiv, foundItem);
-    });
-  }
+  displaySearchResults(arg);
 });
 
 /** IPC handler for the backend's "Reading images" status. */
@@ -75,44 +61,18 @@ ipcRenderer.on('inference-ongoing', (event) => {
  * screen.
  */
 ipcRenderer.on('frontend-inference-data', async (event, arg) => {
-  showProgress('Classifying model in frontend...');
-  const {imageFilePaths, imageTensorData} = arg;
-  if (imageFilePaths.length !== imageTensorData.length) {
-    showSnackbar(
-        `Error: Mismatch in number of image files and tensor shape`);
-    return;
-  }
+  showProgress('Classifying images in frontend...');
 
-  const batchedImages = tf.tensor4d(imageTensorData);
-
-  const t0 = tf.util.now();
-  const classNamesAndProbs = await imageClassifer.classify(batchedImages);
-  const tElapsedMillis = tf.util.now() - t0;
-
-  tf.dispose([batchedImages]);
-
-  const targetWords = getTargetWords();
-  const foundItems = searchForKeywords(
-      classNamesAndProbs, imageFilePaths, targetWords);
-
-  for (const foundItem of foundItems) {
-    const imageIndex = imageFilePaths.indexOf(foundItem.filePath);
-    foundItem.imageData = imageTensorData[imageIndex];
-  }
-
-  foundItems.forEach(foundItem => {
-    createFoundCard(searchResultsDiv, foundItem);
-  });
-  hideProgress();
-  showSnackbar(
-    `No match for "${targetWords.join(',')}" ` +
-    `after searching ${imageFilePaths.length} file(s). ` +
-    `Model inference took ${tElapsedMillis.toFixed(1)} ms`);
+  await ensureImageClassiferLoaded();
+  const results = await imageClassifer.searchFromFiles(
+      arg.imageFilePaths, getTargetWords(),
+      () => showProgress('Running image search in frontend...'));
+  displaySearchResults(results);
 });
 
 let imageClassifer;
 
-async function loadImageClassifer() {
+async function ensureImageClassiferLoaded() {
   if (imageClassifer == null) {
     showProgress('Loading model in frontend...');
     imageClassifer = new ImageClassifier();
@@ -128,6 +88,36 @@ function getTargetWords() {
 }
 
 const snackbar = new MDCSnackbar(document.getElementById('main-snackbar'));
+
+/**
+ * Display result results (from backend or frontend).
+ *
+ * @param {object} results Search result object. Assumed to have the following
+ *   fields:
+ *   - targetWords {string[]} The target words searched for.
+ *   - numSearchedFiles {number} Total number of image files searched over.
+ *   - foundItems {Array} An array of found items (i.e., images with top-5)
+ *     classification results matching any of the elements of `targetWords`.
+ *   - tElapsedMillis {number} The amount of time (in millis) spent on model
+ *     inference.
+ */
+function displaySearchResults(results) {
+  hideProgress();
+  if (results.foundItems.length === 0) {
+    showSnackbar(
+        `No match for "${results.targetWords.join(',')}" ` +
+        `after searching ${results.numSearchedFiles} file(s). ` +
+        `Model inference took ${results.tElapsedMillis.toFixed(1)} ms`);
+  } else {
+    showSnackbar(
+        `Found ${results.foundItems.length} ` +
+        `matches from ${results.numSearchedFiles} image(s). ` +
+        `Model inference took ${results.tElapsedMillis.toFixed(1)} ms`);
+    results.foundItems.forEach(foundItem => {
+      createFoundCard(searchResultsDiv, foundItem);
+    });
+  }
+}
 
 /**
  * Display a snackbar message on the screen.
@@ -156,7 +146,7 @@ filesDialogButton.addEventListener('click', async () => {
   let imageHeight;
   let imageWidth;
   if (frontendInference) {
-    await loadImageClassifer();
+    await ensureImageClassiferLoaded();
     imageHeight = imageClassifer.getImageSize().height;
     imageWidth = imageClassifer.getImageSize().width;
   }
@@ -181,7 +171,7 @@ directoriesDialogButton.addEventListener('click', async () => {
   let imageHeight;
   let imageWidth;
   if (frontendInference) {
-    await loadImageClassifer();
+    await ensureImageClassiferLoaded();
     imageHeight = imageClassifer.getImageSize().height;
     imageWidth = imageClassifer.getImageSize().width;
   }

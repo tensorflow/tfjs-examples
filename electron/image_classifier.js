@@ -18,6 +18,7 @@
 import * as tf from '@tensorflow/tfjs';
 
 import {IMAGENET_CLASSES} from './imagenet_classes';
+import {readImageAsTensor, readImageAsBase64} from './image_utils';
 
 const MOBILENET_MODEL_URL =
     'https://storage.googleapis.com/tfjs-models/tfjs/mobilenet_v1_1.0_224/model.json'
@@ -111,6 +112,59 @@ export class ImageClassifier {
         }
       }
     }
+  }
+
+  /**
+   * Search for images with content matching target wrods.
+   *
+   * @param {string[]} filePaths An array of paths to image files
+   * @param {string[]} targetWords What target words to search for. An image
+   *   will be considered a match if its content (as determined by
+   *   `imageClassifer`) matches any of the target words.
+   * @param {() => any} inferenceCallback An optional callback that will
+   *   be invoked when the model is running inference on image data.
+   */
+  async searchFromFiles(filePaths, targetWords, inferenceCallback) {
+    // Read the content of the image files as tensors with dimensions
+    // that match the requirement of the image classifier.
+    const {height, width} = this.getImageSize();
+    const imageTensors = [];
+    for (const file of filePaths) {
+      const imageTensor = await readImageAsTensor(file, height, width);
+      imageTensors.push(imageTensor);
+    }
+
+    // Combine images to a batch for accelerated inference.
+    const axis = 0;
+    const batchImageTensor = tf.concat(imageTensors, axis);
+    if (inferenceCallback != null) {
+      inferenceCallback();
+    }
+
+    // Run inference.
+    const t0 = tf.util.now();
+    const classNamesAndProbs = await this.classify(batchImageTensor);
+    const tElapsedMillis = tf.util.now() - t0;
+
+    const foundItems = searchForKeywords(
+        classNamesAndProbs, filePaths, targetWords);
+    for (const foundItem of foundItems) {
+      try {
+        foundItem.imageBase64 = await readImageAsBase64(foundItem.filePath);
+      } catch (err) {
+        // Guards against `readImageAsBase64` failures.
+      }
+    }
+
+    // TensorFlow.js memory cleanup.
+    tf.dispose([imageTensors, batchImageTensor, imageTensors]);
+
+    return {
+      targetWords,
+      numSearchedFiles: filePaths.length,
+      foundItems,
+      tElapsedMillis
+    };
   }
 
   /** Get the required image sizes (height and width). */

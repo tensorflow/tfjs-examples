@@ -81,7 +81,7 @@ libtensorflow.
 
 There are several options for packaging and deploying electron-based desktop
 apps, including
-- [electron-builder](http://https://www.electron.build/)
+- [electron-builder](https://www.electron.build/)
 - [electron-forge](https://github.com/electron-userland/electron-forge)
 - [electron-packager](https://github.com/electron-userland/electron-packager)
 

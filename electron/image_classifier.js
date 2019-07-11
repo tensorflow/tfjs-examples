@@ -22,6 +22,13 @@ import {IMAGENET_CLASSES} from './imagenet_classes';
 const MOBILENET_MODEL_URL =
     'https://storage.googleapis.com/tfjs-models/tfjs/mobilenet_v1_1.0_224/model.json'
 
+/**
+ * A classifier for images.
+ *
+ * It uses an underlying TensorFlow.js convolutional neural network
+ * to label a batch of input images. The labels are from the ImageNet
+ * dataset and can be seen in `./imagenet_classes.js`.
+ */
 export class ImageClassifier {
   constructor() {
     this.model = null;
@@ -128,6 +135,12 @@ export class ImageClassifier {
  * Search for target words in an array of class names and corresponding
  * probabilities.
  *
+ * This search is necessary because the class names output by the
+ * TensorFlow.js model are not isolated English words, instead they long
+ * phrases such as "tiger shark, Galeocerdo cuvieri". We need to break
+ * these labels into words and match them against the target words
+ * provided by the app's user (e.g., "shark").
+ *
  * @param {Array<{className: string, prob: number}>} classNamesAndProbs
  *   An array of `N` classification results, each of which is an object
  *   mapping a class name (`className`) to a probability score (`prob`).
@@ -146,10 +159,10 @@ export function searchForKeywords(classNamesAndProbs, filePaths, targetWords) {
     const namesAndProbs = classNamesAndProbs[i];
     let matchWord = null;
     for (const nameAndProb of namesAndProbs) {
+      const classTokens = nameAndProb.className.toLowerCase().trim()
+          .replace(/[,\/]/g, ' ')
+          .split(' ').filter(x => x.length > 0);
       for (const word of targetWords) {
-        const classTokens = nameAndProb.className.toLowerCase().trim()
-            .replace(/[,\/]/g, ' ')
-            .split(' ').filter(x => x.length > 0);
         if (classTokens.indexOf(word) !== -1) {
           matchWord = word;
           break;

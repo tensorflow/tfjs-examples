@@ -1,6 +1,6 @@
 # Deploying TensorFlow.js Models in Electron-based Desktop Apps
 
-This is a simple example that showcases how to use TensorFlow.js
+This is an example that showcases how to use TensorFlow.js
 in cross-platform desktop apps written with
 [electron](https://electronjs.org/). In particular, it uses
 a MobileNetV2 model running in TensorFlow.js to enable the user

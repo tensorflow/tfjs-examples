@@ -98,6 +98,7 @@ export function findImagesFromDirectoriesRecursive(dirPath) {
   for (const item of items) {
     const fullPath = path.join(dirPath, item);
     if (fs.lstatSync(fullPath).isDirectory()) {
+      // NOTE: This doesn't follow symlinks.
       try {
         imageFilePaths.push(...findImagesFromDirectoriesRecursive(fullPath));
       } catch (err) {}

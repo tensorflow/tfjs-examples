@@ -242,9 +242,11 @@ function createFoundCard(rootDiv, foundItem) {
   const ul = document.createElement('ul');
   for (const classNameAndProb of foundItem.topClasses) {
     const li = document.createElement('li');
-    li.textContent =
-        `${classNameAndProb.className}: ${classNameAndProb.prob.toFixed(2)}`;
-    ul.appendChild(li);
+    if (classNameAndProb.prob >= 0.001) {
+      li.textContent =
+          `${classNameAndProb.className}: ${classNameAndProb.prob.toFixed(3)}`;
+      ul.appendChild(li);
+    }
   }
   topKDiv.appendChild(ul);
   cardDiv.appendChild(topKDiv);

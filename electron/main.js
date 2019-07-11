@@ -45,7 +45,7 @@ app.on('ready', () => {
 });
 
 app.on('window-all-closed', () => {
-  if (process.platfor !== 'darwin') {
+  if (process.platform !== 'darwin') {
     app.quit();
   }
 });

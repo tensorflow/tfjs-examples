@@ -83,7 +83,6 @@ async function main() {
 
   const imageH = model.inputs[0].shape[2];
   const imageW = model.inputs[0].shape[2];
-  console.log(`imageH = ${imageH}; imageW = ${imageW}`);
 
   // Load the images into a tensor.
   const dirContent = fs.readdirSync(args.imageDir);

@@ -5,7 +5,7 @@ in cross-platform desktop apps written with
 [electron](https://electronjs.org/). In particular, it uses
 a MobileNetV2 model running in TensorFlow.js to enable the user
 to search for image files on the local filesystem by content
-key words.
+key words (e.g., "daisy", "chair").
 
 ## How to use this example
 

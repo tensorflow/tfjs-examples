@@ -22,7 +22,7 @@ const tf = process.argv.indexOf('--gpu') === -1 ?
     require('@tensorflow/tfjs-node') :
     require('@tensorflow/tfjs-node-gpu');
 
-import {IMAGE_EXTENSION_NAMES, findImagesFromDirectoriesRecursive, readImageAsBase64, readImageAsTensor} from './image_utils';
+import {IMAGE_EXTENSION_NAMES, findImagesFromDirectoriesRecursive} from './image_utils';
 import {ImageClassifier} from './image_classifier';
 
 let mainWindow;

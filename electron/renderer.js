@@ -183,18 +183,10 @@ function createFoundCard(rootDiv, foundItem) {
   titleDiv.textContent = foundItem.matchWord;
   cardDiv.appendChild(titleDiv);
 
-  if (foundItem.imageBase64 != null) {
-    const imgDiv = document.createElement('img');
-    imgDiv.classList.add('search-result-thumbnail');
-    imgDiv.src = foundItem.imageBase64;
-    cardDiv.appendChild(imgDiv);
-  } else if (foundItem.imageData != null) {
-    const canvas = document.createElement('canvas');
-    const imageTensor = tf.tensor3d(foundItem.imageData);
-    tf.browser.toPixels(imageTensor, canvas);
-    // TODO(cais): Dispose imageTensor.
-    cardDiv.appendChild(canvas);
-  }
+  const imgDiv = document.createElement('img');
+  imgDiv.classList.add('search-result-thumbnail');
+  imgDiv.src = `file://${foundItem.filePath}`;
+  cardDiv.appendChild(imgDiv);
 
   const pathDiv = document.createElement('div');
   pathDiv.classList.add('mdl-card--border');

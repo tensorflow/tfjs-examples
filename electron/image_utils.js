@@ -53,35 +53,6 @@ export async function readImageAsTensor(filePath, height, width) {
   });
 }
 
-/**
- * Read an image file as a Base64 encoded string.
- *
- * @param {string} filePath Path to the input image file.
- * @return {string} Base64 encoded image content.
- */
-export async function readImageAsBase64(filePath) {
-  let mimeType;
-  if (filePath.toLowerCase().endsWith('.png')) {
-    mimeType = jimp.MIME_PNG;
-  } else if (filePath.toLowerCase().endsWith('.bmp')) {
-    mimeType = jimp.MIME_BMP;
-  } else if (filePath.toLowerCase().endsWith('jpg') ||
-             filePath.toLowerCase().endsWith('jpeg')) {
-    mimeType = jimp.MIME_JPEG;
-  } else {
-    throw new Error(`Unsupported image file extension name in: ${filePath}`);
-  }
-  return new Promise((resolve, reject) => {
-    jimp.read(filePath, async (err, image) => {
-      if (err) {
-        reject(err);
-      } else {
-        resolve(await image.getBase64Async(mimeType));
-      }
-    });
-  });
-}
-
 export const IMAGE_EXTENSION_NAMES = ['jpg', 'jpeg', 'png'];
 
 /**

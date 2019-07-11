@@ -18,7 +18,7 @@
 import * as tf from '@tensorflow/tfjs';
 
 import {IMAGENET_CLASSES} from './imagenet_classes';
-import {readImageAsTensor, readImageAsBase64} from './image_utils';
+import {readImageAsTensor} from './image_utils';
 
 const MOBILENET_MODEL_URL =
     'https://storage.googleapis.com/tfjs-models/tfjs/mobilenet_v1_1.0_224/model.json'
@@ -156,13 +156,6 @@ export class ImageClassifier {
 
     const foundItems = searchForKeywords(
         classNamesAndProbs, filePaths, targetWords);
-    for (const foundItem of foundItems) {
-      try {
-        foundItem.imageBase64 = await readImageAsBase64(foundItem.filePath);
-      } catch (err) {
-        // Guards against `readImageAsBase64` failures.
-      }
-    }
 
     // TensorFlow.js memory cleanup.
     tf.dispose([imageTensors, batchImageTensor, imageTensors]);

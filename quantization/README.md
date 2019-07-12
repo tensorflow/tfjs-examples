@@ -74,6 +74,7 @@ from the four models covered by this example (higher is better):
 
 gzip compression ratio:
 `(total size of the model.json and weight files) / (size of gzipped tar ball)`
+
 | Model      | Original (no-quantization) | 16-bit quantization | 8-bit quantization |
 | ---------- | -------------------------- | ------------------- | ------------------ |
 | housing: multi-layer regressor  | 1.121 | 1.161               | 1.388              |

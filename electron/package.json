@@ -1,0 +1,38 @@
+{
+  "name": "tfjs-examples-electron",
+  "author": {
+    "name": "TensorFlow.js Team",
+    "email": "package@tensorflow.org"
+  },
+  "homepage": "https://js.tensorflow.org",
+  "version": "0.1.0",
+  "description": "An example for deploying TensorFlow.js models in an Electron.js-based desktop app",
+  "license": "Apache-2.0",
+  "repository": "https://github.com/tensorflow/tfjs-examples",
+  "dependencies": {
+    "@tensorflow/tfjs": "^1.2.2",
+    "@tensorflow/tfjs-node": "^1.2.3",
+    "@material/snackbar": "^3.0.0",
+    "jimp": "^0.6.4"
+  },
+  "devDependencies": {
+    "electron-builder": "^20.44.4",
+    "electron-prebuilt-compile": "^4.0.0"
+  },
+  "main": "main.js",
+  "scripts": {
+    "start": "electron ."
+  },
+  "build": {
+    "linux": {
+      "target": [
+        {
+          "target": "deb",
+          "arch": [
+            "x64"
+          ]
+        }
+      ]
+    }
+  }
+}

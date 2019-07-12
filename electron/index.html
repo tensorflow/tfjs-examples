@@ -1,0 +1,133 @@
+
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <title>TensorFlow.js: Electron Demo</title>
+
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+    <link href="https://unpkg.com/material-components-web@latest/dist/material-components-web.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://code.getmdl.io/1.3.0/material.indigo-pink.min.css">
+    <script defer src="https://code.getmdl.io/1.3.0/material.min.js"></script>
+
+    <style>
+      body {
+        margin: 35px;
+      }
+
+      p {
+        color: gray;
+      }
+
+      #clear-search-results {
+        float: left;
+        margin-top: 15px;
+      }
+
+      #main-snackbar-message {
+        font-size: 13px;
+        text-align: middle;
+      }
+
+      #progress-container {
+        height: 14px;
+        line-height: 14px;
+        overflow: hidden;
+        padding: 5px;
+        white-space: nowrap;
+      }
+
+      .mdl-button {
+        margin: 10px;
+      }
+
+      .mdl-checkbox {
+        margin: 10px;
+      }
+
+      .search-result {
+        display: inline-block;
+        margin: 10px;
+      }
+
+      .search-result-file-path {
+        color: rgb(128, 128, 128);
+        font-size: 70%;
+        padding: 5px;
+      }
+
+      .search-result-top-k {
+        color: rgb(80, 80, 80);
+        font-size: 70%;
+        padding: 1px;
+      }
+
+      .search-result-thumbnail {
+        height: 240px;
+        width: 320px;
+        margin: 4px;
+      }
+    </style>
+  </head>
+
+  <body>
+    <p><em>Search for images by content using TensorFlow.js</em></p>
+
+    <form action="#">
+      <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+        <input
+            class="mdl-textfield__input"
+            type="text"
+            id="target-words"
+            value="Turtle, ship">
+        <label class="mdl-textfield__label" for="sample3">What to search for? (Try tiger, burrito, rose, ...)</label>
+      </div>
+    </form>
+
+    <div>
+      <button
+        class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--accent"
+        id="files-dialog-button">
+        <i class="material-icons mdc-button__icon">file_copy</i>
+        Search in files...
+      </button>
+
+      <button
+        class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--accent"
+        id="directories-dialog-button">
+        <i class="material-icons mdc-button__icon">folder_open</i>
+        Search in folders...
+      </button>
+    </div>
+
+    <div class="mdc-snackbar" id="main-snackbar">
+      <div class="mdc-snackbar__surface">
+        <div class="mdc-snackbar__label" role="status" id="main-snackbar-message"></div>
+      </div>
+    </div>
+
+    <label class="mdl-checkbox mdl-js-checkbox mdl-js-ripple-effect" for="frontend-inference-checkbox">
+      <input type="checkbox" id="frontend-inference-checkbox" class="mdl-checkbox__input">
+      <span class="mdl-checkbox__label">Classify images using frontend model (slower)</span>
+    </label>
+
+    <div id="progress-container">
+      <div class="mdl-typography--text" id="progress-text">Hello</div>
+      <div id="progress-bar" class="mdl-progress mdl-js-progress mdl-progress__indeterminate"></div>
+    </div>
+
+    <div id="results-section">
+      <button
+        class="mdl-button mdl-js-button mdl-button--fab mdl-js-ripple-effect"
+        id="clear-search-results">
+        <i class="material-icons mdc-button__icon">delete</i>
+      </button>
+
+      <div id="search-results"></div>
+    </div>
+
+
+    <script src="renderer.js"></script>
+  </body>
+
+</html>

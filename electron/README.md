@@ -85,9 +85,6 @@ apps, including
 - [electron-forge](https://github.com/electron-userland/electron-forge)
 - [electron-packager](https://github.com/electron-userland/electron-packager)
 
-For official guidance on platforms other than linux (e.g., MacOS and Windows), see
-[Electron Documentation](https://electronjs.org/docs/tutorial/application-distribution).
-
 This example uses [electron-builder] to package the app as Linux Debian (.deb)
 package. To perform the packaging, do:
 
@@ -106,6 +103,10 @@ by the build process of electron-builder:
 - license
 - repository
 - build
+
+For official guidance and info on platforms other than linux (e.g., MacOS and
+Windows), see
+[Electron Documentation](https://electronjs.org/docs/tutorial/application-distribution).
 
 ## Origin of images
 

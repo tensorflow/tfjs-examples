@@ -85,7 +85,7 @@ apps, including
 - [electron-forge](https://github.com/electron-userland/electron-forge)
 - [electron-packager](https://github.com/electron-userland/electron-packager)
 
-For official guidance, see
+For official guidance on platforms other than linux (e.g., MacOS and Windows), see
 [Electron Documentation](https://electronjs.org/docs/tutorial/application-distribution).
 
 This example uses [electron-builder] to package the app as Linux Debian (.deb)

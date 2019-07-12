@@ -16,11 +16,7 @@
  */
 
 import {app, dialog, ipcMain, BrowserWindow} from 'electron';
-// Will be dynamically imported depending on whether the --gpu flag
-// is specified.
-const tf = process.argv.indexOf('--gpu') === -1 ?
-    require('@tensorflow/tfjs-node') :
-    require('@tensorflow/tfjs-node-gpu');
+import '@tensorflow/tfjs-node';
 
 import {IMAGE_EXTENSION_NAMES, findImagesFromDirectoriesRecursive} from './image_utils';
 import {ImageClassifier} from './image_classifier';

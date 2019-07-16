@@ -17,7 +17,7 @@
     "d3-selection": "^1.4.0",
     "http-server": "^0.11.1",
     "jimp": "0.6.0",
-    "lodash": "^4.17.11",
+    "lodash": "^4.17.13",
     "mkdirp": "^0.5.1",
     "terminal-image": "^0.1.2"
   },

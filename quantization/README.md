@@ -41,17 +41,46 @@ quantizing the weights to 8 bits leads to a significant deterioration in
 accuracy, as measured by the top-1 and top-5 accuracies. See example results
 in the table below:
 
-| Dataset and Mdoel      | Original (no-quantization) | 16-bit quantization | 8-bit quantization |
+| Dataset and Model      | Original (no-quantization) | 16-bit quantization | 8-bit quantization |
 | ---------------------- | -------------------------- | ------------------- | ------------------ |
 | housing: multi-layer regressor  |  MAE=0.311984     | MAE=0.311983        | MAE=0.312780       |
 | MNIST: convnet         | accuracy=0.9952            | accuracy=0.9952     | accuracy=0.9952    |
 | Fashion MNIST: convnet | accuracy=0.922             | accuracy=0.922      | accuracy=0.9211    |
 | MobileNetV2            | top-1 accuracy=0.618; top-5 accuracy=0.788 | top-1 accuracy=0.624; top-5 accuracy=0.789 | top-1 accuracy=0.280; top-5 accuracy=0.490 |
 
-MAE Stands for mean absolute error.
+MAE Stands for mean absolute error (lower is better).
 
 They demonstrate different effects of the same quantization technique
 on different problems.
+
+### Effect of quantization on gzip compression ratio
+
+An additional factor affecting the over-the-wire size of models
+under quantization is the gzip ratio. This factor should be taken into
+account because gzip is widely used to transmit large files over the
+web.
+
+Most non-quantized models (i.e.,
+models with 32-bit float weights) are not very compressible, due to
+the noise-like variation in their weight parameters, which contain
+few repeating patterns. The same is true for models with weights
+quantized at the 16-bit precision. However, when models are quantized
+at the 8-bit precision, there is usually a significant increase in the
+gzip compression ratio. The `yarn quantize-and-evalute*` commands in
+this example (see sections below) not only evaluates accuracy, but also
+calculates the gzip compression ratio of model files under different
+levels of quantization. The table below summarizes the compression ratios
+from the four models covered by this example (higher is better):
+
+gzip compression ratio:
+`(total size of the model.json and weight files) / (size of gzipped tar ball)`
+
+| Model      | Original (no-quantization) | 16-bit quantization | 8-bit quantization |
+| ---------- | -------------------------- | ------------------- | ------------------ |
+| housing: multi-layer regressor  | 1.121 | 1.161               | 1.388              |
+| MNIST: convnet         | 1.082          | 1.037               | 1.184              |
+| Fashion MNIST: convnet | 1.078          | 1.048               | 1.229              |
+| MobileNetV2            | 1.085          | 1.063               | 1.271              |
 
 ## Running the housing quantization demo
 
@@ -104,6 +133,10 @@ and evaluate the effects on the model's test accuracy, do:
 ```
 yarn quantize-and-evaluate-mnist
 ```
+
+The command also calculates the ratio of gzip compression for the
+model's saved artifacts under the three different levels of quantization
+(no-quantization, 16-bit, and 8-bit).
 
 ## Running the Fashion-MNIST quantization demo
 

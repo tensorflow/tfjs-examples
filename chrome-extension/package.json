@@ -1,0 +1,22 @@
+{
+  "name": "tfjs-basic-chrome-extension",
+  "version": "0.1.0",
+  "description": "Use tfjs model.predict in a chrome extension",
+  "scripts": {
+    "copy": "cp src/content.js dist/src/ && cp src/imagenet_classes.js dist/src/",
+    "build": "parcel build src/background.js -d dist/src/ -o background --no-minify && npm run copy",
+    "watch": "npm run copy && parcel watch src/background.js --hmr-hostname localhost -d dist/src/ -o background"
+  },
+  "license": "Apache 2.0",
+  "devDependencies": {
+    "babel-core": "^6.26.3",
+    "babel-plugin-transform-runtime": "^6.23.0",
+    "babel-polyfill": "^6.26.0",
+    "babel-preset-env": "^1.6.1",
+    "clang-format": "^1.2.3",
+    "parcel-bundler": "^1.7.1"
+  },
+  "dependencies": {
+    "@tensorflow/tfjs": "^1.1.0"
+  }
+}

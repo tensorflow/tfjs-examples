@@ -84,9 +84,6 @@ describe('text-generation model', () => {
         epochEndEpochs.push(epoch);
       }
     }
-    tf.ENV.platform.now = () => {
-      return process.hrtime();
-    }
     await fitModel(
         model, textData, epochs, examplesPerEpoch, batchSize, validationSplit,
         callback);

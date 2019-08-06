@@ -1,5 +1,5 @@
 <!--
-Copyright 2018 Google LLC. All Rights Reserved.
+Copyright 2019 Google LLC. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -49,20 +49,19 @@ limitations under the License.
 <body>
   <div class='tfjs-example-container centered-container'>
     <section class='title-area'>
-      <h1>TensorFlow.js: Addition RNN in webworker</h1>
-      <p class='subtitle'>Train a model in webworker</p>
+      <h1>TensorFlow.js: Addition RNN in web worker</h1>
+      <p class='subtitle'>Train a model in web worker</p>
     </section>
     <section>
       <p class='section-head'>Description</p>
       <p>
         This example trains a <a href="https://en.wikipedia.org/wiki/Recurrent_neural_network">Recurrent Neural Network</a>
-        in <a href="https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API/Using_web_workers">webworker</a>
+        in <a href="https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API/Using_web_workers">web worker</a>
         to do addition without explicitly defining the addition operator. Instead
         we feed it examples of sums and let it learn from that.
       </p>
       <p>
-        In this way, we can do massive computation without actually blocking the UI rendering thread. So we can have smooth interaction
-        and massive computation.
+        In this way, we can do long-running computation without actually blocking the UI rendering thread.
       </p>
       <p>
         Given a <span class='in-type'>string</span> like
@@ -71,7 +70,7 @@ limitations under the License.
         like <span class=out-example>7</span>.
       </p>
       <p>
-        This example generates it's own training data programatically.
+        This example generates its own training data programatically.
       </p>
     </section>
 
@@ -138,7 +137,6 @@ limitations under the License.
         <div class='with-cols'>
           <div id="lossChart"></div>
           <div id="accuracyChart"></div>
-          <!-- <div id="examplesPerSecCanvas"></div> -->
         </div>
       </section>
 
@@ -157,4 +155,3 @@ limitations under the License.
 <script src="./index.js">
 
 </script>
-<!-- <script src="index.js"></script> -->

@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-const tf = require('@tensorflow/tfjs/');
+const tf = require('@tensorflow/tfjs');
 
 class CharacterTable {
   /**

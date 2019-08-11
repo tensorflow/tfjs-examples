@@ -16,36 +16,50 @@
  */
 
 import io from 'socket.io-client';
-const evalTestButton = document.getElementById('eval-test-button');
+const predictContainer = document.getElementById('predictContainer');
+const predictButton = document.getElementById('predict-button');
 
 const socket =
-    io('http://localhost:8001',
-       {reconnectionDelay: 300, reconnectionDelayMax: 300});
+  io('http://localhost:8001',
+    { reconnectionDelay: 300, reconnectionDelayMax: 300 });
 
 const BAR_WIDTH_PX = 300;
 
-evalTestButton.onclick = () => {
-  evalTestButton.textContent = 'Loading...';
-  socket.emit('test_data', 'true');
+const testSample = [2.668, -114.333, -1.908, 4.786, 25.707, -45.21, 78, 0];
+
+predictButton.onclick = () => {
+  predictButton.disabled = true;
+  socket.emit('predictSample', testSample);
 };
 
+// functions to handle socket events
 socket.on('connect', () => {
-  evalTestButton.style.display = 'block';
-  evalTestButton.textContent = 'Eval Test';
+  document.getElementById('trainingStatus').innerHTML = 'Training in Progress';
 });
 
 socket.on('accuracyPerClass', (accPerClass) => {
   plotAccuracyPerClass(accPerClass);
 });
 
+socket.on('trainingComplete', () => {
+  document.getElementById('trainingStatus').innerHTML = 'Training Complete';
+  document.getElementById('predictSample').innerHTML = '[' + testSample.join(', ') + ']';
+  predictContainer.style.display = 'block';
+});
+
+socket.on('predictResult', (result) => {
+  plotPredictResult(result);
+});
+
 socket.on('disconnect', () => {
-  evalTestButton.style.display = 'block';
+  document.getElementById('trainingStatus').innerHTML = '';
+  predictContainer.style.display = 'none';
   document.getElementById('waiting-msg').style.display = 'block';
   document.getElementById('table').style.display = 'none';
 });
 
+// functions to update display
 function plotAccuracyPerClass(accPerClass) {
-  console.log(accPerClass);
   document.getElementById('table').style.display = 'block';
   document.getElementById('waiting-msg').style.display = 'none';
 
@@ -75,7 +89,6 @@ function plotAccuracyPerClass(accPerClass) {
 
     plotScoreBar(scores.training, scoreContainer);
     if (scores.validation) {
-      document.getElementById('eval-test-button').style.display = 'none';
       plotScoreBar(scores.validation, scoreContainer, 'validation');
     }
   });
@@ -87,4 +100,11 @@ function plotScoreBar(score, container, className = '') {
   scoreDiv.style.width = (score * BAR_WIDTH_PX) + 'px';
   scoreDiv.innerHTML = (score * 100).toFixed(1);
   container.appendChild(scoreDiv);
+}
+
+function plotPredictResult(result) {
+  predictButton.textContent = 'Predict Pitch';
+  predictButton.disabled = false;
+  document.getElementById('predictResult').innerHTML = result;
+  console.log(result);
 }

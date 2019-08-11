@@ -1,0 +1,157 @@
+<!--
+Copyright 2019 Google LLC. All Rights Reserved.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+==============================================================================
+-->
+
+<!doctype html>
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="../shared/tfjs-examples.css" />
+</head>
+
+<style>
+  .setting {
+    padding: 6px;
+  }
+
+  #trainModel {
+    margin-top: 12px;
+  }
+
+  .setting-label {
+    display: inline-block;
+    width: 12em;
+  }
+
+  .answer-correct {
+    color: green;
+  }
+
+  .answer-wrong {
+    color: red;
+  }
+</style>
+
+<body>
+  <div class='tfjs-example-container centered-container'>
+    <section class='title-area'>
+      <h1>TensorFlow.js: Addition RNN in web worker</h1>
+      <p class='subtitle'>Train a model in web worker</p>
+    </section>
+    <section>
+      <p class='section-head'>Description</p>
+      <p>
+        This example trains a <a href="https://en.wikipedia.org/wiki/Recurrent_neural_network">Recurrent Neural Network</a>
+        in <a href="https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API/Using_web_workers">web worker</a>
+        to do addition without explicitly defining the addition operator. Instead
+        we feed it examples of sums and let it learn from that.
+      </p>
+      <p>
+        In this way, we can do long-running computation without actually blocking the UI rendering thread.
+      </p>
+      <p>
+        Given a <span class='in-type'>string</span> like
+        <span class='in-example'>3 + 4</span>, it will learn to output
+        a <span class='out-type'>number</span>
+        like <span class=out-example>7</span>.
+      </p>
+      <p>
+        This example generates its own training data programatically.
+      </p>
+    </section>
+
+    <div>
+      <section>
+        <p class='section-head'>Instructions</p>
+        <p>
+          Click the "Train Model" to start the model training button. You can edit the
+          parameters used to train the model as well.
+        </p>
+      </section>
+
+      <div class="controls with-rows">
+        <div class="settings">
+          <div class="setting">
+            <span class="setting-label">Digits:</span>
+            <input id="digits" value="2"></input>
+          </div>
+          <div class="setting">
+            <span class="setting-label">Training Size:</span>
+            <input id="trainingSize" value="5000"></input>
+          </div>
+          <div class="setting">
+            <span class="setting-label">RNN Type:</span>
+            <select id="rnnType">
+              <option value="SimpleRNN">SimpleRNN</option>
+              <option value="GRU">GRU</option>
+              <option value="LSTM">LSTM</option>
+            </select>
+          </div>
+          <div class="setting">
+            <span class="setting-label">RNN Layers:</span>
+            <input id="rnnLayers" value="1"></input>
+          </div>
+          <div class="setting">
+            <span class="setting-label">RNN Hidden Layer Size:</span>
+            <input id="rnnLayerSize" value="128"></input>
+          </div>
+          <div class="setting">
+            <span class="setting-label">Batch Size:</span>
+            <input id="batchSize" value="128"></input>
+          </div>
+          <div class="setting">
+            <span class="setting-label">Train Iterations:</span>
+            <input id="trainIterations" value="100"></input>
+          </div>
+          <div class="setting">
+            <span class="setting-label"># of test examples:</span>
+            <input id="numTestExamples" value="20"></input>
+          </div>
+        </div>
+
+        <div>
+          <span>
+            <button class="btn-primary" id="trainModel">Train Model</button>
+          </span>
+        </div>
+      </div>
+
+
+      <section>
+        <p class='section-head'>Training Progress</p>
+        <p id="trainStatus"></p>
+        <div class='with-cols'>
+          <div id="lossChart"></div>
+          <div id="accuracyChart"></div>
+        </div>
+      </section>
+
+      <section>
+        <p class='section-head'>Test Examples</p>
+        <p id="testExamples"></p>
+      </section>
+
+
+
+
+    </div>
+  </div>
+
+</body>
+<script src="./index.js">
+
+</script>

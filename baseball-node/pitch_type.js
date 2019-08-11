@@ -115,6 +115,20 @@ async function evaluate(useTestData) {
   return results;
 }
 
+async function predictSample(sample) {
+  console.log('calling predictSample on ', sample);
+  let result = model.predict(tf.tensor(sample, [1,sample.length])).arraySync();
+  console.log(result);
+  var maxValue = 0;
+  var predictedPitch = 7;
+  for (var i = 0; i < NUM_PITCH_CLASSES; i++) {
+    if (result[0][i] > maxValue) {
+      predictedPitch = i;
+    }
+  }
+  return pitchFromClassNum(predictedPitch);
+}
+
 // Determines accuracy evaluation for a given pitch class by index:
 function calcPitchClassEval(pitchIndex, classSize, values) {
   // Output has 7 different class values for each pitch, offset based on
@@ -154,6 +168,7 @@ module.exports = {
   evaluate,
   model,
   pitchFromClassNum,
+  predictSample,
   testValidationData,
   trainingData,
   TEST_DATA_LENGTH

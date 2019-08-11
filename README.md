@@ -64,6 +64,17 @@ to another project.
     <td>IndexedDB</td>
   </tr>
   <tr>
+    <td><a href="./chrome-extension">chrome-extension</a></td>
+    <td></td>
+    <td>Image</td>
+    <td>(Deploying TF.js in Chrome extension)</td>
+    <td>Convnet</td>
+    <td></td>
+    <td>Browser</td>
+    <td></td>
+    <td></td>
+  </tr>
+  <tr>
     <td><a href="./custom-layer">custom-layer</a></td>
     <td><a href="https://storage.googleapis.com/tfjs-examples/custom-layer/dist/index.html">🔗</a></td>
     <td></td>
@@ -91,7 +102,7 @@ to another project.
     <td></td>
     <td>Building a tf.data.Dataset using a generator</td>
     <td>Regression</td>
-    <td>Multilayer perceptron</td>
+    <td>Browser</td>
     <td>Browser</td>
     <td>Layers</td>
     <td></td>
@@ -106,6 +117,17 @@ to another project.
     <td>Browser and Node.js</td>
     <td>Layers</td>
     <td>Saving to filesystem and loading in browser</td>
+  </tr>
+  <tr>
+    <td><a href="./electron">electron</a></td>
+    <td></td>
+    <td>Image</td>
+    <td>(Deploying TF.js in Electron-based desktop apps)</td>
+    <td>Convnet</td>
+    <td></td>
+    <td>Node.js</td>
+    <td></td>
+    <td></td>
   </tr>
   <tr>
     <td><a href="./fashion-mnist-vae">fashion-mnist-vae</a></td>
@@ -248,6 +270,17 @@ to another project.
     <td>Browser</td>
     <td>Browser</td>
     <td>Core (Ops)</td>
+    <td></td>
+  </tr>
+  <tr>
+    <td><a href="./quantization">quantization</a></td>
+    <td></td>
+    <td>Various</td>
+    <td>Demonstrates the effect of post-training weight quantization</td>
+    <td>Various</td>
+    <td>Node.js</td>
+    <td>Node.js</td>
+    <td>Layers</td>
     <td></td>
   </tr>
   <tr>

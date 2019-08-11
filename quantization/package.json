@@ -1,0 +1,38 @@
+{
+  "name": "tfjs-examples-mnist-node",
+  "version": "0.1.0",
+  "description": "",
+  "main": "index.js",
+  "license": "Apache-2.0",
+  "private": true,
+  "engines": {
+    "node": ">=8.11.0"
+  },
+  "scripts": {
+    "eval-fashion-mnist": "babel-node eval_mnist.js fashion-mnist",
+    "eval-housing": "babel-node eval_housing.js",
+    "eval-mnist": "babel-node eval_mnist.js mnist",
+    "eval-MobileNetV2": "babel-node eval_mobilenetv2.js",
+    "test": "./run_tests.sh",
+    "train-fashion-mnist": "babel-node train_mnist.js fashion-mnist",
+    "train-housing": "babel-node train_housing.js",
+    "train-mnist": "babel-node train_mnist.js mnist",
+    "quantize-and-evaluate-fashion-mnist": "./quantize_evaluate.sh fashion-mnist",
+    "quantize-and-evaluate-housing": "./quantize_evaluate.sh housing",
+    "quantize-and-evaluate-mnist": "./quantize_evaluate.sh mnist",
+    "quantize-and-evaluate-MobileNetV2": "./quantize_evaluate.sh MobileNetV2"
+  },
+  "devDependencies": {
+    "@tensorflow/tfjs-node": "^1.2.3",
+    "@tensorflow/tfjs-node-gpu": "^1.2.3",
+    "argparse": "^1.0.10",
+    "babel-cli": "^6.26.0",
+    "babel-core": "^6.26.3",
+    "babel-plugin-transform-runtime": "~6.23.0",
+    "babel-preset-env": "~1.6.1",
+    "clang-format": "~1.2.2",
+    "jimp": "^0.6.4",
+    "progress": "^2.0.3",
+    "shelljs": "^0.8.3"
+  }
+}

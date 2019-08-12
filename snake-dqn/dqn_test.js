@@ -113,4 +113,15 @@ describe('copyWeights', () => {
           .toEqual(0);
     }
   });
+
+  it('Copy from trainble source to untrainble dest works', () => {
+    const h = 9;
+    const w = 9;
+    const numActions = 4;
+    const srcNetwork = createDeepQNetwork(h, w, numActions);
+    const destNetwork = createDeepQNetwork(h, w, numActions);
+
+    destNetwork.trainable = false;
+    copyWeights(destNetwork, srcNetwork);
+  });
 });

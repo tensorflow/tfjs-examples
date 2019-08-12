@@ -53,6 +53,7 @@ export class SnakeGameAgent {
         createDeepQNetwork(game.height,  game.width, NUM_ACTIONS);
     this.targetNetwork =
         createDeepQNetwork(game.height,  game.width, NUM_ACTIONS);
+
     // Freeze taget network: it's weights are updated only through copying from
     // the online network.
     this.targetNetwork.trainable = false;
@@ -150,12 +151,11 @@ export class SnakeGameAgent {
       return tf.losses.meanSquaredError(targetQs, qs);
     });
 
-    // TODO(cais): Remove the second argument when `variableGrads()` obeys the
-    // trainable flag.
-    const grads =
-        tf.variableGrads(lossFunction, this.onlineNetwork.getWeights());
+    // Calculate the gradients of the loss function with repsect to the weights
+    // of the online network.
+    const grads = tf.variableGrads(lossFunction);
     optimizer.applyGradients(grads.grads);
     tf.dispose(grads);
     // TODO(cais): Return the loss value here?
-  }
+  }lossFunction
 }

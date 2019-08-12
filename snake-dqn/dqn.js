@@ -68,5 +68,22 @@ export function createDeepQNetwork(h, w, numActions) {
  * @param {tf.LayersModel} srcNetwork The source network for weight copying.
  */
 export function copyWeights(destNetwork, srcNetwork) {
+  // https://github.com/tensorflow/tfjs/issues/1807:
+  // Weight orders are inconsistent when the trainable attribute doesn't
+  // match between two `LayersModel`s. The following is a workaround.
+  // TODO(cais): Remove the workaround once the underlying issue is fixed.
+  let originalDestNetworkTrainable;
+  if (destNetwork.trainable !== srcNetwork.trainable) {
+    originalDestNetworkTrainable = destNetwork.trainable;
+    destNetwork.trainable = srcNetwork.trainable;
+  }
+
   destNetwork.setWeights(srcNetwork.getWeights());
+
+  // Weight orders are inconsistent when the trainable attribute doesn't
+  // match between two `LayersModel`s. The following is a workaround.
+  // TODO(cais): Remove the workaround once the underlying issue is fixed.
+  if (originalDestNetworkTrainable != null) {
+    destNetwork.trainable = originalDestNetworkTrainable;
+  }
 }

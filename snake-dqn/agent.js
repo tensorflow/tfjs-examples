@@ -53,7 +53,6 @@ export class SnakeGameAgent {
         createDeepQNetwork(game.height,  game.width, NUM_ACTIONS);
     this.targetNetwork =
         createDeepQNetwork(game.height,  game.width, NUM_ACTIONS);
-
     // Freeze taget network: it's weights are updated only through copying from
     // the online network.
     this.targetNetwork.trainable = false;
@@ -152,8 +151,9 @@ export class SnakeGameAgent {
     });
 
     // Calculate the gradients of the loss function with repsect to the weights
-    // of the online network.
+    // of the online DQN.
     const grads = tf.variableGrads(lossFunction);
+    // Use the gradients to update the online DQN's weights.
     optimizer.applyGradients(grads.grads);
     tf.dispose(grads);
     // TODO(cais): Return the loss value here?

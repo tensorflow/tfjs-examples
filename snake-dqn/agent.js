@@ -157,5 +157,5 @@ export class SnakeGameAgent {
     optimizer.applyGradients(grads.grads);
     tf.dispose(grads);
     // TODO(cais): Return the loss value here?
-  }lossFunction
+  }
 }

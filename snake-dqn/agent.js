@@ -150,7 +150,10 @@ export class SnakeGameAgent {
       return tf.losses.meanSquaredError(targetQs, qs);
     });
 
-    const grads = tf.variableGrads(lossFunction);
+    // TODO(cais): Remove the second argument when `variableGrads()` obeys the
+    // trainable flag.
+    const grads =
+        tf.variableGrads(lossFunction, this.onlineNetwork.getWeights());
     optimizer.applyGradients(grads.grads);
     tf.dispose(grads);
     // TODO(cais): Return the loss value here?

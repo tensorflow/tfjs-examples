@@ -83,6 +83,9 @@ export function copyWeights(destNetwork, srcNetwork) {
   // Weight orders are inconsistent when the trainable attribute doesn't
   // match between two `LayersModel`s. The following is a workaround.
   // TODO(cais): Remove the workaround once the underlying issue is fixed.
+  // `originalDestNetworkTrainable` is null if and only if the `trainable`
+  // properties of the two LayersModel instances are the same to begin
+  // with, in which case nothing needs to be done below.
   if (originalDestNetworkTrainable != null) {
     destNetwork.trainable = originalDestNetworkTrainable;
   }

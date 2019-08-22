@@ -123,7 +123,7 @@ export class SnakeGameAgent {
    * Perform training on a randomly sampled batch from the replay buffer.
    *
    * @param {number} batchSize Batch size.
-   * @param {numebr} gamma Reward discount rate. Must be >= 0 and <= 1.
+   * @param {number} gamma Reward discount rate. Must be >= 0 and <= 1.
    * @param {tf.train.Optimizer} optimizer The optimizer object used to update
    *   the weights of the online network.
    */

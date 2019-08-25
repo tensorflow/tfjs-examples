@@ -6,7 +6,7 @@
   "private": true,
   "dependencies": {
     "@babel/plugin-transform-runtime": "^7.2.0",
-    "@tensorflow/tfjs": "^1.2.2"
+    "@tensorflow/tfjs": "^1.2.8"
   },
   "scripts": {
     "link-local": "yalc link",

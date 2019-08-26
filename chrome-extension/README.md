@@ -29,4 +29,3 @@ Once the extension is installed, you should be able to classify images in the br
 Removing the extension
 ----
 To remove the extension, click `Remove` on the extension page, or use the `Remove from Chrome...` menu option when right clicking the icon.
-

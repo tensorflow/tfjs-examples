@@ -32,10 +32,10 @@
   resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-layers/-/tfjs-layers-1.2.8.tgz#6d696dcfa530708b1fdb0cd7614a0d2a1c8ae58a"
   integrity sha512-NMcA44U0rvVpo/VUTMpqkBP3jbvNhRXV7K8KovLi/WZ9FG/u5XIbIqFkcT3QXBDUyjDUNFToYQM/59dtnaut9Q==
 
-"@tensorflow/tfjs-node-gpu@1.2.8":
+"@tensorflow/tfjs-node@1.2.8":
   version "1.2.8"
-  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-node-gpu/-/tfjs-node-gpu-1.2.8.tgz#b6f154587a1956013559809628098c33bbd8db75"
-  integrity sha512-dhs2LG+BH6nG5ctwc5cZGep4Thht1j6kem7kioHNhluyr+qGBKOijQBE2WfxtmwEKD367MqofuyOu7K4u456eA==
+  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-node/-/tfjs-node-1.2.8.tgz#5c613be62e0fb74b0ba29df0fcf8e29dfd4162a8"
+  integrity sha512-PElK34Lh2bvZg+bnPxH76V+GMHJHH9FDP2j3HDKzAwleT4qNSytjB6bjdi7sgFijt++fxejY1KFCuN/MPTGKNg==
   dependencies:
     "@tensorflow/tfjs" "1.2.8"
     adm-zip "^0.4.11"

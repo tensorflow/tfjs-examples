@@ -8,6 +8,6 @@
         "start": "node index.js"
     },
     "dependencies": {
-        "@tensorflow/tfjs-node-gpu": "1.2.8"
+        "@tensorflow/tfjs-node": "1.2.8"
     }
 }

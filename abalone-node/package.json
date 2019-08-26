@@ -1,0 +1,13 @@
+{
+    "name": "tfjs-abalone-node",
+    "version": "1.0.0",
+    "description": "",
+    "main": "index.js",
+    "license": "Apache-2.0",
+    "scripts": {
+        "start": "node index.js"
+    },
+    "dependencies": {
+        "@tensorflow/tfjs-node-gpu": "1.2.8"
+    }
+}

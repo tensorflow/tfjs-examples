@@ -6,7 +6,7 @@
   "license": "Apache-2.0",
   "dependencies": {
     "@babel/plugin-transform-runtime": "^7.2.0",
-    "@tensorflow/tfjs": "^1.2.2",
+    "@tensorflow/tfjs": "^1.2.8",
     "@tensorflow/tfjs-vis": "^1.0.3"
   },
   "scripts": {

@@ -9,8 +9,8 @@
     "node": ">=8.9.0"
   },
   "dependencies": {
-    "@tensorflow/tfjs": "^1.0.4",
-    "@tensorflow/tfjs-vis": "^1.0.3"
+    "@tensorflow/tfjs": "^1.2.8",
+    "@tensorflow/tfjs-vis": "^1.1.0"
   },
   "scripts": {
     "build": "cross-env NODE_ENV=production parcel build index.html --no-minify --public-url ./",

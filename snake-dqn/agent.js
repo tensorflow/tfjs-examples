@@ -123,7 +123,7 @@ export class SnakeGameAgent {
    * Perform training on a randomly sampled batch from the replay buffer.
    *
    * @param {number} batchSize Batch size.
-   * @param {numebr} gamma Reward discount rate. Must be >= 0 and <= 1.
+   * @param {number} gamma Reward discount rate. Must be >= 0 and <= 1.
    * @param {tf.train.Optimizer} optimizer The optimizer object used to update
    *   the weights of the online network.
    */
@@ -150,7 +150,10 @@ export class SnakeGameAgent {
       return tf.losses.meanSquaredError(targetQs, qs);
     });
 
+    // Calculate the gradients of the loss function with repsect to the weights
+    // of the online DQN.
     const grads = tf.variableGrads(lossFunction);
+    // Use the gradients to update the online DQN's weights.
     optimizer.applyGradients(grads.grads);
     tf.dispose(grads);
     // TODO(cais): Return the loss value here?

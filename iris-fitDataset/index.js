@@ -151,7 +151,7 @@ async function calculateAndDrawConfusionMatrix(model, xTest, yTest) {
  */
 async function evaluateModelOnTestData(model, testDataset) {
   ui.clearEvaluateTable();
-  const [[xTest, yTest]] = await testDataset.toArray();
+  const [{xs: xTest, ys: yTest}] = await testDataset.toArray();
   const xData = xTest.dataSync();
   const yTrue = yTest.argMax(-1).dataSync();
   const predictOut = model.predict(xTest);

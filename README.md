@@ -31,6 +31,17 @@ to another project.
     <td></td>
   </tr>
   <tr>
+    <td><a href="./addition-rnn-webworker">addition-rnn-webworker</a></td>
+    <td></td>
+    <td>Text</td>
+    <td>Sequence-to-sequence</td>
+    <td>RNN: SimpleRNN, GRU and LSTM</td>
+    <td>Browser: Web Worker</td>
+    <td>Browser: Web Worker</td>
+    <td>Layers</td>
+    <td></td>
+  </tr>
+  <tr>
     <td><a href="./baseball-node">baseball-node</a></td>
     <td></td>
     <td>Numeric</td>

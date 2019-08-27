@@ -5,9 +5,14 @@
     "main": "index.js",
     "license": "Apache-2.0",
     "scripts": {
-        "start": "node index.js"
+        "start": "node main.js",
+        "test": "node run_tests.js"
     },
     "dependencies": {
-        "@tensorflow/tfjs-node": "1.2.8"
+        "@tensorflow/tfjs-node": "1.2.8",
+        "argparse": "^1.0.10"
+    },
+    "devDependencies": {
+        "tmp": "^0.0.33"
     }
 }

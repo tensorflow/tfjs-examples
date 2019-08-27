@@ -5,7 +5,7 @@ This example shows how to predicting the age of abalone from physical measuremen
 The data set available at [UCI Machine Learning Repository](https://archive.ics.uci.edu/ml/datasets/Abalone).
 
 This example shows how to
-* load a `CSVDataset` from a local csv file
+* load a `Dataset` from a local csv file
 * prepare the Dataset for training
 * create a `tf.LayersModel` from scratch
 * train the model through `model.fitDataset()`
@@ -16,4 +16,14 @@ To launch the demo, do
 ```sh
 yarn
 yarn start
+```
+
+By default, the training uses tfjs-node, which runs on the CPU.
+If you have a CUDA-enabled GPU and have the CUDA and CuDNN libraries
+set up properly on your system, you can run the training on the GPU
+by:
+
+```sh
+yarn
+yarn train --gpu
 ```

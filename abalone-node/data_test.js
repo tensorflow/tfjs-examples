@@ -26,8 +26,17 @@ describe('Dataset', () => {
     const row = await dataset.take(1).toArray();
     const numOfColumns = datasetObj.numOfColumns;
     expect(numOfColumns).toBe(8);
-    tf.test_util.expectArraysEqual(
-        row[0].xs, [1, 0.455, 0.365, 0.095, 0.514, 0.2245, 0.101, 0.15]);
-    tf.test_util.expectArraysEqual(row[0].ys, [15]);
+    const features = row[0].xs;
+    const label = row[0].ys;
+    expect(features.length).toBe(8);
+    expect(features[0] === 0 || features[0] === 1 || features[0] === 2)
+        .toBeTruthy();
+    for (let i = 1; i < 8; i++) {
+      expect(features[i]).toBeLessThan(1);
+      expect(features[i]).toBeGreaterThan(0);
+    }
+    expect(Number.isInteger(label[0])).toBeTruthy();
+    expect(label[0]).toBeGreaterThanOrEqual(2);
+    expect(label[0]).toBeLessThanOrEqual(16);
   });
 });

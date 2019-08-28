@@ -21,6 +21,7 @@ const tf = require('@tensorflow/tfjs-node');
  * Load a local csv file and prepare the data for training. Data source:
  * https://archive.ics.uci.edu/ml/datasets/Abalone
  *
+ * @param {string} csvPath The path to csv file.
  * @returns {tf.data.Dataset} The loaded and prepared Dataset.
  */
 async function createDataset(csvPath) {

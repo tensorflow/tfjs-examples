@@ -17,13 +17,30 @@
 
 const tf = require('@tensorflow/tfjs-node');
 const tmp = require('tmp');
+const fs = require('fs');
 const createModel = require('./model');
 
+let tempDir;
+
 describe('Model', () => {
+  beforeEach(() => {
+    tempDir = tmp.dirSync();
+  });
+
+  afterEach(() => {
+    if (fs.existsSync(tempDir.name)) {
+      fs.readdirSync(tempDir.name).forEach(function(file) {
+        const curPath = tempDir.name + '/' + file;
+        fs.unlinkSync(curPath);
+      });
+      fs.rmdirSync(tempDir.name);
+    }
+  });
+
   it('Created model can train', async () => {
     const inputLength = 6;
     const outputLength = 1;
-    const model = createModel(inputLength);
+    const model = createModel([inputLength]);
     expect(model.inputs.length).toEqual(1);
     expect(model.inputs[0].shape).toEqual([null, inputLength]);
     expect(model.outputs.length).toEqual(1);
@@ -38,15 +55,14 @@ describe('Model', () => {
 
   it('Model save-load roundtrip', async () => {
     const inputLength = 6;
-    const model = createModel(inputLength);
+    const model = createModel([inputLength]);
     const numExamples = 3;
     const feature = tf.ones([numExamples, inputLength]);
     const y = model.predict(feature);
 
-    const saveDir = tmp.dirSync();
-    await model.save(`file://${saveDir.name}`);
+    await model.save(`file://${tempDir.name}`);
     const modelPrime =
-        await tf.loadLayersModel(`file://${saveDir.name}/model.json`);
+        await tf.loadLayersModel(`file://${tempDir.name}/model.json`);
     const yPrime = modelPrime.predict([feature]);
     tf.test_util.expectArraysClose(yPrime, y);
   });

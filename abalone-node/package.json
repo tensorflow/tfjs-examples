@@ -5,7 +5,7 @@
     "main": "index.js",
     "license": "Apache-2.0",
     "scripts": {
-        "start": "node main.js",
+        "train": "node main.js",
         "test": "node run_tests.js"
     },
     "dependencies": {
@@ -13,6 +13,8 @@
         "argparse": "^1.0.10"
     },
     "devDependencies": {
+        "jasmine": "^3.2.0",
+        "jasmine-core": "^3.2.1",
         "tmp": "^0.0.33"
     }
 }

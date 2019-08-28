@@ -20,7 +20,7 @@ const createDataset = require('./data');
 
 describe('Dataset', () => {
   it('Created dataset and numOfColumns', async () => {
-    const csvPath = 'file://./abalone.csv';
+    const csvPath = 'file://./test_data.csv';
     const datasetObj = await createDataset(csvPath);
     const dataset = datasetObj.dataset;
     const row = await dataset.take(1).toArray();

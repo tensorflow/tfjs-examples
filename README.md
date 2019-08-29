@@ -23,7 +23,7 @@ to another project.
     <td><a href="./abalone-node">abalone-node</a></td>
     <td></td>
     <td>Numeric</td>
-    <td>Building a tf.data.Dataset from a local CSV file and training in Node.js</td>
+    <td>Loading data from local file and training in Node.js</td>
     <td>Multilayer perceptron</td>
     <td>Node.js</td>
     <td>Node.js</td>

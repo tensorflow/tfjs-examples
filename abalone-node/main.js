@@ -41,15 +41,8 @@ async function run(epochs, batchSize, savePath) {
   const trainDataset = dataset.take(trainBatches);
   const validationDataset = dataset.skip(trainBatches);
 
-  await model.fitDataset(trainDataset, {
-    epochs: epochs,
-    validationData: validationDataset,
-    callbacks: {
-      onEpochEnd: async (epoch) => {
-        console.log(`Epoch ${epoch + 1} of ${100} completed.`);
-      }
-    }
-  });
+  await model.fitDataset(
+      trainDataset, {epochs: epochs, validationData: validationDataset});
 
   await model.save(savePath);
 

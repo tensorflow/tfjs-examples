@@ -20,6 +20,17 @@ to another project.
     <th>API type</th>
     <th>Save-load operations</th>
   <tr>
+    <td><a href="./abalone-node">abalone-node</a></td>
+    <td></td>
+    <td>Numeric</td>
+    <td>Building a tf.data.Dataset from a local CSV file and training in Node.js</td>
+    <td>Multilayer perceptron</td>
+    <td>Node.js</td>
+    <td>Node.js</td>
+    <td>Layers</td>
+    <td>Saving to filesystem and loading in Node.js</td>
+  </tr>
+  <tr>
     <td><a href="./addition-rnn">addition-rnn</a></td>
     <td><a href="https://storage.googleapis.com/tfjs-examples/addition-rnn/dist/index.html">🔗</a></td>
     <td>Text</td>

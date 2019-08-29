@@ -15,15 +15,10 @@ To launch the demo, do
 
 ```sh
 yarn
-yarn start
+yarn train
 ```
 
 By default, the training uses tfjs-node, which runs on the CPU.
 If you have a CUDA-enabled GPU and have the CUDA and CuDNN libraries
 set up properly on your system, you can run the training on the GPU
-by:
-
-```sh
-yarn
-yarn train --gpu
-```
+by replacing the tfjs-node package with tfjs-node-gpu.

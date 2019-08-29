@@ -53,4 +53,8 @@ function tensorToCanvas(tensor, canvas) {
   ctx.putImageData(imageData, 0, 0);
 };
 
-customLayerDemo();
+document.onreadystatechange = () => {
+  if (document.readyState == 'complete') {
+    customLayerDemo();
+  }
+}

@@ -38,7 +38,8 @@ const tfjsTag = '@tensorflow/tfjs';
 const tfjsNodeTag = '@tensorflow/tfjs-node';
 const tfjsNodeGpuTag = '@tensorflow/tfjs-node-gpu';
 
-if (!(process.argv.length === 3 || process.argv.length === 4)) {
+const argv = process.argv.slice();  // Avoid mutating `process.argv`.
+if (!(argv.length === 3 || argv.length === 4)) {
   // Invalid syntax. Print usage help.
   console.log('Usage: update-tfjs-version [--node] <TARGET_TFJS_VER>`');
   console.log();
@@ -55,13 +56,13 @@ if (!(process.argv.length === 3 || process.argv.length === 4)) {
 }
 
 let isNodeExamples = false;
-if (process.argv.indexOf('--node') !== -1) {
-  process.argv.splice(process.argv.indexOf('--node'), 1);
+if (argv.indexOf('--node') !== -1) {
+  argv.splice(argv.indexOf('--node'), 1);
   isNodeExamples = true;
   console.log('Will update only Node.js examples\n');
 }
 
-const targetTfjsVer = process.argv[2];
+const targetTfjsVer = argv[2];
 const targetVer = `^${targetTfjsVer}`;
 
 const dirItems = fs.readdirSync(__dirname);
@@ -78,36 +79,42 @@ for (const item of dirItems) {
 
       const devDeps = packageJson['devDependencies'];
       if (isNodeExamples) {
+        const depCPU = deps == null ? null : deps[tfjsNodeTag];
+        const depGPU = deps == null ? null : deps[tfjsNodeGpuTag];
+        const devDepCPU = devDeps == null ? null : devDeps[tfjsNodeTag];
+        const devDepGPU = devDeps == null ? null : devDeps[tfjsNodeGpuTag];
         // Update only examples that use tfjs-node / tfjs-node-gpu.
-        if (devDeps != null &&
-            (devDeps[tfjsNodeTag] != null || devDeps[tfjsNodeGpuTag] != null) ||
-            deps != null &&
-            (deps[tfjsNodeTag] != null || deps[tfjsNodeGpuTag] != null)) {
+        if ((devDepCPU != null || devDepGPU != null) ||
+            (depCPU != null || depGPU != null)) {
           console.log(`${item}:`);
-          if (devDeps[tfjsNodeTag] != null) {
-            const oldVer = devDeps[tfjsNodeTag];
+          if (devDepCPU != null) {
             devDeps[tfjsNodeTag] = targetVer;
-            console.log(`  devDependencies["${tfjsNodeTag}"]: ${oldVer} --> ${targetVer}`);
+            console.log(
+                `  devDependencies["${tfjsNodeTag}"]: ` +
+                `${devDepCPU} --> ${targetVer}`);
           }
-          if (devDeps[tfjsNodeGpuTag] != null) {
-            const oldVer = devDeps[tfjsNodeGpuTag];
+          if (devDepGPU != null) {
             devDeps[tfjsNodeGpuTag] = targetVer;
-            console.log(`  devDependencies["${tfjsNodeTag}"]: ${oldVer} --> ${targetVer}`);
+            console.log(
+                `  devDependencies["${tfjsNodeTag}"]: ` +
+                `${devDepGPU} --> ${targetVer}`);
           }
           if (deps[tfjsTag] != null) {
             const oldVer = deps[tfjsTag];
             deps[tfjsTag] = targetVer;
             console.log(`  dependencies["${tfjsTag}"]: ${oldVer} --> ${targetVer}`);
           }
-          if (deps[tfjsNodeTag] != null) {
-            const oldVer = deps[tfjsNodeTag];
+          if (depCPU != null) {
             deps[tfjsNodeTag] = targetVer;
-            console.log(`  dependencies["${tfjsNodeTag}"]: ${oldVer} --> ${targetVer}`);
+            console.log(
+                `  dependencies["${tfjsNodeTag}"]: ` +
+                `${depCPU} --> ${targetVer}`);
           }
-          if (deps[tfjsNodeGpuTag] != null) {
-            const oldVer = deps[tfjsNodeGpuTag];
+          if (depGPU != null) {
             deps[tfjsNodeGpuTag] = targetVer;
-            console.log(`  dependencies["${tfjsNodeGpuTag}"]: ${oldVer} --> ${targetVer}`);
+            console.log(
+                `  dependencies["${tfjsNodeGpuTag}"]: ` +
+                `${depGPU} --> ${targetVer}`);
           }
           fs.writeFileSync(
             packageJsonPath, JSON.stringify(packageJson, null, 2) + '\n');

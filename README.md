@@ -20,6 +20,17 @@ to another project.
     <th>API type</th>
     <th>Save-load operations</th>
   <tr>
+    <td><a href="./abalone-node">abalone-node</a></td>
+    <td></td>
+    <td>Numeric</td>
+    <td>Loading data from local file and training in Node.js</td>
+    <td>Multilayer perceptron</td>
+    <td>Node.js</td>
+    <td>Node.js</td>
+    <td>Layers</td>
+    <td>Saving to filesystem and loading in Node.js</td>
+  </tr>
+  <tr>
     <td><a href="./addition-rnn">addition-rnn</a></td>
     <td><a href="https://storage.googleapis.com/tfjs-examples/addition-rnn/dist/index.html">🔗</a></td>
     <td>Text</td>
@@ -27,6 +38,17 @@ to another project.
     <td>RNN: SimpleRNN, GRU and LSTM</td>
     <td>Browser</td>
     <td>Browser</td>
+    <td>Layers</td>
+    <td></td>
+  </tr>
+  <tr>
+    <td><a href="./addition-rnn-webworker">addition-rnn-webworker</a></td>
+    <td></td>
+    <td>Text</td>
+    <td>Sequence-to-sequence</td>
+    <td>RNN: SimpleRNN, GRU and LSTM</td>
+    <td>Browser: Web Worker</td>
+    <td>Browser: Web Worker</td>
     <td>Layers</td>
     <td></td>
   </tr>

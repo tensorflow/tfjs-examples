@@ -23,8 +23,12 @@
  * The examples that depend on @tensorflow/tfjs-node are currently not
  * handled by this script.
  *
- * Usage example:
- *   ./update-tfjs-version 0.13.2
+ * Usage examples:
+ *
+ * - To update only the examples that do not use tfjs-node or tfjs-node-gpu:
+ *   ./update-tfjs-version 1.2.8
+ * - To update only the examples that use tfjs-node or tfjs-node-gpu:
+ *   ./update-tfjs-version --node 1.2.8
  */
 
 const fs = require('fs');
@@ -32,12 +36,34 @@ const path = require('path');
 
 const tfjsTag = '@tensorflow/tfjs';
 const tfjsNodeTag = '@tensorflow/tfjs-node';
+const tfjsNodeGpuTag = '@tensorflow/tfjs-node-gpu';
 
-if (process.argv.length !== 3) {
-  console.log('Usage: update-tfjs-version <TARGET_TFJS_VER>`');
+const argv = process.argv.slice();  // Avoid mutating `process.argv`.
+if (!(argv.length === 3 || argv.length === 4)) {
+  // Invalid syntax. Print usage help.
+  console.log('Usage: update-tfjs-version [--node] <TARGET_TFJS_VER>`');
+  console.log();
+  console.log('Args:');
+  console.log(
+      '  --node: Update only examples that use tfjs-node/tfjs-node-gpu.');
+  console.log(
+      '          If this flag is not specified, only those examples');
+  console.log(
+      '          that don\'t use tfjs-node or tfjs-node-gpu will be');
+  console.log(
+      '          updated.');
   process.exit(1);
 }
-const targetTfjsVer = process.argv[2];
+
+let isNodeExamples = false;
+if (argv.indexOf('--node') !== -1) {
+  argv.splice(argv.indexOf('--node'), 1);
+  isNodeExamples = true;
+  console.log('Will update only Node.js examples\n');
+}
+
+const targetTfjsVer = argv[2];
+const targetVer = `^${targetTfjsVer}`;
 
 const dirItems = fs.readdirSync(__dirname);
 for (const item of dirItems) {
@@ -52,24 +78,69 @@ for (const item of dirItems) {
       }
 
       const devDeps = packageJson['devDependencies'];
-      if (deps[tfjsNodeTag] != null ||
-          devDeps != null && devDeps[tfjsNodeTag] != null) {
-        console.log(
-            `*** Skipping example with dependency or devDependency ` +
-            `on tfjs-node: ${item}`);
-        continue;
-      }
-
-      const targetVer = `^${targetTfjsVer}`;
-      if (deps[tfjsTag] != null) {
-        if (deps[tfjsTag] === targetVer) {
-          console.log(`${item}: Already at target version (${targetVer})`);
-        } else {
-          const oldVer = deps[tfjsTag];
-          deps[tfjsTag] = targetVer;
+      if (isNodeExamples) {
+        const depCPU = deps == null ? null : deps[tfjsNodeTag];
+        const depGPU = deps == null ? null : deps[tfjsNodeGpuTag];
+        const devDepCPU = devDeps == null ? null : devDeps[tfjsNodeTag];
+        const devDepGPU = devDeps == null ? null : devDeps[tfjsNodeGpuTag];
+        // Update only examples that use tfjs-node / tfjs-node-gpu.
+        if ((devDepCPU != null || devDepGPU != null) ||
+            (depCPU != null || depGPU != null)) {
+          console.log(`${item}:`);
+          if (devDepCPU != null) {
+            devDeps[tfjsNodeTag] = targetVer;
+            console.log(
+                `  devDependencies["${tfjsNodeTag}"]: ` +
+                `${devDepCPU} --> ${targetVer}`);
+          }
+          if (devDepGPU != null) {
+            devDeps[tfjsNodeGpuTag] = targetVer;
+            console.log(
+                `  devDependencies["${tfjsNodeTag}"]: ` +
+                `${devDepGPU} --> ${targetVer}`);
+          }
+          if (deps[tfjsTag] != null) {
+            const oldVer = deps[tfjsTag];
+            deps[tfjsTag] = targetVer;
+            console.log(`  dependencies["${tfjsTag}"]: ${oldVer} --> ${targetVer}`);
+          }
+          if (depCPU != null) {
+            deps[tfjsNodeTag] = targetVer;
+            console.log(
+                `  dependencies["${tfjsNodeTag}"]: ` +
+                `${depCPU} --> ${targetVer}`);
+          }
+          if (depGPU != null) {
+            deps[tfjsNodeGpuTag] = targetVer;
+            console.log(
+                `  dependencies["${tfjsNodeGpuTag}"]: ` +
+                `${depGPU} --> ${targetVer}`);
+          }
           fs.writeFileSync(
-              packageJsonPath, JSON.stringify(packageJson, null, 2) + '\n');
-          console.log(`${item}: ${oldVer} --> ${targetVer}`);
+            packageJsonPath, JSON.stringify(packageJson, null, 2) + '\n');
+          console.log('\n');
+        }
+      } else {
+        // Update only tfjs examples, i.e., the ones that don't use tfjs-node
+        // or tfjs-node-gpu.
+        if (deps[tfjsNodeTag] != null ||
+            devDeps != null && devDeps[tfjsNodeTag] != null) {
+          console.log(
+              `*** Skipping example with dependency or devDependency ` +
+              `on tfjs-node: ${item}`);
+          continue;
+        }
+
+        if (deps[tfjsTag] != null) {
+          if (deps[tfjsTag] === targetVer) {
+            console.log(`${item}: Already at target version (${targetVer})`);
+          } else {
+            const oldVer = deps[tfjsTag];
+            deps[tfjsTag] = targetVer;
+            fs.writeFileSync(
+                packageJsonPath, JSON.stringify(packageJson, null, 2) + '\n');
+            console.log(`${item}: dependencies["${tfjsTag}"]: ${oldVer} --> ${targetVer}`);
+          }
         }
       }
     }

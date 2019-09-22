@@ -15,7 +15,7 @@
     "webpack-dev-server": "~3.4.1"
   },
   "dependencies": {
-    "@tensorflow/tfjs-node": "^1.1.2",
+    "@tensorflow/tfjs-node": "^1.2.9",
     "argparse": "^1.0.10",
     "socket.io": "~2.2.0"
   }

@@ -9,7 +9,7 @@
     "node": ">=8.11.0"
   },
   "dependencies": {
-    "@tensorflow/tfjs-node": "^1.2.3",
+    "@tensorflow/tfjs-node": "^1.2.9",
     "argparse": "^1.0.10"
   },
   "scripts": {

@@ -121,25 +121,12 @@ class MnistTransferCNNPredictor {
         this.model.layers[i].trainable = false;
       }
     } else if (trainingMode === 'reinitialize-weights') {
-      // TODO(cais): Use tf.models.modelFromJSON() once it's available in the
-      //   public API.
-      const oldLayers = this.model.layers;
-      this.model = tf.sequential();
-      for (const layer of oldLayers) {
-        const layerType = layer.getClassName();
-        const layerTypeMap = {
-          'Activation': 'activation',
-          'Conv2D': 'conv2d',
-          'Dense': 'dense',
-          'Dropout': 'dropout',
-          'Flatten': 'flatten',
-          'MaxPooling2D': 'maxPooling2d'
-        };
-        const jsLayerType = layerTypeMap[layerType];
-        this.model.add(tf.layers[jsLayerType](layer.getConfig()));
-      }
-      // TODO(cais): Use tfVis.show.modelSummary().
-      this.model.summary();
+      // Make a model with the same topology as before, but with re-initialized
+      // weight values.
+      const returnString = false;
+      this.model = await tf.models.modelFromJSON({
+        modelTopology: this.model.toJSON(null, returnString)
+      });
     }
     this.model.compile({
       loss: 'categoricalCrossentropy',

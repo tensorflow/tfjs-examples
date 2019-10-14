@@ -173,9 +173,9 @@ export async function run(model, modelName, weightsIllustration) {
 };
 
 export function computeBaseline() {
-  const avgPrice = tf.mean(tensors.trainTarget);
+  const avgPrice = tensors.trainTarget.mean();
   console.log(`Average price: ${avgPrice.dataSync()}`);
-  const baseline = tf.mean(tf.pow(tf.sub(tensors.testTarget, avgPrice), 2));
+  const baseline = tensors.testTarget.sub(avgPrice).square().mean();
   console.log(`Baseline loss: ${baseline.dataSync()}`);
   const baselineMsg = `Baseline loss (meanSquaredError) is ${
       baseline.dataSync()[0].toFixed(2)}`;

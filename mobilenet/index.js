@@ -172,8 +172,6 @@ filesElement.addEventListener('change', evt => {
       continue;
     }
     let reader = new FileReader();
-    const idx = i;
-    // Closure to capture the file information.
     reader.onload = e => {
       // Fill the image & call predict.
       let img = document.createElement('img');

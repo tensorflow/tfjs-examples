@@ -9,7 +9,7 @@
     "node": ">=8.9.0"
   },
   "dependencies": {
-    "@tensorflow/tfjs": "^1.2.9",
+    "@tensorflow/tfjs": "^1.3.0",
     "@tensorflow/tfjs-vis": "^1.0.3"
   },
   "scripts": {
@@ -21,8 +21,8 @@
     "train": "babel-node train_node.js"
   },
   "devDependencies": {
-    "@tensorflow/tfjs-node": "^1.2.9",
-    "@tensorflow/tfjs-node-gpu": "^1.2.9",
+    "@tensorflow/tfjs-node": "^1.3.0",
+    "@tensorflow/tfjs-node-gpu": "^1.3.0",
     "argparse": "^1.0.10",
     "babel-cli": "^6.26.0",
     "babel-core": "^6.26.3",

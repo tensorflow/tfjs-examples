@@ -10,8 +10,8 @@
   "license": "Apache-2.0",
   "repository": "https://github.com/tensorflow/tfjs-examples",
   "dependencies": {
-    "@tensorflow/tfjs": "^1.2.9",
-    "@tensorflow/tfjs-node": "^1.2.9",
+    "@tensorflow/tfjs": "^1.3.0",
+    "@tensorflow/tfjs-node": "^1.3.0",
     "@material/snackbar": "^3.0.0",
     "jimp": "^0.6.4"
   },

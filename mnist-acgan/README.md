@@ -72,7 +72,7 @@ advantanges:
 ![MNIST ACGAN Training: TensorBoard Example](./mnist-acgan-tensorboard-example.png)
 
 Detailed loss profiles are hosted and viewable at this
-[tensorboard.dev link](https://tensorboard.dev/experiment/iBcGONlbQbmVyNd8H6unJg/#scalars).
+[TensorBoard.dev link](https://tensorboard.dev/experiment/iBcGONlbQbmVyNd8H6unJg/#scalars).
 
 To do this in this example, add the flag `--logDir` to the `yarn train`
 command, followed by the directory to which you want the logs to

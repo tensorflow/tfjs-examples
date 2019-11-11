@@ -90,7 +90,7 @@ Other arguments of the `yarn train` command include:
   tensorboard (by default: http://localhost:6006) to view the loss and accuracy
   curves.
 
-  The links below point to TensorBoard.dev training los for various model
+  The links below point to TensorBoard.dev training loss for various model
   types:
 
   - [`multihot`](https://tensorboard.dev/experiment/8Ltk9awdQVeEdIqmZF6UZg/#scalars)

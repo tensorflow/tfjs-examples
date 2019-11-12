@@ -61,6 +61,9 @@ pip install tensorboard
 tensorboard --logdir /tmp/snake_logs
 ```
 
+A detailed TensorBoard training log is hosted and viewable at this
+[TensorBoard.dev link](https://tensorboard.dev/experiment/TJFBWBx3T5WrFBs4Ar76Sw/#scalars).
+
 Once started, the tensorboard backend process will print an `http://` URL to the
 console. Open your browser and navigate to the URL to see the logged curves.
 

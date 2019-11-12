@@ -53,6 +53,9 @@ advantanges:
 
 ![date-conversion attention model training: TensorBoard example](./date-conversion-attention-tensorboard-example.png)
 
+A detailed tensorboard training log is hosted and viewable at this
+[TensorBoard.dev link](https://tensorboard.dev/experiment/CqhZhKlNSgimJbnIwvbmnw/#scalars).
+
 To do this in this example, add the flag `--logDir` to the `yarn train`
 command, followed by the directory to which you want the logs to
 be written, e.g.,

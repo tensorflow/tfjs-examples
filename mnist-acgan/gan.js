@@ -356,8 +356,8 @@ async function trainCombinedModelOneStep(batchSize, latentSize, combined) {
     return [zVectors, sampledLabels, trick];
   });
 
-  const losses =
-      combined.trainOnBatch([noise, sampledLabels], [trick, sampledLabels]);
+  const losses = await combined.trainOnBatch(
+      [noise, sampledLabels], [trick, sampledLabels]);
   tf.dispose([noise, sampledLabels, trick]);
   return losses;
 }

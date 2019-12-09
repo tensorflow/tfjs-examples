@@ -62,7 +62,9 @@ app.post('/predict', async (req, res) => {
     const imageTensor = await tf.node.decodeImage(uint8array);
     const input = imageTensor.expandDims(0);
 
+    const startTime = tf.util.now();
     let outputTensor = objectDetectionModel.predict({'x': input});
+    const endTime = tf.util.now();
 
     const scores = await outputTensor['detection_scores'].arraySync();
     const boxes = await outputTensor['detection_boxes'].arraySync();
@@ -79,7 +81,11 @@ app.post('/predict', async (req, res) => {
         detectedNames.push(labels[names[0][i]]);
       }
     }
-    res.send({boxes: detectedBoxes, names: detectedNames});
+    res.send({
+      boxes: detectedBoxes,
+      names: detectedNames,
+      inferenceTime: endTime - startTime
+    });
   });
 
 

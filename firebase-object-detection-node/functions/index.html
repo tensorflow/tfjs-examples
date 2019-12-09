@@ -8,6 +8,9 @@
   <button class="file-submit" onclick="readFile()">SUBMIT</button>
   <br />
   <br />
+  <div id="time"></div>
+  <br />
+  <br />
   <canvas id="canvas"></canvas>
   <br />
 </div>
@@ -35,16 +38,18 @@
         return response.json();
       }).then(res => {
         const context = document.getElementById('canvas').getContext('2d');
+        const timeDiv = document.getElementById('time');
 
         var FR = new FileReader();
         FR.onload = function (e) {
           var img = new Image();
           img.addEventListener("load", function () {
+            timeDiv.innerHTML = 'Inference time: '+res.inferenceTime;
             document.getElementById('canvas').width = this.width;
             document.getElementById('canvas').height = this.height;
             context.drawImage(img, 0, 0, this.width, this.height);
             for (let i = 0; i < res.boxes.length; i++) {
-              const box = res.boxes[i]
+              const box = res.boxes[i];
               context.fillStyle = 'rgba(255,255,255,0.2';
               context.strokeStyle = 'white';
               context.fillRect(box[1] * this.width, box[0] * this.height, this.width * (box[3] - box[1]), this

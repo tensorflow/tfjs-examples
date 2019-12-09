@@ -73,14 +73,13 @@ app.post('/predict', async (req, res) => {
     outputTensor['num_detections'].dispose();
     const detectedBoxes = [];
     const detectedNames = [];
-
     for (let i = 0; i < scores[0].length; i++) {
       if (scores[0][i] > 0.3) {
         detectedBoxes.push(boxes[0][i]);
         detectedNames.push(labels[names[0][i]]);
       }
     }
-    res.send({message: 'abc', boxes: detectedBoxes, names: detectedNames});
+    res.send({boxes: detectedBoxes, names: detectedNames});
   });
 
 

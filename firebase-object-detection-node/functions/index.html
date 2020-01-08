@@ -31,7 +31,7 @@
       file = input.files[0];
       const formData = new FormData();
       formData.append('image', file);
-      fetch('/predict', {
+      fetch(window.location.pathname + '/predict', {
         method: 'POST',
         body: formData,
       }).then(response => {
@@ -44,7 +44,7 @@
         FR.onload = function (e) {
           var img = new Image();
           img.addEventListener("load", function () {
-            timeDiv.innerHTML = 'Inference time: '+res.inferenceTime;
+            timeDiv.innerHTML = 'Inference time: ' + res.inferenceTime;
             document.getElementById('canvas').width = this.width;
             document.getElementById('canvas').height = this.height;
             context.drawImage(img, 0, 0, this.width, this.height);

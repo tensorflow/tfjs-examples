@@ -1,21 +1,25 @@
 # TensorFlow.js Example: Running a TensorFlow SavedModel in Node.js
 
+You can find a live demo of this example at https://us-central1-tfjs-node-savedmodel.cloudfunctions.net/app. (It may take several seconds to upload the image based on your internet connection).
+
 This demo demonstrates how to run a TensorFlow SavedModel in Node.js without using [tfjs-converter](https://github.com/tensorflow/tfjs/tree/master/tfjs-converter) to convert the model.
 
 This example runs a object detection model in Node.js, and hosts the model through Firebase Cloud Functions. Before getting started, please finish first three steps of the firebae Guide to ensure the machine has required setup. For more information about Tensorflow object detection API, check out this readme in [tensorflow/object_detection](https://github.com/tensorflow/models/blob/master/research/object_detection/README.md).
 
 
-To launch the demo, do
+To launch the demo, do the following steps:
+
+1. Go to file `.firebaserc` and update `projects.default` with your own firebase projec name.
+2. Run the following commands:
 
 ```sh
 cd functions
 npm install
 firebase serve
 ```
+3. Open the website at: http://localhost:5001/tfjs-node-savedmodel/us-central1/app
 
-Open the website at: http://localhost:5000/
-
-It will take several seconds to load and warm up the model. Once the page is loaded, you can upload an image and test. Following is an example output:
+It will take several seconds to load and warm up the model. Once the page is loaded, you can upload an JPEG image and test. Following is an example output:
 
 ![example output](test_result.png)
 

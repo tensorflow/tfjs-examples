@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<title>TFJS Firebase example</title>
+<div>
+  <input id="imageInput" type="file" class="file-select" accept="image/*" />
+  <br />
+  <br />
+  <button class="file-submit" onclick="readFile()">SUBMIT</button>
+  <br />
+  <br />
+  <div id="time"></div>
+  <br />
+  <br />
+  <canvas id="canvas"></canvas>
+  <br />
+</div>
+<script>
+  function readFile() {
+    if (!(window.File && window.FileReader && window.FileList && window.Blob)) {
+      alert('The File APIs are not fully supported in this browser.');
+      return;
+    }
+    input = document.getElementById('imageInput');
+    if (!input) {
+      alert("Um, couldn't find the fileinput element.");
+    } else if (!input.files) {
+      alert("This browser doesn't seem to support the `files` property of file inputs.");
+    } else if (!input.files[0]) {
+      alert("Please select a file before clicking 'Load'");
+    } else {
+      file = input.files[0];
+      const formData = new FormData();
+      formData.append('image', file);
+      fetch(window.location.pathname + '/predict', {
+        method: 'POST',
+        body: formData,
+      }).then(response => response.json()).then(res => {
+        const context = document.getElementById('canvas').getContext('2d');
+        const timeDiv = document.getElementById('time');
+
+        var FR = new FileReader();
+        FR.onload = function (e) {
+          var img = new Image();
+          img.addEventListener("load", function () {
+            timeDiv.innerHTML = 'Inference time: ' + res.inferenceTime;
+            document.getElementById('canvas').width = this.width;
+            document.getElementById('canvas').height = this.height;
+            context.drawImage(img, 0, 0, this.width, this.height);
+            for (let i = 0; i < res.boxes.length; i++) {
+              const box = res.boxes[i];
+              context.fillStyle = 'rgba(255,255,255,0.2';
+              context.strokeStyle = 'white';
+              context.fillRect(box[1] * this.width, box[0] * this.height, this.width * (box[3] - box[1]), this
+                .height * (box[2] - box[0]));
+              context.font = '15px Arial';
+              context.fillStyle = 'white';
+              context.fillText(res.names[i], box[1] * this.width, box[0] * this.height, box[0] * this.height);
+              context.lineWidth = 2;
+              context.strokeRect(box[1] * this.width, box[0] * this.height, this.width * (box[3] - box[1]),
+                this
+                .height * (box[2] - box[0]));
+            }
+          });
+          img.src = e.target.result;
+        };
+        FR.readAsDataURL(file);
+      });
+    }
+
+  }
+</script>

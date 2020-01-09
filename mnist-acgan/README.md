@@ -21,7 +21,7 @@ This example of TensorFlow.js runs simultaneously in two different environments:
  - Demonstration of generation in the browser. The demo webpage will load
    the checkpoints saved from the training process and use it to generate
    fake MNIST images in the browser.
- 
+
 ## How to use this example
 
 This example can be used in two ways:
@@ -32,7 +32,7 @@ This example can be used in two ways:
    the web.
 
 For approach 1, you can start the training by:
- 
+
 ```sh
 yarn
 yarn train
@@ -71,6 +71,9 @@ advantanges:
 
 ![MNIST ACGAN Training: TensorBoard Example](./mnist-acgan-tensorboard-example.png)
 
+Detailed loss profiles are hosted and viewable at this
+[TensorBoard.dev link](https://tensorboard.dev/experiment/iBcGONlbQbmVyNd8H6unJg/#scalars).
+
 To do this in this example, add the flag `--logDir` to the `yarn train`
 command, followed by the directory to which you want the logs to
 be written, e.g.,
@@ -93,9 +96,9 @@ navigate to the URL to view the loss curves in the Scalar dashboard of
 TensorBoard.
 
 ### Running Generator demo in the Browser
- 
+
 To start the demo in the browser, do in a separate terminal:
- 
+
 ```sh
 yarn
 yarn watch
@@ -109,13 +112,13 @@ been started), the user may still click the "Load Hosted Model" button
 to load a remotely-hosted generator.
 
 ### Training the model on CUDA GPUs using tfjs-node-gpu
- 
+
 It is recommended to use tfjs-node-gpu to train the model on a CUDA-enabled GPU,
 as the convolution heavy operations run several times faster a GPU than on the
 CPU with tfjs-node.
 
 By default, the [training script](./gan.js) runs on the CPU using tfjs-node. To
-run it on the GPU, repace the line 
+run it on the GPU, repace the line
 
 ```js
 require('@tensorflow/tfjs-node');

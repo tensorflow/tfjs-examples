@@ -1,4 +1,4 @@
-from keras.applications.vgg16 import VGG16
+from tensorflow.keras.applications.vgg16 import VGG16
 import tensorflowjs as tfjs
 
 model = VGG16(weights='imagenet')

@@ -90,8 +90,17 @@ Other arguments of the `yarn train` command include:
   tensorboard (by default: http://localhost:6006) to view the loss and accuracy
   curves.
 
-The detailed code for training are in the file [train.js](./train.js).
+  The links below point to TensorBoard.dev training loss for various model
+  types:
 
+  - [`multihot`](https://tensorboard.dev/experiment/8Ltk9awdQVeEdIqmZF6UZg/#scalars)
+  - [`flatten`](https://tensorboard.dev/experiment/8dYnJmlDRe21vNJrHYB3Yg/#scalars)
+  - [`cnn`](https://tensorboard.dev/experiment/pP6s7BozQESnbXXQy1rJtQ/#scalars)
+  - [`simpleRNN`](https://tensorboard.dev/experiment/zl266tMbRuKAr4PBsny8XQ/#scalars)
+  - [`lstm`](https://tensorboard.dev/experiment/VHKxx8OnSze7glfzqCXi9A/#scalars)
+  - [`bidirectionalLSTM`](https://tensorboard.dev/experiment/osVo6vAaR0SZWzUvElz5ow/#scalars)
+
+The detailed code for training are in the file [train.js](./train.js).
 
 ### Visualizing the word embeddings in embedding projector
 

@@ -2,7 +2,7 @@
 
 You can find a live demo of this example at https://us-central1-tfjs-node-savedmodel.cloudfunctions.net/app. (It may take several seconds to upload the image based on your internet connection).
 
-This demo demonstrates how to run a TensorFlow SavedModel in Node.js without using [tfjs-converter](https://github.com/tensorflow/tfjs/tree/master/tfjs-converter) to convert the model. Native execution of TensorFlow SavedModel for inference supports more ops and better performance.
+This demo demonstrates how to run a TensorFlow SavedModel in Node.js natively without using [tfjs-converter](https://github.com/tensorflow/tfjs/tree/master/tfjs-converter) to convert the model. Native execution of TensorFlow SavedModel in Node.js supports more ops and better performance compared with converted model.
 
 This example runs a object detection model in Node.js, and hosts the model through Firebase Cloud Functions. Before getting started, please finish first three steps of the [firebase Guide](https://firebase.google.com/docs/functions/get-started) to ensure the machine has required setup. For more information about Tensorflow object detection API, check out this readme in [tensorflow/object_detection](https://github.com/tensorflow/models/blob/master/research/object_detection/README.md).
 

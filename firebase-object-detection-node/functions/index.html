@@ -16,7 +16,7 @@
 </div>
 <script>
   function readFile() {
-    if (!window.File || !window.FileReader || !window.FileList || !window.Blob) {
+    if (!(window.File && window.FileReader && window.FileList && window.Blob)) {
       alert('The File APIs are not fully supported in this browser.');
       return;
     }
@@ -34,9 +34,7 @@
       fetch(window.location.pathname + '/predict', {
         method: 'POST',
         body: formData,
-      }).then(response => {
-        return response.json();
-      }).then(res => {
+      }).then(response => response.json()).then(res => {
         const context = document.getElementById('canvas').getContext('2d');
         const timeDiv = document.getElementById('time');
 

@@ -14,6 +14,9 @@ let objectDetectionModel;
 async function loadModel() {
   // Warm up the model
   if (!objectDetectionModel) {
+    // Load the TensorFlow SavedModel through tfjs-node API. You can find more
+    // details in the API documentation:
+    // https://js.tensorflow.org/api_node/1.3.1/#node.loadSavedModel
     objectDetectionModel = await tf.node.loadSavedModel(
         './model/new_object_detection_1', ['serve'], 'serving_default');
   }
@@ -27,6 +30,8 @@ app.get('/', async (req, res) => {
 })
 
 app.post('/predict', async (req, res) => {
+  // Receive and parse the image from client side, then feed it into the model
+  // for inference.
   const busboy = new Busboy({headers: req.headers});
   let fileBuffer = new Buffer('');
   req.files = {file: []};
@@ -55,20 +60,21 @@ app.post('/predict', async (req, res) => {
     const buf = req.files.file[0].buffer;
     const uint8array = new Uint8Array(buf);
 
-    if (!objectDetectionModel) {
-      objectDetectionModel = await tf.node.loadSavedModel(
-          './model/new_object_detection_1', ['serve'], 'serving_default');
-    }
+    loadModel();
+    // Decode the image into a tensor.
     const imageTensor = await tf.node.decodeImage(uint8array);
     const input = imageTensor.expandDims(0);
 
+    // Feed the image tensor into the model for inference.
     const startTime = tf.util.now();
     let outputTensor = objectDetectionModel.predict({'x': input});
-    const endTime = tf.util.now();
 
+    // Parse the model output to get meaningful result(get detection class and
+    // object location).
     const scores = await outputTensor['detection_scores'].arraySync();
     const boxes = await outputTensor['detection_boxes'].arraySync();
     const names = await outputTensor['detection_classes'].arraySync();
+    const endTime = tf.util.now();
     outputTensor['detection_scores'].dispose();
     outputTensor['detection_boxes'].dispose();
     outputTensor['detection_classes'].dispose();

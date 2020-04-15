@@ -16,5 +16,9 @@
     "typescript": "3.3.3333",
     "yalc": "~1.0.0-pre.21"
   },
-  "license": "Apache-2.0"
+  "license": "Apache-2.0",
+  "dependencies": {
+    "acorn": "^7.1.1",
+    "minimist": "^1.2.5"
+  }
 }

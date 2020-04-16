@@ -8,7 +8,6 @@
   "engines": {
     "node": ">=8.9.0"
   },
-  "dependencies": { },
   "scripts": {
     "watch": "npm run build && node_modules/http-server/bin/http-server dist -p 1234 ",
     "build": "mkdir -p dist/ && cp index.html dist/ && cp index.js dist/"

@@ -89,7 +89,7 @@ function addTextElementToImageNode(imgNode, textContent) {
   const container = document.createElement('div');
   container.style.position = 'relative';
   container.style.textAlign = 'center';
-  container.style.colore = 'white';
+  container.style.color = 'white';
   const text = document.createElement('div');
   text.className = 'tfjs_mobilenet_extension_text';
   text.style.position = 'absolute';

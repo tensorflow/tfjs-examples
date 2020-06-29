@@ -117,7 +117,18 @@ async function evaluate(useTestData) {
 
 async function predictSample(sample) {
   console.log('calling predictSample on ', sample);
-  let result = model.predict(tf.tensor(sample, [1,sample.length])).arraySync();
+  const values = [
+    normalize(sample[0], VX0_MIN, VX0_MAX),
+    normalize(sample[1], VY0_MIN, VY0_MAX),
+    normalize(sample[2], VZ0_MIN, VZ0_MAX),
+    normalize(sample[3], AX_MIN, AX_MAX),
+    normalize(sample[4], AY_MIN, AY_MAX),
+    normalize(sample[5], AZ_MIN, AZ_MAX),
+    normalize(sample[6], START_SPEED_MIN, START_SPEED_MAX),
+    sample[7],
+  ];
+  console.log('normalise sample values ', values);
+  let result = model.predict(tf.tensor(values, [1,values.length])).arraySync();
   console.log(result);
   var maxValue = 0;
   var predictedPitch = 7;

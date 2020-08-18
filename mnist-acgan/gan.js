@@ -265,7 +265,7 @@ function buildCombinedModel(latentSize, generator, discriminator, optimizer) {
 
 // "Soft" one used for training the combined ACGAN model.
 // This is an important trick in training GANs.
-const SOFT_ONE = 0.95;
+const SOFT_ONE = tf.tensor1d([.95]);
 
 /**
  * Train the discriminator for one step.

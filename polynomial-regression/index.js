@@ -115,7 +115,6 @@ function normalizeVector(vector, vectorMean, vectorStddev) {
 //   Normalized powers of y: an Tensor2D of shape [batchSize, 1].
 function toNormalizedTensors(xyData, order) {
   const batchSize = xyData.length;
-  const data = [];
   const xData = xyData.map(xy => xy[0]);
   const yData = xyData.map(xy => xy[1]);
   const yMean = mean(yData);

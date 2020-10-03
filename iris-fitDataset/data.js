@@ -132,6 +132,6 @@ export async function getIrisData(testSplit) {
   const testY = tf.data.array(test.map(r => flatOneHot(r[4])));
   // Recombine the X and y portions of the data.
   const trainDataset = tf.data.zip({xs: trainX, ys: trainY});
-  const testDataset = tf.data.zip({xs: testX, ys: testY})
+  const testDataset = tf.data.zip({xs: testX, ys: testY});
   return [trainDataset, testDataset];
 }

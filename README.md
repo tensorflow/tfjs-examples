@@ -163,6 +163,17 @@ to another project.
     <td>Export trained model from tfjs-node and load it in browser</td>
   </tr>
   <tr>
+    <td><a href="./interactive-visualizers">interactive-visualizers</a></td>
+    <td></td>
+    <td>Image</td>
+    <td>Multiclass classification, object detection, segmentation</td>
+    <td></td>
+    <td></td>
+    <td>Browser</td>
+    <td></td>
+    <td></td>
+  </tr>
+  <tr>
     <td><a href="./iris">iris</a></td>
     <td><a href="https://storage.googleapis.com/tfjs-examples/iris/dist/index.html">🔗</a></td>
     <td>Numeric</td>

@@ -30,7 +30,7 @@ $XXSMALL_FONT_SIZE: 12px;
   position: relative;
 }
 
-.BottomContainer {
+.BodyContainer {
   height: calc(100% - 46px);
   position: relative;
 }
@@ -103,6 +103,34 @@ $XXSMALL_FONT_SIZE: 12px;
   display: inline-block;
   font-size: $LARGE_FONT_SIZE;
   font-weight: 600;
+}
+
+/* Test images */
+
+.TestImageContainer {
+  display: inline-block;
+  height: 64px;
+  margin-right: 20px;
+  position: relative;
+  vertical-align: top;
+  width: 64px;
+}
+
+.TestImageContainer:hover {
+  cursor: pointer;
+}
+
+.TestImage {
+  padding: 4px;
+  height: calc(100% - 4px);
+  object-fit: cover;
+  border-radius: 14px;
+  width: calc(100% - 4px);
+}
+
+.TestImageSelected {
+  border: 2px solid #ff6f00;
+  padding: 2px;
 }
 
 /* Input section */

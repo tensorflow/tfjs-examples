@@ -17,6 +17,7 @@
 
 import {Component} from '@angular/core';
 import * as tf from '@tensorflow/tfjs';
+tf.setBackend('cpu');
 
 // Messages.
 const DOWNLOAD_MESSAGE =

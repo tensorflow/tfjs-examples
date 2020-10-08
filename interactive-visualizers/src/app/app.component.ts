@@ -55,15 +55,6 @@ export class AppComponent {
     const modelMetadataUrl = urlParams.get('modelMetadataUrl') || '';
 
     this.initApp(modelMetadataUrl);
-
-    this.refresh();
-  }
-
-  /**
-   * Non-async refresh method to force re-evaluation of consitional statements in templates (such as `ngIf`-s). This is a workaround as variable changes performed in async code do not trigger re-evaluation, which seems to be caused by a Zone.js issue with ES2017 (see https://github.com/angular/angular/issues/31730).
-   */
-  refresh() {
-    setTimeout(() => this.refresh(), 100);
   }
 
   async fetchModel(modelUrl) {
@@ -107,15 +98,21 @@ export class AppComponent {
     }
   }
 
+  /**
+   * Get the assets URL path, e.g. `http://assets-url-path/` if the metadata URL
+   * is `http://assets-url-path/metadata.json`.
+   */
   getAssetsUrlPrefix(): string {
-    const metadataFileName = this.modelMetadataUrl.split(
-        '/')[this.modelMetadataUrl.split('/').length - 1];
+    const metadataFileName = this.modelMetadataUrl.split('/').pop();
     return this.modelMetadataUrl.split(metadataFileName)[0];
   }
 
+  /**
+   * Get the test images URL path, e.g. `http://test-images-url-path/` if the
+   * test images index is `http://test-images-url-path/index.json`.
+   */
   getTestImagesUrlPrefix(): string {
-    const imageIndexFileName = this.testImagesIndexUrl.split(
-        '/')[this.testImagesIndexUrl.split('/').length - 1];
+    const imageIndexFileName = this.testImagesIndexUrl.split('/').pop();
     return this.testImagesIndexUrl.split(imageIndexFileName)[0];
   }
 }

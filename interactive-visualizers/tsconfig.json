@@ -11,10 +11,10 @@
     "allowSyntheticDefaultImports": true,
     "moduleResolution": "node",
     "importHelpers": true,
-    "target": "es2017",
+    "target": "es2015",
     "module": "es2015",
     "lib": [
-      "es2017",
+      "es2015",
       "dom"
     ]
   }

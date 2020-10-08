@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {Component} from '@angular/core';
+import {Component, OnInit} from '@angular/core';
 import * as tf from '@tensorflow/tfjs';
 
 // Messages.
@@ -30,23 +30,23 @@ const NO_MODEL_METADATA_ERROR_MESSAGE =
   styleUrls: ['./app.component.scss']
 })
 
-export class AppComponent {
+export class AppComponent implements OnInit {
   title = 'interactive-visualizers';
 
   // Model related variables.
   modelMetadataUrl: string|null = null;
-  modelMetadata: {}|null = null;
+  modelMetadata: any|null = null;
   modelType: string|null = null;
   model: tf.GraphModel|null = null;
   labelmap: string[] = [];
-  defaultScoreThreshold: number = 0.0;
+  defaultScoreThreshold = 0.0;
 
   // Test data related variables.
   testImagesIndexUrl: string|null = null;
   testImages: Array<{imageUrl: string, thumbnailUrl: string}> = [];
   uploadedImages: string[] = [];
 
-  ngOnInit() {
+  ngOnInit(): void {
     // Sanity checks on URL query parameters.
     const urlParams = new URLSearchParams(window.location.search);
     if (!urlParams.has('modelMetadataUrl')) {
@@ -57,7 +57,7 @@ export class AppComponent {
     this.initApp(modelMetadataUrl);
   }
 
-  async fetchModel(modelUrl) {
+  async fetchModel(modelUrl: string): Promise<tf.GraphModel> {
     const model = await tf.loadGraphModel(modelUrl);
     return model;
   }
@@ -65,19 +65,19 @@ export class AppComponent {
   /**
    * Initializes the app for the provided model metadata URL.
    */
-  async initApp(modelMetadataUrl: string) {
+  async initApp(modelMetadataUrl: string): Promise<void> {
     // Load model & metadata.
     this.modelMetadataUrl = modelMetadataUrl;
     const metadataResponse = await fetch(this.modelMetadataUrl);
     this.modelMetadata = await metadataResponse.json();
     const modelUrl = this.getAssetsUrlPrefix() + 'model.json';
     this.model = await this.fetchModel(modelUrl);
-    if (this.modelMetadata['tfjs_classifier_model_metadata']) {
+    if (this.modelMetadata.tfjs_classifier_model_metadata) {
       this.modelType = 'classifier';
     }
 
     // Fetch test data if any.
-    this.testImagesIndexUrl = this.modelMetadata['test_images_index_path'];
+    this.testImagesIndexUrl = this.modelMetadata.test_images_index_path;
     try {
       const testImagesResponse = await fetch(this.testImagesIndexUrl);
       const testImageNames = await testImagesResponse.json();

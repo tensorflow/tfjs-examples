@@ -22,7 +22,7 @@ import fetchMock from 'fetch-mock';
 import {AppComponent} from './app.component';
 
 const weightsManifest: tf.io.WeightsManifestEntry[] =
-    [{'name': 'Const', 'dtype': 'int32', 'shape': [1]}];
+    [{name: 'Const', dtype: 'int32', shape: [1]}];
 
 const SIMPLE_MODEL = {
   node: [
@@ -92,8 +92,8 @@ describe('AppComponent', () => {
     const fakeModelUrl = 'https://modelMetadataUrl/model.json';
     const fakeTestImagesIndexPath = 'https://testImagesPath/index.json';
     const fakeModelMetadata = {
-      'tfjs_classifier_model_metadata': {},
-      'test_images_index_path': fakeTestImagesIndexPath,
+      tfjs_classifier_model_metadata: {},
+      test_images_index_path: fakeTestImagesIndexPath,
     };
     const customLoader: tf.io.IOHandler = {
       load: async () => {

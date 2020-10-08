@@ -52,7 +52,7 @@ export class AppComponent implements OnInit {
     if (!urlParams.has('modelMetadataUrl')) {
       throw new Error(NO_MODEL_METADATA_ERROR_MESSAGE);
     }
-    const modelMetadataUrl = urlParams.get('modelMetadataUrl') || '';
+    const modelMetadataUrl = urlParams.get('modelMetadataUrl');
 
     this.initApp(modelMetadataUrl);
   }

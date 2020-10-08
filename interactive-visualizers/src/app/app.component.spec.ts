@@ -59,6 +59,7 @@ const SIMPLE_MODEL = {
 
 describe('AppComponent', () => {
   beforeEach(async () => {
+    await tf.setBackend('cpu');
     await TestBed
         .configureTestingModule({
           declarations: [AppComponent],

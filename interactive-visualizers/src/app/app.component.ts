@@ -47,8 +47,6 @@ export class AppComponent {
   uploadedImages: string[] = [];
 
   ngOnInit() {
-    await tf.setBackend('cpu')
-
     // Sanity checks on URL query parameters.
     const urlParams = new URLSearchParams(window.location.search);
     if (!urlParams.has('modelMetadataUrl')) {

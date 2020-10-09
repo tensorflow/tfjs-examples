@@ -17,17 +17,23 @@ limitations under the License.
   <div class="HeaderSection">
     <ng-container *ngTemplateOutlet="headerSection"></ng-container>
   </div>
-  <div class="BottomContainer">
+  <div class="BodyContainer">
     <div class="LeftSide">
+      <!-- Currently selected query -->
       <div class="QuerySection"
            id="query-section"
            (dragover)="dragOver(event)"
            (dragleave)="dragLeave()"
            (drop)="dragDrop(event)">
       </div>
-      <div class="TestImages"
-           id="test-images">
+
+      <!-- Render test data once available -->
+      <div class="TestImages" *ngIf="testImages.length > 0">
+        <div class="TestImageContainer" *ngFor="let testImage of testImages">
+          <img src="{{ testImage.thumbnailUrl }}" class="TestImage">
+        </div>
       </div>
+
       <div class="LeftFooter"
            id="left-footer-section">
       </div>

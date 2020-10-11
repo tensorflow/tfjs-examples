@@ -130,7 +130,7 @@ function convertToTensors(data, targets, testSplit) {
   const xTrain = xs.slice([0, 0], [numTrainExamples, xDims]);
   const xTest = xs.slice([numTrainExamples, 0], [numTestExamples, xDims]);
   const yTrain = ys.slice([0, 0], [numTrainExamples, IRIS_NUM_CLASSES]);
-  const yTest = ys.slice([0, 0], [numTestExamples, IRIS_NUM_CLASSES]);
+  const yTest = ys.slice([numTrainExamples, 0], [numTestExamples, IRIS_NUM_CLASSES]);
   return [xTrain, yTrain, xTest, yTest];
 }
 

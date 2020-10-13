@@ -25,11 +25,28 @@ limitations under the License.
            (dragover)="dragOver(event)"
            (dragleave)="dragLeave()"
            (drop)="dragDrop(event)">
+        <ng-container *ngIf="queryImageDataURL != null">
+          <div class="QueryCanvasOverlayContainer">
+            <!-- Spot for overlaying a canvas on top of the query image. -->
+            <canvas class="QueryCanvasOverlay">
+            </canvas>
+          </div>
+          <div class="QueryCanvasOverlayContainer">
+            <div class="QueryHintsContainer">
+            </div>
+          </div>
+          <div class="QueryImageContainer">
+            <img src="{{ queryImageDataURL }}"
+                 class="QueryImage"
+                 alt="">
+          </div>
+        </ng-container>
       </div>
 
       <!-- Render test data once available -->
       <div class="TestImages" *ngIf="testImages.length > 0">
-        <div class="TestImageContainer" *ngFor="let testImage of testImages">
+        <div class="TestImageContainer" *ngFor="let testImage of testImages"
+             (click)="testImageSelected(testImage.imageUrl)">
           <img src="{{ testImage.thumbnailUrl }}" class="TestImage">
         </div>
       </div>
@@ -42,8 +59,38 @@ limitations under the License.
       <div class="InputSection">
         <ng-container *ngTemplateOutlet="inputSection"></ng-container>
       </div>
-      <div class="ResultsSection"
-           id="results-section">
+      <div class="ResultsSection">
+        <!-- Case of classifier results -->
+        <div class="Results" *ngIf="classifierResults != null">
+          <div class="ResultTitle">
+            Results:
+          </div>
+          <ng-container *ngIf="resultsKeyName != null && resultsValueName != null">
+            <div class="ResultSubtitle">
+              <div class="ResultSubtitleType">
+                {{ resultsKeyName }}
+              </div>
+              <div class="ResultSubtitleUnit">
+                {{ resultsValueName }}
+              </div>
+            </div>
+          </ng-container>
+          <div class="ResultList">
+            <div class="ResultBarBackground"></div>
+            <div class="ClassifierResult" *ngFor="let result of classifierResults">
+              <div class="ClassifierResultDisplayName">
+                {{ result.displayName }}
+              </div>
+              <div class="ClassifierResultScorePercent">
+                {{ result.score | number:'1.1-3' }}
+              </div>
+              <div class="ResultBarBackground"></div>
+              <div class="ResultBarForeground"
+                   style="width: {{ 100 * result.score | number }}%">
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
       <div class="RightFooter">
         <div class="RightFooterAction"

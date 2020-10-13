@@ -125,4 +125,74 @@ describe('AppComponent', () => {
       },
     ]);
   });
+
+  it('fetchLabelmap should correctly parse the labelmap JSON', async () => {
+    const fixture = TestBed.createComponent(AppComponent);
+    const app = fixture.componentInstance;
+
+    // Prepare test data.
+    const fakeLabelmapUrl = 'https://labelmapUrl/labelmap.json';
+    const fakeLabelmapName = 'labelmap.json';
+    app.modelMetadataUrl = 'https://labelmapUrl/metadata.json';
+    const fakeLabelmap = {
+      item: [
+        {
+          id: 2,
+          name: 'name2',
+        },
+        {
+          id: 1,
+          display_name: 'displayName1',
+        }
+      ]
+    };
+
+    // Mock calls.
+    fetchMock.get(fakeLabelmapUrl, fakeLabelmap);
+
+    await app.fetchLabelmap(fakeLabelmapName);
+
+    expect(app.labelmap).toEqual(['unknown', 'displayName1', 'name2']);
+  });
+
+  it('runImageClassifier should correctly parse image classifier model outputs',
+     async () => {
+       const fixture = TestBed.createComponent(AppComponent);
+       const app = fixture.componentInstance;
+
+       // Prepare test data.
+       const fakeImage = new Image();
+       const fakeInputTensor = tf.tensor([[1.0, 2.0], [3.0, 4.0]]);
+       app.labelmap = ['someLabel', 'otherLabel', 'underThresholdLabel'];
+       app.modelMetadata = {
+         tfjs_classifier_model_metadata: {
+           input_tensor_metadata: [1, 2, 3, 4],
+           output_head_metadata: [{
+             score_threshold: 0.5,
+           }]
+         },
+       };
+       const customLoader: tf.io.IOHandler = {
+         load: async () => {
+           return {
+             modelTopology: SIMPLE_MODEL,
+             weightSpecs: weightsManifest,
+             weightData: new Int32Array([5]).buffer,
+           };
+         }
+       };
+       app.model = await tf.loadGraphModel(customLoader);
+
+       // Mock calls.
+       spyOn(app, 'prepareImageInput').and.returnValue(fakeInputTensor);
+       spyOn(app.model, 'executeAsync')
+           .and.returnValue(Promise.resolve(tf.tensor([[0.6, 0.8, 0.4]])));
+
+       const classifierResults = await app.runImageClassifier(fakeImage);
+
+       expect(classifierResults[0].displayName).toEqual('otherLabel');
+       expect(classifierResults[0].score).toBeCloseTo(0.8);
+       expect(classifierResults[1].displayName).toEqual('someLabel');
+       expect(classifierResults[1].score).toBeCloseTo(0.6);
+     });
 });

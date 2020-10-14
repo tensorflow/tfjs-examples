@@ -10,7 +10,12 @@ Supported tasks:
 *   Image Segmentation (WIP)
 
 The Interactive Visualizer supports any model coming with a metadata JSON file
-formatted following the supported tasks standards.
+formatted following the supported tasks standards. This metadata file is passed
+at runtime to the visualizer as URL query parameter (e.g.
+`https://visualizerHostedUrl/?modelMetadataUrl=https://myModelMetadataUrl/metadata.json`).
+
+The visualizer will then load its UI and behave according to the task defined by
+the model metadata.
 
 NOTE: standards definition is WIP. Here's an example of such metadata for an
 image classifier model:

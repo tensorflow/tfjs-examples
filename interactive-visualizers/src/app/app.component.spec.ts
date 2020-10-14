@@ -155,7 +155,7 @@ describe('AppComponent', () => {
     expect(app.labelmap).toEqual(['unknown', 'displayName1', 'name2']);
   });
 
-  it('runImageClassifier should correctly parse image classifier model outputs',
+  it('runImageClassifier should correctly parse image classifier model outputs with correct labelmap',
      async () => {
        const fixture = TestBed.createComponent(AppComponent);
        const app = fixture.componentInstance;
@@ -193,6 +193,47 @@ describe('AppComponent', () => {
        expect(classifierResults[0].displayName).toEqual('otherLabel');
        expect(classifierResults[0].score).toBeCloseTo(0.8);
        expect(classifierResults[1].displayName).toEqual('someLabel');
+       expect(classifierResults[1].score).toBeCloseTo(0.6);
+     });
+
+  it('runImageClassifier should correctly parse image classifier model outputs with empty labelmap',
+     async () => {
+       const fixture = TestBed.createComponent(AppComponent);
+       const app = fixture.componentInstance;
+
+       // Prepare test data.
+       const fakeImage = new Image();
+       const fakeInputTensor = tf.tensor([[1.0, 2.0], [3.0, 4.0]]);
+       app.labelmap = [];
+       app.modelMetadata = {
+         tfjs_classifier_model_metadata: {
+           input_tensor_metadata: [1, 2, 3, 4],
+           output_head_metadata: [{
+             score_threshold: 0.5,
+           }]
+         },
+       };
+       const customLoader: tf.io.IOHandler = {
+         load: async () => {
+           return {
+             modelTopology: SIMPLE_MODEL,
+             weightSpecs: weightsManifest,
+             weightData: new Int32Array([5]).buffer,
+           };
+         }
+       };
+       app.model = await tf.loadGraphModel(customLoader);
+
+       // Mock calls.
+       spyOn(app, 'prepareImageInput').and.returnValue(fakeInputTensor);
+       spyOn(app.model, 'executeAsync')
+           .and.returnValue(Promise.resolve(tf.tensor([[0.6, 0.8, 0.4]])));
+
+       const classifierResults = await app.runImageClassifier(fakeImage);
+
+       expect(classifierResults[0].displayName).toEqual('unknown');
+       expect(classifierResults[0].score).toBeCloseTo(0.8);
+       expect(classifierResults[1].displayName).toEqual('unknown');
        expect(classifierResults[1].score).toBeCloseTo(0.6);
      });
 });

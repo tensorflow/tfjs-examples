@@ -23,9 +23,12 @@ const DOWNLOAD_MESSAGE =
     'This interactive model visualizer will run in the browser: the required TensorFlow.js model files are currently being loaded. Thanks for your patience!';
 const NO_MODEL_METADATA_ERROR_MESSAGE =
     'No model metadata URL provided. The visualizer could not start';
+const TEST_IMAGE_FETCH_FAILURE_MESSAGE =
+    'The test image couldn\'t be fetched, please check the JS console for more details.';
 
 // Constants.
 const MAX_NB_RESULTS = 100;
+const UNKNOWN_LABEL_DISPLAY_NAME = 'unknown';
 
 @Component({
   selector: 'app-root',
@@ -129,17 +132,23 @@ export class AppComponent implements OnInit {
    * On click on a test image.
    */
   async testImageSelected(imageUrl: string): Promise<void> {
-    const response = await fetch(imageUrl);
-    const blob = await response.blob();
-    const reader = new FileReader();
-    reader.onload = () => {
-      let imageDataURL: string = reader.result as string;
-      // If MIME is unknown, replace it to 'image/jpg' as an attempt.
-      imageDataURL =
-          imageDataURL.replace('application/octet-stream', 'image/jpg');
-      this.handleInputImage(imageDataURL);
-    };
-    reader.readAsDataURL(blob);
+    try {
+      const response = await fetch(imageUrl);
+      const blob = await response.blob();
+      const reader = new FileReader();
+      reader.onload = () => {
+        let imageDataURL: string = reader.result as string;
+        // If MIME is unknown, replace it to 'image/jpg' as an attempt.
+        imageDataURL =
+            imageDataURL.replace('application/octet-stream', 'image/jpg');
+        this.handleInputImage(imageDataURL);
+      };
+      reader.readAsDataURL(blob);
+    } catch (error) {
+      console.error(
+          `Fetching the test image failed with the following error: ${error}`);
+      alert(TEST_IMAGE_FETCH_FAILURE_MESSAGE);
+    }
   }
 
   /**
@@ -190,35 +199,41 @@ export class AppComponent implements OnInit {
    * Otherwise list indices are used as IDs.
    */
   async fetchLabelmap(labelmapName: string): Promise<void> {
-    const labelmapUrl = this.getAssetsUrlPrefix() + labelmapName;
-    const labelmapResponse = await fetch(labelmapUrl);
-    const labelmapJson = await labelmapResponse.json();
-    let maxId = labelmapJson.item.length - 1;
-    for (const item of labelmapJson.item) {
-      if (item.id && item.id > maxId) {
-        maxId = item.id;
+    try {
+      const labelmapUrl = this.getAssetsUrlPrefix() + labelmapName;
+      const labelmapResponse = await fetch(labelmapUrl);
+      const labelmapJson = await labelmapResponse.json();
+      let maxId = labelmapJson.item.length - 1;
+      for (const item of labelmapJson.item) {
+        if (item.id && item.id > maxId) {
+          maxId = item.id;
+        }
       }
+      const labelmap = [];
+      for (let i = 0; i <= maxId; ++i) {
+        labelmap.push(UNKNOWN_LABEL_DISPLAY_NAME);
+      }
+      for (let i = 0; i < labelmapJson.item.length; ++i) {
+        const item = labelmapJson.item[i];
+        let displayName = UNKNOWN_LABEL_DISPLAY_NAME;
+        if (item.name) {
+          displayName = item.name;
+        }
+        if (item.display_name) {
+          displayName = item.display_name;
+        }
+        if (item.id) {
+          labelmap[item.id] = displayName;
+        } else {
+          labelmap[i] = displayName;
+        }
+      }
+      this.labelmap = labelmap;
+    } catch (error) {
+      this.labelmap = [];
+      console.error(
+          `Fetching the labelmap failed with the following error: ${error}`);
     }
-    const labelmap = [];
-    for (let i = 0; i <= maxId; ++i) {
-      labelmap.push('unknown');
-    }
-    for (let i = 0; i < labelmapJson.item.length; ++i) {
-      const item = labelmapJson.item[i];
-      let displayName = 'unknown';
-      if (item.name) {
-        displayName = item.name;
-      }
-      if (item.display_name) {
-        displayName = item.display_name;
-      }
-      if (item.id) {
-        labelmap[item.id] = displayName;
-      } else {
-        labelmap[i] = displayName;
-      }
-    }
-    this.labelmap = labelmap;
   }
 
   /**
@@ -227,6 +242,10 @@ export class AppComponent implements OnInit {
    */
   async runImageClassifier(image: HTMLImageElement):
       Promise<Array<{displayName: string, score: number}>> {
+    // Start new scope to ensure all tensors created will be then destroyed (see
+    // call to `endScope` below).
+    tf.engine().startScope();
+
     // Prepare inputs.
     const inputTensorMetadata =
         this.modelMetadata.tfjs_classifier_model_metadata.input_tensor_metadata;
@@ -238,28 +257,37 @@ export class AppComponent implements OnInit {
     const predictions: number[] =
         await outputTensor.squeeze().array() as number[];
 
+    tf.engine().endScope();
+
     // Fetch the labelmap and score thresholds, then assign labels to the
     // prediction results.
     const outputHeadMetadata = this.modelMetadata.tfjs_classifier_model_metadata
                                    .output_head_metadata[0];
     let scoreThreshold = 0.0;
-    if (outputHeadMetadata.score_threshold) {
+    if (outputHeadMetadata.score_threshold != null) {
       scoreThreshold = outputHeadMetadata.score_threshold;
     }
-    if (this.labelmap == null) {
+    if (this.labelmap == null && outputHeadMetadata.labelmap_path != null) {
       await this.fetchLabelmap(outputHeadMetadata.labelmap_path);
     }
     let results = [];
     for (let i = 0; i < predictions.length; i++) {
       if (predictions[i] > scoreThreshold) {
-        results.push({
-          displayName: this.labelmap[i],
-          score: predictions[i],
-        });
+        if (this.labelmap != null && this.labelmap.length > i) {
+          results.push({
+            displayName: this.labelmap[i],
+            score: predictions[i],
+          });
+        } else {
+          results.push({
+            displayName: UNKNOWN_LABEL_DISPLAY_NAME,
+            score: predictions[i],
+          });
+        }
       }
     }
 
-    // Sort remaining results.
+    // Sort remaining results in descending order.
     results.sort((a, b) => {
       if (a.score > b.score) {
         return -1;

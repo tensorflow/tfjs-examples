@@ -180,18 +180,20 @@ export class AppComponent implements OnInit {
   prepareImageInput(image: HTMLImageElement, inputTensorMetadata: {
     shape: number[]
   }): tf.Tensor {
-    let imageTensor = tf.browser.fromPixels(image, /* numChannels= */ 3);
+    return tf.tidy(() => {
+      let imageTensor = tf.browser.fromPixels(image, /* numChannels= */ 3);
 
-    // Resize the query image according to the model input shape.
-    imageTensor = tf.image.resizeBilinear(
-        imageTensor,
-        [inputTensorMetadata.shape[1], inputTensorMetadata.shape[2]], false);
+      // Resize the query image according to the model input shape.
+      imageTensor = tf.image.resizeBilinear(
+          imageTensor,
+          [inputTensorMetadata.shape[1], inputTensorMetadata.shape[2]], false);
 
-    // Map to the correct input shape, range and type. The models expect float
-    // inputs in the range [0, 1].
-    imageTensor = imageTensor.toFloat().div(255).expandDims(0);
+      // Map to the correct input shape, range and type. The models expect float
+      // inputs in the range [0, 1].
+      imageTensor = imageTensor.toFloat().div(255).expandDims(0);
 
-    return imageTensor;
+      return imageTensor;
+    });
   }
 
   /**
@@ -242,10 +244,6 @@ export class AppComponent implements OnInit {
    */
   async runImageClassifier(image: HTMLImageElement):
       Promise<Array<{displayName: string, score: number}>> {
-    // Start new scope to ensure all tensors created will be then destroyed (see
-    // call to `endScope` below).
-    tf.engine().startScope();
-
     // Prepare inputs.
     const inputTensorMetadata =
         this.modelMetadata.tfjs_classifier_model_metadata.input_tensor_metadata;
@@ -254,10 +252,12 @@ export class AppComponent implements OnInit {
     // Execute the model.
     const outputTensor: tf.Tensor =
         await this.model.executeAsync(imageTensor) as tf.Tensor;
+    tf.dispose(imageTensor);
+    const squeezedOutputTensor = outputTensor.squeeze();
+    tf.dispose(outputTensor);
     const predictions: number[] =
-        await outputTensor.squeeze().array() as number[];
-
-    tf.engine().endScope();
+        await squeezedOutputTensor.array() as number[];
+    tf.dispose(squeezedOutputTensor);
 
     // Fetch the labelmap and score thresholds, then assign labels to the
     // prediction results.

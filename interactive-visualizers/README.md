@@ -3,8 +3,18 @@
 TensorFlow.js-powered Interactive Model Visualizers for standard perception
 tasks embeddable anywhere in the web.
 
-Supported tasks: * Image Classification * Object Detection (WIP) * Image
-Segmentation (WIP)
+Supported tasks:
+
+*   Image Classification
+*   Object Detection (WIP)
+*   Image Segmentation (WIP)
+
+The Interactive Visualizer supports any model coming with a metadata JSON file
+formatted following the supported tasks standards.
+
+NOTE: standards definition is WIP. Here's an example of such metadata for an
+image classifier model:
+https://storage.googleapis.com/tfhub-visualizers/google/aiy/vision/classifier/plants_V1/1/metadata.json.
 
 This project was generated with
 [Angular CLI](https://github.com/angular/angular-cli) version 10.1.3.

@@ -202,16 +202,20 @@ $XXSMALL_FONT_SIZE: 12px;
 }
 
 .TestImage {
-  padding: 4px;
+  border-radius: 14px;
   height: calc(100% - 4px);
   object-fit: cover;
-  border-radius: 14px;
+  padding: 4px;
   width: calc(100% - 4px);
 }
 
 .TestImageSelected {
   border: 2px solid #ff6f00;
+  border-radius: 14px;
+  height: calc(100% - 4px);
+  object-fit: cover;
   padding: 2px;
+  width: calc(100% - 4px);
 }
 
 /* Input section */

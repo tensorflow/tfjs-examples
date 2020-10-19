@@ -48,21 +48,13 @@ limitations under the License.
         <!-- Test images. -->
         <div class="TestImageContainer" *ngFor="let testImage of testImages; let i = index"
              (click)="testImageSelected(testImage.imageUrl, i)">
-          <img *ngIf="imageSelectedIndex !== i"
-               class="TestImage"
-               src="{{ testImage.thumbnailUrl }}">
-          <img *ngIf="imageSelectedIndex === i"
-               class="TestImageSelected"
+          <img [ngClass]="{'TestImage': imageSelectedIndex !== i, 'TestImageSelected': imageSelectedIndex === i}"
                src="{{ testImage.thumbnailUrl }}">
         </div>
         <!-- Uploaded images. -->
         <div class="TestImageContainer" *ngFor="let uploadedImage of uploadedImages; let i = index"
              (click)="testImageSelected(uploadedImage, testImages.length + i)">
-          <img *ngIf="imageSelectedIndex !== testImages.length + i"
-               class="TestImage"
-               src="{{ uploadedImage }}">
-          <img *ngIf="imageSelectedIndex === testImages.length + i"
-               class="TestImageSelected"
+          <img [ngClass]="{'TestImage': imageSelectedIndex !== testImages.length + i, 'TestImageSelected': imageSelectedIndex === testImages.length + i}"
                src="{{ uploadedImage }}">
         </div>
       </div>

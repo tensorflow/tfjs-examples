@@ -137,7 +137,7 @@ export class AppComponent implements OnInit {
   /**
    * On click on a test image.
    */
-  async testImageSelected(imageUrl: string, index): Promise<void> {
+  async testImageSelected(imageUrl: string, index: number): Promise<void> {
     try {
       this.imageSelectedIndex = index;
       const response = await fetch(imageUrl);
@@ -166,7 +166,7 @@ export class AppComponent implements OnInit {
     if (element.files.length > 0) {
       for (const imageFile of Array.from(element.files)) {
         if (!imageFile.type.match('image*')) {
-          return;
+          continue;
         }
         this.readImageFile(imageFile);
       }

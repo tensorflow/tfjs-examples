@@ -30,7 +30,7 @@ $XXSMALL_FONT_SIZE: 12px;
   position: relative;
 }
 
-.BottomContainer {
+.BodyContainer {
   height: calc(100% - 46px);
   position: relative;
 }
@@ -105,6 +105,119 @@ $XXSMALL_FONT_SIZE: 12px;
   font-weight: 600;
 }
 
+/* Query image */
+
+.QueryImageTitle {
+  font-size: $MEDIUM_FONT_SIZE;
+  padding-bottom: 20px;
+}
+
+.QueryImageContainer {
+  display: inline-flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  height: 100%;
+  justify-content: center;
+  margin: 0 auto;
+  position: relative;
+  width: 100%;
+}
+
+.QueryCanvasOverlayContainer {
+  display: inline-flex;
+  flex-direction: column;
+  height: 100%;
+  justify-content: center;
+  margin: 0 auto;
+  position: absolute;
+  width: 100%;
+}
+
+.QueryCanvasOverlay {
+  display: block;
+  margin: 0 auto;
+  max-height: 100%;
+  max-width: 100%;
+  position: relative;
+  z-index: 1;
+}
+
+.QueryHintsContainer {
+  height: 100%;
+  margin: 0 auto;
+  position: relative;
+  width: 100%;
+}
+
+.QueryHint {
+  border-radius: 100%;
+  color: $PRIMARY_BACKGROUND_COLOR;
+  display: block;
+  height: 20px;
+  position: absolute;
+  width: 20px;
+  z-index: 20;
+}
+
+.QueryHint:hover {
+  cursor: pointer;
+  height: 30px;
+  margin-left: -5px;
+  margin-top: -5px;
+  width: 30px;
+  z-index: 21;
+}
+
+.QueryHint:hover > .QueryHintValue {
+  margin-top: 7px;
+}
+
+.QueryHintValue {
+  font-size: $XXSMALL_FONT_SIZE;
+  margin-top: 2px;
+  text-align: center;
+}
+
+.QueryImage {
+  display: block;
+  margin: 0 auto;
+  max-height: 100%;
+  max-width: 100%;
+  position: relative;
+}
+
+/* Test images */
+
+.TestImageContainer {
+  display: inline-block;
+  height: 64px;
+  margin-right: 20px;
+  position: relative;
+  vertical-align: top;
+  width: 64px;
+}
+
+.TestImageContainer:hover {
+  cursor: pointer;
+}
+
+.TestImage {
+  border-radius: 14px;
+  height: calc(100% - 4px);
+  object-fit: cover;
+  padding: 4px;
+  width: calc(100% - 4px);
+}
+
+.TestImageSelected {
+  border: 2px solid #ff6f00;
+  border-radius: 14px;
+  height: calc(100% - 4px);
+  object-fit: cover;
+  padding: 2px;
+  width: calc(100% - 4px);
+}
+
 /* Input section */
 
 .DragAndDrop {
@@ -131,14 +244,91 @@ $XXSMALL_FONT_SIZE: 12px;
   vertical-align: top;
 }
 
+/* Results section */
+
+.Results {
+  height: 100%;
+  width: 100%;
+}
+
+.ResultTitle {
+  color: $SECONDARY_TEXT_COLOR;
+  font-size: $MEDIUM_FONT_SIZE;
+  font-weight: 600;
+  height: 30px;
+}
+
+.ResultSubtitle {
+  color: $SECONDARY_TEXT_COLOR;
+  font-size: $XXSMALL_FONT_SIZE;
+  height: 15px;
+  margin-top: 10px;
+}
+
+.ResultSubtitleType {
+  display: inline-block;
+  float: left;
+}
+
+.ResultSubtitleUnit {
+  display: inline-block;
+  float: right;
+}
+
+.ResultList {
+  height: calc(100% - 63px);
+  margin-top: 8px;
+  overflow-y: scroll;
+  -webkit-mask-image: -webkit-gradient(linear, left top, left bottom, from(rgba(0,0,0,1)), to(rgba(0,0,0,0.8)));
+  width: 100%;
+}
+
+.ResultBarBackground {
+  background-color: $BORDER_COLOR;
+  height: 2px;
+  margin-top: 5px;
+  width: calc(100% - 2px);
+}
+
+.ResultBarForeground {
+  background-color: $VALUE_COLOR;
+  height: 2px;
+  margin-top: -2px;
+  position: absolute;
+  width: calc(100% - 2px);
+}
+
+/* Classifier results */
+
+.ClassifierResult {
+  font-size: $SMALL_FONT_SIZE;
+  margin-top: 12px;
+  position: relative;
+}
+
+.ClassifierResultDisplayName {
+  display: inline-block;
+  max-width: calc(100% - 55px);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ClassifierResultScorePercent {
+  color: $VALUE_COLOR;
+  display: inline-block;
+  float: right;
+  vertical-align: top;
+}
+
 /* Right Footer */
 
 .RightFooterAction {
-  color: PRIMARY_TEXT_COLOR;
+  color: $PRIMARY_TEXT_COLOR;
   cursor: pointer;
   display: inline-block;
   float: right;
-  font-size: XSMALL_FONT_SIZE;
+  font-size: $XSMALL_FONT_SIZE;
   font-weight: 600;
   margin-top: 25px;
   vertical-align: top;

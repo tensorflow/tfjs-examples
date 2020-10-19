@@ -60,14 +60,14 @@ inputDateString.addEventListener('change', async () => {
     status.textContent = `seq2seq conversion took ${tElapsed.toFixed(1)} ms`;
     outputDateString.value = outputStr;
 
-    const xTickLabels =
-        outputStr.split('').map((char, i) => `(${i + 1}) "${char}"`);
+    const xTickLabels = outputStr.split('').map(
+        (char, i) => `(${integerToTwoDigitString(i + 1)}) "${char}"`);
     const yTickLabels = [];
     for (let i = 0; i < INPUT_LENGTH; ++i) {
       if (i < inputStr.length) {
-        yTickLabels.push(`(${i + 1}) "${inputStr[i]}"`);
+        yTickLabels.push(`(${integerToTwoDigitString(i + 1)}) "${inputStr[i]}"`);
       } else {
-        yTickLabels.push(`(${i + 1}) ""`);
+        yTickLabels.push(`(${integerToTwoDigitString(i + 1)}) ""`);
       }
     }
     await tfvis.render.heatmap(
@@ -93,6 +93,11 @@ randomButton.addEventListener('click', async () => {
   inputDateString.value = inputFn(generateRandomDateTuple());
   inputDateString.dispatchEvent(new Event('change'));
 });
+
+function integerToTwoDigitString(x) {
+  const str = `${x / 100}`.substr(2);
+  return str.length == 1 ? str + '0' : str;
+}
 
 async function init() {
   try {

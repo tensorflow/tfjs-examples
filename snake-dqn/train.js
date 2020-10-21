@@ -253,7 +253,8 @@ async function main() {
     replayBufferSize: args.replayBufferSize,
     epsilonInit: args.epsilonInit,
     epsilonFinal: args.epsilonFinal,
-    epsilonDecayFrames: args.epsilonDecayFrames
+    epsilonDecayFrames: args.epsilonDecayFrames,
+    learningRate: args.learningRate
   });
 
   await train(

@@ -40,6 +40,8 @@ export class AppComponent implements OnInit {
   title = 'interactive-visualizers';
 
   // Model related variables.
+  publisherThumbnailUrl: string|null = null;
+  publisherName: string|null = null;
   modelMetadataUrl: string|null = null;
   modelMetadata: any|null = null;
   modelType: string|null = null;
@@ -52,6 +54,8 @@ export class AppComponent implements OnInit {
   testImages: Array<{imageUrl: string, thumbnailUrl: string}> = [];
   uploadedImages: string[] = [];
   queryImageDataURL: string|null = null;
+  imageSelectedIndex: number|null = null;
+  isDraggedOver = false;
 
   // Results variables.
   resultsKeyName: string|null = null;
@@ -65,6 +69,12 @@ export class AppComponent implements OnInit {
       throw new Error(NO_MODEL_METADATA_ERROR_MESSAGE);
     }
     const modelMetadataUrl = urlParams.get('modelMetadataUrl');
+    if (urlParams.has('publisherThumbnailUrl')) {
+      this.publisherThumbnailUrl = urlParams.get('publisherThumbnailUrl');
+    }
+    if (urlParams.has('publisherName')) {
+      this.publisherName = urlParams.get('publisherName');
+    }
 
     this.initApp(modelMetadataUrl);
   }
@@ -104,6 +114,10 @@ export class AppComponent implements OnInit {
               '_thumb.' + testImageExt,
         });
       }
+      if (this.testImages.length > 0) {
+        // If test images are present, automatically run on the first one.
+        this.testImageSelected(this.testImages[0].imageUrl, 0);
+      }
 
     } catch (error) {
       console.error(`Couldn't fetch test images: ${error}`);
@@ -131,8 +145,9 @@ export class AppComponent implements OnInit {
   /**
    * On click on a test image.
    */
-  async testImageSelected(imageUrl: string): Promise<void> {
+  async testImageSelected(imageUrl: string, index: number): Promise<void> {
     try {
+      this.imageSelectedIndex = index;
       const response = await fetch(imageUrl);
       const blob = await response.blob();
       const reader = new FileReader();
@@ -141,7 +156,7 @@ export class AppComponent implements OnInit {
         // If MIME is unknown, replace it to 'image/jpg' as an attempt.
         imageDataURL =
             imageDataURL.replace('application/octet-stream', 'image/jpg');
-        this.handleInputImage(imageDataURL);
+        this.handleInputImage(imageDataURL, index);
       };
       reader.readAsDataURL(blob);
     } catch (error) {
@@ -152,18 +167,96 @@ export class AppComponent implements OnInit {
   }
 
   /**
+   * Triggered when user uploads image files. Run inference on each image.
+   */
+  imageFilesSelected(event: InputEvent): void {
+    const element = event.target as HTMLInputElement;
+    if (element.files.length > 0) {
+      for (const imageFile of Array.from(element.files)) {
+        if (!imageFile.type.match('image*')) {
+          continue;
+        }
+        this.readImageFile(imageFile);
+      }
+    }
+  }
+
+  /**
+   * On drag over event.
+   */
+  dragOver(event: DragEvent): void {
+    event.preventDefault();
+    event.stopPropagation();
+    if (!this.isDraggedOver) {
+      this.isDraggedOver = true;
+    }
+  }
+
+  /**
+   * On drag leave event.
+   */
+  dragLeave(): void {
+    this.isDraggedOver = false;
+  }
+
+  /**
+   * On drop event.
+   */
+  dragDrop(event: DragEvent): void {
+    event.preventDefault();
+    event.stopPropagation();
+    this.isDraggedOver = false;
+
+    if (event.dataTransfer.files.length > 0) {
+      for (const imageFile of Array.from(event.dataTransfer.files)) {
+        this.readImageFile(imageFile);
+      }
+    }
+  }
+
+  readImageFile(imageFile: File): void {
+    try {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const imageDataURL = reader.result as string;
+        const imageIndex = this.addUploadedImage(imageDataURL);
+        this.imageSelectedIndex = imageIndex;
+        this.handleInputImage(imageDataURL, imageIndex);
+      };
+      reader.readAsDataURL(imageFile);
+    } catch (error) {
+      console.error(
+          `An uploaded image failed to be read with the following error: ${
+              error}`);
+    }
+  }
+
+  /**
+   * Adds an uploaded image and returns its index.
+   */
+  addUploadedImage(imageDataURL: string): number {
+    this.uploadedImages.push(imageDataURL);
+    return this.testImages.length + this.uploadedImages.length - 1;
+  }
+
+  /**
    * Handles an input image as data URL. Displays it in the query element, and
    * sends it for inference to the right handler depending on the model type.
    */
-  async handleInputImage(imageDataURL: string): Promise<void> {
+  async handleInputImage(imageDataURL: string, index: number): Promise<void> {
     this.queryImageDataURL = imageDataURL;
     const image = new Image();
     image.onload = async () => {
       switch (this.modelType) {
         case 'classifier':
-          this.classifierResults = await this.runImageClassifier(image);
-          this.resultsKeyName = 'Type';
-          this.resultsValueName = 'Score';
+          const classifierResults = await this.runImageClassifier(image);
+          if (this.imageSelectedIndex === index) {
+            // Display results only for the last selected image (as the user may
+            // have switched selection while inference was running).
+            this.classifierResults = classifierResults;
+            this.resultsKeyName = 'Type';
+            this.resultsValueName = 'Score';
+          }
           break;
         default:
           console.error(

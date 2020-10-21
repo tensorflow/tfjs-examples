@@ -202,16 +202,70 @@ $XXSMALL_FONT_SIZE: 12px;
 }
 
 .TestImage {
-  padding: 4px;
+  border-radius: 14px;
   height: calc(100% - 4px);
   object-fit: cover;
-  border-radius: 14px;
+  padding: 4px;
   width: calc(100% - 4px);
 }
 
 .TestImageSelected {
   border: 2px solid #ff6f00;
+  border-radius: 14px;
+  height: calc(100% - 4px);
+  object-fit: cover;
   padding: 2px;
+  width: calc(100% - 4px);
+}
+
+/* Left footer */
+
+.LeftFooterPublisherThumbnailUrl {
+  border-radius: 100%;
+  display: inline-block;
+  height: 50px;
+  width: 50px;
+}
+
+.LeftFooterPublisherNameContainer {
+  display: inline-block;
+  height: 100%;
+  margin-left: 12px;
+  vertical-align: top;
+}
+
+.LeftFooterPublisherNameHeader {
+  color: $SECONDARY_TEXT_COLOR;
+  font-size: $XXSMALL_FONT_SIZE;
+  height: 17px;
+  margin-top: 7px;
+}
+
+.LeftFooterPublisherNameText {
+  color: $PRIMARY_TEXT_COLOR;
+  font-size: $SMALL_FONT_SIZE;
+  height: 26px;
+}
+
+.LeftFooterPrivacyPolicy {
+  color: $PRIMARY_TEXT_COLOR;
+  cursor: pointer;
+  float: right;
+  font-size: $XXSMALL_FONT_SIZE;
+  margin-top: 28px;
+  padding-right: 8px;
+  text-decoration: none;
+}
+
+.LeftFooterTermsOfService {
+  border-left: solid 1px $BORDER_COLOR;
+  color: $PRIMARY_TEXT_COLOR;
+  cursor: pointer;
+  float: right;
+  font-size: $XXSMALL_FONT_SIZE;
+  margin-top: 28px;
+  padding-left: 8px;
+  text-decoration: none;
 }
 
 /* Input section */

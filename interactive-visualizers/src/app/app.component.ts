@@ -29,6 +29,141 @@ const TEST_IMAGE_FETCH_FAILURE_MESSAGE =
 // Constants.
 const MAX_NB_RESULTS = 100;
 const UNKNOWN_LABEL_DISPLAY_NAME = 'unknown';
+const DEFAULT_DETECTION_THRESHOLD = 0.2;
+/**
+ * Uses the Pascal VOC[1] color list (256 colors).
+ * [1]: http://host.robots.ox.ac.uk/pascal/VOC/
+ */
+const COLOR_LIST = [
+  [0.000000, 0.000000, 0.000000], [0.501961, 0.000000, 0.000000],
+  [0.000000, 0.501961, 0.000000], [0.501961, 0.501961, 0.000000],
+  [0.000000, 0.000000, 0.501961], [0.501961, 0.000000, 0.501961],
+  [0.000000, 0.501961, 0.501961], [0.501961, 0.501961, 0.501961],
+  [0.250980, 0.000000, 0.000000], [0.752941, 0.000000, 0.000000],
+  [0.250980, 0.501961, 0.000000], [0.752941, 0.501961, 0.000000],
+  [0.250980, 0.000000, 0.501961], [0.752941, 0.000000, 0.501961],
+  [0.250980, 0.501961, 0.501961], [0.752941, 0.501961, 0.501961],
+  [0.000000, 0.250980, 0.000000], [0.501961, 0.250980, 0.000000],
+  [0.000000, 0.752941, 0.000000], [0.501961, 0.752941, 0.000000],
+  [0.000000, 0.250980, 0.501961], [0.501961, 0.250980, 0.501961],
+  [0.000000, 0.752941, 0.501961], [0.501961, 0.752941, 0.501961],
+  [0.250980, 0.250980, 0.000000], [0.752941, 0.250980, 0.000000],
+  [0.250980, 0.752941, 0.000000], [0.752941, 0.752941, 0.000000],
+  [0.250980, 0.250980, 0.501961], [0.752941, 0.250980, 0.501961],
+  [0.250980, 0.752941, 0.501961], [0.752941, 0.752941, 0.501961],
+  [0.000000, 0.000000, 0.250980], [0.501961, 0.000000, 0.250980],
+  [0.000000, 0.501961, 0.250980], [0.501961, 0.501961, 0.250980],
+  [0.000000, 0.000000, 0.752941], [0.501961, 0.000000, 0.752941],
+  [0.000000, 0.501961, 0.752941], [0.501961, 0.501961, 0.752941],
+  [0.250980, 0.000000, 0.250980], [0.752941, 0.000000, 0.250980],
+  [0.250980, 0.501961, 0.250980], [0.752941, 0.501961, 0.250980],
+  [0.250980, 0.000000, 0.752941], [0.752941, 0.000000, 0.752941],
+  [0.250980, 0.501961, 0.752941], [0.752941, 0.501961, 0.752941],
+  [0.000000, 0.250980, 0.250980], [0.501961, 0.250980, 0.250980],
+  [0.000000, 0.752941, 0.250980], [0.501961, 0.752941, 0.250980],
+  [0.000000, 0.250980, 0.752941], [0.501961, 0.250980, 0.752941],
+  [0.000000, 0.752941, 0.752941], [0.501961, 0.752941, 0.752941],
+  [0.250980, 0.250980, 0.250980], [0.752941, 0.250980, 0.250980],
+  [0.250980, 0.752941, 0.250980], [0.752941, 0.752941, 0.250980],
+  [0.250980, 0.250980, 0.752941], [0.752941, 0.250980, 0.752941],
+  [0.250980, 0.752941, 0.752941], [0.752941, 0.752941, 0.752941],
+  [0.125490, 0.000000, 0.000000], [0.627451, 0.000000, 0.000000],
+  [0.125490, 0.501961, 0.000000], [0.627451, 0.501961, 0.000000],
+  [0.125490, 0.000000, 0.501961], [0.627451, 0.000000, 0.501961],
+  [0.125490, 0.501961, 0.501961], [0.627451, 0.501961, 0.501961],
+  [0.376471, 0.000000, 0.000000], [0.878431, 0.000000, 0.000000],
+  [0.376471, 0.501961, 0.000000], [0.878431, 0.501961, 0.000000],
+  [0.376471, 0.000000, 0.501961], [0.878431, 0.000000, 0.501961],
+  [0.376471, 0.501961, 0.501961], [0.878431, 0.501961, 0.501961],
+  [0.125490, 0.250980, 0.000000], [0.627451, 0.250980, 0.000000],
+  [0.125490, 0.752941, 0.000000], [0.627451, 0.752941, 0.000000],
+  [0.125490, 0.250980, 0.501961], [0.627451, 0.250980, 0.501961],
+  [0.125490, 0.752941, 0.501961], [0.627451, 0.752941, 0.501961],
+  [0.376471, 0.250980, 0.000000], [0.878431, 0.250980, 0.000000],
+  [0.376471, 0.752941, 0.000000], [0.878431, 0.752941, 0.000000],
+  [0.376471, 0.250980, 0.501961], [0.878431, 0.250980, 0.501961],
+  [0.376471, 0.752941, 0.501961], [0.878431, 0.752941, 0.501961],
+  [0.125490, 0.000000, 0.250980], [0.627451, 0.000000, 0.250980],
+  [0.125490, 0.501961, 0.250980], [0.627451, 0.501961, 0.250980],
+  [0.125490, 0.000000, 0.752941], [0.627451, 0.000000, 0.752941],
+  [0.125490, 0.501961, 0.752941], [0.627451, 0.501961, 0.752941],
+  [0.376471, 0.000000, 0.250980], [0.878431, 0.000000, 0.250980],
+  [0.376471, 0.501961, 0.250980], [0.878431, 0.501961, 0.250980],
+  [0.376471, 0.000000, 0.752941], [0.878431, 0.000000, 0.752941],
+  [0.376471, 0.501961, 0.752941], [0.878431, 0.501961, 0.752941],
+  [0.125490, 0.250980, 0.250980], [0.627451, 0.250980, 0.250980],
+  [0.125490, 0.752941, 0.250980], [0.627451, 0.752941, 0.250980],
+  [0.125490, 0.250980, 0.752941], [0.627451, 0.250980, 0.752941],
+  [0.125490, 0.752941, 0.752941], [0.627451, 0.752941, 0.752941],
+  [0.376471, 0.250980, 0.250980], [0.878431, 0.250980, 0.250980],
+  [0.376471, 0.752941, 0.250980], [0.878431, 0.752941, 0.250980],
+  [0.376471, 0.250980, 0.752941], [0.878431, 0.250980, 0.752941],
+  [0.376471, 0.752941, 0.752941], [0.878431, 0.752941, 0.752941],
+  [0.000000, 0.125490, 0.000000], [0.501961, 0.125490, 0.000000],
+  [0.000000, 0.627451, 0.000000], [0.501961, 0.627451, 0.000000],
+  [0.000000, 0.125490, 0.501961], [0.501961, 0.125490, 0.501961],
+  [0.000000, 0.627451, 0.501961], [0.501961, 0.627451, 0.501961],
+  [0.250980, 0.125490, 0.000000], [0.752941, 0.125490, 0.000000],
+  [0.250980, 0.627451, 0.000000], [0.752941, 0.627451, 0.000000],
+  [0.250980, 0.125490, 0.501961], [0.752941, 0.125490, 0.501961],
+  [0.250980, 0.627451, 0.501961], [0.752941, 0.627451, 0.501961],
+  [0.000000, 0.376471, 0.000000], [0.501961, 0.376471, 0.000000],
+  [0.000000, 0.878431, 0.000000], [0.501961, 0.878431, 0.000000],
+  [0.000000, 0.376471, 0.501961], [0.501961, 0.376471, 0.501961],
+  [0.000000, 0.878431, 0.501961], [0.501961, 0.878431, 0.501961],
+  [0.250980, 0.376471, 0.000000], [0.752941, 0.376471, 0.000000],
+  [0.250980, 0.878431, 0.000000], [0.752941, 0.878431, 0.000000],
+  [0.250980, 0.376471, 0.501961], [0.752941, 0.376471, 0.501961],
+  [0.250980, 0.878431, 0.501961], [0.752941, 0.878431, 0.501961],
+  [0.000000, 0.125490, 0.250980], [0.501961, 0.125490, 0.250980],
+  [0.000000, 0.627451, 0.250980], [0.501961, 0.627451, 0.250980],
+  [0.000000, 0.125490, 0.752941], [0.501961, 0.125490, 0.752941],
+  [0.000000, 0.627451, 0.752941], [0.501961, 0.627451, 0.752941],
+  [0.250980, 0.125490, 0.250980], [0.752941, 0.125490, 0.250980],
+  [0.250980, 0.627451, 0.250980], [0.752941, 0.627451, 0.250980],
+  [0.250980, 0.125490, 0.752941], [0.752941, 0.125490, 0.752941],
+  [0.250980, 0.627451, 0.752941], [0.752941, 0.627451, 0.752941],
+  [0.000000, 0.376471, 0.250980], [0.501961, 0.376471, 0.250980],
+  [0.000000, 0.878431, 0.250980], [0.501961, 0.878431, 0.250980],
+  [0.000000, 0.376471, 0.752941], [0.501961, 0.376471, 0.752941],
+  [0.000000, 0.878431, 0.752941], [0.501961, 0.878431, 0.752941],
+  [0.250980, 0.376471, 0.250980], [0.752941, 0.376471, 0.250980],
+  [0.250980, 0.878431, 0.250980], [0.752941, 0.878431, 0.250980],
+  [0.250980, 0.376471, 0.752941], [0.752941, 0.376471, 0.752941],
+  [0.250980, 0.878431, 0.752941], [0.752941, 0.878431, 0.752941],
+  [0.125490, 0.125490, 0.000000], [0.627451, 0.125490, 0.000000],
+  [0.125490, 0.627451, 0.000000], [0.627451, 0.627451, 0.000000],
+  [0.125490, 0.125490, 0.501961], [0.627451, 0.125490, 0.501961],
+  [0.125490, 0.627451, 0.501961], [0.627451, 0.627451, 0.501961],
+  [0.376471, 0.125490, 0.000000], [0.878431, 0.125490, 0.000000],
+  [0.376471, 0.627451, 0.000000], [0.878431, 0.627451, 0.000000],
+  [0.376471, 0.125490, 0.501961], [0.878431, 0.125490, 0.501961],
+  [0.376471, 0.627451, 0.501961], [0.878431, 0.627451, 0.501961],
+  [0.125490, 0.376471, 0.000000], [0.627451, 0.376471, 0.000000],
+  [0.125490, 0.878431, 0.000000], [0.627451, 0.878431, 0.000000],
+  [0.125490, 0.376471, 0.501961], [0.627451, 0.376471, 0.501961],
+  [0.125490, 0.878431, 0.501961], [0.627451, 0.878431, 0.501961],
+  [0.376471, 0.376471, 0.000000], [0.878431, 0.376471, 0.000000],
+  [0.376471, 0.878431, 0.000000], [0.878431, 0.878431, 0.000000],
+  [0.376471, 0.376471, 0.501961], [0.878431, 0.376471, 0.501961],
+  [0.376471, 0.878431, 0.501961], [0.878431, 0.878431, 0.501961],
+  [0.125490, 0.125490, 0.250980], [0.627451, 0.125490, 0.250980],
+  [0.125490, 0.627451, 0.250980], [0.627451, 0.627451, 0.250980],
+  [0.125490, 0.125490, 0.752941], [0.627451, 0.125490, 0.752941],
+  [0.125490, 0.627451, 0.752941], [0.627451, 0.627451, 0.752941],
+  [0.376471, 0.125490, 0.250980], [0.878431, 0.125490, 0.250980],
+  [0.376471, 0.627451, 0.250980], [0.878431, 0.627451, 0.250980],
+  [0.376471, 0.125490, 0.752941], [0.878431, 0.125490, 0.752941],
+  [0.376471, 0.627451, 0.752941], [0.878431, 0.627451, 0.752941],
+  [0.125490, 0.376471, 0.250980], [0.627451, 0.376471, 0.250980],
+  [0.125490, 0.878431, 0.250980], [0.627451, 0.878431, 0.250980],
+  [0.125490, 0.376471, 0.752941], [0.627451, 0.376471, 0.752941],
+  [0.125490, 0.878431, 0.752941], [0.627451, 0.878431, 0.752941],
+  [0.376471, 0.376471, 0.250980], [0.878431, 0.376471, 0.250980],
+  [0.376471, 0.878431, 0.250980], [0.878431, 0.878431, 0.250980],
+  [0.376471, 0.376471, 0.752941], [0.878431, 0.376471, 0.752941],
+  [0.376471, 0.878431, 0.752941], [0.878431, 0.878431, 0.752941]
+];
 
 @Component({
   selector: 'app-root',
@@ -59,6 +194,26 @@ export class AppComponent implements OnInit {
   resultsKeyName: string|null = null;
   resultsValueName: string|null = null;
   classifierResults: Array<{displayName: string, score: number}>|null = null;
+  detectorResults: Array<{
+    id: number,
+    displayName: string,
+    box: number[],
+    score: number,
+    label: number
+  }>|null = null;
+  detectionLabels: Array<{
+    label: number,
+    displayName: string,
+    boxes: Array<{id: number, score: number}>,
+    color: string
+  }>|null = null;
+  detectionScoreThreshold = DEFAULT_DETECTION_THRESHOLD;
+  detectionLabelToIds = new Map();
+  collapsedDetectionLabels = new Set();
+  hoveredDetectionId: number|null = null;
+  hoveredDetectionLabel: number|null = null;
+  hoveredDetectionResultLabel: number|null = null;
+  hoveredDetectionResultId: number|null = null;
 
   ngOnInit(): void {
     // Sanity checks on URL query parameters.
@@ -80,6 +235,7 @@ export class AppComponent implements OnInit {
    * Initializes the app for the provided model metadata URL.
    */
   async initApp(modelMetadataUrl: string): Promise<void> {
+    await tf.setBackend('cpu');
     // Load model & metadata.
     this.modelMetadataUrl = modelMetadataUrl;
     const metadataResponse = await fetch(this.modelMetadataUrl);
@@ -88,6 +244,8 @@ export class AppComponent implements OnInit {
     this.model = await this.fetchModel(modelUrl);
     if (this.modelMetadata.tfjs_classifier_model_metadata) {
       this.modelType = 'classifier';
+    } else if (this.modelMetadata.tfjs_detector_model_metadata) {
+      this.modelType = 'detector';
     }
 
     // Fetch test data if any.
@@ -241,14 +399,10 @@ export class AppComponent implements OnInit {
     image.onload = async () => {
       switch (this.modelType) {
         case 'classifier':
-          const classifierResults = await this.runImageClassifier(image);
-          if (this.imageSelectedIndex === index) {
-            // Display results only for the last selected image (as the user may
-            // have switched selection while inference was running).
-            this.classifierResults = classifierResults;
-            this.resultsKeyName = 'Type';
-            this.resultsValueName = 'Score';
-          }
+          this.runImageClassifier(image, index);
+          break;
+        case 'detector':
+          this.runImageDetector(image, index);
           break;
         default:
           console.error(
@@ -324,11 +478,10 @@ export class AppComponent implements OnInit {
   }
 
   /**
-   * Run the model in case of image classification, and return classifier
-   * results.
+   * Run the model in case of image classification.
    */
-  async runImageClassifier(image: HTMLImageElement):
-      Promise<Array<{displayName: string, score: number}>> {
+  async runImageClassifier(image: HTMLImageElement, index: number):
+      Promise<void> {
     // Prepare inputs.
     const inputTensorMetadata =
         this.modelMetadata.tfjs_classifier_model_metadata.input_tensor_metadata;
@@ -384,6 +537,144 @@ export class AppComponent implements OnInit {
     if (results.length > MAX_NB_RESULTS) {
       results = results.slice(0, MAX_NB_RESULTS);
     }
-    return results;
+
+    if (this.imageSelectedIndex === index) {
+      // Display results only for the last selected image (as the user may
+      // have switched selection while inference was running).
+      this.classifierResults = results;
+      this.resultsKeyName = 'Type';
+      this.resultsValueName = 'Score';
+    }
   }
+
+  /**
+   * Run the model in case of image detection, and return detector results.
+   */
+  async runImageDetector(image: HTMLImageElement, index: number):
+      Promise<void> {
+    // Prepare inputs.
+    const inputTensorMetadata =
+        this.modelMetadata.tfjs_detector_model_metadata.input_tensor_metadata;
+    const imageTensor = this.prepareImageInput(image, inputTensorMetadata);
+
+    // Execute the model.
+    const outputHeadMetadata =
+        this.modelMetadata.tfjs_detector_model_metadata.output_head_metadata[0];
+    const numDetectionsTensorName =
+        outputHeadMetadata.num_detections_tensor_name;
+    const detectionBoxesTensorName =
+        outputHeadMetadata.detection_boxes_tensor_name;
+    const detectionScoresTensorName =
+        outputHeadMetadata.detection_scores_tensor_name;
+    const detectionClassesTensorName =
+        outputHeadMetadata.detection_classes_tensor_name;
+    const outputTensors = await this.model.executeAsync(imageTensor, [
+      numDetectionsTensorName, detectionBoxesTensorName,
+      detectionScoresTensorName, detectionClassesTensorName
+    ]) as tf.Tensor[];
+    tf.dispose(imageTensor);
+    const squeezedNumDetections = await outputTensors[0].squeeze();
+    const squeezedDetectionBoxes = await outputTensors[1].squeeze();
+    const squeezedDetectionScores = await outputTensors[2].squeeze();
+    const squeezedDetectionClasses = await outputTensors[3].squeeze();
+    tf.dispose(outputTensors);
+    const numDetections = await squeezedNumDetections.array() as number;
+    const detectionBoxes = await squeezedDetectionBoxes.array() as number[][];
+    const detectionScores = await squeezedDetectionScores.array() as number[];
+    const detectionClasses = await squeezedDetectionClasses.array() as number[];
+    tf.dispose(squeezedNumDetections);
+    tf.dispose(squeezedDetectionBoxes);
+    tf.dispose(squeezedDetectionScores);
+    tf.dispose(squeezedDetectionClasses);
+
+    // Fetch labelmap and score thresholds.
+    this.detectionScoreThreshold = DEFAULT_DETECTION_THRESHOLD;
+    if (outputHeadMetadata.score_threshold != null &&
+        outputHeadMetadata.score_threshold.length) {
+      this.detectionScoreThreshold = outputHeadMetadata.score_threshold[0];
+    }
+    if (this.labelmap == null && outputHeadMetadata.labelmap_path != null) {
+      await this.fetchLabelmap(outputHeadMetadata.labelmap_path);
+    }
+
+    const results = [];
+    for (let i = 0; i < numDetections; ++i) {
+      const label = detectionClasses[i];
+      if (this.labelmap != null && this.labelmap.length > label) {
+        results.push({
+          id: i,
+          box: detectionBoxes[i],
+          score: detectionScores[i],
+          label,
+          displayName: this.labelmap[label],
+        });
+      } else {
+        results.push({
+          id: i,
+          box: detectionBoxes[i],
+          score: detectionScores[i],
+          label,
+          displayName: label,
+        });
+      }
+    }
+
+    // Display results only for the last selected image (as the user may
+    // have switched selection while inference was running).
+    if (this.imageSelectedIndex !== index) {
+      return;
+    }
+
+    // Prepare detector results general variables.
+    this.detectorResults = results;
+    this.resultsKeyName = 'Type';
+    this.resultsValueName = 'Score';
+    this.detectionLabelToIds.clear();
+    for (const result of results) {
+      if (!this.detectionLabelToIds.has(result.label)) {
+        const newId = this.detectionLabelToIds.size;
+        this.detectionLabelToIds.set(result.label, newId);
+      }
+    }
+    this.hoveredDetectionResultLabel = null;
+    this.hoveredDetectionResultId = null;
+    this.hoveredDetectionLabel = null;
+    this.hoveredDetectionId = null;
+    this.collapsedDetectionLabels = new Set();
+
+    // Prepare the result list content.
+    const labelDisplayNames = new Map();
+    const labelBoxes = new Map();
+    for (const result of results) {
+      if (!labelDisplayNames.has(result.label)) {
+        labelDisplayNames.set(result.label, result.displayName);
+        labelBoxes.set(result.label, []);
+      }
+      if (!this.collapsedDetectionLabels.has(result.label)) {
+        labelBoxes.get(result.label).push({id: result.id, score: result.score});
+      }
+    }
+    const labels = [];
+    for (const label of Array.from(labelDisplayNames.keys())) {
+      const colorIndex = this.detectionLabelToIds.get(label);
+      labels.push({
+        label,
+        displayName: labelDisplayNames.get(label),
+        boxes: labelBoxes.get(label),
+        color: `rgb(${255 * COLOR_LIST[colorIndex][0]}, ${
+            255 *
+            COLOR_LIST[colorIndex][1]}, ${255 * COLOR_LIST[colorIndex][2]})`,
+
+      });
+    }
+    this.detectionLabels = labels;
+  }
+
+  detectorResultLabelClicked(label: number) {}
+
+  detectorResultLabelHovered(label: number) {}
+
+  detectorResultLeft() {}
+
+  detectorResultIdHovered(resultId: number) {}
 }

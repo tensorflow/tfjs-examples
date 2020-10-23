@@ -33,4 +33,15 @@ function runTests(specFiles) {
   runner.execute();
 }
 
-module.exports = {runTests};
+function expectArraysClose(actual, expected) {
+  const actualValues = actual instanceof Array ? actual : actual.dataSync();
+  const expectedValues = expected instanceof Array ? expected : expected.dataSync();
+
+  expect(actualValues.length).toBe(expectedValues.length);
+  const PRECISION = 3; // corresponds to 1e-3.
+  for (let i = 0; i < actualValues.length; i++) {
+    expect(actualValues[i]).toBeCloseTo(expectedValues[i], PRECISION);
+  }
+}
+
+module.exports = {runTests, expectArraysClose};

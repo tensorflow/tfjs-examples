@@ -16,8 +16,9 @@
  */
 
 import * as tf from '@tensorflow/tfjs';
-import {expectArraysClose} from '@tensorflow/tfjs-core/dist/test_util';
 import * as tmp from 'tmp';
+
+import {expectArraysClose} from '../test_util';
 
 import * as dateFormat from './date_format';
 import {createModel, runSeq2SeqInference} from './model';

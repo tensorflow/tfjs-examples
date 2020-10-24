@@ -9,9 +9,9 @@
     "node": ">=8.11.0"
   },
   "dependencies": {
-    "@tensorflow/tfjs": "^1.7.4",
-    "@tensorflow/tfjs-node": "^1.7.4",
-    "@tensorflow/tfjs-node-gpu": "^1.7.4",
+    "@tensorflow/tfjs": "^2.6.0",
+    "@tensorflow/tfjs-node": "^2.6.0",
+    "@tensorflow/tfjs-node-gpu": "^2.6.0",
     "@tensorflow/tfjs-vis": "^1.4.3",
     "argparse": "^1.0.10",
     "d3-selection": "^1.4.0",

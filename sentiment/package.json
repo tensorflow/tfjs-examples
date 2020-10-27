@@ -9,7 +9,7 @@
     "node": ">=8.9.0"
   },
   "dependencies": {
-    "@tensorflow/tfjs": "^1.7.4",
+    "@tensorflow/tfjs": "^2.7.0",
     "vega-embed": "^3.0.0"
   },
   "scripts": {
@@ -20,8 +20,7 @@
     "train": "babel-node train.js"
   },
   "devDependencies": {
-    "@tensorflow/tfjs-node": "^1.7.4",
-    "@tensorflow/tfjs-node-gpu": "^1.7.4",
+    "@tensorflow/tfjs-node": "^2.7.0",
     "argparse": "^1.0.10",
     "babel-cli": "^6.26.0",
     "babel-core": "^6.26.3",

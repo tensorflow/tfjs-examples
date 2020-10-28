@@ -673,7 +673,13 @@ export class AppComponent implements OnInit {
     setTimeout(() => this.updateDetectionScoreThresholdPosition(), 20);
   }
 
-  detectorResultLabelClicked(label: number) {}
+  detectorResultLabelClicked(label: number) {
+    if (this.collapsedDetectionLabels.has(label)) {
+      this.collapsedDetectionLabels.delete(label);
+    } else {
+      this.collapsedDetectionLabels.add(label);
+    }
+  }
 
   detectorResultLabelHovered(label: number) {}
 

@@ -677,4 +677,9 @@ export class AppComponent implements OnInit {
   detectorResultLeft() {}
 
   detectorResultIdHovered(resultId: number) {}
+
+  detectionScoreThresholdChanged(event: InputEvent) {
+    const sliderElement = event.target as HTMLInputElement;
+    this.detectionScoreThreshold = parseFloat(sliderElement.value) / 100;
+  }
 }

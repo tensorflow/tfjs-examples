@@ -131,35 +131,39 @@ limitations under the License.
 
 <ng-template #detectorResultsTemplate>
   <ng-container *ngTemplateOutlet="resultsHeader"></ng-container>
-  <div class="ResultBarBackground"></div>
-  <div *ngFor="let label of detectionLabels"
-       class="DetectorResult"
-       style="color: {{ label.color }}">
-    <div class="DetectorResultIcon"
-         (click)="detectorResultLabelClicked(label.label)">
-      <svg *ngIf="label.boxes.length > 0" xmlns="https://www.w3.org/2000/svg" height="12px" viewBox="0 0 24 24" width="12px" fill="#425066"><path d="M0 0h24v24H0V0z" fill="none"/><path d="M18.59 16.41L20 15l-8-8-8 8 1.41 1.41L12 9.83"/></svg>
-      <svg *ngIf="label.boxes.length == 0" xmlns="https://www.w3.org/2000/svg" height="12px" viewBox="0 0 24 24" width="12px" fill="#425066"><path d="M5.41 7.59L4 9l8 8 8-8-1.41-1.41L12 14.17"/><path d="M24 24H0V0h24v24z" fill="none" opacity=".87"/></svg>
-    </div>
-    <div class="DetectorResultLabel"
-         (mouseenter)="detectorResultLabelHovered(label.label)"
-         (mouseleave)="detectorResultLeft()"
-         (click)="detectorResultLabelClicked(label.label)">
-      {{ label.displayName }}
-    </div>
-    <div class="DetectorResultLabelBoxList">
-      <div *ngFor="let box of label.boxes; let i = index"
-           class="DetectorResultLabelBox"
-           (mouseenter)="detectorResultIdHovered(box.id)"
-           (mouseleave)="detectorResultLeft()">
-        <div class="DetectorResultLabelBoxIndexContainer"
-             style="background-color: {{ label.color }}">
-          <div class="DetectorResultLabelBoxIndex">
-            {{ i + 1 }}
-          </div>
-        </div>
-        <div class="DetectorResultLabelBoxScore"
-             style="color: {{ label.color }}">
-          {{ box.score | number:'1.1-2' }}
+  <div class="ResultList">
+    <div class="ResultBarBackground"></div>
+    <div *ngFor="let label of detectionLabels"
+         class="DetectorResult"
+         style="color: {{ label.color }}">
+      <div class="DetectorResultIcon"
+           (click)="detectorResultLabelClicked(label.label)">
+        <svg *ngIf="label.boxes.length > 0" xmlns="https://www.w3.org/2000/svg" height="12px" viewBox="0 0 24 24" width="12px" fill="#425066"><path d="M0 0h24v24H0V0z" fill="none"/><path d="M18.59 16.41L20 15l-8-8-8 8 1.41 1.41L12 9.83"/></svg>
+        <svg *ngIf="label.boxes.length == 0" xmlns="https://www.w3.org/2000/svg" height="12px" viewBox="0 0 24 24" width="12px" fill="#425066"><path d="M5.41 7.59L4 9l8 8 8-8-1.41-1.41L12 14.17"/><path d="M24 24H0V0h24v24z" fill="none" opacity=".87"/></svg>
+      </div>
+      <div class="DetectorResultLabel"
+           (mouseenter)="detectorResultLabelHovered(label.label)"
+           (mouseleave)="detectorResultLeft()"
+           (click)="detectorResultLabelClicked(label.label)">
+        {{ label.displayName }}
+      </div>
+      <div class="DetectorResultLabelBoxList">
+        <div *ngFor="let box of label.boxes; let i = index"
+             class="DetectorResultLabelBox"
+             (mouseenter)="detectorResultIdHovered(box.id)"
+             (mouseleave)="detectorResultLeft()">
+          <ng-container *ngIf="box.score >= detectionScoreThreshold">
+            <div class="DetectorResultLabelBoxIndexContainer"
+                 style="background-color: {{ label.color }}">
+              <div class="DetectorResultLabelBoxIndex">
+                {{ i + 1 }}
+              </div>
+            </div>
+            <div class="DetectorResultLabelBoxScore"
+                 style="color: {{ label.color }}">
+              {{ box.score | number:'1.1-2' }}
+            </div>
+          </ng-container>
         </div>
       </div>
     </div>
@@ -169,6 +173,22 @@ limitations under the License.
 <ng-template #resultsHeader>
   <div class="ResultTitle">
     Results:
+    <ng-container *ngIf="detectorResults != null">
+      <div class="DetectorThresholdSliderContainer">
+        <div class="DetectorThresholdSliderExtrema">
+          0
+        </div>
+        <div class="DetectorThresholdSliderValue">
+          {{ detectionScoreThreshold }}
+        </div>
+        <input class="DetectorThresholdSlider"
+               type="range" min="0" max="100" value="{{ detectionScoreThreshold * 100 | number:'1.0' }}"
+               (input)="detectionScoreThresholdChanged($event)">
+        <div class="DetectorThresholdSliderExtrema">
+          1
+        </div>
+      </div>
+    </ng-container>
   </div>
   <ng-container *ngIf="resultsKeyName != null && resultsValueName != null">
     <div class="ResultSubtitle">

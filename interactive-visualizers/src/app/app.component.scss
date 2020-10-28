@@ -321,6 +321,122 @@ $XXSMALL_FONT_SIZE: 12px;
   vertical-align: top;
 }
 
+/* Detector results */
+
+.DetectorThresholdSliderContainer {
+  display: inline-block;
+  right: 0;
+  position: absolute;
+  width: 50%;
+}
+
+.DetectorThresholdSliderExtrema {
+  color: $PRIMARY_TEXT_COLOR;
+  display: inline-block;
+  font-size: $XXSMALL_FONT_SIZE;
+  vertical-align: top;
+}
+
+.DetectorThresholdSliderValue {
+  color: $PRIMARY_TEXT_COLOR;
+  display: inline-block;
+  font-size: $XXSMALL_FONT_SIZE;
+  margin-top: -14px;
+  position: absolute;
+}
+
+.DetectorThresholdSlider {
+  background-color: $TERTIARY_TEXT_COLOR;
+  border-radius: 2px;
+  display: inline-block;
+  height: 2px;
+  margin: 0 7px;
+  margin-top: 7px;
+  opacity: 0.7;
+  outline: none;
+  transition: opacity .2s;
+  vertical-align: top;
+  width: calc(100% - 30px);
+  -webkit-appearance: none;
+  -webkit-transition: .2s;
+}
+
+.DetectorThresholdSlider:hover {
+  opacity: 1;
+}
+
+.DetectorThresholdSlider::-webkit-slider-thumb {
+  background-color: $PRIMARY_TEXT_COLOR;
+  border-radius: 100%;
+  cursor: pointer;
+  height: 12px;
+  width: 12px;
+  -webkit-appearance: none;
+}
+
+.DetectorThresholdSlider::-moz-range-thumb {
+  background-color: $PRIMARY_TEXT_COLOR;
+  border-radius: 100%;
+  cursor: pointer;
+  height: 12px;
+  width: 12px;
+}
+
+.DetectorResult {
+  border-bottom: solid 2px $BORDER_COLOR;
+  padding: 12px 0;
+  position: relative;
+  width: calc(100% - 2px);
+}
+
+.DetectorResultIcon {
+  cursor: pointer;
+  display: inline-block;
+  margin-right: 6px;
+  position: absolute;
+  right: 0;
+}
+
+.DetectorResultLabel {
+  cursor: pointer;
+  font-size: $SMALL_FONT_SIZE;
+  max-width: 100%;
+  overflow: hidden;
+  padding-top: 2px;
+  text-overflow: ellipsis;
+  text-shadow: 1px 1px #bbbbbb;
+  vertical-align: top;
+  white-space: nowrap;
+}
+
+.DetectorResultLabelBoxList {}
+
+.DetectorResultLabelBox {
+  cursor: pointer;
+  margin-top: 10px;
+}
+
+.DetectorResultLabelBoxIndexContainer {
+  border-radius: 100%;
+  color: $PRIMARY_BACKGROUND_COLOR;
+  height: 20px;
+  display: inline-block;
+  width: 20px;
+}
+
+.DetectorResultLabelBoxIndex {
+  font-size: $XXSMALL_FONT_SIZE;
+  margin-top: 3px;
+  text-align: center;
+}
+
+.DetectorResultLabelBoxScore {
+  display: inline-block;
+  float: right;
+  text-shadow: 1px 1px #bbbbbb;
+  vertical-align: top;
+}
+
 /* Right Footer */
 
 .RightFooterAction {

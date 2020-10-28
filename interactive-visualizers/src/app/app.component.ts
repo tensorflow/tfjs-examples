@@ -668,6 +668,9 @@ export class AppComponent implements OnInit {
       });
     }
     this.detectionLabels = labels;
+
+    // Update score threshold position after letting time for the UI to update.
+    setTimeout(() => this.updateDetectionScoreThresholdPosition(), 20);
   }
 
   detectorResultLabelClicked(label: number) {}
@@ -681,5 +684,16 @@ export class AppComponent implements OnInit {
   detectionScoreThresholdChanged(event: InputEvent) {
     const sliderElement = event.target as HTMLInputElement;
     this.detectionScoreThreshold = parseFloat(sliderElement.value) / 100;
+
+    // Update score threshold position after letting time for the UI to update.
+    setTimeout(() => this.updateDetectionScoreThresholdPosition(), 20);
+  }
+
+  updateDetectionScoreThresholdPosition() {
+    const thresholdSliderValueElement =
+        document.getElementById('threshold-slider-value');
+    const width = thresholdSliderValueElement.getBoundingClientRect().width;
+    thresholdSliderValueElement.style.marginLeft =
+      `calc(13px + ${this.detectionScoreThreshold} * (100% - 42px) - ${width}px / 2)`;
   }
 }

@@ -27,17 +27,37 @@ limitations under the License.
            (drop)="dragDrop($event)">
         <ng-container *ngIf="queryImageDataURL != null">
           <div class="QueryCanvasOverlayContainer">
-            <!-- Spot for overlaying a canvas on top of the query image. -->
+            <!-- Spot for overlaying a canvas on top of the query image -->
             <canvas class="QueryCanvasOverlay">
             </canvas>
           </div>
           <div class="QueryCanvasOverlayContainer">
-            <div class="QueryHintsContainer">
+            <!-- Spot for overlaying detection hints on top of the query image -->
+            <div class="QueryHintsContainer"
+                 style="height: {{ queryImageHeight }}px; width: {{ queryImageWidth }}px">
+              <!-- Display detection hints -->
+              <ng-container *ngIf="detectionLabels != null">
+                <ng-container *ngFor="let label of detectionLabels">
+                  <ng-container *ngFor="let box of label.boxes; let i = index">
+                    <div *ngIf="box.score >= detectionScoreThreshold"
+                         class="QueryHint"
+                         style="top: {{ queryImageHeight * (box.rect[0] + box.rect[2]) / 2 - 10 }}px;
+                                left: {{ queryImageWidth * (box.rect[1] + box.rect[3]) / 2 - 10 }}px;
+                                background-color: {{ label.color }}"
+                         (click)="detectorHintClicked(box.id)">
+                      <div class="QueryHintValue">
+                        {{ i + 1 }}
+                      </div>
+                    </div>
+                  </ng-container>
+                </ng-container>
+              </ng-container>
             </div>
           </div>
           <div class="QueryImageContainer">
             <img src="{{ queryImageDataURL }}"
                  class="QueryImage"
+                 id="query-image"
                  alt="">
           </div>
         </ng-container>

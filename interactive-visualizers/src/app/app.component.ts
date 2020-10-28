@@ -182,6 +182,10 @@ export class AppComponent implements OnInit {
   labelmap: string[]|null = null;
   defaultScoreThreshold = 0.0;
 
+  // Query related variables.
+  queryImageHeight: number|null = null;
+  queryImageWidth: number|null = null;
+
   // Test data related variables.
   testImagesIndexUrl: string|null = null;
   testImages: Array<{imageUrl: string, thumbnailUrl: string}> = [];
@@ -651,7 +655,11 @@ export class AppComponent implements OnInit {
         labelBoxes.set(result.label, []);
       }
       if (!this.collapsedDetectionLabels.has(result.label)) {
-        labelBoxes.get(result.label).push({id: result.id, score: result.score});
+        labelBoxes.get(result.label).push({
+          id: result.id,
+          score: result.score,
+          rect: result.box,
+        });
       }
     }
     const labels = [];
@@ -668,6 +676,10 @@ export class AppComponent implements OnInit {
       });
     }
     this.detectionLabels = labels;
+
+    const imageHtmlElement = document.getElementById('query-image') as HTMLImageElement;
+    this.queryImageHeight = imageHtmlElement.offsetHeight;
+    this.queryImageWidth = imageHtmlElement.offsetWidth;
 
     // Update score threshold position after letting time for the UI to update.
     setTimeout(() => this.updateDetectionScoreThresholdPosition(), 20);
@@ -686,6 +698,8 @@ export class AppComponent implements OnInit {
   detectorResultLeft() {}
 
   detectorResultIdHovered(resultId: number) {}
+
+  detectorHintClicked(resultsId: number) {}
 
   detectionScoreThresholdChanged(event: InputEvent) {
     const sliderElement = event.target as HTMLInputElement;

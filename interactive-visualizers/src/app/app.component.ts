@@ -176,6 +176,8 @@ export class AppComponent implements OnInit {
   title = 'interactive-visualizers';
 
   // Model related variables.
+  publisherThumbnailUrl: string|null = null;
+  publisherName: string|null = null;
   modelMetadataUrl: string|null = null;
   modelMetadata: any|null = null;
   modelType: string|null = null;
@@ -227,6 +229,12 @@ export class AppComponent implements OnInit {
       throw new Error(NO_MODEL_METADATA_ERROR_MESSAGE);
     }
     const modelMetadataUrl = urlParams.get('modelMetadataUrl');
+    if (urlParams.has('publisherThumbnailUrl')) {
+      this.publisherThumbnailUrl = urlParams.get('publisherThumbnailUrl');
+    }
+    if (urlParams.has('publisherName')) {
+      this.publisherName = urlParams.get('publisherName');
+    }
 
     this.initApp(modelMetadataUrl);
   }

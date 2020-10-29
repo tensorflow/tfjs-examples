@@ -82,8 +82,31 @@ limitations under the License.
         </div>
       </div>
 
-      <div class="LeftFooter"
-           id="left-footer-section">
+      <!-- Left footer -->
+      <div class="LeftFooter">
+        <img *ngIf="publisherThumbnailUrl != null"
+             class="LeftFooterPublisherThumbnailUrl"
+             src="{{ publisherThumbnailUrl }}"
+             alt="">
+        <div *ngIf="publisherName != null"
+             class="LeftFooterPublisherNameContainer">
+          <div class="LeftFooterPublisherNameHeader">
+            Published by:
+          </div>
+          <div class="LeftFooterPublisherNameText">
+            {{ publisherName }}
+          </div>
+        </div>
+        <a class="LeftFooterTermsOfService"
+           href="https://www.google.com/intl/en/policies/terms/"
+           target="_blank">
+          Terms of Service
+        </a>
+        <a class="LeftFooterPrivacyPolicy"
+           href="https://www.google.com/intl/en/policies/privacy/"
+           target="_blank">
+          Privacy Policy
+        </a>
       </div>
     </div>
     <div class="RightSide">

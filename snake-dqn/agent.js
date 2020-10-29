@@ -37,6 +37,7 @@ export class SnakeGameAgent {
    *   - `epsilonDecayFrames` {number} The # of frames over which the value of
    *     `epsilon` decreases from `episloInit` to `epsilonFinal`, via a linear
    *     schedule.
+   *   - `learningRate` {number} The learning rate to use during training.
    */
   constructor(game, config) {
     assertPositiveInteger(config.epsilonDecayFrames);

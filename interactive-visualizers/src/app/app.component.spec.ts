@@ -229,18 +229,20 @@ describe('AppComponent', () => {
          }
        };
        app.model = await tf.loadGraphModel(customLoader);
+       app.imageSelectedIndex = 0;
 
        // Mock calls.
        spyOn(app, 'prepareImageInput').and.returnValue(fakeInputTensor);
        spyOn(app.model, 'executeAsync')
            .and.returnValue(Promise.resolve(tf.tensor([[0.6, 0.8, 0.4]])));
 
-       const classifierResults = await app.runImageClassifier(fakeImage);
+       await app.runImageClassifier(fakeImage, 0);
 
-       expect(classifierResults[0].displayName).toEqual('otherLabel');
-       expect(classifierResults[0].score).toBeCloseTo(0.8);
-       expect(classifierResults[1].displayName).toEqual('someLabel');
-       expect(classifierResults[1].score).toBeCloseTo(0.6);
+       expect(app.classifierResults.length).toEqual(2);
+       expect(app.classifierResults[0].displayName).toEqual('otherLabel');
+       expect(app.classifierResults[0].score).toBeCloseTo(0.8);
+       expect(app.classifierResults[1].displayName).toEqual('someLabel');
+       expect(app.classifierResults[1].score).toBeCloseTo(0.6);
      });
 
   it('runImageClassifier should correctly parse image classifier model outputs with empty labelmap',
@@ -270,17 +272,76 @@ describe('AppComponent', () => {
          }
        };
        app.model = await tf.loadGraphModel(customLoader);
+       app.imageSelectedIndex = 0;
 
        // Mock calls.
        spyOn(app, 'prepareImageInput').and.returnValue(fakeInputTensor);
        spyOn(app.model, 'executeAsync')
            .and.returnValue(Promise.resolve(tf.tensor([[0.6, 0.8, 0.4]])));
 
-       const classifierResults = await app.runImageClassifier(fakeImage);
+       await app.runImageClassifier(fakeImage, 0);
 
-       expect(classifierResults[0].displayName).toEqual('unknown');
-       expect(classifierResults[0].score).toBeCloseTo(0.8);
-       expect(classifierResults[1].displayName).toEqual('unknown');
-       expect(classifierResults[1].score).toBeCloseTo(0.6);
+       expect(app.classifierResults.length).toEqual(2);
+       expect(app.classifierResults[0].displayName).toEqual('unknown');
+       expect(app.classifierResults[0].score).toBeCloseTo(0.8);
+       expect(app.classifierResults[1].displayName).toEqual('unknown');
+       expect(app.classifierResults[1].score).toBeCloseTo(0.6);
+     });
+
+  it('runImageDetector should execute correctly',
+     async () => {
+       const fixture = TestBed.createComponent(AppComponent);
+       const app = fixture.componentInstance;
+
+       // Prepare test data.
+       const fakeImage = new Image();
+       const fakeInputTensor = tf.tensor([[1.0, 2.0], [3.0, 4.0]]);
+       app.labelmap = ['someLabel', 'otherLabel'];
+       app.modelMetadata = {
+         tfjs_detector_model_metadata: {
+           input_tensor_metadata: [1, 2, 3, 4],
+           output_head_metadata: [{
+             score_threshold: 0.5,
+           }]
+         },
+       };
+       const customLoader: tf.io.IOHandler = {
+         load: async () => {
+           return {
+             modelTopology: SIMPLE_MODEL,
+             weightSpecs: weightsManifest,
+             weightData: new Int32Array([5]).buffer,
+           };
+         }
+       };
+       app.model = await tf.loadGraphModel(customLoader);
+       app.imageSelectedIndex = 0;
+
+       // Mock calls.
+       spyOn(app, 'prepareImageInput').and.returnValue(fakeInputTensor);
+       spyOn(app.model, 'executeAsync')
+           .and.returnValue(Promise.resolve([tf.tensor([4]),
+             tf.tensor([[[0.1, 0.2, 0.3, 0.4], [0.2, 0.3, 0.4, 0.5],
+               [0.3, 0.4, 0.5, 0.6], [0.4, 0.5, 0.6, 0.7]]]),
+             tf.tensor([[0.9, 0.8, 0.5, 0.4]]),
+             tf.tensor([[0, 1, 0, 1]])]));
+       const fakeImageElement = new Image();
+       spyOn(document, 'getElementById').and.returnValue(fakeImage);
+
+       await app.runImageDetector(fakeImage, 0);
+
+       expect(app.detectorResults.length).toEqual(4);
+       expect(app.detectorResults[0].displayName).toEqual('someLabel');
+       expect(app.detectorResults[0].score).toBeCloseTo(0.9);
+       expect(app.detectorResults[0].id).toEqual(0);
+       expect(app.detectorResults[1].displayName).toEqual('otherLabel');
+       expect(app.detectorResults[1].score).toBeCloseTo(0.8);
+       expect(app.detectorResults[1].id).toEqual(1);
+       expect(app.detectorResults[2].displayName).toEqual('someLabel');
+       expect(app.detectorResults[2].score).toBeCloseTo(0.5);
+       expect(app.detectorResults[2].id).toEqual(2);
+       expect(app.detectorResults[3].displayName).toEqual('otherLabel');
+       expect(app.detectorResults[3].score).toBeCloseTo(0.4);
+       expect(app.detectorResults[3].id).toEqual(3);
      });
 });

@@ -27,17 +27,40 @@ limitations under the License.
            (drop)="dragDrop($event)">
         <ng-container *ngIf="queryImageDataURL != null">
           <div class="QueryCanvasOverlayContainer">
-            <!-- Spot for overlaying a canvas on top of the query image. -->
-            <canvas class="QueryCanvasOverlay">
+            <!-- Spot for overlaying a canvas on top of the query image -->
+            <canvas class="QueryCanvasOverlay"
+                    id="query-canvas-overlay"
+                    (click)="detectorResultLeft()"
+                    (mouseout)="detectorResultLeft()">
             </canvas>
           </div>
           <div class="QueryCanvasOverlayContainer">
-            <div class="QueryHintsContainer">
+            <!-- Spot for overlaying detection hints on top of the query image -->
+            <div class="QueryHintsContainer"
+                 style="height: {{ queryImageHeight }}px; width: {{ queryImageWidth }}px">
+              <!-- Display detection hints -->
+              <ng-container *ngIf="hoveredDetectionResultLabel == null && hoveredDetectionResultId == null">
+                <ng-container *ngFor="let label of detectionLabels">
+                  <ng-container *ngFor="let box of label.boxes; let i = index">
+                    <div *ngIf="box.score >= detectionScoreThreshold"
+                         class="QueryHint"
+                         style="top: {{ queryImageHeight * (box.rect[0] + box.rect[2]) / 2 - 10 }}px;
+                                left: {{ queryImageWidth * (box.rect[1] + box.rect[3]) / 2 - 10 }}px;
+                                background-color: {{ label.color }}"
+                         (click)="detectorHintClicked(box.id)">
+                      <div class="QueryHintValue">
+                        {{ i + 1 }}
+                      </div>
+                    </div>
+                  </ng-container>
+                </ng-container>
+              </ng-container>
             </div>
           </div>
           <div class="QueryImageContainer">
             <img src="{{ queryImageDataURL }}"
                  class="QueryImage"
+                 id="query-image"
                  alt="">
           </div>
         </ng-container>
@@ -91,36 +114,13 @@ limitations under the License.
         <ng-container *ngTemplateOutlet="inputSection"></ng-container>
       </div>
       <div class="ResultsSection">
-        <!-- Case of classifier results -->
-        <div class="Results" *ngIf="classifierResults != null">
-          <div class="ResultTitle">
-            Results:
-          </div>
-          <ng-container *ngIf="resultsKeyName != null && resultsValueName != null">
-            <div class="ResultSubtitle">
-              <div class="ResultSubtitleType">
-                {{ resultsKeyName }}
-              </div>
-              <div class="ResultSubtitleUnit">
-                {{ resultsValueName }}
-              </div>
-            </div>
+        <div class="Results">
+          <ng-container *ngIf="classifierResults != null">
+            <ng-container *ngTemplateOutlet="classifierResultsTemplate"></ng-container>
           </ng-container>
-          <div class="ResultList">
-            <div class="ResultBarBackground"></div>
-            <div class="ClassifierResult" *ngFor="let result of classifierResults">
-              <div class="ClassifierResultDisplayName">
-                {{ result.displayName }}
-              </div>
-              <div class="ClassifierResultScorePercent">
-                {{ result.score | number:'1.1-3' }}
-              </div>
-              <div class="ResultBarBackground"></div>
-              <div class="ResultBarForeground"
-                   style="width: {{ 100 * result.score | number }}%">
-              </div>
-            </div>
-          </div>
+          <ng-container *ngIf="detectorResults != null">
+            <ng-container *ngTemplateOutlet="detectorResultsTemplate"></ng-container>
+          </ng-container>
         </div>
       </div>
       <div class="RightFooter">
@@ -154,6 +154,102 @@ limitations under the License.
       <svg class="InputSectionUploadIcon" xmlns="https://www.w3.org/2000/svg" height="24px" viewBox="0 0 24 24" width="24px" fill="#425066"><path d="M0 0h24v24H0V0z" fill="none"/><path d="M17.92 10.02C17.45 7.18 14.97 5 12 5 9.82 5 7.83 6.18 6.78 8.06 4.09 8.41 2 10.74 2 13.5 2 16.53 4.47 19 7.5 19h10c2.48 0 4.5-2.02 4.5-4.5 0-2.34-1.79-4.27-4.08-4.48zM17.5 17h-10C5.57 17 4 15.43 4 13.5c0-1.89 1.54-3.46 3.44-3.49l.64-.01.26-.59C8.97 7.94 10.41 7 12 7c2.21 0 4 1.79 4 4v1h1.5c1.38 0 2.5 1.12 2.5 2.5S18.88 17 17.5 17zm-4.79-7.29l2.79 2.79-1.41 1.41L13 12.83v2.67h-2v-2.67l-1.09 1.09L8.5 12.5l2.79-2.79L12 9l.71.71z"/></svg>
     </label>
   </div>
+</ng-template>
+
+<ng-template #classifierResultsTemplate>
+  <ng-container *ngTemplateOutlet="resultsHeader"></ng-container>
+  <div class="ResultList">
+    <div class="ResultBarBackground"></div>
+    <div class="ClassifierResult" *ngFor="let result of classifierResults">
+      <div class="ClassifierResultDisplayName">
+        {{ result.displayName }}
+      </div>
+      <div class="ClassifierResultScorePercent">
+        {{ result.score | number:'1.1-3' }}
+      </div>
+      <div class="ResultBarBackground"></div>
+      <div class="ResultBarForeground"
+           style="width: {{ 100 * result.score | number }}%">
+      </div>
+    </div>
+  </div>
+</ng-template>
+
+<ng-template #detectorResultsTemplate>
+  <ng-container *ngTemplateOutlet="resultsHeader"></ng-container>
+  <div class="ResultList">
+    <div class="ResultBarBackground"></div>
+    <ng-container *ngFor="let label of detectionLabels">
+      <div *ngIf="label.boxes.length > 0 && label.boxes[0].score >= detectionScoreThreshold"
+           class="DetectorResult"
+           style="color: {{ label.color }}">
+        <div class="DetectorResultIcon"
+             (click)="detectorResultLabelClicked(label.label)">
+          <svg *ngIf="!collapsedDetectionLabels.has(label.label)" xmlns="https://www.w3.org/2000/svg" height="12px" viewBox="0 0 24 24" width="12px" fill="#425066"><path d="M0 0h24v24H0V0z" fill="none"/><path d="M18.59 16.41L20 15l-8-8-8 8 1.41 1.41L12 9.83"/></svg>
+          <svg *ngIf="collapsedDetectionLabels.has(label.label)" xmlns="https://www.w3.org/2000/svg" height="12px" viewBox="0 0 24 24" width="12px" fill="#425066"><path d="M5.41 7.59L4 9l8 8 8-8-1.41-1.41L12 14.17"/><path d="M24 24H0V0h24v24z" fill="none" opacity=".87"/></svg>
+        </div>
+        <div class="DetectorResultLabel"
+             (mouseenter)="detectorResultLabelHovered(label.label)"
+             (mouseleave)="detectorResultLeft()"
+             (click)="detectorResultLabelClicked(label.label)">
+          {{ label.displayName }}
+        </div>
+        <div *ngIf="!collapsedDetectionLabels.has(label.label)"
+             class="DetectorResultLabelBoxList">
+          <div *ngFor="let box of label.boxes; let i = index"
+               class="DetectorResultLabelBox"
+               (mouseenter)="detectorResultIdHovered(box.id)"
+               (mouseleave)="detectorResultLeft()">
+            <ng-container *ngIf="box.score >= detectionScoreThreshold">
+              <div class="DetectorResultLabelBoxIndexContainer"
+                   style="background-color: {{ label.color }}">
+                <div class="DetectorResultLabelBoxIndex">
+                  {{ i + 1 }}
+                </div>
+              </div>
+              <div class="DetectorResultLabelBoxScore"
+                   style="color: {{ label.color }}">
+                {{ box.score | number:'1.1-2' }}
+              </div>
+            </ng-container>
+          </div>
+        </div>
+      </div>
+    </ng-container> 
+  </div>
+</ng-template>
+
+<ng-template #resultsHeader>
+  <div class="ResultTitle">
+    Results:
+    <ng-container *ngIf="detectorResults != null">
+      <div class="DetectorThresholdSliderContainer">
+        <div class="DetectorThresholdSliderExtrema">
+          0
+        </div>
+        <div class="DetectorThresholdSliderValue"
+             id="threshold-slider-value">
+          {{ detectionScoreThreshold }}
+        </div>
+        <input class="DetectorThresholdSlider"
+               type="range" min="0" max="100" value="{{ detectionScoreThreshold * 100 | number:'1.0' }}"
+               (input)="detectionScoreThresholdChanged($event)">
+        <div class="DetectorThresholdSliderExtrema">
+          1
+        </div>
+      </div>
+    </ng-container>
+  </div>
+  <ng-container *ngIf="resultsKeyName != null && resultsValueName != null">
+    <div class="ResultSubtitle">
+      <div class="ResultSubtitleType">
+        {{ resultsKeyName }}
+      </div>
+      <div class="ResultSubtitleUnit">
+        {{ resultsValueName }}
+      </div>
+    </div>
+  </ng-container>
 </ng-template>
 
 <ng-container *ngTemplateOutlet="render"></ng-container>

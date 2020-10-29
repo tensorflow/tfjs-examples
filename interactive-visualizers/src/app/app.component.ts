@@ -689,7 +689,7 @@ export class AppComponent implements OnInit {
   /**
    * Coordinates are expected to be in the [0, 1] range.
    */
-  displayRectangles(detections: Array<{id: number, displayName: string, box: number[], score: number, label: number}>) {
+  displayRectangles(detections: Array<{id: number, displayName: string, box: number[], score: number, label: number}>): void {
     const canvas = document.getElementById('query-canvas-overlay') as HTMLCanvasElement;
     canvas.style.height = `${this.queryImageHeight}px`;
     canvas.style.width = `${this.queryImageWidth}px`;
@@ -766,8 +766,8 @@ export class AppComponent implements OnInit {
       // Case a result label is hovered. Displays the bounding boxes it's part of,
       // and ignore other detections.
       const detections = [];
-      for (let detection of this.detectorResults) {
-        if (detection.label == this.hoveredDetectionResultLabel &&
+      for (const detection of this.detectorResults) {
+        if (detection.label === this.hoveredDetectionResultLabel &&
             detection.score >= this.detectionScoreThreshold) {
           detections.push(detection);
         }
@@ -776,8 +776,8 @@ export class AppComponent implements OnInit {
     } else if (this.hoveredDetectionResultId != null) {
       // Case a result box ID is hovered. Displays only its boulding box.
       const detections = [];
-      for (let detection of this.detectorResults) {
-        if (detection.id == this.hoveredDetectionResultId &&
+      for (const detection of this.detectorResults) {
+        if (detection.id === this.hoveredDetectionResultId &&
             detection.score >= this.detectionScoreThreshold) {
           detections.push(detection);
         }

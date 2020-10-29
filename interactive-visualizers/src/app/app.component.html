@@ -28,7 +28,10 @@ limitations under the License.
         <ng-container *ngIf="queryImageDataURL != null">
           <div class="QueryCanvasOverlayContainer">
             <!-- Spot for overlaying a canvas on top of the query image -->
-            <canvas class="QueryCanvasOverlay">
+            <canvas class="QueryCanvasOverlay"
+                    id="query-canvas-overlay"
+                    (click)="detectorResultLeft()"
+                    (mouseout)="detectorResultLeft()">
             </canvas>
           </div>
           <div class="QueryCanvasOverlayContainer">
@@ -36,7 +39,7 @@ limitations under the License.
             <div class="QueryHintsContainer"
                  style="height: {{ queryImageHeight }}px; width: {{ queryImageWidth }}px">
               <!-- Display detection hints -->
-              <ng-container *ngIf="detectionLabels != null">
+              <ng-container *ngIf="hoveredDetectionResultLabel == null && hoveredDetectionResultId == null">
                 <ng-container *ngFor="let label of detectionLabels">
                   <ng-container *ngFor="let box of label.boxes; let i = index">
                     <div *ngIf="box.score >= detectionScoreThreshold"

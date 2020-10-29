@@ -30,6 +30,7 @@ const TEST_IMAGE_FETCH_FAILURE_MESSAGE =
 const MAX_NB_RESULTS = 100;
 const UNKNOWN_LABEL_DISPLAY_NAME = 'unknown';
 const DEFAULT_DETECTION_THRESHOLD = 0.2;
+const DETECTION_RECTANGLE_BORDER_WIDTH = 2;
 /**
  * Uses the Pascal VOC[1] color list (256 colors).
  * [1]: http://host.robots.ox.ac.uk/pascal/VOC/
@@ -685,7 +686,108 @@ export class AppComponent implements OnInit {
     setTimeout(() => this.updateDetectionScoreThresholdPosition(), 20);
   }
 
-  detectorResultLabelClicked(label: number) {
+  /**
+   * Coordinates are expected to be in the [0, 1] range.
+   */
+  displayRectangles(detections: Array<{id: number, displayName: string, box: number[], score: number, label: number}>) {
+    const canvas = document.getElementById('query-canvas-overlay') as HTMLCanvasElement;
+    canvas.style.height = `${this.queryImageHeight}px`;
+    canvas.style.width = `${this.queryImageWidth}px`;
+    canvas.width = this.queryImageWidth;
+    canvas.height = this.queryImageHeight;
+    const context = canvas.getContext('2d') as CanvasRenderingContext2D;
+    context.globalAlpha = 0.5;
+    context.fillRect(0, 0, canvas.width, canvas.height);
+    context.globalAlpha = 1;
+    context.fillStyle = 'white';
+    context.lineWidth = DETECTION_RECTANGLE_BORDER_WIDTH;
+
+    // First remove rectangle contents.
+    context.globalCompositeOperation = 'destination-out';
+    for (const detection of detections) {
+      const rectangle = detection.box;
+      const top = rectangle[0];
+      const left = rectangle[1];
+      const bottom = rectangle[2];
+      const right = rectangle[3];
+      const width = right - left;
+      const height = bottom - top;
+      context.fillRect(
+          this.queryImageWidth * left, this.queryImageHeight * top, this.queryImageWidth * width,
+          this.queryImageHeight * height);
+    }
+
+    // Then draw the borders.
+    context.globalCompositeOperation = 'source-over';
+    for (const detection of detections) {
+      const rectangle = detection.box;
+      const top = rectangle[0];
+      const left = rectangle[1];
+      const bottom = rectangle[2];
+      const right = rectangle[3];
+      const width = right - left;
+      const height = bottom - top;
+      const colorIndex = this.detectionLabelToIds.get(detection.label);
+      context.strokeStyle = `rgb(${255 * COLOR_LIST[colorIndex][0]}, ${255 *
+          COLOR_LIST[colorIndex][1]}, ${255 * COLOR_LIST[colorIndex][2]})`;
+      context.beginPath();
+      context.setLineDash([3, 3]);
+      context.moveTo(this.queryImageWidth * left, this.queryImageHeight * top);
+      context.lineTo(this.queryImageWidth * (left + width), this.queryImageHeight * top);
+      context.lineTo(this.queryImageWidth * (left + width), this.queryImageHeight * (top + height));
+      context.lineTo(this.queryImageWidth * left, this.queryImageHeight * (top + height));
+      context.lineTo(this.queryImageWidth * left, this.queryImageHeight * top);
+      context.stroke();
+    }
+  }
+
+  /*
+   * Removes the query image overlaid canvas content.
+   */
+  removeOverlayedCanvas(): void {
+    const canvas = document.getElementById('query-canvas-overlay') as HTMLCanvasElement;
+    canvas.width = 0;
+    canvas.height = 0;
+    const context = canvas.getContext('2d') as CanvasRenderingContext2D;
+    context.fillRect(0, 0, 0, 0);
+  }
+
+  /**
+   * Fills the query image overlaid canvas with detection results.
+   */
+  fillDetectionCanvas(): void {
+    if (this.detectorResults == null) {
+      return;
+    }
+    this.removeOverlayedCanvas();
+    document.getElementById('query-image').style.opacity = '1';
+
+    if (this.hoveredDetectionResultLabel != null) {
+      // Case a result label is hovered. Displays the bounding boxes it's part of,
+      // and ignore other detections.
+      const detections = [];
+      for (let detection of this.detectorResults) {
+        if (detection.label == this.hoveredDetectionResultLabel &&
+            detection.score >= this.detectionScoreThreshold) {
+          detections.push(detection);
+        }
+      }
+      this.displayRectangles(detections);
+    } else if (this.hoveredDetectionResultId != null) {
+      // Case a result box ID is hovered. Displays only its boulding box.
+      const detections = [];
+      for (let detection of this.detectorResults) {
+        if (detection.id == this.hoveredDetectionResultId &&
+            detection.score >= this.detectionScoreThreshold) {
+          detections.push(detection);
+        }
+      }
+      this.displayRectangles(detections);
+    }
+  }
+
+  /** On click on a detector label. */
+  detectorResultLabelClicked(label: number): void {
     if (this.collapsedDetectionLabels.has(label)) {
       this.collapsedDetectionLabels.delete(label);
     } else {
@@ -693,15 +795,32 @@ export class AppComponent implements OnInit {
     }
   }
 
-  detectorResultLabelHovered(label: number) {}
+  /** On hover on a detector label. */
+  detectorResultLabelHovered(label: number): void {
+    this.hoveredDetectionResultLabel = label;
+    this.fillDetectionCanvas();
+  }
 
-  detectorResultLeft() {}
+  /** When leaving a detector result or label hover. */
+  detectorResultLeft(): void {
+    this.hoveredDetectionResultLabel = null;
+    this.hoveredDetectionResultId = null;
+    this.removeOverlayedCanvas();
+  }
 
-  detectorResultIdHovered(resultId: number) {}
+  /** On hover on a specific detector result. */
+  detectorResultIdHovered(resultId: number): void {
+    this.hoveredDetectionResultId = resultId;
+    this.fillDetectionCanvas();
+  }
 
-  detectorHintClicked(resultsId: number) {}
+  /** On click on a hint overlayd on the query image. */
+  detectorHintClicked(resultId: number): void {
+    this.hoveredDetectionResultId = resultId;
+    this.fillDetectionCanvas();
+  }
 
-  detectionScoreThresholdChanged(event: InputEvent) {
+  detectionScoreThresholdChanged(event: InputEvent): void {
     const sliderElement = event.target as HTMLInputElement;
     this.detectionScoreThreshold = parseFloat(sliderElement.value) / 100;
 
@@ -709,7 +828,7 @@ export class AppComponent implements OnInit {
     setTimeout(() => this.updateDetectionScoreThresholdPosition(), 20);
   }
 
-  updateDetectionScoreThresholdPosition() {
+  updateDetectionScoreThresholdPosition(): void {
     const thresholdSliderValueElement =
         document.getElementById('threshold-slider-value');
     const width = thresholdSliderValueElement.getBoundingClientRect().width;

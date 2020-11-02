@@ -583,7 +583,7 @@ export class AppComponent implements OnInit {
         await this.model.executeAsync(imageTensor, outputTensorName) as tf.Tensor;
     tf.dispose(imageTensor);
     const squeezedOutputTensor = outputTensor.squeeze();
-    tf.dispose(outputTensor)
+    tf.dispose(outputTensor);
     const predictions = await squeezedOutputTensor.array() as number[][];
     tf.dispose(squeezedOutputTensor);
 
@@ -594,9 +594,9 @@ export class AppComponent implements OnInit {
     // Generate labelmap if not found.
     if (this.labelmap == null) {
       let maxLabelIndex = 0;
-      for (let i = 0; i < predictions.length; ++i) {
-        for (let j = 0; j < predictions[i].length; ++j) {
-          maxLabelIndex = Math.max(maxLabelIndex, predictions[i][j]);
+      for (const predictionLine of predictions) {
+        for (const prediction of predictionLine) {
+          maxLabelIndex = Math.max(maxLabelIndex, prediction);
         }
       }
       this.labelmap = [];
@@ -607,23 +607,23 @@ export class AppComponent implements OnInit {
 
     // Compute label frequencies.
     const frequencies = new Array(this.labelmap.length).fill(0);
-    for (let i = 0; i < predictions.length; ++i) {
-      for (let j = 0; j < predictions[i].length; ++j) {
-        ++frequencies[predictions[i][j]];
+    for (const predictionLine of predictions) {
+        for (const prediction of predictionLine) {
+        ++frequencies[prediction];
       }
     }
 
     // Sort labels by decreasing area importance in the query image.
     const labelList = frequencies
-                          .map((frequency, index) => {
+                          .map((frequency, listIndex) => {
                             return {
-                              displayName: this.labelmap[index],
-                              index,
+                              displayName: this.labelmap[listIndex],
+                              index: listIndex,
                               frequencyPercent: Math.ceil(
                                   100 * frequency /
                                   (predictions.length * predictions[0].length)),
-                              color: `rgb(${255 * COLOR_LIST[index][0]}, ${255 *
-          COLOR_LIST[index][1]}, ${255 * COLOR_LIST[index][2]})`,
+                              color: `rgb(${255 * COLOR_LIST[listIndex][0]}, ${255 *
+          COLOR_LIST[listIndex][1]}, ${255 * COLOR_LIST[listIndex][2]})`,
                             };
                           })
                           .sort((a, b) => {
@@ -668,7 +668,7 @@ export class AppComponent implements OnInit {
                 height - 1,
                 Math.max(0, Math.round((event.clientY - rect.top) * scaleY)));
             const hoveredLabel = this.segmenterPredictions[y][x];
-            if (hoveredLabel != this.hoveredSegmentationLabel) {
+            if (hoveredLabel !== this.hoveredSegmentationLabel) {
               this.hoveredSegmentationLabel = hoveredLabel;
               this.fillSegmentationCanvas();
             }
@@ -684,7 +684,7 @@ export class AppComponent implements OnInit {
   /**
    * Fills a canvas with segmenter predictions overlaid on top of the query image.
    */
-  fillSegmentationCanvas() {
+  fillSegmentationCanvas(): void {
     const canvas = document.getElementById('query-canvas-overlay') as HTMLCanvasElement;
     canvas.style.cursor = 'pointer';
     const context = canvas.getContext('2d') as CanvasRenderingContext2D;
@@ -697,7 +697,7 @@ export class AppComponent implements OnInit {
         const labelIndex = this.segmenterPredictions[i][j];
         const currentPixel = 4 * (width * i + j);
         if (this.hoveredSegmentationLabel != null &&
-            labelIndex != this.hoveredSegmentationLabel) {
+            labelIndex !== this.hoveredSegmentationLabel) {
           data[currentPixel] = 0;
           data[currentPixel + 1] = 0;
           data[currentPixel + 2] = 0;

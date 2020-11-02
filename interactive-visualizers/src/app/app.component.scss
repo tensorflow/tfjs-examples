@@ -218,56 +218,6 @@ $XXSMALL_FONT_SIZE: 12px;
   width: calc(100% - 4px);
 }
 
-/* Left footer */
-
-.LeftFooterPublisherThumbnailUrl {
-  border-radius: 100%;
-  display: inline-block;
-  height: 50px;
-  width: 50px;
-}
-
-.LeftFooterPublisherNameContainer {
-  display: inline-block;
-  height: 100%;
-  margin-left: 12px;
-  vertical-align: top;
-}
-
-.LeftFooterPublisherNameHeader {
-  color: $SECONDARY_TEXT_COLOR;
-  font-size: $XXSMALL_FONT_SIZE;
-  height: 17px;
-  margin-top: 7px;
-}
-
-.LeftFooterPublisherNameText {
-  color: $PRIMARY_TEXT_COLOR;
-  font-size: $SMALL_FONT_SIZE;
-  height: 26px;
-}
-
-.LeftFooterPrivacyPolicy {
-  color: $PRIMARY_TEXT_COLOR;
-  cursor: pointer;
-  float: right;
-  font-size: $XXSMALL_FONT_SIZE;
-  margin-top: 28px;
-  padding-right: 8px;
-  text-decoration: none;
-}
-
-.LeftFooterTermsOfService {
-  border-left: solid 1px $BORDER_COLOR;
-  color: $PRIMARY_TEXT_COLOR;
-  cursor: pointer;
-  float: right;
-  font-size: $XXSMALL_FONT_SIZE;
-  margin-top: 28px;
-  padding-left: 8px;
-  text-decoration: none;
-}
-
 /* Input section */
 
 .DragAndDrop {
@@ -328,7 +278,7 @@ $XXSMALL_FONT_SIZE: 12px;
 .ResultList {
   height: calc(100% - 63px);
   margin-top: 8px;
-  overflow-y: scroll;
+  overflow-y: auto;
   -webkit-mask-image: -webkit-gradient(linear, left top, left bottom, from(rgba(0,0,0,1)), to(rgba(0,0,0,0.8)));
   width: 100%;
 }
@@ -346,6 +296,10 @@ $XXSMALL_FONT_SIZE: 12px;
   margin-top: -2px;
   position: absolute;
   width: calc(100% - 2px);
+}
+
+.ResultWithOpacity {
+  opacity: 0.5;
 }
 
 /* Classifier results */
@@ -368,6 +322,42 @@ $XXSMALL_FONT_SIZE: 12px;
   color: $VALUE_COLOR;
   display: inline-block;
   float: right;
+  vertical-align: top;
+}
+
+/* Segmenter results */
+
+.SegmenterResult {
+  cursor: pointer;
+  position: relative;
+}
+
+.SegmenterResultColor {
+  border-color: #424242;
+  border-radius: 100%;
+  display: inline-block;
+  height: 12px;
+  margin-right: 12px;
+  width: 12px;
+}
+
+.SegmenterResultDisplayName {
+  display: inline-block;
+  font-size: $SMALL_FONT_SIZE;
+  max-width: calc(100% - 70px);
+  overflow: hidden;
+  padding-bottom: 6px;
+  padding-top: 10px;
+  text-overflow: ellipsis;
+  vertical-align: top;
+  white-space: nowrap;
+}
+
+.SegmenterResultScorePercent {
+  color: $VALUE_COLOR;
+  display: inline-block;
+  float: right;
+  padding-top: 10px;
   vertical-align: top;
 }
 

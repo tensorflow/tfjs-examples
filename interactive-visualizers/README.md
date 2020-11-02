@@ -6,8 +6,8 @@ tasks embeddable anywhere in the web.
 Supported tasks:
 
 *   Image Classification
-*   Object Detection (WIP)
-*   Image Segmentation (WIP)
+*   Object Detection
+*   Image Segmentation
 
 The Interactive Visualizer supports any model coming with a metadata JSON file
 formatted following the supported tasks standards. This metadata file is passed

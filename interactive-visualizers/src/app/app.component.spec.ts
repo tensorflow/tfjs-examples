@@ -59,6 +59,7 @@ const SIMPLE_MODEL = {
 
 describe('AppComponent', () => {
   beforeEach(async () => {
+    jasmine.clock().install();
     await tf.setBackend('cpu');
     await TestBed
         .configureTestingModule({
@@ -68,6 +69,7 @@ describe('AppComponent', () => {
   });
 
   afterEach(() => {
+    jasmine.clock().uninstall();
     fetchMock.reset();
   });
 
@@ -325,10 +327,10 @@ describe('AppComponent', () => {
                [0.3, 0.4, 0.5, 0.6], [0.4, 0.5, 0.6, 0.7]]]),
              tf.tensor([[0.9, 0.8, 0.5, 0.4]]),
              tf.tensor([[0, 1, 0, 1]])]));
-       const fakeImageElement = new Image();
        spyOn(document, 'getElementById').and.returnValue(fakeImage);
 
        await app.runImageDetector(fakeImage, 0);
+       jasmine.clock().tick(50);
 
        expect(app.detectorResults.length).toEqual(4);
        expect(app.detectorResults[0].displayName).toEqual('someLabel');
@@ -343,5 +345,64 @@ describe('AppComponent', () => {
        expect(app.detectorResults[3].displayName).toEqual('otherLabel');
        expect(app.detectorResults[3].score).toBeCloseTo(0.4);
        expect(app.detectorResults[3].id).toEqual(3);
+     });
+
+  it('runImageSegmenter should execute correctly',
+     async () => {
+       const fixture = TestBed.createComponent(AppComponent);
+       const app = fixture.componentInstance;
+
+       // Prepare test data.
+       const fakeImage = new Image();
+       const fakeCanvas = document.createElement('canvas');
+       const fakeInputTensor = tf.tensor([[1.0, 2.0], [3.0, 4.0]]);
+       app.labelmap = ['someLabel', 'otherLabel'];
+       app.modelMetadata = {
+         tfjs_segmenter_model_metadata: {
+           input_tensor_metadata: [1, 2, 3, 4],
+           output_head_metadata: [{
+             semantic_predictions_tensor_name: 'tensor_name',
+           }],
+         },
+       };
+       const customLoader: tf.io.IOHandler = {
+         load: async () => {
+           return {
+             modelTopology: SIMPLE_MODEL,
+             weightSpecs: weightsManifest,
+             weightData: new Int32Array([5]).buffer,
+           };
+         }
+       };
+       app.model = await tf.loadGraphModel(customLoader);
+       app.imageSelectedIndex = 0;
+
+       // Mock calls.
+       spyOn(app, 'prepareImageInput').and.returnValue(fakeInputTensor);
+       spyOn(app.model, 'executeAsync')
+           .and.returnValue(Promise.resolve(
+             tf.tensor([[0, 0, 1], [0, 0, 1], [0, 1, 1]])));
+       spyOn(document, 'getElementById').and.callFake((elementId) => {
+         switch (elementId) {
+           case 'query-image':
+             return fakeImage;
+             break;
+           case 'query-canvas-overlay':
+             return fakeCanvas;
+             break;
+         }
+       });
+
+       await app.runImageSegmenter(fakeImage, 0);
+
+       expect(app.segmenterPredictions.length).toEqual(3);
+       expect(app.segmenterPredictions[0].length).toEqual(3);
+       expect(app.segmenterLabelList.length).toEqual(2);
+       expect(app.segmenterLabelList[0].displayName).toEqual('someLabel');
+       expect(app.segmenterLabelList[0].frequencyPercent).toBeCloseTo(56);
+       expect(app.segmenterLabelList[0].color).toEqual('rgb(0, 0, 0)');
+       expect(app.segmenterLabelList[1].displayName).toEqual('otherLabel');
+       expect(app.segmenterLabelList[1].frequencyPercent).toBeCloseTo(45);
+       expect(app.segmenterLabelList[1].color).toEqual('rgb(128.000055, 0, 0)');
      });
 });

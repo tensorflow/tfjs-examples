@@ -30,8 +30,8 @@ limitations under the License.
             <!-- Spot for overlaying a canvas on top of the query image -->
             <canvas class="QueryCanvasOverlay"
                     id="query-canvas-overlay"
-                    (click)="detectorResultLeft()"
-                    (mouseout)="detectorResultLeft()">
+                    (click)="canvasOverlayLeft()"
+                    (mouseout)="canvasOverlayLeft()">
             </canvas>
           </div>
           <div class="QueryCanvasOverlayContainer">
@@ -82,31 +82,8 @@ limitations under the License.
         </div>
       </div>
 
-      <!-- Left footer -->
-      <div class="LeftFooter">
-        <img *ngIf="publisherThumbnailUrl != null"
-             class="LeftFooterPublisherThumbnailUrl"
-             src="{{ publisherThumbnailUrl }}"
-             alt="">
-        <div *ngIf="publisherName != null"
-             class="LeftFooterPublisherNameContainer">
-          <div class="LeftFooterPublisherNameHeader">
-            Published by:
-          </div>
-          <div class="LeftFooterPublisherNameText">
-            {{ publisherName }}
-          </div>
-        </div>
-        <a class="LeftFooterTermsOfService"
-           href="https://www.google.com/intl/en/policies/terms/"
-           target="_blank">
-          Terms of Service
-        </a>
-        <a class="LeftFooterPrivacyPolicy"
-           href="https://www.google.com/intl/en/policies/privacy/"
-           target="_blank">
-          Privacy Policy
-        </a>
+      <div class="LeftFooter"
+           id="left-footer-section">
       </div>
     </div>
     <div class="RightSide">
@@ -120,6 +97,9 @@ limitations under the License.
           </ng-container>
           <ng-container *ngIf="detectorResults != null">
             <ng-container *ngTemplateOutlet="detectorResultsTemplate"></ng-container>
+          </ng-container>
+          <ng-container *ngIf="segmenterPredictions != null">
+            <ng-container *ngTemplateOutlet="segmenterResultsTemplate"></ng-container>
           </ng-container>
         </div>
       </div>
@@ -173,6 +153,32 @@ limitations under the License.
       </div>
     </div>
   </div>
+</ng-template>
+
+<ng-template #segmenterResultsTemplate>
+  <ng-container *ngTemplateOutlet="resultsHeader"></ng-container>
+  <div class="ResultList">
+    <div class="ResultBarBackground"></div>
+    <div *ngFor="let label of segmenterLabelList"
+         class="SegmenterResult"
+         (mouseenter)="segmenterResultHovered(label.index)"
+         (mouseleave)="segmenterResultLeft()"
+         [ngClass]="{'ResultWithOpacity': hoveredSegmentationLabel != null && hoveredSegmentationLabel != label.index}">
+      <div class="SegmenterResultDisplayName"
+           style="color: {{ label.color }}">
+        {{ label.displayName }}
+      </div>
+      <div class="SegmenterResultScorePercent"
+           style="color: {{ label.color }}">
+        {{ label.frequencyPercent }}%
+      </div>
+      <div class="ResultBarBackground"></div>
+      <div class="ResultBarForeground"
+           style="width: {{ label.frequencyPercent | number }}%;
+                  background-color: {{ label.color }}">
+      </div>
+    </div>
+</div>
 </ng-template>
 
 <ng-template #detectorResultsTemplate>

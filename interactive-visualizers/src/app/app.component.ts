@@ -176,8 +176,6 @@ export class AppComponent implements OnInit {
   title = 'interactive-visualizers';
 
   // Model related variables.
-  publisherThumbnailUrl: string|null = null;
-  publisherName: string|null = null;
   modelMetadataUrl: string|null = null;
   modelMetadata: any|null = null;
   modelType: string|null = null;
@@ -200,7 +198,9 @@ export class AppComponent implements OnInit {
   // Results variables.
   resultsKeyName: string|null = null;
   resultsValueName: string|null = null;
+  // Classifier specific variables.
   classifierResults: Array<{displayName: string, score: number}>|null = null;
+  // Detector specific variables.
   detectorResults: Array<{
     id: number,
     displayName: string,
@@ -221,6 +221,11 @@ export class AppComponent implements OnInit {
   hoveredDetectionLabel: number|null = null;
   hoveredDetectionResultLabel: number|null = null;
   hoveredDetectionResultId: number|null = null;
+  // Segmenter specific variables.
+  segmenterPredictions: number[][]|null = null;
+  segmenterLabelList: Array<{displayName: string, index: number,
+    frequencyPercent: number, color: string}>|null = null;
+  hoveredSegmentationLabel: number|null = null;
 
   ngOnInit(): void {
     // Sanity checks on URL query parameters.
@@ -229,12 +234,6 @@ export class AppComponent implements OnInit {
       throw new Error(NO_MODEL_METADATA_ERROR_MESSAGE);
     }
     const modelMetadataUrl = urlParams.get('modelMetadataUrl');
-    if (urlParams.has('publisherThumbnailUrl')) {
-      this.publisherThumbnailUrl = urlParams.get('publisherThumbnailUrl');
-    }
-    if (urlParams.has('publisherName')) {
-      this.publisherName = urlParams.get('publisherName');
-    }
 
     this.initApp(modelMetadataUrl);
   }
@@ -259,6 +258,8 @@ export class AppComponent implements OnInit {
       this.modelType = 'classifier';
     } else if (this.modelMetadata.tfjs_detector_model_metadata) {
       this.modelType = 'detector';
+    } else if (this.modelMetadata.tfjs_segmenter_model_metadata) {
+      this.modelType = 'segmenter';
     }
 
     // Fetch test data if any.
@@ -417,6 +418,9 @@ export class AppComponent implements OnInit {
         case 'detector':
           this.runImageDetector(image, index);
           break;
+        case 'segmenter':
+          this.runImageSegmenter(image, index);
+          break;
         default:
           console.error(
               `The model type \`${this.modelType}\ isn't currently supported.`);
@@ -558,6 +562,165 @@ export class AppComponent implements OnInit {
       this.resultsKeyName = 'Type';
       this.resultsValueName = 'Score';
     }
+  }
+
+  /**
+   * Run the model in case of image segmentation.
+   */
+  async runImageSegmenter(image: HTMLImageElement, index: number):
+      Promise<void> {
+    // Prepare inputs.
+    const inputTensorMetadata =
+        this.modelMetadata.tfjs_segmenter_model_metadata.input_tensor_metadata;
+    const imageTensor = this.prepareImageInput(image, inputTensorMetadata);
+
+    // Execute the model.
+    const outputHeadMetadata =
+        this.modelMetadata.tfjs_segmenter_model_metadata.output_head_metadata[0];
+    const outputTensorName =
+        outputHeadMetadata.semantic_predictions_tensor_name;
+    const outputTensor =
+        await this.model.executeAsync(imageTensor, outputTensorName) as tf.Tensor;
+    tf.dispose(imageTensor);
+    const squeezedOutputTensor = outputTensor.squeeze();
+    tf.dispose(outputTensor);
+    const predictions = await squeezedOutputTensor.array() as number[][];
+    tf.dispose(squeezedOutputTensor);
+
+    // Fetch the labelmap.
+    if (this.labelmap == null && outputHeadMetadata.labelmap_path != null) {
+      await this.fetchLabelmap(outputHeadMetadata.labelmap_path);
+    }
+    // Generate labelmap if not found.
+    if (this.labelmap == null) {
+      let maxLabelIndex = 0;
+      for (const predictionLine of predictions) {
+        for (const prediction of predictionLine) {
+          maxLabelIndex = Math.max(maxLabelIndex, prediction);
+        }
+      }
+      this.labelmap = [];
+      for (let i = 0; i <= maxLabelIndex; ++i) {
+        this.labelmap.push(`Label ${i}`);
+      }
+    }
+
+    // Compute label frequencies.
+    const frequencies = new Array(this.labelmap.length).fill(0);
+    for (const predictionLine of predictions) {
+        for (const prediction of predictionLine) {
+        ++frequencies[prediction];
+      }
+    }
+
+    // Sort labels by decreasing area importance in the query image.
+    const labelList = frequencies
+                          .map((frequency, listIndex) => {
+                            return {
+                              displayName: this.labelmap[listIndex],
+                              index: listIndex,
+                              frequencyPercent: Math.ceil(
+                                  100 * frequency /
+                                  (predictions.length * predictions[0].length)),
+                              color: `rgb(${255 * COLOR_LIST[listIndex][0]}, ${255 *
+          COLOR_LIST[listIndex][1]}, ${255 * COLOR_LIST[listIndex][2]})`,
+                            };
+                          })
+                          .sort((a, b) => {
+                            if (a.frequencyPercent > b.frequencyPercent) {
+                              return -1;
+                            }
+                            return 1;
+                          });
+
+    if (this.imageSelectedIndex === index) {
+      // Display results only for the last selected image (as the user may
+      // have switched selection while inference was running).
+      this.segmenterPredictions = predictions;
+      this.segmenterLabelList = labelList;
+      this.hoveredSegmentationLabel = null;
+      this.resultsKeyName = 'Type';
+      this.resultsValueName = 'Percentage of image area';
+
+      const imageHtmlElement = document.getElementById('query-image') as HTMLImageElement;
+      this.queryImageHeight = imageHtmlElement.offsetHeight;
+      this.queryImageWidth = imageHtmlElement.offsetWidth;
+      const width = predictions.length;
+      const height = predictions[0].length;
+      const canvas = document.getElementById('query-canvas-overlay') as HTMLCanvasElement;
+      canvas.style.height = `${this.queryImageHeight}px`;
+      canvas.style.width = `${this.queryImageWidth}px`;
+      canvas.width = width;
+      canvas.height = height;
+      const context = canvas.getContext('2d') as CanvasRenderingContext2D;
+      context.fillRect(0, 0, width, height);
+      this.fillSegmentationCanvas();
+
+      canvas.addEventListener(
+          'mousemove', (event => {
+            const rect = canvas.getBoundingClientRect();
+            const scaleX = width / rect.width;
+            const scaleY = height / rect.height;
+            const x = Math.min(
+                width - 1,
+                Math.max(0, Math.round((event.clientX - rect.left) * scaleX)));
+            const y = Math.min(
+                height - 1,
+                Math.max(0, Math.round((event.clientY - rect.top) * scaleY)));
+            const hoveredLabel = this.segmenterPredictions[y][x];
+            if (hoveredLabel !== this.hoveredSegmentationLabel) {
+              this.hoveredSegmentationLabel = hoveredLabel;
+              this.fillSegmentationCanvas();
+            }
+          }));
+
+      canvas.addEventListener('mouseout', (event => {
+                                this.hoveredSegmentationLabel = null;
+                                this.fillSegmentationCanvas();
+                              }));
+    }
+  }
+
+  /**
+   * Fills a canvas with segmenter predictions overlaid on top of the query image.
+   */
+  fillSegmentationCanvas(): void {
+    const canvas = document.getElementById('query-canvas-overlay') as HTMLCanvasElement;
+    canvas.style.cursor = 'pointer';
+    const context = canvas.getContext('2d') as CanvasRenderingContext2D;
+    const height = this.segmenterPredictions.length;
+    const width = this.segmenterPredictions[0].length;
+    const imageData = context.getImageData(0, 0, width, height);
+    const data = imageData.data;
+    for (let i = 0; i < height; ++i) {
+      for (let j = 0; j < width; ++j) {
+        const labelIndex = this.segmenterPredictions[i][j];
+        const currentPixel = 4 * (width * i + j);
+        if (this.hoveredSegmentationLabel != null &&
+            labelIndex !== this.hoveredSegmentationLabel) {
+          data[currentPixel] = 0;
+          data[currentPixel + 1] = 0;
+          data[currentPixel + 2] = 0;
+          data[currentPixel + 3] = 0;  // Fully transparent.
+        } else {
+          data[currentPixel] = 255 * COLOR_LIST[labelIndex][0];
+          data[currentPixel + 1] = 255 * COLOR_LIST[labelIndex][1];
+          data[currentPixel + 2] = 255 * COLOR_LIST[labelIndex][2];
+          data[currentPixel + 3] = 150;
+        }
+      }
+    }
+    context.putImageData(imageData, 0, 0);
+  }
+
+  segmenterResultHovered(index: number): void {
+    this.hoveredSegmentationLabel = index;
+    this.fillSegmentationCanvas();
+  }
+
+  segmenterResultLeft(): void {
+    this.hoveredSegmentationLabel = null;
+    this.fillSegmentationCanvas();
   }
 
   /**
@@ -810,10 +973,12 @@ export class AppComponent implements OnInit {
   }
 
   /** When leaving a detector result or label hover. */
-  detectorResultLeft(): void {
-    this.hoveredDetectionResultLabel = null;
-    this.hoveredDetectionResultId = null;
-    this.removeOverlayedCanvas();
+  canvasOverlayLeft(): void {
+    if (this.detectorResults != null) {
+      this.hoveredDetectionResultLabel = null;
+      this.hoveredDetectionResultId = null;
+      this.removeOverlayedCanvas();
+    }
   }
 
   /** On hover on a specific detector result. */

@@ -21,9 +21,12 @@ PACKAGE_DIR="dist/interactive-visualizers/*"
 PACKAGE_HOST="interactive_visualizer"
 
 rm -rf dist/
-yarn build --prod
+yarn prod-build
+
+PACKAGE_VERSION=`node -p "require('./package.json').version"`
+echo 'current version: ' $PACKAGE_VERSION
 # remove the pre-built addon tarball if it already exist
 if [ "$1" = "for-publish" ]; then
   echo 'copying ...'
-  gsutil -m cp $PACKAGE_DIR gs://$PACKAGE_HOST
+  gsutil -m cp $PACKAGE_DIR gs://$PACKAGE_HOST/$PACKAGE_VERSION
 fi

@@ -15,18 +15,21 @@
 
 set -e
 
-# get package directory
-PACKAGE_DIR="dist/interactive-visualizers/*"
+# get packages directories
+VISUALIZER_PACKAGE_DIR="dist/interactive-visualizers/*"
+PLAYGROUND_PACKAGE_DIR="dist/playground/*"
 # host url
 PACKAGE_HOST="interactive_visualizer"
 
 rm -rf dist/
 yarn prod-build
+yarn playground-prod-build
 
 PACKAGE_VERSION=`node -p "require('./package.json').version"`
 echo 'current version: ' $PACKAGE_VERSION
 # remove the pre-built addon tarball if it already exist
 if [ "$1" = "for-publish" ]; then
   echo 'copying ...'
-  gsutil -m cp $PACKAGE_DIR gs://$PACKAGE_HOST/$PACKAGE_VERSION
+  gsutil -m cp $VISUALIZER_PACKAGE_DIR gs://$PACKAGE_HOST/$PACKAGE_VERSION
+  gsutil -m cp $PLAYGROUND_PACKAGE_DIR gs://$PACKAGE_HOST/$PACKAGE_VERSION/playground
 fi

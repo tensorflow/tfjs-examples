@@ -1,0 +1,30 @@
+<!--
+Copyright 2018 Google LLC. All Rights Reserved.
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+http://www.apache.org/licenses/LICENSE-2.0
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+==============================================================================
+-->
+
+<!-- Template for initially rendering the app. -->
+<ng-template #render>
+  <div class="HeaderSection">
+    <ng-container *ngTemplateOutlet="headerSection"></ng-container>
+  </div>
+  <div class="BodyContainer"></div>
+</ng-template>
+
+<!-- Template for rendering the header section. -->
+<ng-template #headerSection>
+  <div class="HeaderModelName">
+      TF.js model playground
+  </div>
+</ng-template>
+
+<ng-container *ngTemplateOutlet="render"></ng-container>

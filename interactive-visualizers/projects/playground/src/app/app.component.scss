@@ -1,0 +1,96 @@
+/** Default colors. */
+$BORDER_COLOR: #E3E5E8;
+$PRIMARY_BACKGROUND_COLOR: white;
+$PRIMARY_TEXT_COLOR: #425066;
+$SECONDARY_BACKGROUND_COLOR: #F5F6F7;
+$SECONDARY_TEXT_COLOR: #8E96A3;
+$TERTIARY_TEXT_COLOR: #C6CAD1;
+$VALUE_COLOR: #ff6f00;
+
+/** Default fonts. */
+$LARGE_FONT_SIZE: 24px;
+$MEDIUM_FONT_SIZE: 20px;
+$SMALL_FONT_SIZE: 16px;
+$XSMALL_FONT_SIZE: 14px;
+$XXSMALL_FONT_SIZE: 12px;
+
+.HeaderSection {
+  border-bottom: solid 1px $TERTIARY_TEXT_COLOR;
+  font-size: $LARGE_FONT_SIZE;
+  height: 46px;
+  line-height: 46px;
+  padding: 0 11px;
+  position: relative;
+}
+
+.BodyContainer {
+  height: calc(100% - 47px);
+  position: relative;
+}
+
+.LeftSide {
+  display: inline-block;
+  height: 100%;
+  margin-right: 14px;
+  position: relative;
+  width: calc(30% - 14px);
+}
+
+.RightSide {
+  display: inline-block;
+  height: 100%;
+  margin-left: 14px;
+  position: relative;
+  vertical-align: top;
+  width: calc(70% - 14px);
+}
+
+.Message {
+  font-size: $MEDIUM_FONT_SIZE;
+  margin: 0 25%;
+  position: relative;
+  text-align: center;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.ModelList {
+  height: 100%;
+  margin-right: 5px;
+  min-height: 0;
+  overflow-y: auto;
+  padding-top: 12px;
+}
+
+.Model {
+  color: $PRIMARY_TEXT_COLOR;
+  font-size: $SMALL_FONT_SIZE;
+  margin: 6px 14px;
+  margin-bottom: 24px;
+  position: relative;
+}
+
+.Model:hover {
+  cursor: pointer;
+}
+
+.ModelDisplayName {
+  color: #7BAAF7;
+  padding-bottom: 10px;
+}
+
+.ModelDescription {
+  color: $SECONDARY_TEXT_COLOR;
+  opacity: 0.87;
+  overflow-y: auto;
+  padding-bottom: 10px;
+}
+
+.ModelTag {
+  border: solid 1px $PRIMARY_TEXT_COLOR;
+  border-radius: 9px;
+  color: $PRIMARY_TEXT_COLOR;
+  display: inline-block;
+  margin-right: 5px;
+  padding: 3px 8px;
+}

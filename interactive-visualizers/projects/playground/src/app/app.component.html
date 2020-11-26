@@ -17,13 +17,39 @@ limitations under the License.
   <div class="HeaderSection">
     <ng-container *ngTemplateOutlet="headerSection"></ng-container>
   </div>
-  <div class="BodyContainer"></div>
+  <div class="BodyContainer">
+    <div class="LeftSide">
+      <div class="ModelList">
+        <div *ngFor="let model of models"
+             class="Model">
+          <div class=ModelDisplayName>
+            {{ model.displayName }}
+          </div>
+          <div class=ModelDescription>
+            {{ model.description }}
+          </div>
+          <div class=ModelTag>
+            {{ model.type }}
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="RightSide">
+      <div *ngIf="selectedModel == null"
+           class="Message">
+        Welcome to the TF.js Model Playground! Select a model to the left to get started.
+      </div>
+      <div *ngIf="selectedModel != null">
+        TODO
+      </div>
+    </div>
+  </div>
 </ng-template>
 
 <!-- Template for rendering the header section. -->
 <ng-template #headerSection>
   <div class="HeaderModelName">
-      TF.js model playground
+      TF.js Model Playground
   </div>
 </ng-template>
 

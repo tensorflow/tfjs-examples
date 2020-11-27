@@ -20,8 +20,9 @@ limitations under the License.
   <div class="BodyContainer">
     <div class="LeftSide">
       <div class="ModelList">
-        <div *ngFor="let model of models"
-             class="Model">
+        <div *ngFor="let model of models; let i = index"
+             class="Model"
+             (click)="selectModel(i)">
           <div class=ModelDisplayName>
             {{ model.displayName }}
           </div>
@@ -35,13 +36,17 @@ limitations under the License.
       </div>
     </div>
     <div class="RightSide">
-      <div *ngIf="selectedModel == null"
+      <div *ngIf="embedUrl == null"
            class="Message">
         Welcome to the TF.js Model Playground! Select a model to the left to get started.
       </div>
-      <div *ngIf="selectedModel != null">
-        TODO
-      </div>
+      <ng-container *ngIf="embedUrl != null">
+        <iframe [src]="embedUrl"
+                height="100%"
+                width="100%"
+                frameBorder="0">  
+        </iframe>
+      </ng-container>
     </div>
   </div>
 </ng-template>

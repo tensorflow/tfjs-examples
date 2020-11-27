@@ -51,7 +51,7 @@ export class AppComponent {
   constructor(private sanitizer: DomSanitizer) {}
 
   selectModel(index: number): void {
-  	this.embedUrl = this.sanitizer.bypassSecurityTrustResourceUrl(this.interactiveVisualizerUrl +
-  		            '?modelMetadataUrl=' + this.models[index].metadataUrl);
+    this.embedUrl = this.sanitizer.bypassSecurityTrustResourceUrl(this.interactiveVisualizerUrl +
+                        '?modelMetadataUrl=' + this.models[index].metadataUrl);
   }
 }

@@ -25,7 +25,7 @@ import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 })
 export class AppComponent {
   title = 'playground';
-  interactiveVisualizerUrl = 'https://storage.googleapis.com/interactive_visualizer/0.0.1/index.html';
+  interactiveVisualizerUrl = '../index.html';
   models = [
     {
       displayName: 'Birds V1',

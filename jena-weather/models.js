@@ -53,13 +53,13 @@ export async function getBaselineMeanAbsoluteError(
     jenaWeatherData, normalize, includeDateTime, lookBack, step, delay) {
   const batchSize = 128;
   const dataset = tf.data.generator(
-    () => jenaWeatherData.getNextBatchFunction(
-        false, lookBack, delay, batchSize, step, VAL_MIN_ROW,
-        VAL_MAX_ROW, normalize, includeDateTime));
+      () => jenaWeatherData.getNextBatchFunction(
+          false, lookBack, delay, batchSize, step, VAL_MIN_ROW, VAL_MAX_ROW,
+          normalize, includeDateTime));
 
   const batchMeanAbsoluteErrors = [];
   const batchSizes = [];
-  await dataset.forEach(dataItem => {
+  await dataset.forEachAsync(dataItem => {
     const features = dataItem.xs;
     const targets = dataItem.ys;
     const timeSteps = features.shape[1];
@@ -128,10 +128,7 @@ export function buildMLPModel(inputShape, kernelRegularizer, dropoutRate) {
 export function buildSimpleRNNModel(inputShape) {
   const model = tf.sequential();
   const rnnUnits = 32;
-  model.add(tf.layers.simpleRNN({
-    units: rnnUnits,
-    inputShape
-  }));
+  model.add(tf.layers.simpleRNN({units: rnnUnits, inputShape}));
   model.add(tf.layers.dense({units: 1}));
   return model;
 }
@@ -202,7 +199,8 @@ export function buildModel(modelType, numTimeSteps, numFeatures) {
  *
  * @param {tf.LayersModel} model A compiled tf.LayersModel object. It is
  *   expected to have a 3D input shape `[numExamples, timeSteps, numFeatures].`
- *   and an output shape `[numExamples, 1]` for predicting the temperature value.
+ *   and an output shape `[numExamples, 1]` for predicting the temperature
+ * value.
  * @param {JenaWeatherData} jenaWeatherData A JenaWeatherData object.
  * @param {boolean} normalize Whether to used normalized data for training.
  * @param {boolean} includeDateTime Whether to include date and time features
@@ -221,10 +219,13 @@ export async function trainModel(
     model, jenaWeatherData, normalize, includeDateTime, lookBack, step, delay,
     batchSize, epochs, customCallback) {
   const trainShuffle = true;
-  const trainDataset = tf.data.generator(
-      () => jenaWeatherData.getNextBatchFunction(
-          trainShuffle, lookBack, delay, batchSize, step, TRAIN_MIN_ROW,
-          TRAIN_MAX_ROW, normalize, includeDateTime)).prefetch(8);
+  const trainDataset =
+      tf.data
+          .generator(
+              () => jenaWeatherData.getNextBatchFunction(
+                  trainShuffle, lookBack, delay, batchSize, step, TRAIN_MIN_ROW,
+                  TRAIN_MAX_ROW, normalize, includeDateTime))
+          .prefetch(8);
   const evalShuffle = false;
   const valDataset = tf.data.generator(
       () => jenaWeatherData.getNextBatchFunction(

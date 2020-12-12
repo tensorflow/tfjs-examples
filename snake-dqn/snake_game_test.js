@@ -17,15 +17,16 @@
 
 import * as tf from '@tensorflow/tfjs';
 
-import {ACTION_GO_STRAIGHT, ACTION_TURN_LEFT, ACTION_TURN_RIGHT, FRUIT_REWARD, getRandomAction, getStateTensor, NO_FRUIT_REWARD, SnakeGame, DEATH_REWARD} from "./snake_game";
-import {expectArraysClose} from "@tensorflow/tfjs-core/dist/test_util";
+import {expectArraysClose} from '../test_util';
+
+import {ACTION_GO_STRAIGHT, ACTION_TURN_LEFT, ACTION_TURN_RIGHT, DEATH_REWARD, FRUIT_REWARD, getRandomAction, getStateTensor, NO_FRUIT_REWARD, SnakeGame} from './snake_game';
 
 describe('getRandomAction', () => {
   it('getRandomAction', () => {
     for (let i = 0; i < 40; ++i) {
       const action = getRandomAction();
-      expect(
-          [ACTION_GO_STRAIGHT, ACTION_TURN_LEFT, ACTION_TURN_RIGHT].indexOf(action))
+      expect([ACTION_GO_STRAIGHT, ACTION_TURN_LEFT, ACTION_TURN_RIGHT].indexOf(
+                 action))
           .not.toEqual(-1);
     }
   });
@@ -49,14 +50,14 @@ describe('SnakeGame', () => {
   });
 
   it('Invalid height and/or width leads to Error', () => {
-    expect(() => new SnakeGame({height: -12})).toThrowError(
-        /Expected height to be a positive number/);
-    expect(() => new SnakeGame({height: 1.2})).toThrowError(
-        /Expected height to be an integer/);
-    expect(() => new SnakeGame({width: -12})).toThrowError(
-        /Expected width to be a positive number/);
-    expect(() => new SnakeGame({width: 1.2})).toThrowError(
-        /Expected width to be an integer/);
+    expect(() => new SnakeGame({height: -12}))
+        .toThrowError(/Expected height to be a positive number/);
+    expect(() => new SnakeGame({height: 1.2}))
+        .toThrowError(/Expected height to be an integer/);
+    expect(() => new SnakeGame({width: -12}))
+        .toThrowError(/Expected width to be a positive number/);
+    expect(() => new SnakeGame({width: 1.2}))
+        .toThrowError(/Expected width to be an integer/);
   });
 
   it('getState: 1 fruit', async () => {
@@ -98,12 +99,8 @@ describe('SnakeGame', () => {
 
   it('getState: 2 fruits', async () => {
     for (let i = 0; i < 40; ++i) {
-      const game = new SnakeGame({
-        height: 5,
-        width: 5,
-        initLen: 2,
-        numFruits: 2
-      });
+      const game =
+          new SnakeGame({height: 5, width: 5, initLen: 2, numFruits: 2});
 
       const {s, f} = game.getState();
       expect(s).toEqual(game.snakeSquares_);
@@ -310,8 +307,9 @@ describe('SnakeGame', () => {
     expect(game.snakeDirection).toEqual('u');
     expect(out.reward).toEqual(FRUIT_REWARD);
     expect(out.done).toEqual(false);
-    expect(game.snakeSquares_).toEqual(
-        [[0, 4], [1, 4], [1, 3], [1, 2], [1, 1]]);
+    expect(game.snakeSquares_).toEqual([
+      [0, 4], [1, 4], [1, 3], [1, 2], [1, 1]
+    ]);
     expect(game.fruitSquares_.length).toEqual(1);
 
     out = game.step(ACTION_GO_STRAIGHT);
@@ -338,16 +336,12 @@ describe('getStateTensor', () => {
     expect(tensor.dtype).toEqual('float32');
     const [snakeTensor, fruitTensor] = tensor.squeeze(0).unstack(-1);
 
-    expectArraysClose(snakeTensor, tf.tensor2d(
-      [[2, 0, 0, 0],
-       [1, 0, 0, 0],
-       [1, 1, 0, 0],
-       [1, 1, 0, 0]]));
-    expectArraysClose(fruitTensor, tf.tensor2d(
-      [[0, 0, 0, 0],
-       [0, 0, 0, 0],
-       [0, 0, 1, 0],
-       [0, 0, 0, 0]]));
+    expectArraysClose(
+        snakeTensor,
+        tf.tensor2d([[2, 0, 0, 0], [1, 0, 0, 0], [1, 1, 0, 0], [1, 1, 0, 0]]));
+    expectArraysClose(
+        fruitTensor,
+        tf.tensor2d([[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 1, 0], [0, 0, 0, 0]]));
   });
 
   it('2 fruits', () => {
@@ -362,18 +356,14 @@ describe('getStateTensor', () => {
     expect(tensor.dtype).toEqual('float32');
     const [snakeTensor, fruitTensor] = tensor.squeeze(0).unstack(-1);
 
-    expectArraysClose(snakeTensor, tf.tensor2d(
-      [[0, 0, 0, 0, 0],
-       [0, 0, 0, 0, 0],
-       [1, 1, 1, 0, 0],
-       [1, 0, 0, 0, 0],
-       [1, 1, 2, 0, 0]]));
-    expectArraysClose(fruitTensor, tf.tensor2d(
-      [[1, 0, 0, 0, 0],
-       [0, 0, 0, 0, 0],
-       [0, 0, 0, 0, 0],
-       [0, 0, 0, 0, 0],
-       [0, 0, 0, 0, 1]]));
+    expectArraysClose(snakeTensor, tf.tensor2d([
+      [0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [1, 1, 1, 0, 0], [1, 0, 0, 0, 0],
+      [1, 1, 2, 0, 0]
+    ]));
+    expectArraysClose(fruitTensor, tf.tensor2d([
+      [1, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0],
+      [0, 0, 0, 0, 1]
+    ]));
   });
 
   it('2 examples, both defined', () => {
@@ -383,57 +373,39 @@ describe('getStateTensor', () => {
       s: [[0, 0], [1, 0], [2, 0], [3, 0], [3, 1], [2, 1]],
       f: [[2, 2]]
     };
-    const state2 = {
-      s: [[0, 0], [1, 0], [2, 0], [3, 0], [3, 1]],
-      f: [[3, 3]]
-    };
+    const state2 = {s: [[0, 0], [1, 0], [2, 0], [3, 0], [3, 1]], f: [[3, 3]]};
     const tensor = getStateTensor([state1, state2], h, w);
     expect(tensor.shape).toEqual([2, 4, 4, 2]);
 
-    expectArraysClose(tensor.gather(0).gather(0, -1), tf.tensor2d(
-      [[2, 0, 0, 0],
-       [1, 0, 0, 0],
-       [1, 1, 0, 0],
-       [1, 1, 0, 0]]));
-    expectArraysClose(tensor.gather(0).gather(1, -1), tf.tensor2d(
-      [[0, 0, 0, 0],
-       [0, 0, 0, 0],
-       [0, 0, 1, 0],
-       [0, 0, 0, 0]]));
-    expectArraysClose(tensor.gather(1).gather(0, -1), tf.tensor2d(
-      [[2, 0, 0, 0],
-       [1, 0, 0, 0],
-       [1, 0, 0, 0],
-       [1, 1, 0, 0]]));
-    expectArraysClose(tensor.gather(1).gather(1, -1), tf.tensor2d(
-      [[0, 0, 0, 0],
-       [0, 0, 0, 0],
-       [0, 0, 0, 0],
-       [0, 0, 0, 1]]));
+    expectArraysClose(
+        tensor.gather(0).gather(0, -1),
+        tf.tensor2d([[2, 0, 0, 0], [1, 0, 0, 0], [1, 1, 0, 0], [1, 1, 0, 0]]));
+    expectArraysClose(
+        tensor.gather(0).gather(1, -1),
+        tf.tensor2d([[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 1, 0], [0, 0, 0, 0]]));
+    expectArraysClose(
+        tensor.gather(1).gather(0, -1),
+        tf.tensor2d([[2, 0, 0, 0], [1, 0, 0, 0], [1, 0, 0, 0], [1, 1, 0, 0]]));
+    expectArraysClose(
+        tensor.gather(1).gather(1, -1),
+        tf.tensor2d([[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 1]]));
   });
 
   it('2 examples, one undefined', () => {
     const h = 4;
     const w = 4;
     const state1 = undefined;
-    const state2 = {
-      s: [[0, 0], [1, 0], [2, 0], [3, 0], [3, 1]],
-      f: [[3, 3]]
-    };
+    const state2 = {s: [[0, 0], [1, 0], [2, 0], [3, 0], [3, 1]], f: [[3, 3]]};
     const tensor = getStateTensor([state1, state2], h, w);
     expect(tensor.shape).toEqual([2, 4, 4, 2]);
 
     expectArraysClose(tensor.gather(0).gather(0, -1), tf.zeros([4, 4]));
     expectArraysClose(tensor.gather(0).gather(1, -1), tf.zeros([4, 4]));
-    expectArraysClose(tensor.gather(1).gather(0, -1), tf.tensor2d(
-      [[2, 0, 0, 0],
-       [1, 0, 0, 0],
-       [1, 0, 0, 0],
-       [1, 1, 0, 0]]));
-    expectArraysClose(tensor.gather(1).gather(1, -1), tf.tensor2d(
-      [[0, 0, 0, 0],
-       [0, 0, 0, 0],
-       [0, 0, 0, 0],
-       [0, 0, 0, 1]]));
+    expectArraysClose(
+        tensor.gather(1).gather(0, -1),
+        tf.tensor2d([[2, 0, 0, 0], [1, 0, 0, 0], [1, 0, 0, 0], [1, 1, 0, 0]]));
+    expectArraysClose(
+        tensor.gather(1).gather(1, -1),
+        tf.tensor2d([[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 1]]));
   });
 });

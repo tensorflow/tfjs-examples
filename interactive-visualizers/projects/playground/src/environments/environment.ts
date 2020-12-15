@@ -20,7 +20,28 @@
 // The list of file replacements can be found in `angular.json`.
 
 export const environment = {
-  production: false
+  production: false,
+  interactiveVisualizerUrl: 'https://storage.googleapis.com/interactive_visualizer/0.0.1/index.html',
+  models: [
+    {
+      displayName: 'Birds V1',
+      description: 'AIY natural world insects classification model',
+      type: 'image classification',
+      metadataUrl: 'https://storage.googleapis.com/tfhub-visualizers/google/aiy/vision/classifier/birds_V1/1/metadata.json',
+    },
+    {
+      displayName: 'Insects V1',
+      description: 'AIY natural world birds quantized classification model',
+      type: 'image classification',
+      metadataUrl: 'https://storage.googleapis.com/tfhub-visualizers/google/aiy/vision/classifier/insects_V1/1/metadata.json',
+    },
+    {
+      displayName: 'Mobile Object Localizer V1',
+      description: 'Mobile model to localize objects in an image',
+      type: 'object detection',
+      metadataUrl: 'https://storage.googleapis.com/tfhub-visualizers/google/object_detection/mobile_object_localizer_v1/1/metadata.json',
+    },
+  ],
 };
 
 /*

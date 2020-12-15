@@ -16,5 +16,26 @@
  */
 
 export const environment = {
-  production: true
+  production: true,
+  interactiveVisualizerUrl: '../index.html',
+  models: [
+    {
+      displayName: 'Birds V1',
+      description: 'AIY natural world insects classification model',
+      type: 'image classification',
+      metadataUrl: 'https://storage.googleapis.com/tfhub-visualizers/google/aiy/vision/classifier/birds_V1/1/metadata.json',
+    },
+    {
+      displayName: 'Insects V1',
+      description: 'AIY natural world birds quantized classification model',
+      type: 'image classification',
+      metadataUrl: 'https://storage.googleapis.com/tfhub-visualizers/google/aiy/vision/classifier/insects_V1/1/metadata.json',
+    },
+    {
+      displayName: 'Mobile Object Localizer V1',
+      description: 'Mobile model to localize objects in an image',
+      type: 'object detection',
+      metadataUrl: 'https://storage.googleapis.com/tfhub-visualizers/google/object_detection/mobile_object_localizer_v1/1/metadata.json',
+    },
+  ],
 };

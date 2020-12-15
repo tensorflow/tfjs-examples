@@ -17,6 +17,7 @@
 
 import { Component } from '@angular/core';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
+import { environment } from './../environments/environment';
 
 @Component({
   selector: 'app-root',
@@ -25,27 +26,8 @@ import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 })
 export class AppComponent {
   title = 'playground';
-  interactiveVisualizerUrl = '../index.html';
-  models = [
-    {
-      displayName: 'Birds V1',
-      description: 'AIY natural world insects classification model',
-      type: 'image classification',
-      metadataUrl: 'https://storage.googleapis.com/tfhub-visualizers/google/aiy/vision/classifier/birds_V1/1/metadata.json',
-    },
-    {
-      displayName: 'Insects V1',
-      description: 'AIY natural world birds quantized classification model',
-      type: 'image classification',
-      metadataUrl: 'https://storage.googleapis.com/tfhub-visualizers/google/aiy/vision/classifier/insects_V1/1/metadata.json',
-    },
-    {
-      displayName: 'Mobile Object Localizer V1',
-      description: 'Mobile model to localize objects in an image',
-      type: 'object detection',
-      metadataUrl: 'https://storage.googleapis.com/tfhub-visualizers/google/object_detection/mobile_object_localizer_v1/1/metadata.json',
-    },
-  ];
+  interactiveVisualizerUrl = environment.interactiveVisualizerUrl;
+  models = environment.models;
   embedUrl: SafeResourceUrl|null = null;
 
   constructor(private sanitizer: DomSanitizer) {}

@@ -19,9 +19,11 @@
 // `ng build --prod` replaces `environment.ts` with `environment.prod.ts`.
 // The list of file replacements can be found in `angular.json`.
 
+import { version } from '../../../../package.json';
+
 export const environment = {
   production: false,
-  interactiveVisualizerUrl: 'https://storage.googleapis.com/interactive_visualizer/0.0.1/index.html',
+  interactiveVisualizerUrl: `https://storage.googleapis.com/interactive_visualizer/${version}/index.html`,
   models: [
     {
       displayName: 'Birds V1',

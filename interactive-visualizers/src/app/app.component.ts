@@ -17,12 +17,20 @@
 
 import {Component, OnInit} from '@angular/core';
 import * as tf from '@tensorflow/tfjs';
+import { environment } from './../environments/environment';
+
+// Name declaration for TFWeb imported libraries.
+declare let ImageClassifierViz: any;
+declare let ImageSegmenterViz: any;
+declare let ObjectDetectorViz: any;
 
 // Messages.
 const DOWNLOAD_MESSAGE =
     'This interactive model visualizer will run in the browser: the required TensorFlow.js model files are currently being loaded. Thanks for your patience!';
-const NO_MODEL_METADATA_ERROR_MESSAGE =
-    'No model metadata URL provided. The visualizer could not start';
+const NO_MODEL_ERROR_MESSAGE =
+    'No model URL provided. The visualizer could not start';
+const NO_TFWEB_API_ERROR_MESSAGE =
+    'No TFWeb API selected. The visualizer could not start';
 const TEST_IMAGE_FETCH_FAILURE_MESSAGE =
     'The test image couldn\'t be fetched, please check the JS console for more details.';
 
@@ -176,9 +184,11 @@ export class AppComponent implements OnInit {
   title = 'interactive-visualizers';
 
   // Model related variables.
+  modelFormat: string|null = null; // Either 'tflite' or 'tfjs'.
+  tfWebApiName: string|null = null;
+  tfWebApi: any|null = null;
   modelMetadataUrl: string|null = null;
   modelMetadata: any|null = null;
-  modelType: string|null = null;
   model: tf.GraphModel|null = null;
   labelmap: string[]|null = null;
   defaultScoreThreshold = 0.0;
@@ -230,12 +240,21 @@ export class AppComponent implements OnInit {
   ngOnInit(): void {
     // Sanity checks on URL query parameters.
     const urlParams = new URLSearchParams(window.location.search);
-    if (!urlParams.has('modelMetadataUrl')) {
-      throw new Error(NO_MODEL_METADATA_ERROR_MESSAGE);
+    if (urlParams.has('tfliteModelUrl')) {
+      if (!urlParams.has('tfWebApi')) {
+        throw new Error(NO_TFWEB_API_ERROR_MESSAGE);
+      }
+      this.modelFormat = 'tflite';
+      const tfliteModelUrl = urlParams.get('tfliteModelUrl');
+      this.tfWebApiName = urlParams.get('tfWebApi');
+      this.initAppWithTfliteModel(tfliteModelUrl);
+    } else if (urlParams.has('modelMetadataUrl')) {
+      this.modelFormat = 'tfjs';
+      const modelMetadataUrl = urlParams.get('modelMetadataUrl');
+      this.initAppWithTfjsModel(modelMetadataUrl);
+    } else {
+      throw new Error(NO_MODEL_ERROR_MESSAGE);
     }
-    const modelMetadataUrl = urlParams.get('modelMetadataUrl');
-
-    this.initApp(modelMetadataUrl);
   }
 
   async fetchModel(modelUrl: string): Promise<tf.GraphModel> {
@@ -244,10 +263,28 @@ export class AppComponent implements OnInit {
   }
 
   /**
+   * Initializes the app for the provided TFLite model URL.
+   */
+  async initAppWithTfliteModel(tfliteModelUrl: string): Promise<void> {
+    this.testImages = [];
+    switch (this.tfWebApiName) {
+      case environment.imageClassifierApiName:
+        this.tfWebApi = new ImageClassifierViz();
+        break;
+      case environment.imageSegmenterApiName:
+        this.tfWebApi = new ImageSegmenterViz();
+        break;
+      case environment.objectDetectorApiName:
+        this.tfWebApi = new ObjectDetectorViz();
+        break;
+    }
+    await this.tfWebApi.init(environment.tfWebWasmFilesPrefix + this.tfWebApiName + '/', tfliteModelUrl);
+  }
+
+  /**
    * Initializes the app for the provided model metadata URL.
    */
-  async initApp(modelMetadataUrl: string): Promise<void> {
-    await tf.setBackend('cpu');
+  async initAppWithTfjsModel(modelMetadataUrl: string): Promise<void> {
     // Load model & metadata.
     this.modelMetadataUrl = modelMetadataUrl;
     const metadataResponse = await fetch(this.modelMetadataUrl);
@@ -255,11 +292,11 @@ export class AppComponent implements OnInit {
     const modelUrl = this.getAssetsUrlPrefix() + 'model.json';
     this.model = await this.fetchModel(modelUrl);
     if (this.modelMetadata.tfjs_classifier_model_metadata) {
-      this.modelType = 'classifier';
+      this.tfWebApiName = environment.imageClassifierApiName;
     } else if (this.modelMetadata.tfjs_detector_model_metadata) {
-      this.modelType = 'detector';
+      this.tfWebApiName = environment.objectDetectorApiName;
     } else if (this.modelMetadata.tfjs_segmenter_model_metadata) {
-      this.modelType = 'segmenter';
+      this.tfWebApiName = environment.imageSegmenterApiName;
     }
 
     // Fetch test data if any.
@@ -411,19 +448,19 @@ export class AppComponent implements OnInit {
     this.queryImageDataURL = imageDataURL;
     const image = new Image();
     image.onload = async () => {
-      switch (this.modelType) {
-        case 'classifier':
+      switch (this.tfWebApiName) {
+        case environment.imageClassifierApiName:
           this.runImageClassifier(image, index);
           break;
-        case 'detector':
-          this.runImageDetector(image, index);
+        case environment.objectDetectorApiName:
+          this.runObjectDetector(image, index);
           break;
-        case 'segmenter':
+        case environment.imageSegmenterApiName:
           this.runImageSegmenter(image, index);
           break;
         default:
           console.error(
-              `The model type \`${this.modelType}\ isn't currently supported.`);
+              `The TFWeb API \`${this.tfWebApi}\ isn't currently supported.`);
       }
     };
     image.src = imageDataURL;
@@ -499,45 +536,55 @@ export class AppComponent implements OnInit {
    */
   async runImageClassifier(image: HTMLImageElement, index: number):
       Promise<void> {
-    // Prepare inputs.
-    const inputTensorMetadata =
-        this.modelMetadata.tfjs_classifier_model_metadata.input_tensor_metadata;
-    const imageTensor = this.prepareImageInput(image, inputTensorMetadata);
-
-    // Execute the model.
-    const outputTensor: tf.Tensor =
-        await this.model.executeAsync(imageTensor) as tf.Tensor;
-    tf.dispose(imageTensor);
-    const squeezedOutputTensor = outputTensor.squeeze();
-    tf.dispose(outputTensor);
-    const predictions: number[] =
-        await squeezedOutputTensor.array() as number[];
-    tf.dispose(squeezedOutputTensor);
-
-    // Fetch the labelmap and score thresholds, then assign labels to the
-    // prediction results.
-    const outputHeadMetadata = this.modelMetadata.tfjs_classifier_model_metadata
-                                   .output_head_metadata[0];
-    let scoreThreshold = 0.0;
-    if (outputHeadMetadata.score_threshold != null) {
-      scoreThreshold = outputHeadMetadata.score_threshold;
-    }
-    if (this.labelmap == null && outputHeadMetadata.labelmap_path != null) {
-      await this.fetchLabelmap(outputHeadMetadata.labelmap_path);
-    }
     let results = [];
-    for (let i = 0; i < predictions.length; i++) {
-      if (predictions[i] > scoreThreshold) {
-        if (this.labelmap != null && this.labelmap.length > i) {
-          results.push({
-            displayName: this.labelmap[i],
-            score: predictions[i],
-          });
-        } else {
-          results.push({
-            displayName: UNKNOWN_LABEL_DISPLAY_NAME,
-            score: predictions[i],
-          });
+    if (this.modelFormat === 'tflite') {
+      const rawResults = this.tfWebApi.run(image);
+      rawResults.getClassificationsList()[0].getClassesList().forEach(cls => {
+        results.push({
+          displayName: cls.getClassName(),
+          score: cls.getScore(),
+        });
+      });
+    } else {
+      // Prepare inputs.
+      const inputTensorMetadata =
+          this.modelMetadata.tfjs_classifier_model_metadata.input_tensor_metadata;
+      const imageTensor = this.prepareImageInput(image, inputTensorMetadata);
+
+      // Execute the model.
+      const outputTensor: tf.Tensor =
+          await this.model.executeAsync(imageTensor) as tf.Tensor;
+      tf.dispose(imageTensor);
+      const squeezedOutputTensor = outputTensor.squeeze();
+      tf.dispose(outputTensor);
+      const predictions: number[] =
+          await squeezedOutputTensor.array() as number[];
+      tf.dispose(squeezedOutputTensor);
+
+      // Fetch the labelmap and score thresholds, then assign labels to the
+      // prediction results.
+      const outputHeadMetadata = this.modelMetadata.tfjs_classifier_model_metadata
+                                     .output_head_metadata[0];
+      let scoreThreshold = 0.0;
+      if (outputHeadMetadata.score_threshold != null) {
+        scoreThreshold = outputHeadMetadata.score_threshold;
+      }
+      if (this.labelmap == null && outputHeadMetadata.labelmap_path != null) {
+        await this.fetchLabelmap(outputHeadMetadata.labelmap_path);
+      }
+      for (let i = 0; i < predictions.length; i++) {
+        if (predictions[i] > scoreThreshold) {
+          if (this.labelmap != null && this.labelmap.length > i) {
+            results.push({
+              displayName: this.labelmap[i],
+              score: predictions[i],
+            });
+          } else {
+            results.push({
+              displayName: UNKNOWN_LABEL_DISPLAY_NAME,
+              score: predictions[i],
+            });
+          }
         }
       }
     }
@@ -726,7 +773,7 @@ export class AppComponent implements OnInit {
   /**
    * Run the model in case of image detection, and return detector results.
    */
-  async runImageDetector(image: HTMLImageElement, index: number):
+  async runObjectDetector(image: HTMLImageElement, index: number):
       Promise<void> {
     // Prepare inputs.
     const inputTensorMetadata =

@@ -16,5 +16,9 @@
  */
 
 export const environment = {
-  production: true
+  production: true,
+  tfWebWasmFilesPrefix: 'https://www.gstatic.com/tensorflowjs/tfweb/',
+  imageClassifierApiName: 'image_classifier',
+  imageSegmenterApiName: 'image_segmenter',
+  objectDetectorApiName: 'object_detector',
 };

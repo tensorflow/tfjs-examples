@@ -537,7 +537,7 @@ export class AppComponent implements OnInit {
   async runImageClassifier(image: HTMLImageElement, index: number):
       Promise<void> {
     let results = [];
-    if (this.modelFormat == 'tflite') {
+    if (this.modelFormat === 'tflite') {
       const rawResults = this.tfliteModel.run(image);
       rawResults.getClassificationsList()[0].getClassesList().forEach(cls => {
         results.push({

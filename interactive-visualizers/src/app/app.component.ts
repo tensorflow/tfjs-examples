@@ -185,8 +185,8 @@ export class AppComponent implements OnInit {
 
   // Model related variables.
   modelFormat: string|null = null; // Either 'tflite' or 'tfjs'.
-  tfWebApi: string|null = null;
-  tfliteModel: any|null = null;
+  tfWebApiName: string|null = null;
+  tfWebApi: any|null = null;
   modelMetadataUrl: string|null = null;
   modelMetadata: any|null = null;
   model: tf.GraphModel|null = null;
@@ -246,7 +246,7 @@ export class AppComponent implements OnInit {
       }
       this.modelFormat = 'tflite';
       const tfliteModelUrl = urlParams.get('tfliteModelUrl');
-      this.tfWebApi = urlParams.get('tfWebApi');
+      this.tfWebApiName = urlParams.get('tfWebApi');
       this.initAppWithTfliteModel(tfliteModelUrl);
     } else if (urlParams.has('modelMetadataUrl')) {
       this.modelFormat = 'tfjs';
@@ -267,18 +267,18 @@ export class AppComponent implements OnInit {
    */
   async initAppWithTfliteModel(tfliteModelUrl: string): Promise<void> {
     this.testImages = [];
-    switch (this.tfWebApi) {
+    switch (this.tfWebApiName) {
       case environment.imageClassifierApiName:
-        this.tfliteModel = new ImageClassifierViz();
+        this.tfWebApi = new ImageClassifierViz();
         break;
       case environment.imageSegmenterApiName:
-        this.tfliteModel = new ImageSegmenterViz();
+        this.tfWebApi = new ImageSegmenterViz();
         break;
       case environment.objectDetectorApiName:
-        this.tfliteModel = new ObjectDetectorViz();
+        this.tfWebApi = new ObjectDetectorViz();
         break;
     }
-    await this.tfliteModel.init(environment.tfWebWasmFilesPrefix + this.tfWebApi + '/', tfliteModelUrl);
+    await this.tfWebApi.init(environment.tfWebWasmFilesPrefix + this.tfWebApiName + '/', tfliteModelUrl);
   }
 
   /**
@@ -292,11 +292,11 @@ export class AppComponent implements OnInit {
     const modelUrl = this.getAssetsUrlPrefix() + 'model.json';
     this.model = await this.fetchModel(modelUrl);
     if (this.modelMetadata.tfjs_classifier_model_metadata) {
-      this.tfWebApi = environment.imageClassifierApiName;
+      this.tfWebApiName = environment.imageClassifierApiName;
     } else if (this.modelMetadata.tfjs_detector_model_metadata) {
-      this.tfWebApi = environment.objectDetectorApiName;
+      this.tfWebApiName = environment.objectDetectorApiName;
     } else if (this.modelMetadata.tfjs_segmenter_model_metadata) {
-      this.tfWebApi = environment.imageSegmenterApiName;
+      this.tfWebApiName = environment.imageSegmenterApiName;
     }
 
     // Fetch test data if any.
@@ -448,7 +448,7 @@ export class AppComponent implements OnInit {
     this.queryImageDataURL = imageDataURL;
     const image = new Image();
     image.onload = async () => {
-      switch (this.tfWebApi) {
+      switch (this.tfWebApiName) {
         case environment.imageClassifierApiName:
           this.runImageClassifier(image, index);
           break;
@@ -538,7 +538,7 @@ export class AppComponent implements OnInit {
       Promise<void> {
     let results = [];
     if (this.modelFormat === 'tflite') {
-      const rawResults = this.tfliteModel.run(image);
+      const rawResults = this.tfWebApi.run(image);
       rawResults.getClassificationsList()[0].getClassesList().forEach(cls => {
         results.push({
           displayName: cls.getClassName(),

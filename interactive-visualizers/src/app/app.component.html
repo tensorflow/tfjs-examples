@@ -196,7 +196,7 @@ limitations under the License.
         </div>
         <div class="DetectorResultLabel"
              (mouseenter)="detectorResultLabelHovered(label.label)"
-             (mouseleave)="detectorResultLeft()"
+             (mouseleave)="canvasOverlayLeft()"
              (click)="detectorResultLabelClicked(label.label)">
           {{ label.displayName }}
         </div>
@@ -205,7 +205,7 @@ limitations under the License.
           <div *ngFor="let box of label.boxes; let i = index"
                class="DetectorResultLabelBox"
                (mouseenter)="detectorResultIdHovered(box.id)"
-               (mouseleave)="detectorResultLeft()">
+               (mouseleave)="canvasOverlayLeft()">
             <ng-container *ngIf="box.score >= detectionScoreThreshold">
               <div class="DetectorResultLabelBoxIndexContainer"
                    style="background-color: {{ label.color }}">

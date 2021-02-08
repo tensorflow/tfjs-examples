@@ -39,7 +39,7 @@ const MAX_NB_RESULTS = 100;
 const UNKNOWN_LABEL_DISPLAY_NAME = 'unknown';
 const DEFAULT_DETECTION_THRESHOLD = 0.2;
 const DETECTION_RECTANGLE_BORDER_WIDTH = 2;
-const EPSILON = 0.0000001
+const EPSILON = 0.0000001;
 /**
  * Uses the Pascal VOC[1] color list (256 colors).
  * [1]: http://host.robots.ox.ac.uk/pascal/VOC/
@@ -810,7 +810,7 @@ export class AppComponent implements OnInit {
       Promise<void> {
     const results = [];
     if (this.modelFormat === 'tflite') {
-      const detections = this.tfWebApi.run(image).getDetectionsList();;
+      const detections = this.tfWebApi.run(image).getDetectionsList();
       for (let i = 0; i < detections.length; i++) {
         const detection = detections[i];
         const boundingBox = detection.getBoundingBox();

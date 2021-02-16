@@ -35,11 +35,13 @@ const TEST_IMAGE_FETCH_FAILURE_MESSAGE =
     'The test image couldn\'t be fetched, please check the JS console for more details.';
 
 // Constants.
+const DEFAULT_MODEL_DISPLAY_NAME = 'Interactive model visualizer';
 const MAX_NB_RESULTS = 100;
 const UNKNOWN_LABEL_DISPLAY_NAME = 'unknown';
 const DEFAULT_DETECTION_THRESHOLD = 0.2;
 const DETECTION_RECTANGLE_BORDER_WIDTH = 2;
 const EPSILON = 0.0000001;
+const WARMUP_IMAGE_DATA_URL = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABkAAAAaCAYAAABCfffNAAABdklEQVRIS2P8/vnDfwYaA8ZRS0gJYZzB9enTJ4YDBw8xPHz0iIGRkRGvmf///2eQl5VjcHCwY+Dj48NQi9WSv3//MrR39jD8/PmdQUhIiIGVlRWvJb9//2F49+4dAzs7O0NleSkDMzMzinqslhw5epRh7fqNDP09XaSECkNhSRlDcGAAg421FWFLTp0+wzB56nSGxQvmkmRJbEIyQ252JoOZqcmoJYRDbjS4CIcRkorR4BqY4KqoqgFb3NHWguEAiuMEVBpXVtcyKCoqgg2/f/8+Q3trM4O8nBzcMoosARX5FdW1DKnJSQzJifFgQ+fOX8gwe+48ho7WZgYHezuwGNmWzJu/kGHW3LkM7S3NDI4O9ihBtP/AQYbKmlqGtORkhqTEePIskZeTZbiHJViQbYIFo5KiIsPDR4+JL4U3b9nG0NjcwuDh7sbQ0tRAVAqrqWtg2LFzF0N9bQ2Dr48X4aIepGLtug0MwUEBRFkAU4RLz/BpEgEApSZOND6VlesAAAAASUVORK5CYII=';
 /**
  * Uses the Pascal VOC[1] color list (256 colors).
  * [1]: http://host.robots.ox.ac.uk/pascal/VOC/
@@ -185,6 +187,7 @@ export class AppComponent implements OnInit {
   title = 'interactive-visualizers';
 
   // Model related variables.
+  modelDisplayName: string = DEFAULT_MODEL_DISPLAY_NAME;
   modelFormat: string|null = null; // Either 'tflite' or 'tfjs'.
   tfWebApiName: string|null = null;
   tfWebApi: any|null = null;
@@ -193,6 +196,8 @@ export class AppComponent implements OnInit {
   model: tf.GraphModel|null = null;
   labelmap: string[]|null = null;
   defaultScoreThreshold = 0.0;
+  publisherName: string|null = null;
+  publisherThumbnailUrl: string|null = null;
 
   // Query related variables.
   queryImageHeight: number|null = null;
@@ -209,6 +214,7 @@ export class AppComponent implements OnInit {
   // Results variables.
   resultsKeyName: string|null = null;
   resultsValueName: string|null = null;
+  resultsLatency: number|null = null;
   // Classifier specific variables.
   classifierResults: Array<{displayName: string, score: number}>|null = null;
   // Detector specific variables.
@@ -241,6 +247,18 @@ export class AppComponent implements OnInit {
   ngOnInit(): void {
     // Sanity checks on URL query parameters.
     const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.has('testImagesIndexUrl')) {
+      this.testImagesIndexUrl = urlParams.get('testImagesIndexUrl');
+    }
+    if (urlParams.has('modelDisplayName')) {
+      this.modelDisplayName = urlParams.get('modelDisplayName');
+    }
+    if (urlParams.has('publisherName')) {
+      this.publisherName = urlParams.get('publisherName');
+    }
+    if (urlParams.has('publisherThumbnailUrl')) {
+      this.publisherThumbnailUrl = urlParams.get('publisherThumbnailUrl');
+    }
     if (urlParams.has('tfliteModelUrl')) {
       if (!urlParams.has('tfWebApi')) {
         throw new Error(NO_TFWEB_API_ERROR_MESSAGE);
@@ -258,50 +276,10 @@ export class AppComponent implements OnInit {
     }
   }
 
-  async fetchModel(modelUrl: string): Promise<tf.GraphModel> {
-    const model = await tf.loadGraphModel(modelUrl);
-    return model;
-  }
-
-  /**
-   * Initializes the app for the provided TFLite model URL.
-   */
-  async initAppWithTfliteModel(tfliteModelUrl: string): Promise<void> {
-    this.testImages = [];
-    switch (this.tfWebApiName) {
-      case environment.imageClassifierApiName:
-        this.tfWebApi = new ImageClassifierViz();
-        break;
-      case environment.imageSegmenterApiName:
-        this.tfWebApi = new ImageSegmenterViz();
-        break;
-      case environment.objectDetectorApiName:
-        this.tfWebApi = new ObjectDetectorViz();
-        break;
+  async fetchTestImages(): Promise<void> {
+    if (this.testImagesIndexUrl == null) {
+      return;
     }
-    await this.tfWebApi.init(environment.tfWebWasmFilesPrefix + this.tfWebApiName + '/', tfliteModelUrl);
-  }
-
-  /**
-   * Initializes the app for the provided model metadata URL.
-   */
-  async initAppWithTfjsModel(modelMetadataUrl: string): Promise<void> {
-    // Load model & metadata.
-    this.modelMetadataUrl = modelMetadataUrl;
-    const metadataResponse = await fetch(this.modelMetadataUrl);
-    this.modelMetadata = await metadataResponse.json();
-    const modelUrl = this.getAssetsUrlPrefix() + 'model.json';
-    this.model = await this.fetchModel(modelUrl);
-    if (this.modelMetadata.tfjs_classifier_model_metadata) {
-      this.tfWebApiName = environment.imageClassifierApiName;
-    } else if (this.modelMetadata.tfjs_detector_model_metadata) {
-      this.tfWebApiName = environment.objectDetectorApiName;
-    } else if (this.modelMetadata.tfjs_segmenter_model_metadata) {
-      this.tfWebApiName = environment.imageSegmenterApiName;
-    }
-
-    // Fetch test data if any.
-    this.testImagesIndexUrl = this.modelMetadata.test_images_index_path;
     try {
       const testImagesResponse = await fetch(this.testImagesIndexUrl);
       const testImageNames = await testImagesResponse.json();
@@ -324,6 +302,66 @@ export class AppComponent implements OnInit {
     } catch (error) {
       console.error(`Couldn't fetch test images: ${error}`);
     }
+  }
+
+  async fetchModel(modelUrl: string): Promise<tf.GraphModel> {
+    const model = await tf.loadGraphModel(modelUrl);
+    return model;
+  }
+
+  /**
+   * Initializes the app for the provided TFLite model URL.
+   */
+  async initAppWithTfliteModel(tfliteModelUrl: string): Promise<void> {
+    switch (this.tfWebApiName) {
+      case environment.imageClassifierApiName:
+        this.tfWebApi = new ImageClassifierViz();
+        break;
+      case environment.imageSegmenterApiName:
+        this.tfWebApi = new ImageSegmenterViz();
+        break;
+      case environment.objectDetectorApiName:
+        this.tfWebApi = new ObjectDetectorViz();
+        break;
+    }
+    await this.tfWebApi.init(environment.tfWebWasmFilesPrefix + this.tfWebApiName + '/', tfliteModelUrl);
+    await this.warmUpModel();
+    await this.fetchTestImages();
+  }
+
+  /**
+   * Initializes the app for the provided model metadata URL.
+   */
+  async initAppWithTfjsModel(modelMetadataUrl: string): Promise<void> {
+    // Load model & metadata.
+    this.modelMetadataUrl = modelMetadataUrl;
+    const metadataResponse = await fetch(this.modelMetadataUrl);
+    this.modelMetadata = await metadataResponse.json();
+    const modelUrl = this.getAssetsUrlPrefix() + 'model.json';
+    this.model = await this.fetchModel(modelUrl);
+    if (this.modelMetadata.tfjs_classifier_model_metadata) {
+      this.tfWebApiName = environment.imageClassifierApiName;
+    } else if (this.modelMetadata.tfjs_detector_model_metadata) {
+      this.tfWebApiName = environment.objectDetectorApiName;
+    } else if (this.modelMetadata.tfjs_segmenter_model_metadata) {
+      this.tfWebApiName = environment.imageSegmenterApiName;
+    }
+    await this.fetchTestImages();
+  }
+
+  /**
+   * Warms up the model. Subsequent calls will be faster.
+   */
+  async warmUpModel(): Promise<void> {
+    return new Promise((resolve, reject) => {
+      const warmUpImage = new Image();
+      warmUpImage.onload = async () => {
+        await this.tfWebApi.run(warmUpImage);
+        resolve();
+      };
+      warmUpImage.onerror = () => reject();
+      warmUpImage.src = WARMUP_IMAGE_DATA_URL;
+    });
   }
 
   /**
@@ -539,7 +577,9 @@ export class AppComponent implements OnInit {
       Promise<void> {
     let results = [];
     if (this.modelFormat === 'tflite') {
+      const startTs = Date.now();
       const rawResults = this.tfWebApi.run(image);
+      this.resultsLatency = Date.now() - startTs;
       rawResults.getClassificationsList()[0].getClassesList().forEach(cls => {
         if (cls.getDisplayName()) {
           results.push({
@@ -560,8 +600,10 @@ export class AppComponent implements OnInit {
       const imageTensor = this.prepareImageInput(image, inputTensorMetadata);
 
       // Execute the model.
+      const startTs = Date.now();
       const outputTensor: tf.Tensor =
           await this.model.executeAsync(imageTensor) as tf.Tensor;
+      this.resultsLatency = Date.now() - startTs;
       tf.dispose(imageTensor);
       const squeezedOutputTensor = outputTensor.squeeze();
       tf.dispose(outputTensor);
@@ -626,7 +668,9 @@ export class AppComponent implements OnInit {
       Promise<void> {
     let predictions: number[][] = [];
     if (this.modelFormat === 'tflite') {
+      const startTs = Date.now();
       const segmentation = this.tfWebApi.run(image).getSegmentationList()[0];
+      this.resultsLatency = Date.now() - startTs;
       const categoryMask = segmentation.getCategoryMask();
       for (let i = 0; i < segmentation.getHeight(); i++) {
         predictions.push(Array.from(categoryMask.slice(segmentation.getWidth() * i,
@@ -656,8 +700,10 @@ export class AppComponent implements OnInit {
           this.modelMetadata.tfjs_segmenter_model_metadata.output_head_metadata[0];
       const outputTensorName =
           outputHeadMetadata.semantic_predictions_tensor_name;
+      const startTs = Date.now();
       const outputTensor =
           await this.model.executeAsync(imageTensor, outputTensorName) as tf.Tensor;
+      this.resultsLatency = Date.now() - startTs;
       tf.dispose(imageTensor);
       const squeezedOutputTensor = outputTensor.squeeze();
       tf.dispose(outputTensor);
@@ -810,7 +856,9 @@ export class AppComponent implements OnInit {
       Promise<void> {
     const results = [];
     if (this.modelFormat === 'tflite') {
+      const startTs = Date.now();
       const detections = this.tfWebApi.run(image).getDetectionsList();
+      this.resultsLatency = Date.now() - startTs;
       for (let i = 0; i < detections.length; i++) {
         const detection = detections[i];
         const boundingBox = detection.getBoundingBox();
@@ -830,7 +878,6 @@ export class AppComponent implements OnInit {
           displayName,
         });
       }
-      console.log(results);
     } else {
       // Prepare inputs.
       const inputTensorMetadata =
@@ -848,10 +895,12 @@ export class AppComponent implements OnInit {
           outputHeadMetadata.detection_scores_tensor_name;
       const detectionClassesTensorName =
           outputHeadMetadata.detection_classes_tensor_name;
+      const startTs = Date.now();
       const outputTensors = await this.model.executeAsync(imageTensor, [
         numDetectionsTensorName, detectionBoxesTensorName,
         detectionScoresTensorName, detectionClassesTensorName
       ]) as tf.Tensor[];
+      this.resultsLatency = Date.now() - startTs;
       tf.dispose(imageTensor);
       const squeezedNumDetections = await outputTensors[0].squeeze();
       const squeezedDetectionBoxes = await outputTensors[1].squeeze();
@@ -1111,5 +1160,22 @@ export class AppComponent implements OnInit {
     const width = thresholdSliderValueElement.getBoundingClientRect().width;
     thresholdSliderValueElement.style.marginLeft =
       `calc(13px + ${this.detectionScoreThreshold} * (100% - 42px) - ${width}px / 2)`;
+  }
+
+  /**
+   * Copies the embed URL to the clipboard.
+   */
+  copyEmbedUrl(): void {
+    // Build a temporary textarea element with config URL to be copied to
+    // clipboard.
+    const element = document.createElement('textarea') as HTMLTextAreaElement;
+    element.value = window.location.href;
+    document.body.appendChild(element);
+    element.select();
+    // Copy the URL to clipboard.
+    document.execCommand('copy');
+    // Remove the temporary textarea element.
+    document.body.removeChild(element);
+    alert('Embed URL copied to clipboard.');
   }
 }

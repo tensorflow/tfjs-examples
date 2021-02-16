@@ -82,9 +82,32 @@ limitations under the License.
         </div>
       </div>
 
-      <div class="LeftFooter"
-           id="left-footer-section">
+      <div class="LeftFooter">
+        <img *ngIf="publisherThumbnailUrl"
+             class="PublisherThumbnailUrl"
+             src="{{ publisherThumbnailUrl }}"
+             alt="">
+        <div *ngIf="publisherName"
+             class="PublisherNameContainer">
+          <div class="PublisherNameHeader">
+            Published by:
+          </div>
+          <div class="PublisherNameText">
+            {{ publisherName }}
+          </div>
+        </div>
+        <a class="TermsOfService"
+           href="https://www.google.com/intl/en/policies/terms/"
+           target="_blank">
+          Terms of Service
+        </a>
+        <a class="PrivacyPolicy"
+           href="https://www.google.com/intl/en/policies/privacy/"
+           target="_blank">
+          Privacy Policy
+        </a>
       </div>
+
     </div>
     <div class="RightSide">
       <div class="InputSection">
@@ -117,7 +140,7 @@ limitations under the License.
 <!-- Template for rendering the header section. -->
 <ng-template #headerSection>
   <div class="HeaderModelName">
-      Interactive model visualizer
+      {{ modelDisplayName }}
   </div>
 </ng-template>
 
@@ -227,7 +250,7 @@ limitations under the License.
 
 <ng-template #resultsHeader>
   <div class="ResultTitle">
-    Results:
+    Results <span class="ResultsLatency">Latency: {{ resultsLatency }}ms</span>
     <ng-container *ngIf="detectorResults != null">
       <div class="DetectorThresholdSliderContainer">
         <div class="DetectorThresholdSliderExtrema">

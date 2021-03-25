@@ -9,7 +9,7 @@
     "@types/shelljs": "~0.8.0",
     "fs": "~0.0.1-security",
     "jasmine": "~3.1.0",
-    "shelljs": "0.8.2",
+    "shelljs": "0.8.4",
     "ts-node": "~5.0.0",
     "tslint": "~5.13.0",
     "tslint-no-circular-imports": "~0.6.1",

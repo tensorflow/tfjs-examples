@@ -218,6 +218,56 @@ $XXSMALL_FONT_SIZE: 12px;
   width: calc(100% - 4px);
 }
 
+/* Left footer */
+
+.PublisherThumbnailUrl {
+  border-radius: 100%;
+  display: inline-block;
+  height: 50px;
+  width: 50px;
+}
+
+.PublisherNameContainer {
+  display: inline-block;
+  height: 100%;
+  margin-left: 12px;
+  vertical-align: top;
+}
+
+.PublisherNameHeader {
+  color: $SECONDARY_TEXT_COLOR;
+  font-size: $XXSMALL_FONT_SIZE;
+  height: 17px;
+  margin-top: 7px;
+}
+
+.PublisherNameText {
+  color: $PRIMARY_TEXT_COLOR;
+  font-size: $SMALL_FONT_SIZE;
+  height: 26px;
+}
+
+.PrivacyPolicy {
+  color: $PRIMARY_TEXT_COLOR;
+  cursor: pointer;
+  float: right;
+  font-size: $XXSMALL_FONT_SIZE;
+  margin-top: 28px;
+  padding-right: 8px;
+  text-decoration: none;
+}
+
+.TermsOfService {
+  border-left: solid 1px $BORDER_COLOR;
+  color: $PRIMARY_TEXT_COLOR;
+  cursor: pointer;
+  float: right;
+  font-size: $XXSMALL_FONT_SIZE;
+  margin-top: 28px;
+  padding-left: 8px;
+  text-decoration: none;
+}
+
 /* Input section */
 
 .DragAndDrop {
@@ -273,6 +323,13 @@ $XXSMALL_FONT_SIZE: 12px;
 .ResultSubtitleUnit {
   display: inline-block;
   float: right;
+}
+
+.ResultsLatency {
+  color: $SECONDARY_TEXT_COLOR;
+  font-size: $XXSMALL_FONT_SIZE;
+  font-weight: 400;
+  margin-left: 10px;
 }
 
 .ResultList {
@@ -365,8 +422,9 @@ $XXSMALL_FONT_SIZE: 12px;
 
 .DetectorThresholdSliderContainer {
   display: inline-block;
-  right: 0;
+  margin-top: 4px;
   position: absolute;
+  right: 0;
   width: 50%;
 }
 

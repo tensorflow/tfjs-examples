@@ -17,20 +17,31 @@
 
 import {Component, OnInit} from '@angular/core';
 import * as tf from '@tensorflow/tfjs';
+import { environment } from './../environments/environment';
+
+// Name declaration for TFWeb imported libraries.
+declare let ImageClassifierViz: any;
+declare let ImageSegmenterViz: any;
+declare let ObjectDetectorViz: any;
 
 // Messages.
 const DOWNLOAD_MESSAGE =
     'This interactive model visualizer will run in the browser: the required TensorFlow.js model files are currently being loaded. Thanks for your patience!';
-const NO_MODEL_METADATA_ERROR_MESSAGE =
-    'No model metadata URL provided. The visualizer could not start';
+const NO_MODEL_ERROR_MESSAGE =
+    'No model URL provided. The visualizer could not start';
+const NO_TFWEB_API_ERROR_MESSAGE =
+    'No TFWeb API selected. The visualizer could not start';
 const TEST_IMAGE_FETCH_FAILURE_MESSAGE =
     'The test image couldn\'t be fetched, please check the JS console for more details.';
 
 // Constants.
+const DEFAULT_MODEL_DISPLAY_NAME = 'Interactive model visualizer';
 const MAX_NB_RESULTS = 100;
 const UNKNOWN_LABEL_DISPLAY_NAME = 'unknown';
 const DEFAULT_DETECTION_THRESHOLD = 0.2;
 const DETECTION_RECTANGLE_BORDER_WIDTH = 2;
+const EPSILON = 0.0000001;
+const WARMUP_IMAGE_DATA_URL = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABkAAAAaCAYAAABCfffNAAABdklEQVRIS2P8/vnDfwYaA8ZRS0gJYZzB9enTJ4YDBw8xPHz0iIGRkRGvmf///2eQl5VjcHCwY+Dj48NQi9WSv3//MrR39jD8/PmdQUhIiIGVlRWvJb9//2F49+4dAzs7O0NleSkDMzMzinqslhw5epRh7fqNDP09XaSECkNhSRlDcGAAg421FWFLTp0+wzB56nSGxQvmkmRJbEIyQ252JoOZqcmoJYRDbjS4CIcRkorR4BqY4KqoqgFb3NHWguEAiuMEVBpXVtcyKCoqgg2/f/8+Q3trM4O8nBzcMoosARX5FdW1DKnJSQzJifFgQ+fOX8gwe+48ho7WZgYHezuwGNmWzJu/kGHW3LkM7S3NDI4O9ihBtP/AQYbKmlqGtORkhqTEePIskZeTZbiHJViQbYIFo5KiIsPDR4+JL4U3b9nG0NjcwuDh7sbQ0tRAVAqrqWtg2LFzF0N9bQ2Dr48X4aIepGLtug0MwUEBRFkAU4RLz/BpEgEApSZOND6VlesAAAAASUVORK5CYII=';
 /**
  * Uses the Pascal VOC[1] color list (256 colors).
  * [1]: http://host.robots.ox.ac.uk/pascal/VOC/
@@ -176,12 +187,17 @@ export class AppComponent implements OnInit {
   title = 'interactive-visualizers';
 
   // Model related variables.
+  modelDisplayName: string = DEFAULT_MODEL_DISPLAY_NAME;
+  modelFormat: string|null = null; // Either 'tflite' or 'tfjs'.
+  tfWebApiName: string|null = null;
+  tfWebApi: any|null = null;
   modelMetadataUrl: string|null = null;
   modelMetadata: any|null = null;
-  modelType: string|null = null;
   model: tf.GraphModel|null = null;
   labelmap: string[]|null = null;
   defaultScoreThreshold = 0.0;
+  publisherName: string|null = null;
+  publisherThumbnailUrl: string|null = null;
 
   // Query related variables.
   queryImageHeight: number|null = null;
@@ -198,6 +214,7 @@ export class AppComponent implements OnInit {
   // Results variables.
   resultsKeyName: string|null = null;
   resultsValueName: string|null = null;
+  resultsLatency: number|null = null;
   // Classifier specific variables.
   classifierResults: Array<{displayName: string, score: number}>|null = null;
   // Detector specific variables.
@@ -230,40 +247,39 @@ export class AppComponent implements OnInit {
   ngOnInit(): void {
     // Sanity checks on URL query parameters.
     const urlParams = new URLSearchParams(window.location.search);
-    if (!urlParams.has('modelMetadataUrl')) {
-      throw new Error(NO_MODEL_METADATA_ERROR_MESSAGE);
+    if (urlParams.has('testImagesIndexUrl')) {
+      this.testImagesIndexUrl = urlParams.get('testImagesIndexUrl');
     }
-    const modelMetadataUrl = urlParams.get('modelMetadataUrl');
-
-    this.initApp(modelMetadataUrl);
+    if (urlParams.has('modelDisplayName')) {
+      this.modelDisplayName = urlParams.get('modelDisplayName');
+    }
+    if (urlParams.has('publisherName')) {
+      this.publisherName = urlParams.get('publisherName');
+    }
+    if (urlParams.has('publisherThumbnailUrl')) {
+      this.publisherThumbnailUrl = urlParams.get('publisherThumbnailUrl');
+    }
+    if (urlParams.has('tfliteModelUrl')) {
+      if (!urlParams.has('tfWebApi')) {
+        throw new Error(NO_TFWEB_API_ERROR_MESSAGE);
+      }
+      this.modelFormat = 'tflite';
+      const tfliteModelUrl = urlParams.get('tfliteModelUrl');
+      this.tfWebApiName = urlParams.get('tfWebApi');
+      this.initAppWithTfliteModel(tfliteModelUrl);
+    } else if (urlParams.has('modelMetadataUrl')) {
+      this.modelFormat = 'tfjs';
+      const modelMetadataUrl = urlParams.get('modelMetadataUrl');
+      this.initAppWithTfjsModel(modelMetadataUrl);
+    } else {
+      throw new Error(NO_MODEL_ERROR_MESSAGE);
+    }
   }
 
-  async fetchModel(modelUrl: string): Promise<tf.GraphModel> {
-    const model = await tf.loadGraphModel(modelUrl);
-    return model;
-  }
-
-  /**
-   * Initializes the app for the provided model metadata URL.
-   */
-  async initApp(modelMetadataUrl: string): Promise<void> {
-    await tf.setBackend('cpu');
-    // Load model & metadata.
-    this.modelMetadataUrl = modelMetadataUrl;
-    const metadataResponse = await fetch(this.modelMetadataUrl);
-    this.modelMetadata = await metadataResponse.json();
-    const modelUrl = this.getAssetsUrlPrefix() + 'model.json';
-    this.model = await this.fetchModel(modelUrl);
-    if (this.modelMetadata.tfjs_classifier_model_metadata) {
-      this.modelType = 'classifier';
-    } else if (this.modelMetadata.tfjs_detector_model_metadata) {
-      this.modelType = 'detector';
-    } else if (this.modelMetadata.tfjs_segmenter_model_metadata) {
-      this.modelType = 'segmenter';
+  async fetchTestImages(): Promise<void> {
+    if (this.testImagesIndexUrl == null) {
+      return;
     }
-
-    // Fetch test data if any.
-    this.testImagesIndexUrl = this.modelMetadata.test_images_index_path;
     try {
       const testImagesResponse = await fetch(this.testImagesIndexUrl);
       const testImageNames = await testImagesResponse.json();
@@ -286,6 +302,66 @@ export class AppComponent implements OnInit {
     } catch (error) {
       console.error(`Couldn't fetch test images: ${error}`);
     }
+  }
+
+  async fetchModel(modelUrl: string): Promise<tf.GraphModel> {
+    const model = await tf.loadGraphModel(modelUrl);
+    return model;
+  }
+
+  /**
+   * Initializes the app for the provided TFLite model URL.
+   */
+  async initAppWithTfliteModel(tfliteModelUrl: string): Promise<void> {
+    switch (this.tfWebApiName) {
+      case environment.imageClassifierApiName:
+        this.tfWebApi = new ImageClassifierViz();
+        break;
+      case environment.imageSegmenterApiName:
+        this.tfWebApi = new ImageSegmenterViz();
+        break;
+      case environment.objectDetectorApiName:
+        this.tfWebApi = new ObjectDetectorViz();
+        break;
+    }
+    await this.tfWebApi.init(environment.tfWebWasmFilesPrefix + this.tfWebApiName + '/', tfliteModelUrl);
+    await this.warmUpModel();
+    await this.fetchTestImages();
+  }
+
+  /**
+   * Initializes the app for the provided model metadata URL.
+   */
+  async initAppWithTfjsModel(modelMetadataUrl: string): Promise<void> {
+    // Load model & metadata.
+    this.modelMetadataUrl = modelMetadataUrl;
+    const metadataResponse = await fetch(this.modelMetadataUrl);
+    this.modelMetadata = await metadataResponse.json();
+    const modelUrl = this.getAssetsUrlPrefix() + 'model.json';
+    this.model = await this.fetchModel(modelUrl);
+    if (this.modelMetadata.tfjs_classifier_model_metadata) {
+      this.tfWebApiName = environment.imageClassifierApiName;
+    } else if (this.modelMetadata.tfjs_detector_model_metadata) {
+      this.tfWebApiName = environment.objectDetectorApiName;
+    } else if (this.modelMetadata.tfjs_segmenter_model_metadata) {
+      this.tfWebApiName = environment.imageSegmenterApiName;
+    }
+    await this.fetchTestImages();
+  }
+
+  /**
+   * Warms up the model. Subsequent calls will be faster.
+   */
+  async warmUpModel(): Promise<void> {
+    return new Promise((resolve, reject) => {
+      const warmUpImage = new Image();
+      warmUpImage.onload = async () => {
+        await this.tfWebApi.run(warmUpImage);
+        resolve();
+      };
+      warmUpImage.onerror = () => reject();
+      warmUpImage.src = WARMUP_IMAGE_DATA_URL;
+    });
   }
 
   /**
@@ -411,19 +487,19 @@ export class AppComponent implements OnInit {
     this.queryImageDataURL = imageDataURL;
     const image = new Image();
     image.onload = async () => {
-      switch (this.modelType) {
-        case 'classifier':
+      switch (this.tfWebApiName) {
+        case environment.imageClassifierApiName:
           this.runImageClassifier(image, index);
           break;
-        case 'detector':
-          this.runImageDetector(image, index);
+        case environment.objectDetectorApiName:
+          this.runObjectDetector(image, index);
           break;
-        case 'segmenter':
+        case environment.imageSegmenterApiName:
           this.runImageSegmenter(image, index);
           break;
         default:
           console.error(
-              `The model type \`${this.modelType}\ isn't currently supported.`);
+              `The TFWeb API \`${this.tfWebApi}\ isn't currently supported.`);
       }
     };
     image.src = imageDataURL;
@@ -499,45 +575,66 @@ export class AppComponent implements OnInit {
    */
   async runImageClassifier(image: HTMLImageElement, index: number):
       Promise<void> {
-    // Prepare inputs.
-    const inputTensorMetadata =
-        this.modelMetadata.tfjs_classifier_model_metadata.input_tensor_metadata;
-    const imageTensor = this.prepareImageInput(image, inputTensorMetadata);
-
-    // Execute the model.
-    const outputTensor: tf.Tensor =
-        await this.model.executeAsync(imageTensor) as tf.Tensor;
-    tf.dispose(imageTensor);
-    const squeezedOutputTensor = outputTensor.squeeze();
-    tf.dispose(outputTensor);
-    const predictions: number[] =
-        await squeezedOutputTensor.array() as number[];
-    tf.dispose(squeezedOutputTensor);
-
-    // Fetch the labelmap and score thresholds, then assign labels to the
-    // prediction results.
-    const outputHeadMetadata = this.modelMetadata.tfjs_classifier_model_metadata
-                                   .output_head_metadata[0];
-    let scoreThreshold = 0.0;
-    if (outputHeadMetadata.score_threshold != null) {
-      scoreThreshold = outputHeadMetadata.score_threshold;
-    }
-    if (this.labelmap == null && outputHeadMetadata.labelmap_path != null) {
-      await this.fetchLabelmap(outputHeadMetadata.labelmap_path);
-    }
     let results = [];
-    for (let i = 0; i < predictions.length; i++) {
-      if (predictions[i] > scoreThreshold) {
-        if (this.labelmap != null && this.labelmap.length > i) {
+    if (this.modelFormat === 'tflite') {
+      const startTs = Date.now();
+      const rawResults = this.tfWebApi.run(image);
+      this.resultsLatency = Date.now() - startTs;
+      rawResults.getClassificationsList()[0].getClassesList().forEach(cls => {
+        if (cls.getDisplayName()) {
           results.push({
-            displayName: this.labelmap[i],
-            score: predictions[i],
+            displayName: cls.getDisplayName(),
+            score: cls.getScore(),
           });
         } else {
           results.push({
-            displayName: UNKNOWN_LABEL_DISPLAY_NAME,
-            score: predictions[i],
+            displayName: cls.getClassName(),
+            score: cls.getScore(),
           });
+        }
+      });
+    } else {
+      // Prepare inputs.
+      const inputTensorMetadata =
+          this.modelMetadata.tfjs_classifier_model_metadata.input_tensor_metadata;
+      const imageTensor = this.prepareImageInput(image, inputTensorMetadata);
+
+      // Execute the model.
+      const startTs = Date.now();
+      const outputTensor: tf.Tensor =
+          await this.model.executeAsync(imageTensor) as tf.Tensor;
+      this.resultsLatency = Date.now() - startTs;
+      tf.dispose(imageTensor);
+      const squeezedOutputTensor = outputTensor.squeeze();
+      tf.dispose(outputTensor);
+      const predictions: number[] =
+          await squeezedOutputTensor.array() as number[];
+      tf.dispose(squeezedOutputTensor);
+
+      // Fetch the labelmap and score thresholds, then assign labels to the
+      // prediction results.
+      const outputHeadMetadata = this.modelMetadata.tfjs_classifier_model_metadata
+                                     .output_head_metadata[0];
+      let scoreThreshold = 0.0;
+      if (outputHeadMetadata.score_threshold != null) {
+        scoreThreshold = outputHeadMetadata.score_threshold;
+      }
+      if (this.labelmap == null && outputHeadMetadata.labelmap_path != null) {
+        await this.fetchLabelmap(outputHeadMetadata.labelmap_path);
+      }
+      for (let i = 0; i < predictions.length; i++) {
+        if (predictions[i] > scoreThreshold) {
+          if (this.labelmap != null && this.labelmap.length > i) {
+            results.push({
+              displayName: this.labelmap[i],
+              score: predictions[i],
+            });
+          } else {
+            results.push({
+              displayName: UNKNOWN_LABEL_DISPLAY_NAME,
+              score: predictions[i],
+            });
+          }
         }
       }
     }
@@ -569,28 +666,56 @@ export class AppComponent implements OnInit {
    */
   async runImageSegmenter(image: HTMLImageElement, index: number):
       Promise<void> {
-    // Prepare inputs.
-    const inputTensorMetadata =
-        this.modelMetadata.tfjs_segmenter_model_metadata.input_tensor_metadata;
-    const imageTensor = this.prepareImageInput(image, inputTensorMetadata);
+    let predictions: number[][] = [];
+    if (this.modelFormat === 'tflite') {
+      const startTs = Date.now();
+      const segmentation = this.tfWebApi.run(image).getSegmentationList()[0];
+      this.resultsLatency = Date.now() - startTs;
+      const categoryMask = segmentation.getCategoryMask();
+      for (let i = 0; i < segmentation.getHeight(); i++) {
+        predictions.push(Array.from(categoryMask.slice(segmentation.getWidth() * i,
+          segmentation.getWidth() * (i + 1))));
+      }
+      this.labelmap = [];
+      const coloredLabelList = segmentation.getColoredLabelsList();
+      for (let i = 0; i < coloredLabelList.length; i++) {
+        const colorLabel = coloredLabelList[i];
+        if (colorLabel.getDisplayName()) {
+          this.labelmap.push(colorLabel.getDisplayName());
+        } else {
+          this.labelmap.push(colorLabel.getClassName());
+        }
+        if (colorLabel.getR() && colorLabel.getG() && colorLabel.getB()) {
+          COLOR_LIST[i] = [colorLabel.getR() / 255, colorLabel.getG() / 255, colorLabel.getB() / 255];
+        }
+      }
+    } else {
+      // Prepare inputs.
+      const inputTensorMetadata =
+          this.modelMetadata.tfjs_segmenter_model_metadata.input_tensor_metadata;
+      const imageTensor = this.prepareImageInput(image, inputTensorMetadata);
 
-    // Execute the model.
-    const outputHeadMetadata =
-        this.modelMetadata.tfjs_segmenter_model_metadata.output_head_metadata[0];
-    const outputTensorName =
-        outputHeadMetadata.semantic_predictions_tensor_name;
-    const outputTensor =
-        await this.model.executeAsync(imageTensor, outputTensorName) as tf.Tensor;
-    tf.dispose(imageTensor);
-    const squeezedOutputTensor = outputTensor.squeeze();
-    tf.dispose(outputTensor);
-    const predictions = await squeezedOutputTensor.array() as number[][];
-    tf.dispose(squeezedOutputTensor);
+      // Execute the model.
+      const outputHeadMetadata =
+          this.modelMetadata.tfjs_segmenter_model_metadata.output_head_metadata[0];
+      const outputTensorName =
+          outputHeadMetadata.semantic_predictions_tensor_name;
+      const startTs = Date.now();
+      const outputTensor =
+          await this.model.executeAsync(imageTensor, outputTensorName) as tf.Tensor;
+      this.resultsLatency = Date.now() - startTs;
+      tf.dispose(imageTensor);
+      const squeezedOutputTensor = outputTensor.squeeze();
+      tf.dispose(outputTensor);
+      predictions = await squeezedOutputTensor.array() as number[][];
+      tf.dispose(squeezedOutputTensor);
 
-    // Fetch the labelmap.
-    if (this.labelmap == null && outputHeadMetadata.labelmap_path != null) {
-      await this.fetchLabelmap(outputHeadMetadata.labelmap_path);
+      // Fetch the labelmap.
+      if (this.labelmap == null && outputHeadMetadata.labelmap_path != null) {
+        await this.fetchLabelmap(outputHeadMetadata.labelmap_path);
+      }
     }
+
     // Generate labelmap if not found.
     if (this.labelmap == null) {
       let maxLabelIndex = 0;
@@ -626,6 +751,7 @@ export class AppComponent implements OnInit {
           COLOR_LIST[listIndex][1]}, ${255 * COLOR_LIST[listIndex][2]})`,
                             };
                           })
+                          .filter(x => x.frequencyPercent > EPSILON)
                           .sort((a, b) => {
                             if (a.frequencyPercent > b.frequencyPercent) {
                               return -1;
@@ -726,72 +852,99 @@ export class AppComponent implements OnInit {
   /**
    * Run the model in case of image detection, and return detector results.
    */
-  async runImageDetector(image: HTMLImageElement, index: number):
+  async runObjectDetector(image: HTMLImageElement, index: number):
       Promise<void> {
-    // Prepare inputs.
-    const inputTensorMetadata =
-        this.modelMetadata.tfjs_detector_model_metadata.input_tensor_metadata;
-    const imageTensor = this.prepareImageInput(image, inputTensorMetadata);
-
-    // Execute the model.
-    const outputHeadMetadata =
-        this.modelMetadata.tfjs_detector_model_metadata.output_head_metadata[0];
-    const numDetectionsTensorName =
-        outputHeadMetadata.num_detections_tensor_name;
-    const detectionBoxesTensorName =
-        outputHeadMetadata.detection_boxes_tensor_name;
-    const detectionScoresTensorName =
-        outputHeadMetadata.detection_scores_tensor_name;
-    const detectionClassesTensorName =
-        outputHeadMetadata.detection_classes_tensor_name;
-    const outputTensors = await this.model.executeAsync(imageTensor, [
-      numDetectionsTensorName, detectionBoxesTensorName,
-      detectionScoresTensorName, detectionClassesTensorName
-    ]) as tf.Tensor[];
-    tf.dispose(imageTensor);
-    const squeezedNumDetections = await outputTensors[0].squeeze();
-    const squeezedDetectionBoxes = await outputTensors[1].squeeze();
-    const squeezedDetectionScores = await outputTensors[2].squeeze();
-    const squeezedDetectionClasses = await outputTensors[3].squeeze();
-    tf.dispose(outputTensors);
-    const numDetections = await squeezedNumDetections.array() as number;
-    const detectionBoxes = await squeezedDetectionBoxes.array() as number[][];
-    const detectionScores = await squeezedDetectionScores.array() as number[];
-    const detectionClasses = await squeezedDetectionClasses.array() as number[];
-    tf.dispose(squeezedNumDetections);
-    tf.dispose(squeezedDetectionBoxes);
-    tf.dispose(squeezedDetectionScores);
-    tf.dispose(squeezedDetectionClasses);
-
-    // Fetch labelmap and score thresholds.
-    this.detectionScoreThreshold = DEFAULT_DETECTION_THRESHOLD;
-    if (outputHeadMetadata.score_threshold != null &&
-        outputHeadMetadata.score_threshold.length) {
-      this.detectionScoreThreshold = outputHeadMetadata.score_threshold[0];
-    }
-    if (this.labelmap == null && outputHeadMetadata.labelmap_path != null) {
-      await this.fetchLabelmap(outputHeadMetadata.labelmap_path);
-    }
-
     const results = [];
-    for (let i = 0; i < numDetections; ++i) {
-      const label = detectionClasses[i];
-      if (this.labelmap != null && this.labelmap.length > label) {
+    if (this.modelFormat === 'tflite') {
+      const startTs = Date.now();
+      const detections = this.tfWebApi.run(image).getDetectionsList();
+      this.resultsLatency = Date.now() - startTs;
+      for (let i = 0; i < detections.length; i++) {
+        const detection = detections[i];
+        const boundingBox = detection.getBoundingBox();
+        const top = boundingBox.getOriginY() / image.height;
+        const left = boundingBox.getOriginX() / image.width;
+        const bottom = (boundingBox.getOriginY() + boundingBox.getHeight()) / image.height;
+        const right = (boundingBox.getOriginX() + boundingBox.getWidth()) / image.width;
+        let displayName = detection.getClassesList()[0].getDisplayName();
+        if (!displayName) {
+          displayName = detection.getClassesList()[0].getClassName();
+        }
         results.push({
           id: i,
-          box: detectionBoxes[i],
-          score: detectionScores[i],
-          label,
-          displayName: this.labelmap[label],
+          box: [top, left, bottom, right],
+          score: detection.getClassesList()[0].getScore(),
+          label: detection.getClassesList()[0].getClassName(),
+          displayName,
         });
-      } else {
-        results.push({
-          id: i,
-          box: detectionBoxes[i],
-          score: detectionScores[i],
-          label,
-          displayName: label,
-        });
+      }
+    } else {
+      // Prepare inputs.
+      const inputTensorMetadata =
+          this.modelMetadata.tfjs_detector_model_metadata.input_tensor_metadata;
+      const imageTensor = this.prepareImageInput(image, inputTensorMetadata);
+
+      // Execute the model.
+      const outputHeadMetadata =
+          this.modelMetadata.tfjs_detector_model_metadata.output_head_metadata[0];
+      const numDetectionsTensorName =
+          outputHeadMetadata.num_detections_tensor_name;
+      const detectionBoxesTensorName =
+          outputHeadMetadata.detection_boxes_tensor_name;
+      const detectionScoresTensorName =
+          outputHeadMetadata.detection_scores_tensor_name;
+      const detectionClassesTensorName =
+          outputHeadMetadata.detection_classes_tensor_name;
+      const startTs = Date.now();
+      const outputTensors = await this.model.executeAsync(imageTensor, [
+        numDetectionsTensorName, detectionBoxesTensorName,
+        detectionScoresTensorName, detectionClassesTensorName
+      ]) as tf.Tensor[];
+      this.resultsLatency = Date.now() - startTs;
+      tf.dispose(imageTensor);
+      const squeezedNumDetections = await outputTensors[0].squeeze();
+      const squeezedDetectionBoxes = await outputTensors[1].squeeze();
+      const squeezedDetectionScores = await outputTensors[2].squeeze();
+      const squeezedDetectionClasses = await outputTensors[3].squeeze();
+      tf.dispose(outputTensors);
+      const numDetections = await squeezedNumDetections.array() as number;
+      const detectionBoxes = await squeezedDetectionBoxes.array() as number[][];
+      const detectionScores = await squeezedDetectionScores.array() as number[];
+      const detectionClasses = await squeezedDetectionClasses.array() as number[];
+      tf.dispose(squeezedNumDetections);
+      tf.dispose(squeezedDetectionBoxes);
+      tf.dispose(squeezedDetectionScores);
+      tf.dispose(squeezedDetectionClasses);
+
+      // Fetch labelmap and score thresholds.
+      this.detectionScoreThreshold = DEFAULT_DETECTION_THRESHOLD;
+      if (outputHeadMetadata.score_threshold != null &&
+          outputHeadMetadata.score_threshold.length) {
+        this.detectionScoreThreshold = outputHeadMetadata.score_threshold[0];
+      }
+      if (this.labelmap == null && outputHeadMetadata.labelmap_path != null) {
+        await this.fetchLabelmap(outputHeadMetadata.labelmap_path);
+      }
+
+      for (let i = 0; i < numDetections; ++i) {
+        const label = detectionClasses[i];
+        if (this.labelmap != null && this.labelmap.length > label) {
+          results.push({
+            id: i,
+            box: detectionBoxes[i],
+            score: detectionScores[i],
+            label,
+            displayName: this.labelmap[label],
+          });
+        } else {
+          results.push({
+            id: i,
+            box: detectionBoxes[i],
+            score: detectionScores[i],
+            label,
+            displayName: label,
+          });
+        }
       }
     }
 
@@ -1007,5 +1160,22 @@ export class AppComponent implements OnInit {
     const width = thresholdSliderValueElement.getBoundingClientRect().width;
     thresholdSliderValueElement.style.marginLeft =
       `calc(13px + ${this.detectionScoreThreshold} * (100% - 42px) - ${width}px / 2)`;
+  }
+
+  /**
+   * Copies the embed URL to the clipboard.
+   */
+  copyEmbedUrl(): void {
+    // Build a temporary textarea element with config URL to be copied to
+    // clipboard.
+    const element = document.createElement('textarea') as HTMLTextAreaElement;
+    element.value = window.location.href;
+    document.body.appendChild(element);
+    element.select();
+    // Copy the URL to clipboard.
+    document.execCommand('copy');
+    // Remove the temporary textarea element.
+    document.body.removeChild(element);
+    alert('Embed URL copied to clipboard.');
   }
 }

@@ -20,7 +20,11 @@
 // The list of file replacements can be found in `angular.json`.
 
 export const environment = {
-  production: false
+  production: false,
+  tfWebWasmFilesPrefix: 'https://www.gstatic.com/tensorflowjs/tfweb/',
+  imageClassifierApiName: 'image_classifier',
+  imageSegmenterApiName: 'image_segmenter',
+  objectDetectorApiName: 'object_detector',
 };
 
 /*

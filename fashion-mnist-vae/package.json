@@ -15,8 +15,8 @@
     "@tensorflow/tfjs-vis": "^1.4.3",
     "argparse": "^1.0.10",
     "d3-selection": "^1.4.0",
-    "http-server": "^0.11.1",
-    "jimp": "0.6.0",
+    "http-server": "^0.12.3",
+    "jimp": "^0.16.1",
     "lodash": "^4.17.13",
     "mkdirp": "^0.5.1",
     "terminal-image": "^0.1.2"

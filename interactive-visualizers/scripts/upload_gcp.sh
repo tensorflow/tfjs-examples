@@ -21,9 +21,9 @@ PLAYGROUND_PACKAGE_DIR="dist/playground/*"
 # host url
 PACKAGE_HOST="interactive_visualizer"
 
-rm -rf dist/
-yarn prod-build
-yarn playground-prod-build
+#rm -rf dist/
+#yarn prod-build
+#yarn playground-prod-build
 
 PACKAGE_VERSION=`node -p "require('./package.json').version"`
 echo 'current version: ' $PACKAGE_VERSION

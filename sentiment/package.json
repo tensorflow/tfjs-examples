@@ -10,7 +10,7 @@
   },
   "dependencies": {
     "@tensorflow/tfjs": "3.0.0",
-    "vega-embed": "^3.0.0"
+    "vega-embed": "^6.17.0"
   },
   "scripts": {
     "watch": "./serve.sh",
@@ -30,8 +30,8 @@
     "clang-format": "~1.2.2",
     "cross-env": "^5.1.6",
     "extract-zip": "^1.6.7",
-    "http-server": "~0.10.0",
-    "parcel-bundler": "~1.10.3",
+    "http-server": "^0.12.3",
+    "parcel-bundler": "~1.12.5",
     "shelljs": "^0.8.3",
     "tmp": "^0.0.33",
     "yalc": "~1.0.0-pre.22"

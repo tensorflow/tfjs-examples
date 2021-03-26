@@ -21,7 +21,7 @@ import {IMAGENET_CLASSES} from './imagenet_classes';
 
 const MOBILENET_MODEL_PATH =
     // tslint:disable-next-line:max-line-length
-    'https://storage.googleapis.com/tfjs-models/tfjs/mobilenet_v1_0.25_224/model.json';
+    'https://tfhub.dev/google/tfjs-model/imagenet/mobilenet_v2_100_224/classification/3/default/1';
 
 const IMAGE_SIZE = 224;
 const TOPK_PREDICTIONS = 10;
@@ -30,7 +30,7 @@ let mobilenet;
 const mobilenetDemo = async () => {
   status('Loading model...');
 
-  mobilenet = await tf.loadLayersModel(MOBILENET_MODEL_PATH);
+  mobilenet = await tf.loadGraphModel(MOBILENET_MODEL_PATH, {fromTFHub: true});
 
   // Warmup the model. This isn't necessary, but makes the first prediction
   // faster. Call `dispose` to release the WebGL memory allocated for the return
@@ -69,7 +69,7 @@ async function predict(imgElement) {
   let startTime2;
   const logits = tf.tidy(() => {
     // tf.browser.fromPixels() returns a Tensor from an image element.
-    const img = tf.browser.fromPixels(imgElement).toFloat();
+    const img = tf.cast(tf.browser.fromPixels(imgElement), 'float32');
 
     const offset = tf.scalar(127.5);
     // Normalize the image from [0, 255] to [-1, 1].

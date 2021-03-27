@@ -27,8 +27,8 @@
     "babel-preset-env": "~1.6.1",
     "clang-format": "~1.2.2",
     "cross-env": "^5.1.6",
-    "jimp": "0.6.0",
-    "parcel-bundler": "~1.10.3",
+    "jimp": "^0.16.1",
+    "parcel-bundler": "~1.12.5",
     "shelljs": "~0.8.3",
     "yalc": "~1.0.0-pre.22"
   }

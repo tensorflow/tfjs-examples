@@ -14,6 +14,6 @@
   },
   "devDependencies": {
     "clang-format": "~1.2.2",
-    "http-server": "~0.10.0"
+    "http-server": "^0.12.3"
   }
 }

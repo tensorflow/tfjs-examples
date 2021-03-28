@@ -31,6 +31,10 @@
     "cross-env": "^5.1.6",
     "parcel-bundler": "~1.12.5",
     "time-ago": "0.2.1",
-    "yalc": "~1.0.0-pre.22"
+    "yalc": "~1.0.0-pre.50"
+  },
+  "resolutions": {
+    "is-svg": "4.3.1",
+    "node-fetch": "2.6.1"
   }
 }

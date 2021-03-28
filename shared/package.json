@@ -10,5 +10,8 @@
   },
   "dependencies": {
     "node-sass": "^4.9.4"
+  },
+  "devDependencies": {
+    "cssnano": "^4.1.10"
   }
 }

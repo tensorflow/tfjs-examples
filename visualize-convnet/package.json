@@ -30,6 +30,10 @@
     "jimp": "^0.16.1",
     "parcel-bundler": "~1.12.5",
     "shelljs": "~0.8.3",
-    "yalc": "~1.0.0-pre.22"
+    "yalc": "~1.0.0-pre.50"
+  },
+  "resolutions": {
+    "is-svg": "4.3.1",
+    "node-fetch": "2.6.1"
   }
 }

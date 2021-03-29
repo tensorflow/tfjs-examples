@@ -18,5 +18,9 @@
     "@tensorflow/tfjs-node": "^1.3.2",
     "argparse": "^1.0.10",
     "socket.io": "~2.4.0"
+  },
+  "resolutions": {
+    "node-fetch": "2.6.1",
+    "ssri": "8.0.1"
   }
 }

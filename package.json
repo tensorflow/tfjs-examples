@@ -14,7 +14,7 @@
     "tslint": "~6.1.3",
     "tslint-no-circular-imports": "~0.7.0",
     "typescript": "4.2.4",
-    "yalc": "~1.0.0-pre.50"
+    "yalc": "~1.0.0-pre.51"
   },
   "license": "Apache-2.0"
 }

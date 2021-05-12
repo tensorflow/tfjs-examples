@@ -264,12 +264,12 @@ export class AppComponent implements OnInit {
         throw new Error(NO_TFWEB_API_ERROR_MESSAGE);
       }
       this.modelFormat = 'tflite';
-      const tfliteModelUrl = urlParams.get('tfliteModelUrl');
+      const tfliteModelUrl = decodeURIComponent(urlParams.get('tfliteModelUrl'));
       this.tfWebApiName = urlParams.get('tfWebApi');
       this.initAppWithTfliteModel(tfliteModelUrl);
     } else if (urlParams.has('modelMetadataUrl')) {
       this.modelFormat = 'tfjs';
-      const modelMetadataUrl = urlParams.get('modelMetadataUrl');
+      const modelMetadataUrl = decodeURIComponent(urlParams.get('modelMetadataUrl'));
       this.initAppWithTfjsModel(modelMetadataUrl);
     } else {
       throw new Error(NO_MODEL_ERROR_MESSAGE);

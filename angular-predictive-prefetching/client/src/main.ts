@@ -10,3 +10,7 @@ if (environment.production) {
 
 platformBrowserDynamic().bootstrapModule(AppModule)
   .catch(err => console.error(err));
+
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/prefetch.service-worker.js', { scope: '/' });
+}

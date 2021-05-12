@@ -25,7 +25,8 @@
             "aot": true,
             "assets": [
               "src/favicon.ico",
-              "src/assets"
+              "src/assets",
+              "src/prefetch.service-worker.js"
             ],
             "styles": [
               "src/styles.scss"
@@ -95,7 +96,8 @@
             "karmaConfig": "karma.conf.js",
             "assets": [
               "src/favicon.ico",
-              "src/assets"
+              "src/assets",
+              "src/prefetch.service-worker.js"
             ],
             "styles": [
               "src/styles.scss"

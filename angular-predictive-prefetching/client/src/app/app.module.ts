@@ -15,8 +15,6 @@ import { LogoComponent } from './navigation/logo/logo.component';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { MerchDisplayComponent } from './merch-display/merch-display.component';
 import { MerchCardComponent } from './merch-display/merch-card/merch-card.component';
-import { environment } from '../environments/environment';
-import { ServiceWorkerModule } from '@angular/service-worker';
 import { RouterModule } from '@angular/router';
 import { routes } from './app-routing.module';
 
@@ -40,7 +38,6 @@ import { routes } from './app-routing.module';
     MatIconModule,
     MatListModule,
     RouterModule.forRoot(routes),
-    ServiceWorkerModule.register('ngsw-worker.js', { enabled: environment.production })
   ],
   bootstrap: [AppComponent],
 })

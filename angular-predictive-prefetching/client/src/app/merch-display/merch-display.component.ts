@@ -13,6 +13,8 @@ import { MerchService } from '../data/merch.service';
 export class MerchDisplayComponent implements OnInit {
   merch: Merch[] = [];
 
+  private _serviceWorker: ServiceWorker|null = null;
+
   constructor(
     private route: ActivatedRoute,
     private merchService: MerchService,
@@ -20,10 +22,17 @@ export class MerchDisplayComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
+    navigator.serviceWorker.ready.then( registration => {
+      this._serviceWorker = registration.active;
+    });
     this.route.params.subscribe((routeParams) => {
       this.getMerch(routeParams.category);
+      if (this._serviceWorker) {
+        this._serviceWorker.postMessage({ page: routeParams.category });
+      }
     });
   }
+
 
   getMerch(category: string): void {
     this.merchService

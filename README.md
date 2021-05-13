@@ -53,6 +53,17 @@ to another project.
     <td></td>
   </tr>
   <tr>
+    <td><a href="./angular-predictive-prefetching">angular-predictive-prefetching</a></td>
+    <td></td>
+    <td>Numeric</td>
+    <td>Multiclass predictor</td>
+    <td>DNN</td>
+    <td></td>
+    <td>Browser: Service Worker</td>
+    <td>Layers</td>
+    <td></td>
+  </tr>
+  <tr>
     <td><a href="./baseball-node">baseball-node</a></td>
     <td></td>
     <td>Numeric</td>

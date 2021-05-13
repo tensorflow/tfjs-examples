@@ -1,0 +1,28 @@
+.merch-card {
+  margin: 6px;
+  white-space: nowrap;
+}
+
+.merch-card img {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 1/1;
+}
+
+.merch-header-image {
+  background-size: cover;
+}
+
+.mat-mdc-card-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding-top: 16px;
+
+  h4 {
+    width: 90%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}

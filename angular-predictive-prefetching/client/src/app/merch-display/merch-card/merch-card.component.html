@@ -1,0 +1,7 @@
+<mat-card class="merch-card">
+  <img class="image" mat-card-image [src]="imageUrl" alt="Photo of {{merch.name}}">
+  <mat-card-content>
+    <h4>{{merch.name}}</h4>
+    <h4>{{merch.price | currency:'USD'}}</h4>
+  </mat-card-content>
+</mat-card>

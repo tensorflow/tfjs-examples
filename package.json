@@ -5,7 +5,7 @@
     "presubmit": "ts-node presubmit.ts"
   },
   "devDependencies": {
-    "@types/node": "~15.0.3",
+    "@types/node": "~15.3.0",
     "@types/shelljs": "~0.8.8",
     "fs": "~0.0.1-security",
     "jasmine": "~3.7.0",

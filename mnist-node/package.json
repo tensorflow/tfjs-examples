@@ -1,6 +1,6 @@
 {
   "name": "tfjs-examples-mnist-node",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "",
   "main": "index.js",
   "license": "Apache-2.0",
@@ -9,8 +9,8 @@
     "node": ">=8.11.0"
   },
   "dependencies": {
-    "@tensorflow/tfjs-node": "2.0.0",
-    "argparse": "^1.0.10"
+    "@tensorflow/tfjs-node": "3.7.0",
+    "argparse": "^2.0.1"
   },
   "scripts": {
     "train": "node main.js"

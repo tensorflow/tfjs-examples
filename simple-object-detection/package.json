@@ -1,6 +1,6 @@
 {
   "name": "tfjs-examples-simple-object-detection",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "",
   "main": "index.js",
   "license": "Apache-2.0",
@@ -9,8 +9,8 @@
     "node": ">=8.9.0"
   },
   "dependencies": {
-    "@tensorflow/tfjs": "^2.6.0",
-    "argparse": "^1.0.10",
+    "@tensorflow/tfjs": "^3.7.0",
+    "argparse": "^2.0.1",
     "canvas": "2.6.1",
     "node-fetch": "2.6.1"
   },
@@ -21,8 +21,8 @@
     "train": "node train.js"
   },
   "devDependencies": {
-    "@tensorflow/tfjs-node": "^2.6.0",
-    "@tensorflow/tfjs-node-gpu": "^2.6.0",
+    "@tensorflow/tfjs-node": "^3.7.0",
+    "@tensorflow/tfjs-node-gpu": "^3.7.0",
     "babel-core": "^6.26.3",
     "babel-plugin-transform-runtime": "~6.23.0",
     "babel-polyfill": "~6.26.0",

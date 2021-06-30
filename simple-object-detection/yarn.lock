@@ -870,6 +870,21 @@
   resolved "https://registry.yarnpkg.com/@iarna/toml/-/toml-2.2.5.tgz#b32366c89b43c6f8cefbdefac778b9c828e3ba8c"
   integrity sha512-trnsAYxU3xnS1gPHPyU961coFyLkh4gAD/0zQ5mymY4yOZ+CYvsPqUbOFSw0aDM4y0tV7tiFxL/1XfXPNC6IPg==
 
+"@mapbox/node-pre-gyp@1.0.4":
+  version "1.0.4"
+  resolved "https://registry.npmjs.org/@mapbox/node-pre-gyp/-/node-pre-gyp-1.0.4.tgz#6c76e7a40138eac39e1a4dc869a083e43e236c00"
+  integrity sha512-M669Qo4nRT7iDmQEjQYC7RU8Z6dpz9UmSbkJ1OFEja3uevCdLKh7IZZki7L1TZj02kRyl82snXFY8QqkyfowrQ==
+  dependencies:
+    detect-libc "^1.0.3"
+    https-proxy-agent "^5.0.0"
+    make-dir "^3.1.0"
+    node-fetch "^2.6.1"
+    nopt "^5.0.0"
+    npmlog "^4.1.2"
+    rimraf "^3.0.2"
+    semver "^7.3.4"
+    tar "^6.1.0"
+
 "@mrmlnc/readdir-enhanced@^2.2.1":
   version "2.2.1"
   resolved "https://registry.yarnpkg.com/@mrmlnc/readdir-enhanced/-/readdir-enhanced-2.2.1.tgz#524af240d1a360527b730475ecfa1344aa540dde"
@@ -924,101 +939,106 @@
     "@parcel/utils" "^1.11.0"
     physical-cpu-count "^2.0.0"
 
-"@tensorflow/tfjs-backend-cpu@2.8.6":
-  version "2.8.6"
-  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-backend-cpu/-/tfjs-backend-cpu-2.8.6.tgz#ef60c3294a04c8c600abb4b438263c06d9b7b7bd"
-  integrity sha512-x9WTTE9p3Pon2D0d6HH1UCIJsU1w3v9sF3vxJcp+YStrjDefWoW5pwxHCckEKTRra7GWg3CwMKK3Si2dat4H1A==
+"@tensorflow/tfjs-backend-cpu@3.7.0":
+  version "3.7.0"
+  resolved "https://registry.npmjs.org/@tensorflow/tfjs-backend-cpu/-/tfjs-backend-cpu-3.7.0.tgz#146ad00a8fffdf4794f9b1a0bfc080cddba96836"
+  integrity sha512-ZTs2ak9UDL/1CgUDsWn1g711G2X4Crwivbj+KxBZahlcM/OADYS3I0LZb7Q0IGnlGZsVoAFDWuywYw62Pgj9Tg==
   dependencies:
     "@types/seedrandom" "2.4.27"
     seedrandom "2.4.3"
 
-"@tensorflow/tfjs-backend-webgl@2.8.6":
-  version "2.8.6"
-  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-backend-webgl/-/tfjs-backend-webgl-2.8.6.tgz#b88b4276a2ff4e23b05470c506b5c720bf6eb8c3"
-  integrity sha512-kPgm3Dim0Li5MleybYKSZVUCu91ipDjZtTA5RrJx/Dli115qwWdiRGOHYwsIEY61hZoE0m3amjWLUBxtwMW1Nw==
+"@tensorflow/tfjs-backend-webgl@3.7.0":
+  version "3.7.0"
+  resolved "https://registry.npmjs.org/@tensorflow/tfjs-backend-webgl/-/tfjs-backend-webgl-3.7.0.tgz#6f2ac996dbbb31bfe55c770afc21fc91cc4ba083"
+  integrity sha512-D1B85XJgcuvpaGWH2gUjOzIW/cKiT4jQaZcu99g3tOpaMVO4Ctz4mmPKhflr+AoHRVfLQbIvf6LT6fmWxbgFqw==
   dependencies:
-    "@tensorflow/tfjs-backend-cpu" "2.8.6"
+    "@tensorflow/tfjs-backend-cpu" "3.7.0"
     "@types/offscreencanvas" "~2019.3.0"
     "@types/seedrandom" "2.4.27"
     "@types/webgl-ext" "0.0.30"
     "@types/webgl2" "0.0.5"
     seedrandom "2.4.3"
 
-"@tensorflow/tfjs-converter@2.8.6":
-  version "2.8.6"
-  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-converter/-/tfjs-converter-2.8.6.tgz#6182d302ae883e0c45f47674a78bdd33e23db3a6"
-  integrity sha512-Uv4YC66qjVC9UwBxz0IeLZ8KS2CReh63WlGRtHcSwDEYiwsa7cvp9H6lFSSPT7kiJmrK6JtHeJGIVcTuNnSt9w==
+"@tensorflow/tfjs-converter@3.7.0":
+  version "3.7.0"
+  resolved "https://registry.npmjs.org/@tensorflow/tfjs-converter/-/tfjs-converter-3.7.0.tgz#86661837dafe1c863b374d87bf5801e19c169b22"
+  integrity sha512-WpqTsOYwasu+ABLWeH4u5942oTRugH2dBGAYnOUuNMM8pu7LDWwC2qoZ1Q3+Ev2HWc7gyT8JPGqrKoULcCDdhw==
 
-"@tensorflow/tfjs-core@2.8.6":
-  version "2.8.6"
-  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-core/-/tfjs-core-2.8.6.tgz#d5e9d5fc1d1a83e3fbf80942f3154300a9f82494"
-  integrity sha512-jS28M1POUOjnWgx3jp1v5D45DUQE8USsAHHkL/01z75KnYCAAmgqJSH4YKLiYACg3eBLWXH/KTcSc6dHAX7Kfg==
+"@tensorflow/tfjs-core@3.7.0":
+  version "3.7.0"
+  resolved "https://registry.npmjs.org/@tensorflow/tfjs-core/-/tfjs-core-3.7.0.tgz#2c215a57af28f148af43a7dc98919200a9d4c56b"
+  integrity sha512-wG5d/oyjU9WC7E9ZhHxVyRyg/OTjwfbpBzjfRMCa93nxDTCTqf4h6ZHYsNHQ4NOP9yCltBnKIXOWk5aiy+oY1Q==
   dependencies:
+    "@types/long" "^4.0.1"
     "@types/offscreencanvas" "~2019.3.0"
     "@types/seedrandom" "2.4.27"
     "@types/webgl-ext" "0.0.30"
+    long "4.0.0"
     node-fetch "~2.6.1"
     seedrandom "2.4.3"
 
-"@tensorflow/tfjs-data@2.8.6":
-  version "2.8.6"
-  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-data/-/tfjs-data-2.8.6.tgz#5888ad0f7b7f8db2b7a5cf4af38e3c04d65efe32"
-  integrity sha512-zoDUfd5TfkYdviqu2bObwyJGXJiOvBckOTP9j36PUs6s+4DbTIDttyxdfeEaiiLX9ZUFU58CoW+3LI/dlFVyoQ==
+"@tensorflow/tfjs-data@3.7.0":
+  version "3.7.0"
+  resolved "https://registry.npmjs.org/@tensorflow/tfjs-data/-/tfjs-data-3.7.0.tgz#ef1e9b104bbb92c60b680a9f4049cd2124d2b125"
+  integrity sha512-cdX4XN5IMvSdBYVt0KaTw0+ypIgGFKvfcVSP4zYiY4vhRy1ltfSQFZlK1RD56WAoNMNGZeqaeHWx9KAedKtgPQ==
   dependencies:
     "@types/node-fetch" "^2.1.2"
     node-fetch "~2.6.1"
 
-"@tensorflow/tfjs-layers@2.8.6":
-  version "2.8.6"
-  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-layers/-/tfjs-layers-2.8.6.tgz#51dec5422fddde289e7915f318676fedeeb6a226"
-  integrity sha512-fdZ0i/R2dIKmy8OB5tBAsm5IbAHfJpI6AlbjxpgoU3aWj1HCdDo+pMji928MkDJhP01ISgFTgw/7PseGNaUflw==
+"@tensorflow/tfjs-layers@3.7.0":
+  version "3.7.0"
+  resolved "https://registry.npmjs.org/@tensorflow/tfjs-layers/-/tfjs-layers-3.7.0.tgz#c8edf0130887395d6a45b28be476f131edc12e11"
+  integrity sha512-53WwvCk+Bdppa+GsRCJ8dt/coyAVFCYo3gOmuN+lBFmoSRX/LsdNjanF88mmOAPmoRFXrVG6bkjEQKe0YOkYcw==
 
-"@tensorflow/tfjs-node-gpu@^2.6.0":
-  version "2.8.6"
-  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-node-gpu/-/tfjs-node-gpu-2.8.6.tgz#69e825cd62c2e43bf9388a4c66f89ea966f89fa1"
-  integrity sha512-OOa30bzKxYSU9AbtnI1yUWttpYti8gxomqO16t1+hnyMY4vc5BwAYB+zX8m5625Y6L0BLkxY1B5a55/DnrLO0A==
+"@tensorflow/tfjs-node-gpu@^3.7.0":
+  version "3.7.0"
+  resolved "https://registry.npmjs.org/@tensorflow/tfjs-node-gpu/-/tfjs-node-gpu-3.7.0.tgz#ab9a20a1d359d140f9782a4312b7f54b40b83e21"
+  integrity sha512-kDZkY6Xh7+mZIEhnRYEncCrEzpEex5pSR2jOYr28c4KlpkTLN2IkeSynvAo3Il9Bn2dTm5rsjX21nw1aehPg9w==
   dependencies:
-    "@tensorflow/tfjs" "2.8.6"
-    "@tensorflow/tfjs-core" "2.8.6"
+    "@mapbox/node-pre-gyp" "1.0.4"
+    "@tensorflow/tfjs" "3.7.0"
     adm-zip "^0.4.11"
     google-protobuf "^3.9.2"
     https-proxy-agent "^2.2.1"
-    node-pre-gyp "0.14.0"
     progress "^2.0.0"
     rimraf "^2.6.2"
     tar "^4.4.6"
 
-"@tensorflow/tfjs-node@^2.6.0":
-  version "2.8.6"
-  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-node/-/tfjs-node-2.8.6.tgz#6cc442f953f5d6598885c31b585bbf9afb59dfdf"
-  integrity sha512-lq7fielTU42K8hyzvbmLTKzp4WqIAdgpWdbUPoHpXDCqTgWGb1UfMaDt/oxBkA7i9DFvyN3cem/tdeQRC95pLA==
+"@tensorflow/tfjs-node@^3.7.0":
+  version "3.7.0"
+  resolved "https://registry.npmjs.org/@tensorflow/tfjs-node/-/tfjs-node-3.7.0.tgz#a36869420e44c700b89e3bcda878b587d713ff11"
+  integrity sha512-vVK9bDci0D/JKFEKcUWk7U4UbrTW7n3l+G06467YybWXd++v+PGGjSf7EvZ0X4JcYUTdqfPhQwfrbLU1e1C4QQ==
   dependencies:
-    "@tensorflow/tfjs" "2.8.6"
-    "@tensorflow/tfjs-core" "2.8.6"
+    "@mapbox/node-pre-gyp" "1.0.4"
+    "@tensorflow/tfjs" "3.7.0"
     adm-zip "^0.4.11"
     google-protobuf "^3.9.2"
     https-proxy-agent "^2.2.1"
-    node-pre-gyp "0.14.0"
     progress "^2.0.0"
     rimraf "^2.6.2"
     tar "^4.4.6"
 
-"@tensorflow/tfjs@2.8.6", "@tensorflow/tfjs@^2.6.0":
-  version "2.8.6"
-  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs/-/tfjs-2.8.6.tgz#5115081e7424c33905af9565c0d190e1b4093a5b"
-  integrity sha512-/Hk3YCAreNicuQJsAIG32UGHaQj8UwX8y8ZrKVb/CrXOhrRyZmxGSZt9KMVe8MDoydenuGhZCqJUIaWdIKIA5g==
+"@tensorflow/tfjs@3.7.0", "@tensorflow/tfjs@^3.7.0":
+  version "3.7.0"
+  resolved "https://registry.npmjs.org/@tensorflow/tfjs/-/tfjs-3.7.0.tgz#3bca3ff2580479283f17d2db16c3519fbcbc52c1"
+  integrity sha512-JD88LplfZLZqavsPQn/DgIhiJSJPdjmIQ09rkqLAeyNB6LOm1TX7nUosnDJ8RQsLVrrryHdvReXSGik1NngZsQ==
   dependencies:
-    "@tensorflow/tfjs-backend-cpu" "2.8.6"
-    "@tensorflow/tfjs-backend-webgl" "2.8.6"
-    "@tensorflow/tfjs-converter" "2.8.6"
-    "@tensorflow/tfjs-core" "2.8.6"
-    "@tensorflow/tfjs-data" "2.8.6"
-    "@tensorflow/tfjs-layers" "2.8.6"
+    "@tensorflow/tfjs-backend-cpu" "3.7.0"
+    "@tensorflow/tfjs-backend-webgl" "3.7.0"
+    "@tensorflow/tfjs-converter" "3.7.0"
+    "@tensorflow/tfjs-core" "3.7.0"
+    "@tensorflow/tfjs-data" "3.7.0"
+    "@tensorflow/tfjs-layers" "3.7.0"
     argparse "^1.0.10"
     chalk "^4.1.0"
     core-js "3"
     regenerator-runtime "^0.13.5"
     yargs "^16.0.3"
+
+"@types/long@^4.0.1":
+  version "4.0.1"
+  resolved "https://registry.npmjs.org/@types/long/-/long-4.0.1.tgz#459c65fa1867dafe6a8f322c4c51695663cc55e9"
+  integrity sha512-5tXH6Bx/kNGd3MgffdmP4dy2Z+G4eaXw0SE81Tq3BNadtnMR5/ySMzX4SLEzHJzSmPNn4HIdpQsBvXMUykr58w==
 
 "@types/node-fetch@^2.1.2":
   version "2.5.8"
@@ -1095,6 +1115,13 @@ adm-zip@^0.4.11:
   version "0.4.16"
   resolved "https://registry.yarnpkg.com/adm-zip/-/adm-zip-0.4.16.tgz#cf4c508fdffab02c269cbc7f471a875f05570365"
   integrity sha512-TFi4HBKSGfIKsK5YCkKaaFG2m4PEDyViZmEwof3MTIgzimHLto6muaHVpbrljdIvIrFZzEq/p4nafOeLcYegrg==
+
+agent-base@6:
+  version "6.0.2"
+  resolved "https://registry.npmjs.org/agent-base/-/agent-base-6.0.2.tgz#49fff58577cfee3f37176feab4c22e00f86d7f77"
+  integrity sha512-RZNwNclF7+MS/8bDg70amg32dyeZGZxiDuQmZxKLAlQjr3jGyLx+4Kkk58UO7D2QdgFIQCovuSuZESne6RG6XQ==
+  dependencies:
+    debug "4"
 
 agent-base@^4.3.0:
   version "4.3.0"
@@ -1186,6 +1213,11 @@ argparse@^1.0.10, argparse@^1.0.7:
   integrity sha512-o5Roy6tNG4SL/FOkCAN6RzjiakZS25RLYFrcMttJqbdd8BWrnA+fGz57iN5Pb06pvBGvl5gQ0B48dJlslXvoTg==
   dependencies:
     sprintf-js "~1.0.2"
+
+argparse@^2.0.1:
+  version "2.0.1"
+  resolved "https://registry.npmjs.org/argparse/-/argparse-2.0.1.tgz#246f50f3ca78a3240f6c997e8a9bd1eac49e4b38"
+  integrity sha512-8+9WqebbFzpX9OR+Wa6O29asIogeRMzcGtAINdpMHHyAg10f05aSFVBbcEqGf/PXw1EjAZ+q2/bEBg3DvurK3Q==
 
 arr-diff@^4.0.0:
   version "4.0.0"
@@ -2187,6 +2219,11 @@ chownr@^1.1.1:
   resolved "https://registry.yarnpkg.com/chownr/-/chownr-1.1.4.tgz#6fc9d7b42d32a583596337666e7d08084da2cc6b"
   integrity sha512-jJ0bqzaylmJtVnNgzTeSOs8DPavpbYgEr/b0YL8/2GO3xJEhInFmhKMUnEJQjZumK7KXGFhUy89PrsJWlakBVg==
 
+chownr@^2.0.0:
+  version "2.0.0"
+  resolved "https://registry.npmjs.org/chownr/-/chownr-2.0.0.tgz#15bfbe53d2eab4cf70f18a8cd68ebe5b3cb1dece"
+  integrity sha512-bIomtDF5KGpdogkLd9VspvFzk9KfpyyGlS8YFVZl7TGPBHL5snIOnxeshwVgPteQ9b4Eydl+pVbIyE1DcvCWgQ==
+
 cipher-base@^1.0.0, cipher-base@^1.0.1, cipher-base@^1.0.3:
   version "1.0.4"
   resolved "https://registry.yarnpkg.com/cipher-base/-/cipher-base-1.0.4.tgz#8760e4ecc272f4c363532f926d874aae2c1397de"
@@ -2793,19 +2830,19 @@ debug@2.6.9, debug@^2.2.0, debug@^2.3.3, debug@^2.6.8, debug@^2.6.9:
   dependencies:
     ms "2.0.0"
 
+debug@4, debug@^4.1.0, debug@^4.1.1:
+  version "4.3.1"
+  resolved "https://registry.npmjs.org/debug/-/debug-4.3.1.tgz#f0d229c505e0c6d8c49ac553d1b13dc183f6b2ee"
+  integrity sha512-doEwdvm4PCeK4K3RQN2ZC2BYUBaxwLARCqZmMjtF8a51J2Rb0xpVloFRnCODwqjpwnAoao4pelN8l3RJdv3gRQ==
+  dependencies:
+    ms "2.1.2"
+
 debug@^3.1.0, debug@^3.2.6:
   version "3.2.7"
   resolved "https://registry.yarnpkg.com/debug/-/debug-3.2.7.tgz#72580b7e9145fb39b6676f9c5e5fb100b934179a"
   integrity sha512-CFjzYYAi4ThfiQvizrFQevTTXHtnCqWfe7x1AhgEscTz6ZbLbfoLRLPugTQyBth6f8ZERVUSyWHFD/7Wu4t1XQ==
   dependencies:
     ms "^2.1.1"
-
-debug@^4.1.0, debug@^4.1.1:
-  version "4.3.1"
-  resolved "https://registry.yarnpkg.com/debug/-/debug-4.3.1.tgz#f0d229c505e0c6d8c49ac553d1b13dc183f6b2ee"
-  integrity sha512-doEwdvm4PCeK4K3RQN2ZC2BYUBaxwLARCqZmMjtF8a51J2Rb0xpVloFRnCODwqjpwnAoao4pelN8l3RJdv3gRQ==
-  dependencies:
-    ms "2.1.2"
 
 decode-uri-component@^0.2.0:
   version "0.2.0"
@@ -2910,7 +2947,7 @@ detect-indent@^6.0.0:
   resolved "https://registry.yarnpkg.com/detect-indent/-/detect-indent-6.0.0.tgz#0abd0f549f69fc6659a254fe96786186b6f528fd"
   integrity sha512-oSyFlqaTHCItVRGK5RmrmjB+CmaMOW7IaNA/kdxqhoa6d17j/5ce9O9eWXmV/KEdRwqpQA+Vqe8a8Bsybu4YnA==
 
-detect-libc@^1.0.2:
+detect-libc@^1.0.2, detect-libc@^1.0.3:
   version "1.0.3"
   resolved "https://registry.yarnpkg.com/detect-libc/-/detect-libc-1.0.3.tgz#fa137c4bd698edf55cd5cd02ac559f91a4c4ba9b"
   integrity sha1-+hN8S9aY7fVc1c0CrFWfkaTEups=
@@ -3361,6 +3398,13 @@ fs-minipass@^1.2.5:
   dependencies:
     minipass "^2.6.0"
 
+fs-minipass@^2.0.0:
+  version "2.1.0"
+  resolved "https://registry.npmjs.org/fs-minipass/-/fs-minipass-2.1.0.tgz#7f5036fdbf12c63c169190cbe4199c852271f9fb"
+  integrity sha512-V/JgOLFCS+R6Vcq0slCuaeWEdNC3ouDlJMNIsacH2VtALiu9mV4LPrHc5cDl8k5aw6J8jwgWWpiTo5RYhmIzvg==
+  dependencies:
+    minipass "^3.0.0"
+
 fs.realpath@^1.0.0:
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/fs.realpath/-/fs.realpath-1.0.0.tgz#1504ad2523158caa40db4a2787cb01411994ea4f"
@@ -3691,6 +3735,14 @@ https-proxy-agent@^2.2.1:
   dependencies:
     agent-base "^4.3.0"
     debug "^3.1.0"
+
+https-proxy-agent@^5.0.0:
+  version "5.0.0"
+  resolved "https://registry.npmjs.org/https-proxy-agent/-/https-proxy-agent-5.0.0.tgz#e2a90542abb68a762e0a0850f6c9edadfd8506b2"
+  integrity sha512-EkYm5BcKUGiduxzSt3Eppko+PiNWNEpa4ySk9vTC6wDsQJW9rHSa+UhGNJoRYp7bz6Ht1eaRIa6QaJqO5rCFbA==
+  dependencies:
+    agent-base "6"
+    debug "4"
 
 iconv-lite@0.4, iconv-lite@0.4.24, iconv-lite@^0.4.4:
   version "0.4.24"
@@ -4271,6 +4323,11 @@ log-symbols@^2.2.0:
   dependencies:
     chalk "^2.0.1"
 
+long@4.0.0:
+  version "4.0.0"
+  resolved "https://registry.npmjs.org/long/-/long-4.0.0.tgz#9a7b71cfb7d361a194ea555241c92f7468d5bf28"
+  integrity sha512-XsP+KhQif4bjX1kbuSiySJFNAehNxgLb6hPRGJ9QsUr8ajHkuXGdrHmFUTUUXhDwVX2R5bY4JNZEwbUiMhV+MA==
+
 loose-envify@^1.0.0:
   version "1.4.0"
   resolved "https://registry.yarnpkg.com/loose-envify/-/loose-envify-1.4.0.tgz#71ee51fa7be4caec1a63839f7e682d8132d30caf"
@@ -4278,12 +4335,26 @@ loose-envify@^1.0.0:
   dependencies:
     js-tokens "^3.0.0 || ^4.0.0"
 
+lru-cache@^6.0.0:
+  version "6.0.0"
+  resolved "https://registry.npmjs.org/lru-cache/-/lru-cache-6.0.0.tgz#6d6fe6570ebd96aaf90fcad1dafa3b2566db3a94"
+  integrity sha512-Jo6dJ04CmSjuznwJSS3pUeWmd/H0ffTlkXXgwZi+eq1UCmqQwCh+eLsYOYCwY991i2Fah4h1BEMCx4qThGbsiA==
+  dependencies:
+    yallist "^4.0.0"
+
 magic-string@^0.22.4:
   version "0.22.5"
   resolved "https://registry.yarnpkg.com/magic-string/-/magic-string-0.22.5.tgz#8e9cf5afddf44385c1da5bc2a6a0dbd10b03657e"
   integrity sha512-oreip9rJZkzvA8Qzk9HFs8fZGF/u7H/gtrE8EN6RjKJ9kh2HlC+yQ2QezifqTZfGyiuAV0dRv5a+y/8gBb1m9w==
   dependencies:
     vlq "^0.2.2"
+
+make-dir@^3.1.0:
+  version "3.1.0"
+  resolved "https://registry.npmjs.org/make-dir/-/make-dir-3.1.0.tgz#415e967046b3a7f1d185277d84aa58203726a13f"
+  integrity sha512-g3FeP20LNwhALb/6Cz6Dd4F2ngze0jz7tbzrD2wAV+o9FeNHe4rL+yK2md0J/fiSf1sa1ADhXqi5+oVwOM/eGw==
+  dependencies:
+    semver "^6.0.0"
 
 map-cache@^0.2.2:
   version "0.2.2"
@@ -4412,12 +4483,27 @@ minipass@^2.6.0, minipass@^2.8.6, minipass@^2.9.0:
     safe-buffer "^5.1.2"
     yallist "^3.0.0"
 
+minipass@^3.0.0:
+  version "3.1.3"
+  resolved "https://registry.npmjs.org/minipass/-/minipass-3.1.3.tgz#7d42ff1f39635482e15f9cdb53184deebd5815fd"
+  integrity sha512-Mgd2GdMVzY+x3IJ+oHnVM+KG3lA5c8tnabyJKmHSaG2kAGpudxuOf8ToDkhumF7UzME7DecbQE9uOZhNm7PuJg==
+  dependencies:
+    yallist "^4.0.0"
+
 minizlib@^1.2.1:
   version "1.3.3"
   resolved "https://registry.yarnpkg.com/minizlib/-/minizlib-1.3.3.tgz#2290de96818a34c29551c8a8d301216bd65a861d"
   integrity sha512-6ZYMOEnmVsdCeTJVE0W9ZD+pVnE8h9Hma/iOwwRDsdQoePpoX56/8B6z3P9VNwppJuBKNRuFDRNRqRWexT9G9Q==
   dependencies:
     minipass "^2.9.0"
+
+minizlib@^2.1.1:
+  version "2.1.2"
+  resolved "https://registry.npmjs.org/minizlib/-/minizlib-2.1.2.tgz#e90d3466ba209b932451508a11ce3d3632145931"
+  integrity sha512-bAxsR8BVfj60DWXHE3u30oHzfl4G7khkSuPW+qvpd7jFRHm7dLxOjUk1EHACJ/hxLY8phGJ0YhYHZo7jil7Qdg==
+  dependencies:
+    minipass "^3.0.0"
+    yallist "^4.0.0"
 
 mixin-deep@^1.2.0:
   version "1.3.2"
@@ -4433,6 +4519,11 @@ mkdirp@^0.5.0, mkdirp@^0.5.1, mkdirp@~0.5.1:
   integrity sha512-NKmAlESf6jMGym1++R0Ra7wvhV+wFW63FaSOFPwRahvea0gMUcGUhVeAg/0BC0wiv9ih5NYPB1Wn1UEI1/L+xQ==
   dependencies:
     minimist "^1.2.5"
+
+mkdirp@^1.0.3:
+  version "1.0.4"
+  resolved "https://registry.npmjs.org/mkdirp/-/mkdirp-1.0.4.tgz#3eb5ed62622756d79a5f0e2a221dfebad75c2f7e"
+  integrity sha512-vVqVZQyf3WLx2Shd0qJ9xuvqgAyKPLAiqITEtqW0oIUjzo3PePDd6fW9iFz30ef7Ysp/oiWqbhszeGWW2T6Gzw==
 
 ms@2.0.0:
   version "2.0.0"
@@ -4534,22 +4625,6 @@ node-libs-browser@^2.0.0:
     util "^0.11.0"
     vm-browserify "^1.0.1"
 
-node-pre-gyp@0.14.0:
-  version "0.14.0"
-  resolved "https://registry.yarnpkg.com/node-pre-gyp/-/node-pre-gyp-0.14.0.tgz#9a0596533b877289bcad4e143982ca3d904ddc83"
-  integrity sha512-+CvDC7ZttU/sSt9rFjix/P05iS43qHCOOGzcr3Ry99bXG7VX953+vFyEuph/tfqoYu8dttBkE86JSKBO2OzcxA==
-  dependencies:
-    detect-libc "^1.0.2"
-    mkdirp "^0.5.1"
-    needle "^2.2.1"
-    nopt "^4.0.1"
-    npm-packlist "^1.1.6"
-    npmlog "^4.0.2"
-    rc "^1.2.7"
-    rimraf "^2.6.1"
-    semver "^5.3.0"
-    tar "^4.4.2"
-
 node-pre-gyp@^0.11.0:
   version "0.11.0"
   resolved "https://registry.yarnpkg.com/node-pre-gyp/-/node-pre-gyp-0.11.0.tgz#db1f33215272f692cd38f03238e3e9b47c5dd054"
@@ -4578,6 +4653,13 @@ nopt@^4.0.1:
   dependencies:
     abbrev "1"
     osenv "^0.1.4"
+
+nopt@^5.0.0:
+  version "5.0.0"
+  resolved "https://registry.npmjs.org/nopt/-/nopt-5.0.0.tgz#530942bb58a512fccafe53fe210f13a25355dc88"
+  integrity sha512-Tbj67rffqceeLpcRXrT7vKAN8CwfPeIBgM7E6iBkmKLV7bEMwpGgYLGv0jACUsECaa/vuxP0IjEont6umdMgtQ==
+  dependencies:
+    abbrev "1"
 
 normalize-path@^2.1.1:
   version "2.1.1"
@@ -4617,7 +4699,7 @@ npm-packlist@^1.1.6, npm-packlist@^1.4.1:
     npm-bundled "^1.0.1"
     npm-normalize-package-bin "^1.0.1"
 
-npmlog@^4.0.2:
+npmlog@^4.0.2, npmlog@^4.1.2:
   version "4.1.2"
   resolved "https://registry.yarnpkg.com/npmlog/-/npmlog-4.1.2.tgz#08a7f2a8bf734604779a9efa4ad5cc717abb954b"
   integrity sha512-2uUqazuKlTaSI/dC8AzicUck7+IrEaOnN/e0jd3Xtt1KcGpwx30v50mL7oPyr/h9bL3E4aZccVwpwP+5W9Vjkg==
@@ -5723,6 +5805,13 @@ rimraf@^2.6.1, rimraf@^2.6.2:
   dependencies:
     glob "^7.1.3"
 
+rimraf@^3.0.2:
+  version "3.0.2"
+  resolved "https://registry.npmjs.org/rimraf/-/rimraf-3.0.2.tgz#f1a5402ba6220ad52cc1282bac1ae3aa49fd061a"
+  integrity sha512-JZkJMZkAGFFPP2YqXZXPbMlMBgsxzE8ILs4lMIX/2o0L9UBw9O/Y3o6wFw/i9YLapcUJWwqbi3kdxIPdC62TIA==
+  dependencies:
+    glob "^7.1.3"
+
 ripemd160@^2.0.0, ripemd160@^2.0.1:
   version "2.0.2"
   resolved "https://registry.yarnpkg.com/ripemd160/-/ripemd160-2.0.2.tgz#a1c1a6f624751577ba5d07914cbc92850585890c"
@@ -5785,10 +5874,17 @@ semver@^5.3.0, semver@^5.4.1, semver@^5.5.0:
   resolved "https://registry.yarnpkg.com/semver/-/semver-5.7.1.tgz#a954f931aeba508d307bbf069eff0c01c96116f7"
   integrity sha512-sauaDf/PZdVgrLTNYHRtpXa1iRiKcaebiKQ1BJdpQlWH2lCvexQdX55snPFyK7QzpudqbCI0qXFfOasHdyNDGQ==
 
-semver@^6.1.1, semver@^6.1.2, semver@^6.3.0:
+semver@^6.0.0, semver@^6.1.1, semver@^6.1.2, semver@^6.3.0:
   version "6.3.0"
-  resolved "https://registry.yarnpkg.com/semver/-/semver-6.3.0.tgz#ee0a64c8af5e8ceea67687b133761e1becbd1d3d"
+  resolved "https://registry.npmjs.org/semver/-/semver-6.3.0.tgz#ee0a64c8af5e8ceea67687b133761e1becbd1d3d"
   integrity sha512-b39TBaTSfV6yBrapU89p5fKekE2m/NwnDocOVruQFS1/veMgdzuPcnOM34M6CwxW8jH/lxEa5rBoDeUwu5HHTw==
+
+semver@^7.3.4:
+  version "7.3.5"
+  resolved "https://registry.npmjs.org/semver/-/semver-7.3.5.tgz#0b621c879348d8998e4b0e4be94b3f12e6018ef7"
+  integrity sha512-PoeGJYh8HK4BTO/a9Tf6ZG3veo/A7ZVsYrSA6J8ny9nb3B1VrpkuN+z9OE5wfE5p6H4LchYZsegiQgbJD94ZFQ==
+  dependencies:
+    lru-cache "^6.0.0"
 
 send@0.17.1:
   version "0.17.1"
@@ -6225,7 +6321,7 @@ symbol-tree@^3.2.2:
   resolved "https://registry.yarnpkg.com/symbol-tree/-/symbol-tree-3.2.4.tgz#430637d248ba77e078883951fb9aa0eed7c63fa2"
   integrity sha512-9QNk5KwDF+Bvz+PyObkmSYjI5ksVUYtjW7AU22r2NKcfLJcXp96hkDWU3+XndOsUb+AQ9QhfzfCT2O+CNWT5Tw==
 
-tar@^4, tar@^4.4.2, tar@^4.4.6:
+tar@^4, tar@^4.4.6:
   version "4.4.13"
   resolved "https://registry.yarnpkg.com/tar/-/tar-4.4.13.tgz#43b364bc52888d555298637b10d60790254ab525"
   integrity sha512-w2VwSrBoHa5BsSyH+KxEqeQBAllHhccyMFVHtGtdMpF4W7IRWfZjFiQceJPChOeTsSDVUpER2T8FA93pr0L+QA==
@@ -6237,6 +6333,18 @@ tar@^4, tar@^4.4.2, tar@^4.4.6:
     mkdirp "^0.5.0"
     safe-buffer "^5.1.2"
     yallist "^3.0.3"
+
+tar@^6.1.0:
+  version "6.1.0"
+  resolved "https://registry.npmjs.org/tar/-/tar-6.1.0.tgz#d1724e9bcc04b977b18d5c573b333a2207229a83"
+  integrity sha512-DUCttfhsnLCjwoDoFcI+B2iJgYa93vBnDUATYEeRx6sntCTdN01VnqsIuTlALXla/LWooNg0yEGeB+Y8WdFxGA==
+  dependencies:
+    chownr "^2.0.0"
+    fs-minipass "^2.0.0"
+    minipass "^3.0.0"
+    minizlib "^2.1.1"
+    mkdirp "^1.0.3"
+    yallist "^4.0.0"
 
 terser@^3.7.3:
   version "3.17.0"
@@ -7041,6 +7149,11 @@ yallist@^3.0.0, yallist@^3.0.3:
   version "3.1.1"
   resolved "https://registry.yarnpkg.com/yallist/-/yallist-3.1.1.tgz#dbb7daf9bfd8bac9ab45ebf602b8cbad0d5d08fd"
   integrity sha512-a4UGQaWPH59mOXUYnAG2ewncQS4i4F43Tv3JoAM+s2VDAmS9NsK8GpDMLrCHPksFT7h3K6TOoUNn2pb7RoXx4g==
+
+yallist@^4.0.0:
+  version "4.0.0"
+  resolved "https://registry.npmjs.org/yallist/-/yallist-4.0.0.tgz#9bb92790d9c0effec63be73519e11a35019a3a72"
+  integrity sha512-3wdGidZyq5PB084XLES5TpOSRA3wjXAlIWMhum2kRcv/41Sn2emQ0dycQW4uZXLejwKvg6EsvbdlVL+FYEct7A==
 
 yargs-parser@^20.2.2:
   version "20.2.7"

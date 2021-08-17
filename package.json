@@ -6,7 +6,7 @@
   },
   "devDependencies": {
     "@types/node": "~16.6.1",
-    "@types/shelljs": "~0.8.8",
+    "@types/shelljs": "~0.8.9",
     "fs": "~0.0.1-security",
     "jasmine": "~3.7.0",
     "shelljs": "0.8.4",

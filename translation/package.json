@@ -39,5 +39,9 @@
     "typescript": "^3.3.3333",
     "yalc": "~1.0.0-pre.50",
     "zip-array": "^1.0.1"
+  },
+  "resolutions": {
+    "glob-parent": "5.1.2",
+    "postcss": "8.2.10"
   }
 }

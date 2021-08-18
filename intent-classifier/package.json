@@ -43,5 +43,9 @@
     "http-server": "^0.12.3",
     "parcel-bundler": "^1.12.5",
     "sass": "^1.17.4"
+  },
+  "resolutions": {
+    "glob-parent": "5.1.2",
+    "postcss": "8.2.10"
   }
 }

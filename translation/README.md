@@ -44,7 +44,7 @@ python python/translation.py ${DATA_PATH}
 The model was trained in Python Keras, based on the [lstm_seq2seq](https://github.com/keras-team/keras/blob/master/examples/lstm_seq2seq.py)
 example.
 
-## LANCH DEMO
+## LAUNCH DEMO
 
 To launch the demo, do
 

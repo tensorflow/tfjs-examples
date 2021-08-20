@@ -21,6 +21,7 @@
   },
   "resolutions": {
     "node-fetch": "2.6.1",
-    "ssri": "8.0.1"
+    "ssri": "8.0.1",
+    "glob-parent": "5.1.2"
   }
 }

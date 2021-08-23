@@ -8,7 +8,7 @@
     "@types/node": "~16.6.1",
     "@types/shelljs": "~0.8.9",
     "fs": "~0.0.1-security",
-    "jasmine": "~3.8.0",
+    "jasmine": "~3.9.0",
     "shelljs": "0.8.4",
     "ts-node": "~9.1.1",
     "tslint": "~6.1.3",

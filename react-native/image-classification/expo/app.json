@@ -1,0 +1,12 @@
+{
+  "name": "posenet",
+  "displayName": "posenet",
+  "expo": {
+    "name": "posenet",
+    "slug": "posenet",
+    "version": "1.0.0",
+    "assetBundlePatterns": [
+      "**/*"
+    ]
+  }
+}

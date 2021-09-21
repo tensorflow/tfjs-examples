@@ -1,9 +1,9 @@
 {
-  "name": "posenet",
-  "displayName": "posenet",
+  "name": "pose-detection-expo",
+  "displayName": "pose-detection-expo",
   "expo": {
-    "name": "posenet",
-    "slug": "posenet",
+    "name": "pose-detection-expo",
+    "slug": "pose-detection-expo",
     "version": "1.0.0",
     "assetBundlePatterns": [
       "**/*"

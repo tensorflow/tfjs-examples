@@ -1,0 +1,46 @@
+{
+  "name": "pose-detection-with-tfjs-react-native-expo",
+  "main": "index.js",
+  "version": "0.0.1",
+  "license": "Apache-2.0",
+  "scripts": {
+    "start": "expo start"
+  },
+  "dependencies": {
+    "@mediapipe/pose": "~0.4.0",
+    "@react-native-async-storage/async-storage": "1.15.7",
+    "@tensorflow-models/pose-detection": "0.0.6",
+    "@tensorflow/tfjs": "3.9.0",
+    "@tensorflow/tfjs-react-native": "0.7.0",
+    "expo": "~41.0.1",
+    "expo-camera": "^11.2.2",
+    "expo-file-system": "^10.0.0",
+    "expo-gl": "^7.0.0",
+    "expo-gl-cpp": "^7.0.0",
+    "expo-image-manipulator": "^6.0.0",
+    "expo-splash-screen": "~0.10.2",
+    "expo-updates": "~0.5.4",
+    "react": "16.13.1",
+    "react-dom": "16.13.1",
+    "react-native": "~0.63.4",
+    "react-native-fs": "2.14.1",
+    "react-native-gesture-handler": "~1.10.2",
+    "react-native-reanimated": "~2.1.0",
+    "react-native-screens": "~3.0.0",
+    "react-native-svg": "^9.13.6",
+    "react-native-unimodules": "~0.13.3"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.9.0",
+    "@expo/webpack-config": "^0.15.0",
+    "@types/react": "~16.9.35",
+    "@types/react-native": "~0.63.2",
+    "babel-preset-expo": "~8.3.0",
+    "jest-expo": "~41.0.0",
+    "typescript": "~4.0.0"
+  },
+  "jest": {
+    "preset": "react-native"
+  },
+  "private": true
+}

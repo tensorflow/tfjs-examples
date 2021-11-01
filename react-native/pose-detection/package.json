@@ -13,7 +13,7 @@
     "@react-native-async-storage/async-storage": "1.15.7",
     "@tensorflow-models/pose-detection": "0.0.6",
     "@tensorflow/tfjs": "3.9.0",
-    "@tensorflow/tfjs-react-native": "0.7.0",
+    "@tensorflow/tfjs-react-native": "0.8.0",
     "expo": "~41.0.1",
     "expo-camera": "^11.2.2",
     "expo-file-system": "^10.0.0",

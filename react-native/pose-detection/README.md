@@ -15,6 +15,7 @@ $ yarn start
 Then scan the QR code to open it in the `Expo Go` app.
 
 Tested on Pixel 2, iPhone 12 Pro Max, iPad, and iPad Pro.
+
 <img src="screenshot_portrait.jpg" width="250">
 <img src="screenshot_landscape.jpg" width="500">
 

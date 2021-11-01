@@ -5,12 +5,16 @@ import { Camera } from 'expo-camera';
 
 import * as tf from '@tensorflow/tfjs';
 import * as posedetection from '@tensorflow-models/pose-detection';
+import * as ScreenOrientation from 'expo-screen-orientation';
 import { cameraWithTensors } from '@tensorflow/tfjs-react-native';
 import Svg, { Circle } from 'react-native-svg';
 import { ExpoWebGLRenderingContext } from 'expo-gl';
 
 // tslint:disable-next-line: variable-name
 const TensorCamera = cameraWithTensors(Camera);
+
+const IS_ANDROID = Platform.OS === 'android';
+const IS_IOS = Platform.OS === 'ios';
 
 // Camera preview size.
 //
@@ -20,8 +24,7 @@ const TensorCamera = cameraWithTensors(Camera);
 //
 // This might not cover all cases.
 const CAM_PREVIEW_WIDTH = Dimensions.get('window').width;
-const CAM_PREVIEW_HEIGHT =
-  CAM_PREVIEW_WIDTH / (Platform.OS === 'ios' ? 9 / 16 : 3 / 4);
+const CAM_PREVIEW_HEIGHT = CAM_PREVIEW_WIDTH / (IS_IOS ? 9 / 16 : 3 / 4);
 
 // The score threshold for pose detection results.
 const MIN_KEYPOINT_SCORE = 0.3;
@@ -29,9 +32,10 @@ const MIN_KEYPOINT_SCORE = 0.3;
 // The size of the resized output from TensorCamera.
 //
 // For movenet, the size here doesn't matter too much because the model will
-// preprocess the input (crop, resize, etc).
-const OUTPUT_TENSOR_WIDTH = 240;
-const OUTPUT_TENSOR_HEIGHT = 320;
+// preprocess the input (crop, resize, etc). For best result, use the size that
+// doesn't distort the image.
+const OUTPUT_TENSOR_WIDTH = 180;
+const OUTPUT_TENSOR_HEIGHT = OUTPUT_TENSOR_WIDTH / (IS_IOS ? 9 / 16 : 3 / 4);
 
 // Whether to auto-render TensorCamera preview.
 const AUTO_RENDER = false;
@@ -42,9 +46,20 @@ export default function App() {
   const [model, setModel] = useState<posedetection.PoseDetector>();
   const [poses, setPoses] = useState<posedetection.Pose[]>();
   const [fps, setFps] = useState(0);
+  const [orientation, setOrientation] =
+    useState<ScreenOrientation.Orientation>();
 
   useEffect(() => {
     async function prepare() {
+      // Set initial orientation.
+      const curOrientation = await ScreenOrientation.getOrientationAsync();
+      setOrientation(curOrientation);
+
+      // Listens to orientation change.
+      ScreenOrientation.addOrientationChangeListener((event) => {
+        setOrientation(event.orientationInfo.orientation);
+      });
+
       // Camera permission.
       await Camera.requestPermissionsAsync();
 
@@ -107,13 +122,19 @@ export default function App() {
         .filter((k) => (k.score ?? 0) > MIN_KEYPOINT_SCORE)
         .map((k) => {
           // Flip horizontally on android.
-          const x = Platform.OS === 'android' ? OUTPUT_TENSOR_WIDTH - k.x : k.x;
+          const x = IS_ANDROID ? OUTPUT_TENSOR_WIDTH - k.x : k.x;
           const y = k.y;
+          const cx =
+            (x / getOutputTensorWidth()) *
+            (isPortrait() ? CAM_PREVIEW_WIDTH : CAM_PREVIEW_HEIGHT);
+          const cy =
+            (y / getOutputTensorHeight()) *
+            (isPortrait() ? CAM_PREVIEW_HEIGHT : CAM_PREVIEW_WIDTH);
           return (
             <Circle
               key={`skeletonkp_${k.name}`}
-              cx={(x / OUTPUT_TENSOR_WIDTH) * CAM_PREVIEW_WIDTH}
-              cy={(y / OUTPUT_TENSOR_HEIGHT) * CAM_PREVIEW_HEIGHT}
+              cx={cx}
+              cy={cy}
               r='4'
               strokeWidth='2'
               fill='#00AA00'
@@ -136,6 +157,53 @@ export default function App() {
     );
   };
 
+  const isPortrait = () => {
+    return (
+      orientation === ScreenOrientation.Orientation.PORTRAIT_UP ||
+      orientation === ScreenOrientation.Orientation.PORTRAIT_DOWN
+    );
+  };
+
+  const getOutputTensorWidth = () => {
+    // On iOS landscape mode, switch width and height of the output tensor to
+    // get better result. Without this, the image stored in the output tensor
+    // would be stretched too much.
+    //
+    // Same for getOutputTensorHeight below.
+    return isPortrait() || IS_ANDROID
+      ? OUTPUT_TENSOR_WIDTH
+      : OUTPUT_TENSOR_HEIGHT;
+  };
+
+  const getOutputTensorHeight = () => {
+    return isPortrait() || IS_ANDROID
+      ? OUTPUT_TENSOR_HEIGHT
+      : OUTPUT_TENSOR_WIDTH;
+  };
+
+  const getTextureRotationAngleInDegrees = () => {
+    // On Android, the camera texture will rotate behind the scene as the phone
+    // changes orientation, so we don't need to rotate it in TensorCamera.
+    if (IS_ANDROID) {
+      return 0;
+    }
+
+    // For iOS, the camera texture won't rotate automatically. Calculate the
+    // rotation angles here which will be passed to TensorCamera to rotate it
+    // internally.
+    switch (orientation) {
+      // Not supported on iOS as of 11/2021, but add it here just in case.
+      case ScreenOrientation.Orientation.PORTRAIT_DOWN:
+        return 180;
+      case ScreenOrientation.Orientation.LANDSCAPE_LEFT:
+        return 270;
+      case ScreenOrientation.Orientation.LANDSCAPE_RIGHT:
+        return 90;
+      default:
+        return 0;
+    }
+  };
+
   if (!tfReady) {
     return (
       <View style={styles.loadingMsg}>
@@ -146,16 +214,21 @@ export default function App() {
     return (
       // Note that you don't need to specify `cameraTextureWidth` and
       // `cameraTextureHeight` prop in `TensorCamera` below.
-      <View style={styles.container}>
+      <View
+        style={
+          isPortrait() ? styles.containerPortrait : styles.containerLandscape
+        }
+      >
         <TensorCamera
           ref={cameraRef}
           style={styles.camera}
           autorender={AUTO_RENDER}
           type={Camera.Constants.Type.front}
           // tensor related props
-          resizeWidth={OUTPUT_TENSOR_WIDTH}
-          resizeHeight={OUTPUT_TENSOR_HEIGHT}
+          resizeWidth={getOutputTensorWidth()}
+          resizeHeight={getOutputTensorHeight()}
           resizeDepth={3}
+          rotation={getTextureRotationAngleInDegrees()}
           onReady={handleCameraStream}
         />
         {renderPose()}
@@ -166,8 +239,17 @@ export default function App() {
 }
 
 const styles = StyleSheet.create({
-  container: {
+  containerPortrait: {
     position: 'relative',
+    width: CAM_PREVIEW_WIDTH,
+    height: CAM_PREVIEW_HEIGHT,
+    marginTop: Dimensions.get('window').height / 2 - CAM_PREVIEW_HEIGHT / 2,
+  },
+  containerLandscape: {
+    position: 'relative',
+    width: CAM_PREVIEW_HEIGHT,
+    height: CAM_PREVIEW_WIDTH,
+    marginLeft: Dimensions.get('window').height / 2 - CAM_PREVIEW_HEIGHT / 2,
   },
   loadingMsg: {
     position: 'absolute',
@@ -177,24 +259,19 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   camera: {
-    position: 'absolute',
-    top: Dimensions.get('window').height / 2 - CAM_PREVIEW_HEIGHT / 2,
-    left: Dimensions.get('window').width / 2 - CAM_PREVIEW_WIDTH / 2,
-    width: CAM_PREVIEW_WIDTH,
-    height: CAM_PREVIEW_HEIGHT,
+    width: '100%',
+    height: '100%',
     zIndex: 1,
   },
   svg: {
-    top: Dimensions.get('window').height / 2 - CAM_PREVIEW_HEIGHT / 2,
-    left: Dimensions.get('window').width / 2 - CAM_PREVIEW_WIDTH / 2,
-    width: CAM_PREVIEW_WIDTH,
-    height: CAM_PREVIEW_HEIGHT,
+    width: '100%',
+    height: '100%',
     position: 'absolute',
     zIndex: 30,
   },
   fpsContainer: {
     position: 'absolute',
-    top: 80,
+    top: 10,
     left: 10,
     width: 80,
     alignItems: 'center',

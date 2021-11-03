@@ -3,13 +3,9 @@ PODS:
   - DoubleConversion (1.1.6)
   - EXApplication (3.1.2):
     - UMCore
-  - EXCamera (7.0.0):
-    - UMBarCodeScannerInterface
+  - EXCamera (11.2.2):
+    - ExpoModulesCore
     - UMCore
-    - UMFaceDetectorInterface
-    - UMFileSystemInterface
-    - UMImageLoaderInterface
-    - UMPermissionsInterface
   - EXConstants (10.1.3):
     - UMConstantsInterface
     - UMCore
@@ -42,6 +38,18 @@ PODS:
   - EXPermissions (12.0.1):
     - UMCore
     - UMPermissionsInterface
+  - ExpoModulesCore (0.2.0):
+    - ExpoModulesCore/Core (= 0.2.0)
+    - ExpoModulesCore/Interfaces (= 0.2.0)
+    - UMCore
+  - ExpoModulesCore/Core (0.2.0):
+    - UMCore
+  - ExpoModulesCore/Interfaces (0.2.0):
+    - ExpoModulesCore/Core
+    - UMCore
+  - EXScreenOrientation (3.1.0):
+    - React-Core
+    - UMCore
   - EXSplashScreen (0.10.3):
     - React-Core
     - UMCore
@@ -372,6 +380,8 @@ DEPENDENCIES:
   - EXImageManipulator (from `../node_modules/expo-image-manipulator/ios`)
   - EXKeepAwake (from `../node_modules/expo-keep-awake/ios`)
   - EXPermissions (from `../node_modules/expo-permissions/ios`)
+  - ExpoModulesCore (from `../node_modules/expo-modules-core/ios`)
+  - EXScreenOrientation (from `../node_modules/expo-screen-orientation/ios`)
   - EXSplashScreen (from `../node_modules/expo-splash-screen/ios`)
   - EXStructuredHeaders (from `../node_modules/expo-structured-headers/ios`)
   - EXUpdates (from `../node_modules/expo-updates/ios`)
@@ -453,6 +463,10 @@ EXTERNAL SOURCES:
     :path: "../node_modules/expo-keep-awake/ios"
   EXPermissions:
     :path: "../node_modules/expo-permissions/ios"
+  ExpoModulesCore:
+    :path: "../node_modules/expo-modules-core/ios"
+  EXScreenOrientation:
+    :path: "../node_modules/expo-screen-orientation/ios"
   EXSplashScreen:
     :path: "../node_modules/expo-splash-screen/ios"
   EXStructuredHeaders:
@@ -552,7 +566,7 @@ SPEC CHECKSUMS:
   boost-for-react-native: 39c7adb57c4e60d6c5479dd8623128eb5b3f0f2c
   DoubleConversion: cde416483dac037923206447da6e1454df403714
   EXApplication: 4797b8b37f0b0470f587fdccf6407f44b50d18b5
-  EXCamera: 8ad7012d4e0fef09ff35de14fcb41b410357e9be
+  EXCamera: 042b334f6ee9b918855fe4c4f155d4c372300a5f
   EXConstants: c4dd28acc12039c999612507a5f935556f2c86ce
   EXErrorRecovery: 720641265b8cf95e6cdeb1884ac38e794a352488
   EXFileSystem: dcf2273f49431e5037347c733a2dc5d08e0d0a9e
@@ -563,6 +577,8 @@ SPEC CHECKSUMS:
   EXImageManipulator: b2e17bdbd0872cc59b43b76756f76fdb8a849831
   EXKeepAwake: d4e4a3ed8c1c4fd940dd62fc5a8be2a190371fd4
   EXPermissions: 8f8c1c05580c4e02d4ee2c8dd74bfe173ff6a723
+  ExpoModulesCore: 2734852616127a6c1fc23012197890a6f3763dc7
+  EXScreenOrientation: 4d9ec57c73055c8a4dbf9dd85def4db29b690a91
   EXSplashScreen: 6d5b4274537d2b9f343a9ec2347dbb61f3d40ab7
   EXStructuredHeaders: be834496a4d9fd0069cd12ec1cc57b31c6d3b256
   EXUpdates: efe0e8c514dcff06a8fd0b63be6019a6365fb9c7

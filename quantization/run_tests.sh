@@ -28,10 +28,10 @@ if [[ -d "models" ]]; then
   exit 1
 fi
 
-if [[ -z "$(which pip)" ]]; then
-  echo "pip is not on path. Attempting to install it..."
+if [[ -z "$(which pip3)" ]]; then
+  echo "pip3 is not on path. Attempting to install it..."
   apt-get update
-  apt-get install -y python-pip
+  apt-get install -y python3-pip
 fi
 
 yarn

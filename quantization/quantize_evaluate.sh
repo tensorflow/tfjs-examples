@@ -31,16 +31,16 @@ MODEL_ROOT="models/${MODEL_NAME}"
 MODEL_PATH="${MODEL_ROOT}/original"
 MODEL_JSON_PATH="${MODEL_PATH}/model.json"
 
-# Make sure pip is available.
-if [[ -z "$(which pip)" ]]; then
-  echo "ERROR: Cannot find pip on path."
-  echo "       Make sure you have python and pip installed."
+# Make sure pip3 is available.
+if [[ -z "$(which pip3)" ]]; then
+  echo "ERROR: Cannot find pip3 on path."
+  echo "       Make sure you have python and pip3 installed."
   exit 1
 fi
 
 if [[ -z "$(which virtualenv)" ]]; then
   echo "Installing virtualenv..."
-  pip install virtualenv
+  pip3 install virtualenv
 fi
 
 VENV_DIR="$(mktemp -d)_venv"
@@ -48,7 +48,7 @@ echo "Creating virtualenv at ${VENV_DIR} ..."
 virtualenv "${VENV_DIR}"
 source "${VENV_DIR}/bin/activate"
 
-pip install tensorflowjs
+pip3 install tensorflowjs
 
 if [[ "${MODEL_NAME}" == "MobileNetV2" ]]; then
   # Save the MobilNetV2 model first.

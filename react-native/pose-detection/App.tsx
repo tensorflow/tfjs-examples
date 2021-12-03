@@ -49,7 +49,9 @@ export default function App() {
   const [fps, setFps] = useState(0);
   const [orientation, setOrientation] =
     useState<ScreenOrientation.Orientation>();
-  const [cameraType, setCameraType] = useState<CameraType>(CameraType.front);
+  const [cameraType, setCameraType] = useState<CameraType>(
+    Camera.Constants.Type.front
+  );
 
   useEffect(() => {
     async function prepare() {
@@ -123,8 +125,9 @@ export default function App() {
       const keypoints = poses[0].keypoints
         .filter((k) => (k.score ?? 0) > MIN_KEYPOINT_SCORE)
         .map((k) => {
-          // Flip horizontally on android.
-          const x = IS_ANDROID ? OUTPUT_TENSOR_WIDTH - k.x : k.x;
+          // Flip horizontally on android or when using back camera on iOS.
+          const flipX = IS_ANDROID || cameraType === Camera.Constants.Type.back;
+          const x = flipX ? OUTPUT_TENSOR_WIDTH - k.x : k.x;
           const y = k.y;
           const cx =
             (x / getOutputTensorWidth()) *
@@ -166,17 +169,18 @@ export default function App() {
         onTouchEnd={handleSwitchCameraType}
       >
         <Text>
-          Switch to {cameraType === CameraType.front ? 'back' : 'front'} camera
+          Switch to{' '}
+          {cameraType === Camera.Constants.Type.front ? 'back' : 'front'} camera
         </Text>
       </View>
     );
   };
 
   const handleSwitchCameraType = () => {
-    if (cameraType === CameraType.front) {
-      setCameraType(CameraType.back);
+    if (cameraType === Camera.Constants.Type.front) {
+      setCameraType(Camera.Constants.Type.back);
     } else {
-      setCameraType(CameraType.front);
+      setCameraType(Camera.Constants.Type.front);
     }
   };
 
@@ -219,9 +223,9 @@ export default function App() {
       case ScreenOrientation.Orientation.PORTRAIT_DOWN:
         return 180;
       case ScreenOrientation.Orientation.LANDSCAPE_LEFT:
-        return 270;
+        return cameraType === Camera.Constants.Type.front ? 270 : 90;
       case ScreenOrientation.Orientation.LANDSCAPE_RIGHT:
-        return 90;
+        return cameraType === Camera.Constants.Type.front ? 90 : 270;
       default:
         return 0;
     }

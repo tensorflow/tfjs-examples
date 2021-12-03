@@ -6,7 +6,7 @@
   "scripts": {
     "build-dep": "cd ../../../tfjs/tfjs-react-native && yarn build-npm",
     "copy-dep": "rm -rf node_modules/@tensorflow/tfjs-react-native/dist/* && cp -rf ../../../tfjs/tfjs-react-native/dist/* node_modules/@tensorflow/tfjs-react-native/dist/",
-    "start": "expo start --tunnel"
+    "start": "expo start"
   },
   "dependencies": {
     "@mediapipe/pose": "~0.4.0",

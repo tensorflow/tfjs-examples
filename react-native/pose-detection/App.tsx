@@ -9,6 +9,7 @@ import * as ScreenOrientation from 'expo-screen-orientation';
 import { cameraWithTensors } from '@tensorflow/tfjs-react-native';
 import Svg, { Circle } from 'react-native-svg';
 import { ExpoWebGLRenderingContext } from 'expo-gl';
+import { CameraType } from 'expo-camera/build/Camera.types';
 
 // tslint:disable-next-line: variable-name
 const TensorCamera = cameraWithTensors(Camera);
@@ -48,6 +49,7 @@ export default function App() {
   const [fps, setFps] = useState(0);
   const [orientation, setOrientation] =
     useState<ScreenOrientation.Orientation>();
+  const [cameraType, setCameraType] = useState<CameraType>(CameraType.front);
 
   useEffect(() => {
     async function prepare() {
@@ -157,6 +159,27 @@ export default function App() {
     );
   };
 
+  const renderCameraTypeSwitcher = () => {
+    return (
+      <View
+        style={styles.cameraTypeSwitcher}
+        onTouchEnd={handleSwitchCameraType}
+      >
+        <Text>
+          Switch to {cameraType === CameraType.front ? 'back' : 'front'} camera
+        </Text>
+      </View>
+    );
+  };
+
+  const handleSwitchCameraType = () => {
+    if (cameraType === CameraType.front) {
+      setCameraType(CameraType.back);
+    } else {
+      setCameraType(CameraType.front);
+    }
+  };
+
   const isPortrait = () => {
     return (
       orientation === ScreenOrientation.Orientation.PORTRAIT_UP ||
@@ -223,7 +246,7 @@ export default function App() {
           ref={cameraRef}
           style={styles.camera}
           autorender={AUTO_RENDER}
-          type={Camera.Constants.Type.front}
+          type={cameraType}
           // tensor related props
           resizeWidth={getOutputTensorWidth()}
           resizeHeight={getOutputTensorHeight()}
@@ -233,6 +256,7 @@ export default function App() {
         />
         {renderPose()}
         {renderFps()}
+        {renderCameraTypeSwitcher()}
       </View>
     );
   }
@@ -274,6 +298,17 @@ const styles = StyleSheet.create({
     top: 10,
     left: 10,
     width: 80,
+    alignItems: 'center',
+    backgroundColor: 'rgba(255, 255, 255, .7)',
+    borderRadius: 2,
+    padding: 8,
+    zIndex: 20,
+  },
+  cameraTypeSwitcher: {
+    position: 'absolute',
+    top: 10,
+    right: 10,
+    width: 180,
     alignItems: 'center',
     backgroundColor: 'rgba(255, 255, 255, .7)',
     borderRadius: 2,

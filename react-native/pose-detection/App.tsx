@@ -127,7 +127,7 @@ export default function App() {
         .map((k) => {
           // Flip horizontally on android or when using back camera on iOS.
           const flipX = IS_ANDROID || cameraType === Camera.Constants.Type.back;
-          const x = flipX ? OUTPUT_TENSOR_WIDTH - k.x : k.x;
+          const x = flipX ? getOutputTensorWidth() - k.x : k.x;
           const y = k.y;
           const cx =
             (x / getOutputTensorWidth()) *

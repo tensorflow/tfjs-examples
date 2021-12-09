@@ -3,7 +3,8 @@
 A quick demo for running [TFJS Pose Detection][posedetection] model
 ([MoveNet.SinglePose.Ligntning][tfhub]) using
 [TFJS React Native][tfjs-react-native] in an Expo project. It supports both
-portrait and landscape mode. Only the keypoints are rendered in the demo.
+portrait and landscape mode with front and back camera. Only the keypoints are
+rendered in the demo.
 
 To run it locally:
 

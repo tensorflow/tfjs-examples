@@ -9,6 +9,7 @@ import * as ScreenOrientation from 'expo-screen-orientation';
 import { cameraWithTensors } from '@tensorflow/tfjs-react-native';
 import Svg, { Circle } from 'react-native-svg';
 import { ExpoWebGLRenderingContext } from 'expo-gl';
+import { CameraType } from 'expo-camera/build/Camera.types';
 
 // tslint:disable-next-line: variable-name
 const TensorCamera = cameraWithTensors(Camera);
@@ -48,9 +49,20 @@ export default function App() {
   const [fps, setFps] = useState(0);
   const [orientation, setOrientation] =
     useState<ScreenOrientation.Orientation>();
+  const [cameraType, setCameraType] = useState<CameraType>(
+    Camera.Constants.Type.front
+  );
+  // Use `useRef` so that changing it won't trigger a re-render.
+  //
+  // - null: unset (initial value).
+  // - 0: animation frame/loop has been canceled.
+  // - >0: animation frame has been scheduled.
+  const rafId = useRef<number | null>(null);
 
   useEffect(() => {
     async function prepare() {
+      rafId.current = null;
+
       // Set initial orientation.
       const curOrientation = await ScreenOrientation.getOrientationAsync();
       setOrientation(curOrientation);
@@ -84,6 +96,16 @@ export default function App() {
     prepare();
   }, []);
 
+  useEffect(() => {
+    // Called when the app is unmounted.
+    return () => {
+      if (rafId.current != null && rafId.current !== 0) {
+        cancelAnimationFrame(rafId.current);
+        rafId.current = 0;
+      }
+    };
+  }, []);
+
   const handleCameraStream = async (
     images: IterableIterator<tf.Tensor3D>,
     updatePreview: () => void,
@@ -104,13 +126,17 @@ export default function App() {
       setPoses(poses);
       tf.dispose([imageTensor]);
 
+      if (rafId.current === 0) {
+        return;
+      }
+
       // Render camera preview manually when autorender=false.
       if (!AUTO_RENDER) {
         updatePreview();
         gl.endFrameEXP();
       }
 
-      requestAnimationFrame(loop);
+      rafId.current = requestAnimationFrame(loop);
     };
 
     loop();
@@ -121,8 +147,9 @@ export default function App() {
       const keypoints = poses[0].keypoints
         .filter((k) => (k.score ?? 0) > MIN_KEYPOINT_SCORE)
         .map((k) => {
-          // Flip horizontally on android.
-          const x = IS_ANDROID ? OUTPUT_TENSOR_WIDTH - k.x : k.x;
+          // Flip horizontally on android or when using back camera on iOS.
+          const flipX = IS_ANDROID || cameraType === Camera.Constants.Type.back;
+          const x = flipX ? getOutputTensorWidth() - k.x : k.x;
           const y = k.y;
           const cx =
             (x / getOutputTensorWidth()) *
@@ -155,6 +182,28 @@ export default function App() {
         <Text>FPS: {fps}</Text>
       </View>
     );
+  };
+
+  const renderCameraTypeSwitcher = () => {
+    return (
+      <View
+        style={styles.cameraTypeSwitcher}
+        onTouchEnd={handleSwitchCameraType}
+      >
+        <Text>
+          Switch to{' '}
+          {cameraType === Camera.Constants.Type.front ? 'back' : 'front'} camera
+        </Text>
+      </View>
+    );
+  };
+
+  const handleSwitchCameraType = () => {
+    if (cameraType === Camera.Constants.Type.front) {
+      setCameraType(Camera.Constants.Type.back);
+    } else {
+      setCameraType(Camera.Constants.Type.front);
+    }
   };
 
   const isPortrait = () => {
@@ -196,9 +245,9 @@ export default function App() {
       case ScreenOrientation.Orientation.PORTRAIT_DOWN:
         return 180;
       case ScreenOrientation.Orientation.LANDSCAPE_LEFT:
-        return 270;
+        return cameraType === Camera.Constants.Type.front ? 270 : 90;
       case ScreenOrientation.Orientation.LANDSCAPE_RIGHT:
-        return 90;
+        return cameraType === Camera.Constants.Type.front ? 90 : 270;
       default:
         return 0;
     }
@@ -223,7 +272,7 @@ export default function App() {
           ref={cameraRef}
           style={styles.camera}
           autorender={AUTO_RENDER}
-          type={Camera.Constants.Type.front}
+          type={cameraType}
           // tensor related props
           resizeWidth={getOutputTensorWidth()}
           resizeHeight={getOutputTensorHeight()}
@@ -233,6 +282,7 @@ export default function App() {
         />
         {renderPose()}
         {renderFps()}
+        {renderCameraTypeSwitcher()}
       </View>
     );
   }
@@ -274,6 +324,17 @@ const styles = StyleSheet.create({
     top: 10,
     left: 10,
     width: 80,
+    alignItems: 'center',
+    backgroundColor: 'rgba(255, 255, 255, .7)',
+    borderRadius: 2,
+    padding: 8,
+    zIndex: 20,
+  },
+  cameraTypeSwitcher: {
+    position: 'absolute',
+    top: 10,
+    right: 10,
+    width: 180,
     alignItems: 'center',
     backgroundColor: 'rgba(255, 255, 255, .7)',
     borderRadius: 2,

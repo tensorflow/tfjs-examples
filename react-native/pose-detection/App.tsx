@@ -52,9 +52,17 @@ export default function App() {
   const [cameraType, setCameraType] = useState<CameraType>(
     Camera.Constants.Type.front
   );
+  // Use `useRef` so that changing it won't trigger a re-render.
+  //
+  // - null: unset (initial value).
+  // - 0: animation frame/loop has been canceled.
+  // - >0: animation frame has been scheduled.
+  const rafId = useRef<number | null>(null);
 
   useEffect(() => {
     async function prepare() {
+      rafId.current = null;
+
       // Set initial orientation.
       const curOrientation = await ScreenOrientation.getOrientationAsync();
       setOrientation(curOrientation);
@@ -88,6 +96,16 @@ export default function App() {
     prepare();
   }, []);
 
+  useEffect(() => {
+    // Called when the app is unmounted.
+    return () => {
+      if (rafId.current != null && rafId.current !== 0) {
+        cancelAnimationFrame(rafId.current);
+        rafId.current = 0;
+      }
+    };
+  }, []);
+
   const handleCameraStream = async (
     images: IterableIterator<tf.Tensor3D>,
     updatePreview: () => void,
@@ -108,13 +126,17 @@ export default function App() {
       setPoses(poses);
       tf.dispose([imageTensor]);
 
+      if (rafId.current === 0) {
+        return;
+      }
+
       // Render camera preview manually when autorender=false.
       if (!AUTO_RENDER) {
         updatePreview();
         gl.endFrameEXP();
       }
 
-      requestAnimationFrame(loop);
+      rafId.current = requestAnimationFrame(loop);
     };
 
     loop();

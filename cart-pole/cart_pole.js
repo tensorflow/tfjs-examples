@@ -102,7 +102,7 @@ export class CartPole {
          (4 / 3 - this.massPole * cosTheta * cosTheta / this.totalMass));
     const xAcc = temp - this.poleMoment * thetaAcc * cosTheta / this.totalMass;
 
-    // Update the four state variables, using Euler's metohd.
+    // Update the four state variables, using Euler's method.
     this.x += this.tau * this.xDot;
     this.xDot += this.tau * xAcc;
     this.theta += this.tau * this.thetaDot;

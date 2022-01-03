@@ -68,7 +68,7 @@ yarn train-rnn --modelType baseline
 The Node.js-based training script allows you to log the loss values from the
 model to TensorBoard. Relative to printing loss values to the console, which
 the training script performs by default, logging to tensorboard has the
-following advantanges:
+following advantages:
 
 1. Persistence of the loss values, so you can have a copy of the training
    history available even if the system crashes in the middle of the training

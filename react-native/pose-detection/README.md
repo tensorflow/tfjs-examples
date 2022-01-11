@@ -15,7 +15,7 @@ $ yarn start
 
 Then scan the QR code to open it in the `Expo Go` app.
 
-Tested on Pixel 2, iPhone 12 Pro Max, iPad, and iPad Pro.
+If the app crashes on startup, see [here][readme] for more info.
 
 <img src="screenshot_portrait.jpg" width="250">
 <img src="screenshot_landscape.jpg" width="500">
@@ -24,3 +24,4 @@ Tested on Pixel 2, iPhone 12 Pro Max, iPad, and iPad Pro.
 [tfhub]: https://tfhub.dev/google/tfjs-model/movenet/singlepose/lightning/4
 [tfjs-react-native]: https://github.com/tensorflow/tfjs/tree/master/tfjs-react-native
 [screenshots]: https://photos.app.goo.gl/U972ww4HpaKPK6jEA
+[readme]: https://github.com/tensorflow/tfjs-examples/blob/master/react-native/README.md

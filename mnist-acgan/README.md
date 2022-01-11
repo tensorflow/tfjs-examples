@@ -61,7 +61,7 @@ the generator and the discriminator to
 [TensorBoard](https://www.tensorflow.org/guide/summaries_and_tensorboard).
 Relative to printing loss values to the console, which the
 training script performs by default, logging to tensorboard has the following
-advantanges:
+advantages:
 
 1. Persistence of the loss values, so you can have a copy of the training
    history available even if the system crashes in the middle of the training

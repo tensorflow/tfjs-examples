@@ -11,6 +11,8 @@ Max with iOS 15.1.1 and Pixel 2 with Android 9:
 
 ```
 "expo": "~44.0.2",
+"expo-camera": "^12.1.0",
+"expo-file-system": "^13.2.0",
 "expo-gl": "^11.1.1",
 "expo-gl-cpp": "^11.1.0",
 "react": "17.0.1",

@@ -33,6 +33,6 @@
     "clang-format": "~1.2.2",
     "jimp": "^0.16.1",
     "progress": "^2.0.3",
-    "shelljs": "^0.8.3"
+    "shelljs": "^0.8.5"
   }
 }

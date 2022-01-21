@@ -1,0 +1,79 @@
+async function setupCamera() {
+  video = document.getElementById('video');
+
+  const stream = await navigator.mediaDevices.getUserMedia({
+    'audio': false,
+    'video': {
+      facingMode: 'user',
+      width: videoWidth,
+      height: videoHeight
+    },
+  });
+  video.srcObject = stream;
+
+  await new Promise((resolve) => {
+    video.onloadedmetadata = () => {
+      resolve(video);
+    };
+  });
+
+  video.play();
+  video.width = videoWidth;
+  video.height = videoHeight;
+}
+
+function createStatsPanel() {
+  stats = new Stats();
+  stats.customFpsPanel = stats.addPanel(new Stats.Panel('FPS', '#0ff', '#002'));
+  stats.showPanel(stats.domElement.children.length - 1);
+
+  statusEl.appendChild(stats.domElement);
+
+  const statsPanes = statusEl.querySelectorAll('canvas');
+
+  for (let i = 0; i < statsPanes.length; ++i) {
+    statsPanes[i].style.width = '140px';
+    statsPanes[i].style.height = '80px';
+  }
+
+  const gui = new dat.GUI();
+
+  gui.add(state, 'interpolation', [1, 2, 3, 4, 5, 10]);
+}
+
+async function createModel() {
+  const segmenterConfig = {
+    runtime: 'tfjs',
+    modelType: 'landscape'
+  };
+  return bodySegmentation.createSegmenter(
+    bodySegmentation.SupportedModels.MediaPipeSelfieSegmentation, 
+    segmenterConfig);
+}
+
+async function setupPage() {
+  await setupCamera();
+  model = await createModel();
+  createStatsPanel();
+  init();
+}
+
+function beginEstimateSegmentationStats() {
+  startInferenceTime = (performance || Date).now();
+}
+
+function endEstimateSegmentationStats() {
+  const endInferenceTime = (performance || Date).now();
+  inferenceTimeSum += endInferenceTime - startInferenceTime;
+  ++numInferences;
+
+  const panelUpdateMilliseconds = 1000;
+  if (endInferenceTime - lastPanelUpdate >= panelUpdateMilliseconds) {
+    const averageInferenceTime = inferenceTimeSum / numInferences;
+    inferenceTimeSum = 0;
+    numInferences = 0;
+    stats.customFpsPanel.update(
+        1000.0 / averageInferenceTime, 120 /* maxValue */);
+    lastPanelUpdate = endInferenceTime;
+  }
+}

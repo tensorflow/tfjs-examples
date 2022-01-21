@@ -1,0 +1,51 @@
+<div id="status"></div>
+<br/>
+<div class="main">
+  <canvas></canvas>
+</div>
+<div>
+  <h1>A demo of pure GPU pipeline</h1>
+  <p>
+    This demo shows several tips of writing a high performance GPU pipeline with TF.js. 
+    In this example, the pipeline takes a camera stream as input, then feeds to a 
+    <a href="https://github.com/tensorflow/tfjs-models/tree/master/body-segmentation">
+    segmentation model</a> from tfjs-models. The output of the model is then fed to
+    a mask processing step to mask the background with alpha=0.3. And then the result
+    is painted on the canvas.
+  </p>
+  <p>
+    The first optimization we applied is keeping the whole pipeline on GPU. To keep
+    the output data of the model on GPU, we use the latest API tensor.dataToGPU()
+    instead of tensor.data(), because tensor.data() will download the data to CPU.
+    tensor.dataToGPU() returns an object with texture and tensorRef. We pass the
+    texture directly to the next processing step. This way, data never leaves GPU. 
+    And at the end, we dispose the texture by calling tensorRef.dispose().
+  </p>
+  <p>
+    The second optimization we applied is skip frames to run the pipeline, so that
+    the pipeline is not running on every animation frame. You can choose different
+    interpolation number in the dropdown menu to try the effects. For example, 4
+    means run the pipeline every 4 frames.
+  </p>
+  <p>
+    See the code of this example for details.
+  </p>
+</div>
+<video id="video" playsinline style="
+  visibility: hidden;
+  width: auto;
+  height: auto;
+  ">
+</video>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/dat-gui/0.7.6/dat.gui.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/stats.js/r16/Stats.min.js"></script>
+<script src="https://unpkg.com/@tensorflow/tfjs-core@3.13.0/dist/tf-core.min.js"></script>
+<script src="https://unpkg.com/@tensorflow/tfjs-converter@3.13.0/dist/tf-converter.min.js"></script>
+<script src="https://unpkg.com/@tensorflow/tfjs-backend-webgl@3.13.0/dist/tf-backend-webgl.min.js"></script>
+<script src="./body-segmentation.min.js"></script>
+<script src="./gl-shaders.js"></script>
+<script src="./gl-class.js"></script>
+<script src="./gl-util.js"></script>
+<script src="./ui-util.js"></script>
+<script src="./index.js"></script>

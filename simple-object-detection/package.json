@@ -12,7 +12,7 @@
     "@tensorflow/tfjs": "^3.7.0",
     "argparse": "^2.0.1",
     "canvas": "2.6.1",
-    "node-fetch": "2.6.1"
+    "node-fetch": "2.6.7"
   },
   "scripts": {
     "watch": "cross-env NODE_ENV=development parcel index.html --no-hmr --open",
@@ -34,7 +34,7 @@
   },
   "resolutions": {
     "is-svg": "4.3.1",
-    "node-fetch": "2.6.1",
+    "node-fetch": "2.6.7",
     "vega": "5.17.3",
     "glob-parent": "5.1.2",
     "postcss": "8.2.10"

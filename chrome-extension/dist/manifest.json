@@ -4,17 +4,15 @@
   "version": "0.0.0",
   "description": "Classify images right in your browser using TensorFlow.js and mobilenet.",
   "permissions": [
-    "<all_urls>",
-    "activeTab",
     "contextMenus",
-    "storage",
     "tabs",
-    "webRequest",
-    "webRequestBlocking"
+    "activeTab"
+  ],
+  "host_permissions": [
+    "<all_urls>"
   ],
   "background": {
-    "scripts": ["src/background.js"],
-    "persistent": true
+    "service_worker": "src/service_worker.js"
   },
   "content_scripts": [
     {
@@ -24,8 +22,10 @@
       "run_at": "document_start"
     }
   ],
-  "content_security_policy": "script-src 'self' 'unsafe-eval'; object-src 'self'",
-  "manifest_version": 2,
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self'"
+  },
+  "manifest_version": 3,
   "icons": {
     "16": "images/get_started16.png",
     "32": "images/get_started32.png",

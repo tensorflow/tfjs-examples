@@ -1,22 +1,19 @@
-// A wrapper class for WebGL texture and its associted framebuffer and utility functions.
-class GlTextureFramebuffer {
-    constructor(gl, framebuffer, texture, width, height) {
-      this.gl_ = gl;
-      this.texture_ = texture;
-      this.framebuffer_ = framebuffer;
-      this.width = width;
-      this.height = height;
-    }
-  
-    bindTexture() {
-      this.gl_.bindTexture(this.gl_.TEXTURE_2D, this.texture_);
-    }
-  
-    bindFramebuffer() {
-      this.gl_.bindFramebuffer(this.gl_.FRAMEBUFFER, this.framebuffer_);
-      this.gl_.viewport(0, 0, this.width, this.height);
-    }
-}
+/**
+ * @license
+ * Copyright 2022 Google LLC. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * =============================================================================
+ */
 
 // A wrapper class for WebGL texture and its utility functions.
 class GlTextureImpl {
@@ -30,7 +27,20 @@ class GlTextureImpl {
     bindTexture() {
       this.gl_.bindTexture(this.gl_.TEXTURE_2D, this.texture_);
     }
-  }
+}
+
+// A wrapper class for WebGL texture and its associted framebuffer and utility functions.
+class GlTextureFramebuffer extends GlTextureImpl {
+    constructor(gl, framebuffer, texture, width, height) {
+      super(gl, texture, width, height);
+      this.framebuffer_ = framebuffer;
+    }
+  
+    bindFramebuffer() {
+      this.gl_.bindFramebuffer(this.gl_.FRAMEBUFFER, this.framebuffer_);
+      this.gl_.viewport(0, 0, this.width, this.height);
+    }
+}
 
 // A wrapper class for WebGL program and its utility functions.
 class GlProgramImpl {
@@ -142,14 +152,10 @@ class MaskStep {
     constructor(gl) {
       this.proc = new GlShaderProcessor(gl, MASK_SHADER);
     }
-    process(sharp, mask) {
-      this.proc.startProcessFrame(sharp.width, sharp.height);
+    process(frame, mask) {
+      this.proc.startProcessFrame(frame.width, frame.height);
       this.proc.bindTextures(
-          [['sharp', sharp], ['mask', mask]]);
+          [['frame', frame], ['mask', mask]]);
       return this.proc.finalizeProcessFrame();
-    }
-    disposeInternal() {
-      super.disposeInternal();
-      this.proc.dispose();
     }
   }

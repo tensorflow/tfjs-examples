@@ -1,3 +1,19 @@
+/**
+ * @license
+ * Copyright 2022 Google LLC. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * =============================================================================
+ */
 let video, model, stats;
 let startInferenceTime, numInferences = 0;
 let inferenceTimeSum = 0, lastPanelUpdate = 0;
@@ -13,16 +29,19 @@ canvasEl.style.width = `${videoWidth}px`;
 canvasEl.style.height = `${videoHeight}px`;
 
 async function init() {
-  if (tf.findBackendFactory('webgl')) {
-    tf.removeBackend('webgl');
-  }
-  // Must be named 'webgl' to match the kernel namespace.
+  const customBackendName = 'custom-webgl';
+
+  const kernels = tf.getKernelsForBackend('webgl');
+  kernels.forEach(kernelConfig => {
+    const newKernelConfig = { ...kernelConfig, backendName: customBackendName };
+    tf.registerKernel(newKernelConfig);
+  });
   const gl = getWebGLRenderingContext(canvasEl);
-  tf.registerBackend('webgl', () => {
+  tf.registerBackend(customBackendName, () => {
     return new tf.MathBackendWebGL(
         new tf.GPGPUContext(gl));
   });
-  await tf.setBackend('webgl');
+  await tf.setBackend(customBackendName);
 
   const applyMask = new MaskStep(gl);
   let inputTextureFrameBuffer = createTextureFrameBuffer(gl, gl.LINEAR, videoWidth, videoHeight);
@@ -46,12 +65,12 @@ async function init() {
     // works if the data shape is [1, height, width, 4].
     const tensor = await segmentation[0].mask.toTensor();
     const data =
-    tensor.dataToGPU({customTexShape: [videoHeight, videoWidth]});
+      tensor.dataToGPU({customTexShape: [videoHeight, videoWidth]});
 
     // Combine the input texture and tensor texture with additional shader logic.
     // In this case, we just pass through foreground pixels and make background
     // pixels more transparent.
-    result = applyMask.process(inputTextureFrameBuffer, createTexture(
+    const result = applyMask.process(inputTextureFrameBuffer, createTexture(
         gl, data.texture, videoWidth, videoHeight));
     
     // Other processing steps can go here.

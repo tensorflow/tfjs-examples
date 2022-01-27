@@ -1,0 +1,44 @@
+<div id="status"></div>
+<br/>
+<div class="main">
+  <canvas></canvas>
+</div>
+<div>
+  <h1>A demo of pure GPU pipeline</h1>
+  <p>
+    This demo shows how to write a high performance GPU pipeline with TF.js. 
+    In this example, the pipeline takes a camera stream as input, then feeds to a 
+    <a href="https://github.com/tensorflow/tfjs-models/tree/master/body-segmentation">
+    segmentation model</a> from tfjs-models. The output of the model is then fed to
+    a mask processing step to mask the background with purple. And then the result
+    is painted on the canvas.
+  </p>
+  <p>
+    We keep the whole pipeline on GPU to achieve high performance speed. To keep
+    the output data of the model on GPU, we use the latest API tensor.dataToGPU()
+    instead of tensor.data(), because tensor.data() will download the data to CPU.
+    tensor.dataToGPU() returns an object with texture and tensorRef. We pass the
+    texture directly to the next processing step. This way, data never leaves GPU. 
+    And at the end, we dispose the texture by calling tensorRef.dispose().
+  </p>
+  <p>
+    See the code of this example for details.
+  </p>
+</div>
+<video id="video" playsinline style="
+  visibility: hidden;
+  width: auto;
+  height: auto;
+  ">
+</video>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/stats.js/r16/Stats.min.js"></script>
+<script src="https://unpkg.com/@tensorflow/tfjs-core@3.13.0/dist/tf-core.min.js"></script>
+<script src="https://unpkg.com/@tensorflow/tfjs-converter@3.13.0/dist/tf-converter.min.js"></script>
+<script src="https://unpkg.com/@tensorflow/tfjs-backend-webgl@3.13.0/dist/tf-backend-webgl.min.js"></script>
+<script src="./body-segmentation.min.js"></script>
+<script src="./gl-shaders.js"></script>
+<script src="./gl-class.js"></script>
+<script src="./gl-util.js"></script>
+<script src="./ui-util.js"></script>
+<script src="./index.js"></script>

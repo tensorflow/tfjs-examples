@@ -107,7 +107,7 @@ function createTextureFrameBuffer(gl, filterMode, width, height) {
     return new GlTextureFramebuffer(gl, framebuffer, texture, width, height);
   }
 
-  // Returns a wrapper class with a texture and its util functions.
+  // Returns a wrapper class with a texture and its util.
   function createTexture(gl, texture, width, height) {
     return new GlTextureImpl(gl, texture, width, height);
   }

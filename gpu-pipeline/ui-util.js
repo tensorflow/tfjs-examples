@@ -1,3 +1,15 @@
+function isiOS() {
+  return /iPhone|iPad|iPod/i.test(navigator.userAgent);
+}
+
+function isAndroid() {
+  return /Android/i.test(navigator.userAgent);
+}
+
+function isMobile() {
+  return isAndroid() || isiOS();
+}
+
 async function setupCamera() {
   video = document.getElementById('video');
 
@@ -35,10 +47,6 @@ function createStatsPanel() {
     statsPanes[i].style.width = '140px';
     statsPanes[i].style.height = '80px';
   }
-
-  const gui = new dat.GUI();
-
-  gui.add(state, 'interpolation', [1, 2, 3, 4, 5, 10]);
 }
 
 async function createModel() {

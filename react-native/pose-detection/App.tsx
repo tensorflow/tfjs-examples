@@ -97,7 +97,7 @@ export default function App() {
         movenetModelConfig.modelUrl = bundleResourceIO(modelJson, [
           modelWeights1,
           modelWeights2,
-        ]) as {} as string;
+        ]);
       }
       const model = await posedetection.createDetector(
         posedetection.SupportedModels.MoveNet,

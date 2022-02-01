@@ -6,20 +6,13 @@
 <div>
   <h1>A demo of pure GPU pipeline</h1>
   <p>
-    This demo shows how to write a high performance GPU pipeline with TF.js. 
+    This demo shows a high performance GPU pipeline with TF.js. 
     In this example, the pipeline takes a camera stream as input, then feeds to a 
     <a href="https://github.com/tensorflow/tfjs-models/tree/master/body-segmentation">
     segmentation model</a> from tfjs-models. The output of the model is then fed to
     a mask processing step to mask the background with purple. And then the result
-    is painted on the canvas.
-  </p>
-  <p>
-    We keep the whole pipeline on GPU to achieve high performance speed. To keep
-    the output data of the model on GPU, we use the latest API tensor.dataToGPU()
-    instead of tensor.data(), because tensor.data() will download the data to CPU.
-    tensor.dataToGPU() returns an object with texture and tensorRef. We pass the
-    texture directly to the next processing step. This way, data never leaves GPU. 
-    And at the end, we dispose the texture by calling tensorRef.dispose().
+    is painted on the canvas. 
+    For details on how to keep the tensor data on GPU, see our [optimization doc](https://github.com/tensorflow/tfjs/blob/master/docs/OPTIMIZATION_PURE_GPU_PIPELINE.md). 
   </p>
   <p>
     See the code of this example for details.

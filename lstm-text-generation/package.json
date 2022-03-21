@@ -14,7 +14,7 @@
   },
   "scripts": {
     "watch": "cross-env NODE_ENV=development parcel index.html --no-hmr --open",
-    "build": "cross-env NODE_ENV=production parcel build index.html --no-minify --public-url ./",
+    "build": "cross-env NODE_ENV=production parcel build index.html  --public-url ./",
     "gen": "babel-node gen_node.js",
     "link-local": "yalc link",
     "test": "babel-node run_tests.js",
@@ -23,24 +23,28 @@
   "devDependencies": {
     "@tensorflow/tfjs-node": "^2.6.0",
     "@tensorflow/tfjs-node-gpu": "^2.6.0",
-    "argparse": "^1.0.10",
     "babel-cli": "^6.26.0",
     "babel-core": "^6.26.3",
     "babel-plugin-transform-runtime": "^6.23.0",
     "babel-polyfill": "^6.26.0",
     "babel-preset-env": "~1.7.0",
+    "argparse": "^1.0.10",
+    "buffer": "^6.0.3",
     "clang-format": "~1.2.2",
     "cross-env": "^5.1.6",
+    "events": "^3.3.0",
+    "https-browserify": "^1.0.0",
     "jasmine": "^3.2.0",
     "jasmine-core": "^3.2.1",
-    "parcel-bundler": "~1.12.5",
-    "yalc": "~1.0.0-pre.50"
+    "parcel": "~2.3.2",
+    "process": "^0.11.10",
+    "querystring-es3": "^0.2.1",
+    "stream-http": "^3.2.0",
+    "url": "^0.11.0",
+    "yalc": "~1.0.0-pre.53"
   },
   "resolutions": {
-    "is-svg": "4.3.1",
-    "node-fetch": "2.6.1",
-    "vega": "5.17.3",
-    "glob-parent": "5.1.2",
-    "postcss": "8.2.10"
+    "node-fetch": "2.6.7",
+    "ansi-regex": "5.0.1"
   }
 }

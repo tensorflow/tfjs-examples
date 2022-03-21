@@ -24,24 +24,14 @@ const argparse = require('argparse');
 // flag is specified.
 let tf;
 
-const {
-  DATASET_PATH,
-  TRAIN_IMAGES_FILE,
-  IMAGE_FLAT_SIZE,
-  loadImages,
-  previewImage,
-  batchImages,
-} = require('./data');
+import('./data.js').then(exports => {
+  const {DATASET_PATH, TRAIN_IMAGES_FILE, IMAGE_FLAT_SIZE, loadImages, previewImage, batchImages,} = exports; const {encoder, decoder, vae, vaeLoss} = require('./model');
 
-const {encoder, decoder, vae, vaeLoss} = require('./model');
+  let epochs; let batchSize;
 
-let epochs;
-let batchSize;
+  const INTERMEDIATE_DIM = 512; const LATENT_DIM = 2;
 
-const INTERMEDIATE_DIM = 512;
-const LATENT_DIM = 2;
-
-/**
+  /**
  * Train the auto encoder
  *
  * @param {number[][]} images Flattened images for VAE training.
@@ -57,7 +47,7 @@ const LATENT_DIM = 2;
  *   batch-by-batch loss values will be logged to the directory during training,
  *   so that the training process can be monitored using TensorBoard.
  */
-async function train(images, vaeOpts, savePath, logDir) {
+  async function train(images, vaeOpts, savePath, logDir) {
   const encoderModel = encoder(vaeOpts);
   const decoderModel = decoder(vaeOpts);
   const vaeModel = vae(encoderModel, decoderModel);
@@ -119,31 +109,31 @@ async function train(images, vaeOpts, savePath, logDir) {
 
   console.log('done training');
   saveDecoder(savePath, decoderModel);
-}
+  }
 
-/**
+  /**
  * Generate an image and preview it on the console.
  *
  * @param {tf.LayersModel} decoderModel Decoder portion of the VAE.
  * @param {number} latentDimSize Dimensionality of the latent space.
  */
-async function generate(decoderModel, latentDimSize) {
+  async function generate(decoderModel, latentDimSize) {
   const targetZ = tf.zeros([latentDimSize]).expandDims();
   const generated = (decoderModel.predict(targetZ));
 
   await previewImage(generated.dataSync());
   tf.dispose([targetZ, generated]);
-}
+  }
 
-async function saveDecoder(savePath, decoderModel) {
+  async function saveDecoder(savePath, decoderModel) {
   const decoderPath = path.join(savePath, 'decoder');
   mkdirp.sync(decoderPath);
   const saveURL = `file://${decoderPath}`;
   console.log(`Saving decoder to ${saveURL}`);
   await decoderModel.save(saveURL);
-}
+  }
 
-async function run(savePath, logDir) {
+  async function run(savePath, logDir) {
   // Load the data
   const dataPath = path.join(DATASET_PATH, TRAIN_IMAGES_FILE);
   const images = await loadImages(dataPath);
@@ -158,9 +148,9 @@ async function run(savePath, logDir) {
     latentDim: LATENT_DIM
   };
   await train(images, vaeOpts, savePath, logDir);
-}
+  }
 
-(async function() {
+  (async function() {
   const parser = new argparse.ArgumentParser();
   parser.addArgument('--gpu', {
     action: 'storeTrue',
@@ -179,14 +169,14 @@ async function run(savePath, logDir) {
   parser.addArgument('--logDir', {
     type: 'string',
     help: 'Directory to which the TensorBoard summaries will be saved ' +
-    'during training.'
+        'during training.'
   });
   parser.addArgument('--savePath', {
     type: 'string',
     defaultValue: './models',
     help: 'Directory to which the decoder part of the VAE model will ' +
-    'be saved after training. If the directory does not exist, it will be ' +
-    'created.'
+        'be saved after training. If the directory does not exist, it will be ' +
+        'created.'
   });
 
   const args = parser.parseArgs();
@@ -202,4 +192,4 @@ async function run(savePath, logDir) {
   }
 
   await run(args.savePath, args.logDir);
-})();
+  })();});

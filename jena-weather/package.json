@@ -14,7 +14,7 @@
   },
   "scripts": {
     "watch": "cross-env NODE_ENV=development parcel index.html --no-hmr --open",
-    "build": "cross-env NODE_ENV=production parcel build index.html --no-minify --public-url ./",
+    "build": "cross-env NODE_ENV=production parcel build index.html  --public-url ./",
     "link-local": "yalc link",
     "test": "babel-node run_tests.js",
     "train-rnn": "babel-node --max_old_space_size=4096 train-rnn.js"
@@ -28,17 +28,15 @@
     "babel-plugin-transform-runtime": "~6.23.0",
     "babel-polyfill": "~6.26.0",
     "babel-preset-env": "~1.6.1",
+    "buffer": "^6.0.3",
     "clang-format": "~1.2.2",
     "cross-env": "^5.1.6",
-    "node-fetch": "^2.6.7",
-    "parcel-bundler": "~1.12.5",
-    "yalc": "~1.0.0-pre.50"
+    "parcel": "~2.3.2",
+    "process": "^0.11.10",
+    "yalc": "~1.0.0-pre.53"
   },
   "resolutions": {
-    "is-svg": "4.3.1",
     "node-fetch": "2.6.7",
-    "vega": "5.17.3",
-    "glob-parent": "5.1.2",
-    "postcss": "8.2.10"
+    "ansi-regex": "5.0.1"
   }
 }

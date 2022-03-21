@@ -9,7 +9,7 @@
     "node": ">=8.11.0"
   },
   "scripts": {
-    "build": "cross-env NODE_ENV=production parcel build index.html --no-minify --public-url ./",
+    "build": "cross-env NODE_ENV=production parcel build index.html  --public-url ./",
     "test": "babel-node run_tests.js",
     "train": "babel-node train.js",
     "watch": "cross-env NODE_ENV=development parcel index.html --no-hmr --open"
@@ -22,22 +22,19 @@
     "@tensorflow/tfjs-node": "3.0.0",
     "@tensorflow/tfjs-node-gpu": "3.0.0",
     "argparse": "^1.0.10",
-    "babel-cli": "^6.26.0",
-    "babel-core": "^6.26.3",
-    "babel-plugin-transform-runtime": "^6.23.0",
-    "babel-polyfill": "^6.26.0",
-    "babel-preset-env": "~1.7.0",
+    "buffer": "^6.0.3",
     "clang-format": "~1.2.2",
     "cross-env": "^5.1.6",
     "jasmine": "^3.2.0",
     "jasmine-core": "^3.2.1",
-    "parcel-bundler": "~1.12.5",
+    "parcel": "~2.3.2",
+    "process": "^0.11.10",
     "shelljs": "^0.8.5",
     "tmp": "^0.0.33",
-    "yalc": "~1.0.0-pre.21"
+    "yalc": "~1.0.0-pre.53"
   },
   "resolutions": {
-    "glob-parent": "5.1.2",
-    "postcss": "8.2.10"
+    "node-fetch": "2.6.7",
+    "ansi-regex": "5.0.1"
   }
 }

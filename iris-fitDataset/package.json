@@ -13,26 +13,21 @@
     "@tensorflow/tfjs-vis": "^1.4.3"
   },
   "scripts": {
-    "build": "cross-env NODE_ENV=production parcel build index.html --no-minify --public-url ./",
+    "build": "cross-env NODE_ENV=production parcel build index.html  --public-url ./",
     "watch": "./serve.sh",
     "link-local": "yalc link"
   },
   "devDependencies": {
-    "babel-core": "^6.26.3",
-    "babel-plugin-transform-runtime": "~6.23.0",
-    "babel-polyfill": "~6.26.0",
     "babel-preset-env": "~1.6.1",
+    "buffer": "^6.0.3",
     "clang-format": "~1.2.2",
     "cross-env": "^5.1.6",
-    "http-server": "^0.12.3",
-    "parcel-bundler": "~1.12.5",
-    "yalc": "~1.0.0-pre.50"
+    "parcel": "~2.3.2",
+    "process": "^0.11.10",
+    "yalc": "~1.0.0-pre.53"
   },
   "resolutions": {
-    "is-svg": "4.3.1",
-    "node-fetch": "2.6.1",
-    "vega": "5.17.3",
-    "glob-parent": "5.1.2",
-    "postcss": "8.2.10"
+    "node-fetch": "2.6.7",
+    "ansi-regex": "5.0.1"
   }
 }

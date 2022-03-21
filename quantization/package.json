@@ -34,5 +34,10 @@
     "jimp": "^0.16.1",
     "progress": "^2.0.3",
     "shelljs": "^0.8.5"
+  },
+  "resolutions": {
+    "node-fetch": "2.6.7",
+    "glob-parent": "5.1.2",
+    "braces": "2.3.1"
   }
 }

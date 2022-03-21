@@ -4,27 +4,21 @@
   "description": "Use tfjs model.predict in a chrome extension (v3)",
   "scripts": {
     "copy": "mkdir -p dist/src && cp src/content.js dist/src/",
-    "build": "parcel build src/service_worker.js -d dist/src/ -o service_worker --no-minify && npm run copy",
-    "watch": "npm run copy && parcel watch src/service_worker.js --hmr-hostname localhost -d dist/src/ -o service_worker"
+    "build": "parcel build src/service_worker.js --dist-dir dist/src/ && npm run copy",
+    "watch": "npm run copy && parcel watch src/service_worker.js --dist-dir dist/src/"
   },
   "license": "Apache 2.0",
   "devDependencies": {
-    "babel-core": "^6.26.3",
-    "babel-plugin-transform-runtime": "^6.23.0",
-    "babel-polyfill": "^6.26.0",
-    "babel-preset-env": "^1.6.1",
+    "buffer": "^6.0.3",
     "clang-format": "^1.2.3",
-    "parcel-bundler": "^1.12.5"
+    "parcel": "^2.3.2",
+    "process": "^0.11.10"
   },
   "resolutions": {
-    "is-svg": "4.3.1",
-    "node-fetch": "2.6.1",
-    "vega": "5.17.3",
-    "glob-parent": "5.1.2",
-    "postcss": "8.2.10"
+    "node-fetch": "2.6.7"
   },
   "dependencies": {
-    "@tensorflow/tfjs": "^3.13.0",
-    "@tensorflow-models/mobilenet": "^2.1.0"
+    "@tensorflow-models/mobilenet": "^2.1.0",
+    "@tensorflow/tfjs": "^3.13.0"
   }
 }

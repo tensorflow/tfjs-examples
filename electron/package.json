@@ -16,8 +16,8 @@
     "jimp": "^0.6.4"
   },
   "devDependencies": {
-    "electron-builder": "^20.44.4",
-    "electron-prebuilt-compile": "^4.0.0"
+    "electron-builder": "^22.14.13",
+    "electron-prebuilt-compile": "^8.2.0"
   },
   "main": "main.js",
   "scripts": {

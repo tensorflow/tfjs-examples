@@ -2,12 +2,8 @@
   "name": "tfjs-examples-sentiment",
   "version": "0.1.0",
   "description": "",
-  "main": "index.js",
   "license": "Apache-2.0",
   "private": true,
-  "engines": {
-    "node": ">=8.9.0"
-  },
   "dependencies": {
     "@tensorflow/tfjs": "3.0.0",
     "vega-embed": "^6.17.0"
@@ -20,13 +16,9 @@
     "train": "babel-node train.js"
   },
   "devDependencies": {
+    "@babel/core": "^7.12.0",
     "@tensorflow/tfjs-node": "3.0.0",
     "argparse": "^1.0.10",
-    "babel-cli": "^6.26.0",
-    "babel-core": "^6.26.3",
-    "babel-plugin-transform-runtime": "^6.23.0",
-    "babel-polyfill": "^6.26.0",
-    "babel-preset-env": "~1.7.0",
     "buffer": "^6.0.3",
     "clang-format": "~1.2.2",
     "cross-env": "^5.1.6",

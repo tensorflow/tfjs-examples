@@ -2,7 +2,6 @@
   "name": "tfjs-examples-lstm-generate-text",
   "version": "0.1.0",
   "description": "",
-  "main": "index.js",
   "license": "Apache-2.0",
   "private": true,
   "engines": {
@@ -23,11 +22,6 @@
   "devDependencies": {
     "@tensorflow/tfjs-node": "^2.6.0",
     "@tensorflow/tfjs-node-gpu": "^2.6.0",
-    "babel-cli": "^6.26.0",
-    "babel-core": "^6.26.3",
-    "babel-plugin-transform-runtime": "^6.23.0",
-    "babel-polyfill": "^6.26.0",
-    "babel-preset-env": "~1.7.0",
     "argparse": "^1.0.10",
     "buffer": "^6.0.3",
     "clang-format": "~1.2.2",

@@ -10,7 +10,7 @@
   },
   "scripts": {
     "watch": "./serve.sh",
-    "build": "cross-env NODE_ENV=production parcel build index.html   --public-url ./",
+    "build": "cross-env NODE_ENV=production parcel build --no-scope-hoist index.html --public-url ./",
     "train": "node -r ts-node/register translation.ts --artifacts_dir dist/resources",
     "link-local": "yalc link"
   },

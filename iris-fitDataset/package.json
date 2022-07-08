@@ -13,7 +13,7 @@
     "@tensorflow/tfjs-vis": "^1.4.3"
   },
   "scripts": {
-    "build": "cross-env NODE_ENV=production parcel build index.html  --public-url ./",
+    "build": "cross-env NODE_ENV=production parcel build --no-scope-hoist index.html --public-url ./",
     "watch": "./serve.sh",
     "link-local": "yalc link"
   },

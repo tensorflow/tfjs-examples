@@ -62,7 +62,7 @@ export function linearRegressionModel() {
 
 /**
  * Builds and returns Multi Layer Perceptron Regression Model
- * with 1 hidden layers, each with 10 units activated by sigmoid.
+ * with 1 hidden layer, each with 10 units activated by sigmoid.
  *
  * @returns {tf.Sequential} The multi layer perceptron regression model.
  */
@@ -84,7 +84,7 @@ export function multiLayerPerceptronRegressionModel1Hidden() {
  * Builds and returns Multi Layer Perceptron Regression Model
  * with 2 hidden layers, each with 10 units activated by sigmoid.
  *
- * @returns {tf.Sequential} The multi layer perceptron regression mode  l.
+ * @returns {tf.Sequential} The multi layer perceptron regression model.
  */
 export function multiLayerPerceptronRegressionModel2Hidden() {
   const model = tf.sequential();
@@ -123,7 +123,7 @@ export function describeKernelElements(kernel) {
 
 /**
  * Compiles `model` and trains it using the train data and runs model against
- * test data. Issues a callback to update the UI after each epcoh.
+ * test data. Issues a callback to update the UI after each epoch.
  *
  * @param {tf.Sequential} model Model to be trained.
  * @param {boolean} weightsIllustration Whether to print info about the learned

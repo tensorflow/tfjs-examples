@@ -6,7 +6,10 @@ import { Camera } from 'expo-camera';
 import * as tf from '@tensorflow/tfjs';
 import * as posedetection from '@tensorflow-models/pose-detection';
 import * as ScreenOrientation from 'expo-screen-orientation';
-import { cameraWithTensors } from '@tensorflow/tfjs-react-native';
+import {
+  bundleResourceIO,
+  cameraWithTensors,
+} from '@tensorflow/tfjs-react-native';
 import Svg, { Circle } from 'react-native-svg';
 import { ExpoWebGLRenderingContext } from 'expo-gl';
 import { CameraType } from 'expo-camera/build/Camera.types';
@@ -41,6 +44,9 @@ const OUTPUT_TENSOR_HEIGHT = OUTPUT_TENSOR_WIDTH / (IS_IOS ? 9 / 16 : 3 / 4);
 // Whether to auto-render TensorCamera preview.
 const AUTO_RENDER = false;
 
+// Whether to load model from app bundle (true) or through network (false).
+const LOAD_MODEL_FROM_BUNDLE = false;
+
 export default function App() {
   const cameraRef = useRef(null);
   const [tfReady, setTfReady] = useState(false);
@@ -73,19 +79,29 @@ export default function App() {
       });
 
       // Camera permission.
-      await Camera.requestPermissionsAsync();
+      await Camera.requestCameraPermissionsAsync();
 
       // Wait for tfjs to initialize the backend.
       await tf.ready();
 
       // Load movenet model.
       // https://github.com/tensorflow/tfjs-models/tree/master/pose-detection
+      const movenetModelConfig: posedetection.MoveNetModelConfig = {
+        modelType: posedetection.movenet.modelType.SINGLEPOSE_LIGHTNING,
+        enableSmoothing: true,
+      };
+      if (LOAD_MODEL_FROM_BUNDLE) {
+        const modelJson = require('./offline_model/model.json');
+        const modelWeights1 = require('./offline_model/group1-shard1of2.bin');
+        const modelWeights2 = require('./offline_model/group1-shard2of2.bin');
+        movenetModelConfig.modelUrl = bundleResourceIO(modelJson, [
+          modelWeights1,
+          modelWeights2,
+        ]);
+      }
       const model = await posedetection.createDetector(
         posedetection.SupportedModels.MoveNet,
-        {
-          modelType: posedetection.movenet.modelType.SINGLEPOSE_LIGHTNING,
-          enableSmoothing: true,
-        }
+        movenetModelConfig
       );
       setModel(model);
 

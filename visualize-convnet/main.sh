@@ -31,7 +31,7 @@
 
 set -e
 
-# Parse input arguments 
+# Parse input arguments
 IMAGE="cat.jpg"
 FILTERS="8"
 GPU_FLAG=""
@@ -56,7 +56,7 @@ pip install -r requirements.txt
 
 if [[ ! -f "vgg16_tfjs/model.json" ]]; then
   echo "Downloading and converting VGG16 model..."
-  python get_vgg16.py
+  python3 get_vgg16.py
 else
   echo "VGG16 model has already been downloaded and converted."
 fi

@@ -14,9 +14,6 @@
  * limitations under the License.
  * =============================================================================
  */
-
-import 'babel-polyfill';
-
 import * as mobilenet from '@tensorflow-models/mobilenet';
 import * as tf from '@tensorflow/tfjs';
 

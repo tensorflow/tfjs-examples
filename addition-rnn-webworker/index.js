@@ -23,7 +23,8 @@
  */
 
 import * as tfvis from '@tensorflow/tfjs-vis';
-const worker = new Worker('./worker.js');
+const worker =
+    new Worker(new URL('./worker.js', import.meta.url), {type: 'module'});
 
 async function runAdditionRNNDemo() {
   document.getElementById('trainModel').addEventListener('click', async () => {
@@ -31,8 +32,8 @@ async function runAdditionRNNDemo() {
     const trainingSize = +(document.getElementById('trainingSize')).value;
     const rnnTypeSelect = document.getElementById('rnnType');
     const rnnType =
-      rnnTypeSelect.options[rnnTypeSelect.selectedIndex].getAttribute(
-        'value');
+        rnnTypeSelect.options[rnnTypeSelect.selectedIndex].getAttribute(
+            'value');
     const layers = +(document.getElementById('rnnLayers')).value;
     const hiddenSize = +(document.getElementById('rnnLayerSize')).value;
     const batchSize = +(document.getElementById('batchSize')).value;
@@ -48,45 +49,55 @@ async function runAdditionRNNDemo() {
     const trainingSizeLimit = Math.pow(Math.pow(10, digits), 2);
     if (trainingSize > trainingSizeLimit) {
       status.textContent =
-        `With digits = ${digits}, you cannot have more than ` +
-        `${trainingSizeLimit} examples`;
+          `With digits = ${digits}, you cannot have more than ` +
+          `${trainingSizeLimit} examples`;
       return;
     }
-    worker.postMessage({ digits, trainingSize, rnnType, layers, hiddenSize, trainIterations, batchSize, numTestExamples });
+    worker.postMessage({
+      digits,
+      trainingSize,
+      rnnType,
+      layers,
+      hiddenSize,
+      trainIterations,
+      batchSize,
+      numTestExamples
+    });
     worker.addEventListener('message', (e) => {
       if (e.data.isPredict) {
-        const { i, iterations, modelFitTime, lossValues, accuracyValues } = e.data;
+        const {i, iterations, modelFitTime, lossValues, accuracyValues} =
+            e.data;
         document.getElementById('trainStatus').textContent =
-          `Iteration ${i + 1} of ${iterations}: ` +
-          `Time per iteration: ${modelFitTime.toFixed(3)} (seconds)`;
+            `Iteration ${i + 1} of ${iterations}: ` +
+            `Time per iteration: ${modelFitTime.toFixed(3)} (seconds)`;
         const lossContainer = document.getElementById('lossChart');
         tfvis.render.linechart(
-          lossContainer, { values: lossValues, series: ['train', 'validation'] },
-          {
-            width: 420,
-            height: 300,
-            xLabel: 'epoch',
-            yLabel: 'loss',
-          });
+            lossContainer,
+            {values: lossValues, series: ['train', 'validation']}, {
+              width: 420,
+              height: 300,
+              xLabel: 'epoch',
+              yLabel: 'loss',
+            });
 
         const accuracyContainer = document.getElementById('accuracyChart');
         tfvis.render.linechart(
-          accuracyContainer,
-          { values: accuracyValues, series: ['train', 'validation'] }, {
-            width: 420,
-            height: 300,
-            xLabel: 'epoch',
-            yLabel: 'accuracy',
-          });
+            accuracyContainer,
+            {values: accuracyValues, series: ['train', 'validation']}, {
+              width: 420,
+              height: 300,
+              xLabel: 'epoch',
+              yLabel: 'accuracy',
+            });
       } else {
-        const { isCorrect, examples } = e.data;
+        const {isCorrect, examples} = e.data;
         const examplesDiv = document.getElementById('testExamples');
         const examplesContent = examples.map(
-          (example, i) =>
-            `<div class="${
-            isCorrect[i] ? 'answer-correct' : 'answer-wrong'}">` +
-            `${example}` +
-            `</div>`);
+            (example, i) =>
+                `<div class="${
+                    isCorrect[i] ? 'answer-correct' : 'answer-wrong'}">` +
+                `${example}` +
+                `</div>`);
 
         examplesDiv.innerHTML = examplesContent.join('\n');
       }

@@ -28,4 +28,6 @@ If you have a CUDA-enabled GPU and have the CUDA and CuDNN libraries
 set up properly on your system, you can run the inference on the GPU
 by replacing the tfjs-node package with tfjs-node-gpu in the `package.json` file and `functions/index.js` file.
 
-Please note: Firebase only support node version 8.
+Please note: Node.js versions 10, 12, 14, and 16 are supported.
+See [Set runtime options](https://firebase.google.com/docs/functions/manage-functions#set_nodejs_version0)
+for important information regarding ongoing support for these versions of Node.js.

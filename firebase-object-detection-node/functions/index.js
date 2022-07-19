@@ -24,9 +24,6 @@ async function loadModel() {
   objectDetectionModel.predict(tempTensor);
 }
 
-// app.use((req, res) => {
-//   res.setHeader('Access-Control-Allow-Origin', '*');
-// })
 app.get('/', async (req, res) => {
   res.sendFile(path.join(__dirname + '/index.html'));
   loadModel();

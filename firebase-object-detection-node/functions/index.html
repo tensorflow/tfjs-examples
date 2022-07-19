@@ -41,24 +41,24 @@
         var FR = new FileReader();
         FR.onload = function (e) {
           var img = new Image();
+          var height = window.innerHeight*.8;
+          var width = height;
           img.addEventListener("load", function () {
             timeDiv.innerHTML = 'Inference time: ' + res.inferenceTime;
-            document.getElementById('canvas').width = this.width;
-            document.getElementById('canvas').height = this.height;
-            context.drawImage(img, 0, 0, this.width, this.height);
+            document.getElementById('canvas').width = width;
+            document.getElementById('canvas').height = height;
+            context.drawImage(img, 0, 0, width, height);
             for (let i = 0; i < res.boxes.length; i++) {
               const box = res.boxes[i];
               context.fillStyle = 'rgba(255,255,255,0.2';
               context.strokeStyle = 'white';
-              context.fillRect(box[1] * this.width, box[0] * this.height, this.width * (box[3] - box[1]), this
-                .height * (box[2] - box[0]));
+              context.fillRect(box[1] * width, box[0] * height, width * (box[3] - box[1]), height * (box[2] - box[0]));
               context.font = '15px Arial';
               context.fillStyle = 'white';
-              context.fillText(res.names[i], box[1] * this.width, box[0] * this.height, box[0] * this.height);
+              context.fillText(res.names[i], box[1] * width, box[0] * height, box[0] * height);
               context.lineWidth = 2;
-              context.strokeRect(box[1] * this.width, box[0] * this.height, this.width * (box[3] - box[1]),
-                this
-                .height * (box[2] - box[0]));
+              context.strokeRect(box[1] * width, box[0] * height, width * (box[3] - box[1]),
+                height * (box[2] - box[0]));
             }
           });
           img.src = e.target.result;

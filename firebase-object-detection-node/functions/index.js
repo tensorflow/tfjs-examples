@@ -18,7 +18,7 @@ async function loadModel() {
     // details in the API documentation:
     // https://js.tensorflow.org/api_node/1.3.1/#node.loadSavedModel
     objectDetectionModel = await tf.node.loadSavedModel(
-        './model/new_object_detection_1', ['serve'], 'serving_default');
+      './model/new_object_detection_1', ['serve'], 'serving_default');
   }
   const tempTensor = tf.zeros([1, 2, 2, 3]).toInt();
   objectDetectionModel.predict(tempTensor);
@@ -32,16 +32,16 @@ app.get('/', async (req, res) => {
 app.post('/predict', async (req, res) => {
   // Receive and parse the image from client side, then feed it into the model
   // for inference.
-  const busboy = new Busboy({headers: req.headers});
-  let fileBuffer = new Buffer('');
-  req.files = {file: []};
+  const busboy = Busboy({ headers: req.headers });
+  let fileBuffer = new Buffer.from('');
+  req.files = { file: [] };
 
   busboy.on('field', (fieldname, value) => {
     req.body[fieldname] = value;
   });
 
   busboy.on('file', (fieldname, file, filename, encoding, mimetype) => {
-    file.on('data', (data) => {fileBuffer = Buffer.concat([fileBuffer, data])});
+    file.on('data', (data) => { fileBuffer = Buffer.concat([fileBuffer, data]) });
 
     file.on('end', () => {
       const file_object = {
@@ -67,7 +67,7 @@ app.post('/predict', async (req, res) => {
 
     // Feed the image tensor into the model for inference.
     const startTime = tf.util.now();
-    let outputTensor = objectDetectionModel.predict({'x': input});
+    let outputTensor = objectDetectionModel.predict({ 'x': input });
 
     // Parse the model output to get meaningful result(get detection class and
     // object location).

@@ -5,4 +5,6 @@ updates:
     schedule:
       interval: "daily"
     # Disable version updates for npm dependencies
-    open-pull-requests-limit: 50
+    open-pull-requests-limit: 5
+    # Disable rebasing for npm pull requests
+    rebase-strategy: "disabled"

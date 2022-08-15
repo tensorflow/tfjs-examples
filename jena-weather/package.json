@@ -1,0 +1,36 @@
+{
+  "name": "tfjs-examples-jena-weather",
+  "version": "0.1.0",
+  "description": "",
+  "license": "Apache-2.0",
+  "private": true,
+  "dependencies": {
+    "@tensorflow/tfjs": "^2.6.0",
+    "@tensorflow/tfjs-vis": "^1.4.3"
+  },
+  "scripts": {
+    "watch": "cross-env NODE_ENV=development parcel index.html --no-hmr --open",
+    "build": "cross-env NODE_ENV=production parcel build --no-scope-hoist index.html --public-url ./",
+    "link-local": "yalc link",
+    "test": "babel-node run_tests.js",
+    "train-rnn": "babel-node --max_old_space_size=4096 train-rnn.js"
+  },
+  "devDependencies": {
+    "@babel/core": "7.18.2",
+    "@babel/node": "7.17.10",
+    "@babel/preset-env": "7.18.2",
+    "@tensorflow/tfjs-node": "^2.6.0",
+    "@tensorflow/tfjs-node-gpu": "^2.6.0",
+    "argparse": "^1.0.10",
+    "buffer": "^6.0.3",
+    "clang-format": "~1.2.2",
+    "cross-env": "^5.1.6",
+    "parcel": "~2.6.0",
+    "process": "^0.11.10",
+    "yalc": "~1.0.0-pre.53"
+  },
+  "resolutions": {
+    "node-fetch": "2.6.7",
+    "ansi-regex": "5.0.1"
+  }
+}

@@ -113,7 +113,7 @@ export class MnistData {
   }
 
   /**
-   * Get all test data as a data tensor a a labels tensor.
+   * Get all test data as a data tensor and a labels tensor.
    *
    * @param {number} numExamples Optional number of examples to get. If not
    *     provided,

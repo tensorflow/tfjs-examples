@@ -1,0 +1,32 @@
+{
+  "name": "tfjs-examples-visualize-convnet",
+  "version": "0.1.0",
+  "description": "",
+  "license": "Apache-2.0",
+  "private": true,
+  "dependencies": {
+    "@tensorflow/tfjs": "^2.6.0"
+  },
+  "scripts": {
+    "watch": "cross-env NODE_ENV=development parcel index.html --no-hmr --open",
+    "build": "cross-env NODE_ENV=production parcel build --no-scope-hoist index.html --public-url ./",
+    "visualize": "./main.sh",
+    "link-local": "yalc link"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.12.0",
+    "@tensorflow/tfjs-node": "^2.6.0",
+    "@tensorflow/tfjs-node-gpu": "^2.6.0",
+    "argparse": "~1.0.10",
+    "clang-format": "~1.2.2",
+    "cross-env": "^5.1.6",
+    "jimp": "^0.16.1",
+    "parcel": "~2.3.2",
+    "shelljs": "~0.8.5",
+    "yalc": "~1.0.0-pre.53"
+  },
+  "resolutions": {
+    "node-fetch": "2.6.7",
+    "ansi-regex": "5.0.1"
+  }
+}

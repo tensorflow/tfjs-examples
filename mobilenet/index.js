@@ -21,7 +21,7 @@ import {IMAGENET_CLASSES} from './imagenet_classes';
 
 const MOBILENET_MODEL_PATH =
     // tslint:disable-next-line:max-line-length
-    'https://storage.googleapis.com/tfjs-models/tfjs/mobilenet_v1_0.25_224/model.json';
+    'https://tfhub.dev/google/tfjs-model/imagenet/mobilenet_v2_100_224/classification/3/default/1';
 
 const IMAGE_SIZE = 224;
 const TOPK_PREDICTIONS = 10;
@@ -30,7 +30,7 @@ let mobilenet;
 const mobilenetDemo = async () => {
   status('Loading model...');
 
-  mobilenet = await tf.loadModel(MOBILENET_MODEL_PATH);
+  mobilenet = await tf.loadGraphModel(MOBILENET_MODEL_PATH, {fromTFHub: true});
 
   // Warmup the model. This isn't necessary, but makes the first prediction
   // faster. Call `dispose` to release the WebGL memory allocated for the return
@@ -61,10 +61,15 @@ const mobilenetDemo = async () => {
 async function predict(imgElement) {
   status('Predicting...');
 
-  const startTime = performance.now();
+  // The first start time includes the time it takes to extract the image
+  // from the HTML and preprocess it, in additon to the predict() call.
+  const startTime1 = performance.now();
+  // The second start time excludes the extraction and preprocessing and
+  // includes only the predict() call.
+  let startTime2;
   const logits = tf.tidy(() => {
-    // tf.fromPixels() returns a Tensor from an image element.
-    const img = tf.fromPixels(imgElement).toFloat();
+    // tf.browser.fromPixels() returns a Tensor from an image element.
+    const img = tf.cast(tf.browser.fromPixels(imgElement), 'float32');
 
     const offset = tf.scalar(127.5);
     // Normalize the image from [0, 255] to [-1, 1].
@@ -73,14 +78,17 @@ async function predict(imgElement) {
     // Reshape to a single-element batch so we can pass it to predict.
     const batched = normalized.reshape([1, IMAGE_SIZE, IMAGE_SIZE, 3]);
 
+    startTime2 = performance.now();
     // Make a prediction through mobilenet.
     return mobilenet.predict(batched);
   });
 
   // Convert logits to probabilities and class names.
   const classes = await getTopKClasses(logits, TOPK_PREDICTIONS);
-  const totalTime = performance.now() - startTime;
-  status(`Done in ${Math.floor(totalTime)}ms`);
+  const totalTime1 = performance.now() - startTime1;
+  const totalTime2 = performance.now() - startTime2;
+  status(`Done in ${Math.floor(totalTime1)} ms ` +
+      `(not including preprocessing: ${Math.floor(totalTime2)} ms)`);
 
   // Show the classes in the DOM.
   showResults(imgElement, classes);
@@ -164,8 +172,6 @@ filesElement.addEventListener('change', evt => {
       continue;
     }
     let reader = new FileReader();
-    const idx = i;
-    // Closure to capture the file information.
     reader.onload = e => {
       // Fill the image & call predict.
       let img = document.createElement('img');

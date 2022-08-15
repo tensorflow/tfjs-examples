@@ -35,6 +35,6 @@ export function setTranslationFunction(translate) {
 }
 
 export function disableLoadModelButtons() {
-  document.getElementById('load-pretrained-remote').style.display = 'none';
-  document.getElementById('load-pretrained-local').style.display = 'none';
+  document.getElementById('load-pretrained-remote').disabled = true;
+  document.getElementById('load-pretrained-local').disabled = true;
 }

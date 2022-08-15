@@ -51,18 +51,18 @@ class PolicyNetwork {
   /**
    * Constructor of PolicyNetwork.
    *
-   * @param {number | number[] | tf.Model} hiddenLayerSizes
+   * @param {number | number[] | tf.LayersModel} hiddenLayerSizes
    *   Can be any of the following
    *   - Size of the hidden layer, as a single number (for a single hidden
    *     layer)
    *   - An Array of numbers (for any number of hidden layers).
-   *   - An instance of tf.Model.
+   *   - An instance of tf.LayersModel.
    */
   constructor(hiddenLayerSizesOrModel) {
-    if (hiddenLayerSizesOrModel instanceof tf.Model) {
-      this.model = hiddenLayerSizesOrModel;
+    if (hiddenLayerSizesOrModel instanceof tf.LayersModel) {
+      this.policyNet = hiddenLayerSizesOrModel;
     } else {
-      this.createModel(hiddenLayerSizesOrModel);
+      this.createPolicyNetwork(hiddenLayerSizesOrModel);
     }
   }
 
@@ -73,13 +73,13 @@ class PolicyNetwork {
    *   a single number (for a single hidden layer) or an Array of numbers (for
    *   any number of hidden layers).
    */
-  createModel(hiddenLayerSizes) {
+  createPolicyNetwork(hiddenLayerSizes) {
     if (!Array.isArray(hiddenLayerSizes)) {
       hiddenLayerSizes = [hiddenLayerSizes];
     }
-    this.model = tf.sequential();
+    this.policyNet = tf.sequential();
     hiddenLayerSizes.forEach((hiddenLayerSize, i) => {
-      this.model.add(tf.layers.dense({
+      this.policyNet.add(tf.layers.dense({
         units: hiddenLayerSize,
         activation: 'elu',
         // `inputShape` is required only for the first layer.
@@ -88,7 +88,7 @@ class PolicyNetwork {
     });
     // The last layer has only one unit. The single output number will be
     // converted to a probability of selecting the leftward-force action.
-    this.model.add(tf.layers.dense({units: 1}));
+    this.policyNet.add(tf.layers.dense({units: 1}));
   }
 
   /**
@@ -203,7 +203,7 @@ class PolicyNetwork {
    */
   getLogitsAndActions(inputs) {
     return tf.tidy(() => {
-      const logits = this.model.predict(inputs);
+      const logits = this.policyNet.predict(inputs);
 
       // Get the probability of the leftward action.
       const leftProb = tf.sigmoid(logits);
@@ -265,7 +265,7 @@ export class SaveablePolicyNetwork extends PolicyNetwork {
    * Save the model to IndexedDB.
    */
   async saveModel() {
-    return await this.model.save(MODEL_SAVE_PATH_);
+    return await this.policyNet.save(MODEL_SAVE_PATH_);
   }
 
   /**
@@ -279,7 +279,7 @@ export class SaveablePolicyNetwork extends PolicyNetwork {
     const modelsInfo = await tf.io.listModels();
     if (MODEL_SAVE_PATH_ in modelsInfo) {
       console.log(`Loading existing model...`);
-      const model = await tf.loadModel(MODEL_SAVE_PATH_);
+      const model = await tf.loadLayersModel(MODEL_SAVE_PATH_);
       console.log(`Loaded model from ${MODEL_SAVE_PATH_}`);
       return new SaveablePolicyNetwork(model);
     } else {
@@ -314,8 +314,8 @@ export class SaveablePolicyNetwork extends PolicyNetwork {
    */
   hiddenLayerSizes() {
     const sizes = [];
-    for (let i = 0; i < this.model.layers.length - 1; ++i) {
-      sizes.push(this.model.layers[i].units);
+    for (let i = 0; i < this.policyNet.layers.length - 1; ++i) {
+      sizes.push(this.policyNet.layers[i].units);
     }
     return sizes.length === 1 ? sizes[0] : sizes;
   }

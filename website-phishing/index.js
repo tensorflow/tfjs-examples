@@ -51,7 +51,7 @@ function falsePositiveRate(yTrue, yPred) {
 
 /**
  * Draw a ROC curve.
- * 
+ *
  * @param {tf.Tensor} targets The actual target labels, as a 1D Tensor
  *   object consisting of only 0 and 1 values.
  * @param {tf.Tensor} probs The probabilities output by a model, as a 1D
@@ -64,9 +64,8 @@ function falsePositiveRate(yTrue, yPred) {
 function drawROC(targets, probs, epoch) {
   return tf.tidy(() => {
     const thresholds = [
-      0.0, 0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45,
-      0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8, 0.85,
-      0.9, 0.92, 0.94, 0.96, 0.98, 1.0
+      0.0, 0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4,  0.45, 0.5,  0.55,
+      0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.9, 0.92, 0.94, 0.96, 0.98, 1.0
     ];
     const tprs = [];  // True positive rates.
     const fprs = [];  // False positive rates.
@@ -75,8 +74,8 @@ function drawROC(targets, probs, epoch) {
       const threshold = thresholds[i];
 
       const threshPredictions = utils.binarize(probs, threshold).as1D();
-      const fpr = falsePositiveRate(targets, threshPredictions).get();
-      const tpr = tf.metrics.recall(targets, threshPredictions).get();
+      const fpr = falsePositiveRate(targets, threshPredictions).dataSync()[0];
+      const tpr = tf.metrics.recall(targets, threshPredictions).dataSync()[0];
       fprs.push(fpr);
       tprs.push(tpr);
 
@@ -109,10 +108,7 @@ data.loadData().then(async () => {
   model.compile(
       {optimizer: 'adam', loss: 'binaryCrossentropy', metrics: ['accuracy']});
 
-  let trainLoss;
-  let valLoss;
-  let trainAcc;
-  let valAcc;
+  const trainLogs = [];
   let auc;
 
   await ui.updateStatus('Training starting...');
@@ -121,24 +117,19 @@ data.loadData().then(async () => {
     epochs,
     validationSplit: 0.2,
     callbacks: {
-    onEpochBegin: async (epoch) => {
+      onEpochBegin: async (epoch) => {
         // Draw ROC every a few epochs.
-        if ((epoch + 1)% 100 === 0 ||
-            epoch === 0 || epoch === 2 || epoch === 4) {
-            const probs = model.predict(testData.data);
-            auc = drawROC(testData.target, probs, epoch);
+        if ((epoch + 1) % 100 === 0 || epoch === 0 || epoch === 2 ||
+            epoch === 4) {
+          const probs = model.predict(testData.data);
+          auc = drawROC(testData.target, probs, epoch);
         }
       },
       onEpochEnd: async (epoch, logs) => {
         await ui.updateStatus(`Epoch ${epoch + 1} of ${epochs} completed.`);
-
-        trainLoss = logs.loss;
-        valLoss = logs.val_loss;
-        trainAcc = logs.acc;
-        valAcc = logs.val_acc;
-
-        await ui.plotData(epoch, trainLoss, valLoss);
-        await ui.plotAccuracies(epoch, trainAcc, valAcc);
+        trainLogs.push(logs);
+        ui.plotLosses(trainLogs);
+        ui.plotAccuracies(trainLogs);
       }
     }
   });
@@ -148,25 +139,29 @@ data.loadData().then(async () => {
     const result =
         model.evaluate(testData.data, testData.target, {batchSize: batchSize});
 
-    const testLoss = result[0].get();
-    const testAcc = result[1].get();
+    const lastTrainLog = trainLogs[trainLogs.length - 1];
+    const testLoss = result[0].dataSync()[0];
+    const testAcc = result[1].dataSync()[0];
 
     const probs = model.predict(testData.data);
     const predictions = utils.binarize(probs).as1D();
 
-    const precision = tf.metrics.precision(testData.target, predictions).get();
-    const recall = tf.metrics.recall(testData.target, predictions).get();
-    const fpr = falsePositiveRate(testData.target, predictions).get();
+    const precision =
+        tf.metrics.precision(testData.target, predictions).dataSync()[0];
+    const recall =
+        tf.metrics.recall(testData.target, predictions).dataSync()[0];
+    const fpr = falsePositiveRate(testData.target, predictions).dataSync()[0];
     ui.updateStatus(
-        `Final train-set loss: ${trainLoss.toFixed(4)} accuracy: ${
-            trainAcc.toFixed(4)}\n` +
-        `Final validation-set loss: ${valLoss.toFixed(4)} accuracy: ${
-            valAcc.toFixed(4)}\n` +
+        `Final train-set loss: ${lastTrainLog.loss.toFixed(4)} accuracy: ${
+            lastTrainLog.acc.toFixed(4)}\n` +
+        `Final validation-set loss: ${
+            lastTrainLog.val_loss.toFixed(
+                4)} accuracy: ${lastTrainLog.val_acc.toFixed(4)}\n` +
         `Test-set loss: ${testLoss.toFixed(4)} accuracy: ${
             testAcc.toFixed(4)}\n` +
         `Precision: ${precision.toFixed(4)}\n` +
         `Recall: ${recall.toFixed(4)}\n` +
-        `False positive rate (FPR): ${fpr.toFixed(4)}\n` + 
+        `False positive rate (FPR): ${fpr.toFixed(4)}\n` +
         `Area under the curve (AUC): ${auc.toFixed(4)}`);
   });
 });

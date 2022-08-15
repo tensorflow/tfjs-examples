@@ -1,0 +1,38 @@
+{
+  "name": "tfjs-examples-fashion-mnist-vae",
+  "version": "0.1.0",
+  "description": "",
+  "license": "Apache-2.0",
+  "private": true,
+  "dependencies": {
+    "@tensorflow/tfjs": "^2.6.0",
+    "@tensorflow/tfjs-node": "^2.6.0",
+    "@tensorflow/tfjs-node-gpu": "^2.6.0",
+    "@tensorflow/tfjs-vis": "^1.4.3",
+    "argparse": "^1.0.10",
+    "d3-selection": "^1.4.0",
+    "jimp": "^0.16.1",
+    "lodash": "^4.17.13",
+    "mkdirp": "^0.5.1",
+    "terminal-image": "^0.1.2"
+  },
+  "scripts": {
+    "train": "node train.js",
+    "watch": "mkdir -p dist/models && cp -r models/decoder dist/models/ && cross-env NODE_ENV=development parcel client.html --no-hmr --open",
+    "download-data": "node download.js",
+    "build": "NODE_ENV=production parcel build client.html --public-url ./",
+    "test": "node run_tests.js"
+  },
+  "devDependencies": {
+    "clang-format": "~1.2.2",
+    "cross-env": "^5.2.0",
+    "parcel": "^2.3.2",
+    "yalc": "~1.0.0-pre.53"
+  },
+  "resolutions": {
+    "node-fetch": "2.6.7",
+    "ansi-regex": "5.0.1",
+    "minimist": "0.2.1",
+    "jpeg-js": "0.4.0"
+  }
+}

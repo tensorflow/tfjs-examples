@@ -1,0 +1,38 @@
+{
+  "name": "tfjs-examples-mnist-node",
+  "version": "0.1.0",
+  "description": "",
+  "main": "index.js",
+  "license": "Apache-2.0",
+  "private": true,
+  "engines": {
+    "node": ">=8.11.0"
+  },
+  "dependencies": {
+    "@tensorflow/tfjs": "^2.6.0"
+  },
+  "scripts": {
+    "build": "cross-env NODE_ENV=production parcel build --no-scope-hoist index.html --public-url ./",
+    "test": "node run_tests.js",
+    "train": "node gan.js",
+    "watch": "cross-env NODE_ENV=development parcel index.html --no-hmr --open"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.0.0-0",
+    "@babel/plugin-transform-runtime": "^7.1.0",
+    "@tensorflow/tfjs-node": "^2.6.0",
+    "@tensorflow/tfjs-node-gpu": "^2.6.0",
+    "argparse": "^1.0.10",
+    "buffer": "^6.0.3",
+    "clang-format": "~1.2.2",
+    "cross-env": "^5.1.6",
+    "parcel": "~2.3.2",
+    "process": "^0.11.10",
+    "time-ago": "0.2.1",
+    "yalc": "~1.0.0-pre.53"
+  },
+  "resolutions": {
+    "node-fetch": "2.6.7",
+    "ansi-regex": "5.0.1"
+  }
+}

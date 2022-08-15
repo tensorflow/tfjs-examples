@@ -1,0 +1,12 @@
+{
+  "name": "image-classification-expo",
+  "displayName": "image-classification-expo",
+  "expo": {
+    "name": "image-classification-expo",
+    "slug": "image-classification-expo",
+    "version": "1.0.0",
+    "assetBundlePatterns": [
+      "**/*"
+    ]
+  }
+}

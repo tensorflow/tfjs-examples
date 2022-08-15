@@ -9,22 +9,27 @@
     "node": ">=8.9.0"
   },
   "dependencies": {
-    "@tensorflow/tfjs": "^0.13.3",
-    "@tensorflow/tfjs-vis": "^0.2.0"
+    "@tensorflow/tfjs": "2.0.0",
+    "@tensorflow/tfjs-vis": "^1.1.0"
   },
   "scripts": {
     "watch": "cross-env NODE_ENV=development parcel index.html --no-hmr --open",
-    "build": "cross-env NODE_ENV=production parcel build index.html --no-minify --public-url ./",
-    "link-local": "yalc link",
-    "postinstall": "yarn upgrade --pattern @tensorflow"
+    "build": "cross-env NODE_ENV=production parcel build --no-scope-hoist index.html --public-url ./",
+    "link-local": "yalc link"
   },
   "devDependencies": {
     "@babel/core": "^7.0.0-0",
     "@babel/plugin-transform-runtime": "^7.1.0",
     "babel-preset-env": "~1.6.1",
+    "buffer": "^6.0.3",
     "clang-format": "~1.2.2",
     "cross-env": "^5.1.6",
-    "parcel-bundler": "~1.10.3",
-    "yalc": "~1.0.0-pre.22"
+    "parcel": "~2.3.2",
+    "process": "^0.11.10",
+    "yalc": "~1.0.0-pre.53"
+  },
+  "resolutions": {
+    "node-fetch": "2.6.7",
+    "ansi-regex": "5.0.1"
   }
 }

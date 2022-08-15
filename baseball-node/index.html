@@ -1,0 +1,36 @@
+<!doctype html>
+<html>
+  <head>
+    <title>Pitch Training Accuracy</title>
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body>
+    <h3 id="waiting-msg">Waiting for server...</h3>
+    <div id="table">
+      <h2>Pitch Accuracy By Class (%)</h2>
+      <div id="legend">
+        <div class="legend-item">
+          <div class="score"></div>
+          <div>Training set</div>
+        </div>
+        <div class="legend-item">
+          <div class="score validation"></div>
+          <div>Test set</div>
+        </div>
+      </div>
+      <div id="table-rows"></div>
+    </div>
+    <p>
+    <hr>
+    <p>
+    <span style="font-size:16px" id="trainingStatus"></span>
+    <p>
+    <div id="predictContainer" style="font-size:16px;display:none">
+      Sample sensor data: <span id="predictSample"></span>
+      <button style="font-size:18px;padding:5px;margin-right:10px" id="predict-button">Predict Pitch</button>
+      <p>
+      Predicted Pitch Type: <span style="font-weight:bold" id="predictResult"></span>
+    </div>
+    <script src="dist/bundle.js"></script>
+  </body>
+</html>

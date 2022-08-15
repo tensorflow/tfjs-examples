@@ -55,7 +55,7 @@ export class CartPole {
 
     // Threshold values, beyond which a simulation will be marked as failed.
     this.xThreshold = 2.4;
-    this.thetaTheshold = 12 / 360 * 2 * Math.PI;
+    this.thetaThreshold = 12 / 360 * 2 * Math.PI;
 
     this.setRandomState();
   }
@@ -102,7 +102,7 @@ export class CartPole {
          (4 / 3 - this.massPole * cosTheta * cosTheta / this.totalMass));
     const xAcc = temp - this.poleMoment * thetaAcc * cosTheta / this.totalMass;
 
-    // Update the four state variables, using Euler's metohd.
+    // Update the four state variables, using Euler's method.
     this.x += this.tau * this.xDot;
     this.xDot += this.tau * xAcc;
     this.theta += this.tau * this.thetaDot;
@@ -121,6 +121,6 @@ export class CartPole {
    */
   isDone() {
     return this.x < -this.xThreshold || this.x > this.xThreshold ||
-        this.theta < -this.thetaTheshold || this.theta > this.thetaTheshold;
+        this.theta < -this.thetaThreshold || this.theta > this.thetaThreshold;
   }
 }

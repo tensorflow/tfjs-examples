@@ -1,0 +1,26 @@
+{
+  "name": "tfjs-data-csv",
+  "version": "0.1.0",
+  "main": "index.js",
+  "license": "Apache-2.0",
+  "private": true,
+  "dependencies": {
+    "@tensorflow/tfjs": "^3.14.0"
+  },
+  "alias": { "process": false, "buffer": false },
+  "scripts": {
+    "link-local": "yalc link",
+    "watch": "cross-env NODE_ENV=development parcel index.html"
+  },
+  "devDependencies": {
+    "clang-format": "~1.2.2",
+    "eslint": "^8.11.0",
+    "eslint-config-google": "^0.14.0",
+    "parcel": "^2.3.2",
+    "yalc": "~1.0.0-pre.53"
+  },
+  "resolutions": {
+    "node-fetch": "2.6.7",
+    "ansi-regex": "5.0.1"
+  }
+}

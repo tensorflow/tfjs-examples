@@ -46,8 +46,9 @@ class MnistTransferCNNPredictor {
     this.model = await loader.loadHostedPretrainedModel(urls.model);
 
     // Print model summary right after model is loaded.
-    // TODO(cais): Use tfVis.show.modelSummary().
     this.model.summary();
+    tfVis.show.modelSummary(
+        {name: 'Model Summary', tab: 'Model Info'}, this.model);
 
     this.imageSize = this.model.layers[0].batchInputShape[1];
     this.numClasses = 5;
@@ -120,25 +121,12 @@ class MnistTransferCNNPredictor {
         this.model.layers[i].trainable = false;
       }
     } else if (trainingMode === 'reinitialize-weights') {
-      // TODO(cais): Use tf.models.modelFromJSON() once it's available in the
-      //   public API.
-      const oldLayers = this.model.layers;
-      this.model = tf.sequential();
-      for (const layer of oldLayers) {
-        const layerType = layer.getClassName();
-        const layerTypeMap = {
-          'Activation': 'activation',
-          'Conv2D': 'conv2d',
-          'Dense': 'dense',
-          'Dropout': 'dropout',
-          'Flatten': 'flatten',
-          'MaxPooling2D': 'maxPooling2d'
-        };
-        const jsLayerType = layerTypeMap[layerType];
-        this.model.add(tf.layers[jsLayerType](layer.getConfig()));
-      }
-      // TODO(cais): Use tfVis.show.modelSummary().
-      this.model.summary();
+      // Make a model with the same topology as before, but with re-initialized
+      // weight values.
+      const returnString = false;
+      this.model = await tf.models.modelFromJSON({
+        modelTopology: this.model.toJSON(null, returnString)
+      });
     }
     this.model.compile({
       loss: 'categoricalCrossentropy',
@@ -153,21 +141,23 @@ class MnistTransferCNNPredictor {
     const batchSize = 128;
     const epochs = ui.getEpochs();
 
+    const surfaceInfo = {name: trainingMode, tab: 'Transfer Learning'};
+    console.log('Calling model.fit()');
     await this.model.fit(this.gte5TrainData.x, this.gte5TrainData.y, {
       batchSize: batchSize,
       epochs: epochs,
       validationData: [this.gte5TestData.x, this.gte5TestData.y],
       callbacks: [
         ui.getProgressBarCallbackConfig(epochs),
-        tfVis.show.fitCallbacks({
-          name: trainingMode, tab: 'Transfer Learning'
-        }, ['val_loss', 'val_acc'], {
-          name: trainingMode,
+        tfVis.show.fitCallbacks(surfaceInfo, ['val_loss', 'val_acc'], {
           zoomToFit: true,
-          zoomToFitAccuracy: true
+          zoomToFitAccuracy: true,
+          height: 200,
+          callbacks: ['onEpochEnd'],
         }),
       ]
     });
+    console.log('DONE Calling model.fit()');
   }
 }
 
@@ -176,9 +166,6 @@ class MnistTransferCNNPredictor {
  * and retrain functions with the UI.
  */
 async function setupMnistTransferCNN() {
-  // Create a tfjs-vis visor, for visualization during training.
-  tfVis.visor();
-
   if (await loader.urlExists(HOSTED_URLS.model)) {
     ui.status('Model available: ' + HOSTED_URLS.model);
     const button = document.getElementById('load-pretrained-remote');

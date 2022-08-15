@@ -22,7 +22,7 @@ control problem, which was originally proposed in:
 It later became one of OpenAI's gym environmnets:
   https://github.com/openai/gym/blob/master/gym/envs/classic_control/cartpole.py
 
-The gist of the RL algorithm in this example (see [index.js](../index.js)) is:
+The gist of the RL algorithm in this example (see [index.js](./index.js)) is:
 
 1. Define a policy network to make decisions on leftward vs. rightward force
    given the observed state of the system. The decision is not completely

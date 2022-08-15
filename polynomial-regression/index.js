@@ -115,7 +115,6 @@ function normalizeVector(vector, vectorMean, vectorStddev) {
 //   Normalized powers of y: an Tensor2D of shape [batchSize, 1].
 function toNormalizedTensors(xyData, order) {
   const batchSize = xyData.length;
-  const data = [];
   const xData = xyData.map(xy => xy[0]);
   const yData = xyData.map(xy => xy[1]);
   const yMean = mean(yData);
@@ -156,7 +155,7 @@ function toNormalizedTensors(xyData, order) {
 //   epochs: How many epochs to train for.
 //   learningRate: Learning rate.
 //
-// Returns: An Array consiting of the following:
+// Returns: An Array consisting of the following:
 //   The trained keras Model instance.
 //   xPowerMeans: Arithmetic means of the powers of x, from order `1` to
 //      order `order`
@@ -246,7 +245,7 @@ async function fitAndRender() {
     +cubicCoeffElement.value, +quadCoeffElement.value,
     +linearCoeffElement.value, +constCoeffElement.value
   ];
-  console.log('Truth coefficients: ' + JSON.stringify(coeffs));
+  console.log('True coefficients: ' + JSON.stringify(coeffs));
   let xyData = generateXYData(canvas, coeffs);
   drawXYData(canvas, xyData);
   const fitOutputs = await fitModel(xyData, epochs, learningRate);

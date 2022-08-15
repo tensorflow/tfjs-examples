@@ -40,7 +40,7 @@ export async function urlExists(url) {
 export async function loadHostedPretrainedModel(url) {
   ui.status('Loading pretrained model from ' + url);
   try {
-    const model = await tf.loadModel(url);
+    const model = await tf.loadLayersModel(url);
     ui.status('Done loading pretrained model.');
     // We can't load a model twice due to
     // https://github.com/tensorflow/tfjs/issues/34

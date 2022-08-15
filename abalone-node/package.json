@@ -1,0 +1,21 @@
+{
+  "name": "tfjs-abalone-node",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "license": "Apache-2.0",
+  "scripts": {
+    "train": "node train.js",
+    "test": "node run_tests.js"
+  },
+  "dependencies": {
+    "@tensorflow/tfjs-node": "^2.6.0",
+    "argparse": "^1.0.10"
+  },
+  "devDependencies": {
+    "jasmine": "^3.2.0",
+    "jasmine-core": "^3.2.1",
+    "shelljs": "^0.8.5",
+    "tmp": "^0.0.33"
+  }
+}

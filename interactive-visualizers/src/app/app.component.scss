@@ -1,0 +1,555 @@
+/** Default colors. */
+$BORDER_COLOR: #E3E5E8;
+$PRIMARY_BACKGROUND_COLOR: white;
+$PRIMARY_TEXT_COLOR: #425066;
+$SECONDARY_BACKGROUND_COLOR: #F5F6F7;
+$SECONDARY_TEXT_COLOR: #8E96A3;
+$TERTIARY_TEXT_COLOR: #C6CAD1;
+$VALUE_COLOR: #ff6f00;
+
+/** Default fonts. */
+$LARGE_FONT_SIZE: 24px;
+$MEDIUM_FONT_SIZE: 20px;
+$SMALL_FONT_SIZE: 16px;
+$XSMALL_FONT_SIZE: 14px;
+$XXSMALL_FONT_SIZE: 12px;
+
+/* Main structure */
+
+.Message {
+  font-size: $MEDIUM_FONT_SIZE;
+  margin: 0 25%;
+  position: relative;
+  text-align: center;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.HeaderSection {
+  height: 46px;
+  position: relative;
+}
+
+.BodyContainer {
+  height: calc(100% - 46px);
+  position: relative;
+}
+
+.LeftSide {
+  display: inline-block;
+  height: 100%;
+  margin-right: 14px;
+  position: relative;
+  width: calc(50% - 14px);
+}
+
+.QuerySection {
+  background-color: $BORDER_COLOR;
+  border-radius: 8px;
+  height: calc(100% - 155px);
+  overflow: hidden;
+  position: relative;
+}
+
+.TestImages {
+  height: 68px;
+  margin-top: 16px;
+  overflow-x: auto;
+  position: relative;
+  white-space: nowrap;
+  width: 100%;
+}
+
+.LeftFooter {
+  height: 50px;
+  margin-top: 21px;
+  position: relative;
+}
+
+.RightSide {
+  display: inline-block;
+  height: 100%;
+  margin-left: 14px;
+  position: relative;
+  vertical-align: top;
+  width: calc(50% - 14px);
+}
+
+.InputSection {
+  border: dashed 2px $BORDER_COLOR;
+  border-radius: 8px;
+  font-size: $SMALL_FONT_SIZE;
+  height: 20%;
+  position: relative;
+  width: calc(100% - 4px);
+}
+
+.ResultsSection {
+  height: calc(80% - 70px);
+  margin-top: 20px;
+  position: relative;
+  width: 100%;
+}
+
+.RightFooter {
+  height: 45px;
+  position: relative;
+  width: 100%;
+}
+
+/* Header */
+
+.HeaderModelName {
+  display: inline-block;
+  font-size: $LARGE_FONT_SIZE;
+  font-weight: 600;
+}
+
+/* Query image */
+
+.QueryImageTitle {
+  font-size: $MEDIUM_FONT_SIZE;
+  padding-bottom: 20px;
+}
+
+.QueryImageContainer {
+  display: inline-flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  height: 100%;
+  justify-content: center;
+  margin: 0 auto;
+  position: relative;
+  width: 100%;
+}
+
+.QueryCanvasOverlayContainer {
+  display: inline-flex;
+  flex-direction: column;
+  height: 100%;
+  justify-content: center;
+  margin: 0 auto;
+  position: absolute;
+  width: 100%;
+}
+
+.QueryCanvasOverlay {
+  display: block;
+  margin: 0 auto;
+  max-height: 100%;
+  max-width: 100%;
+  position: relative;
+  z-index: 1;
+}
+
+.QueryHintsContainer {
+  height: 100%;
+  margin: 0 auto;
+  position: relative;
+  width: 100%;
+}
+
+.QueryHint {
+  border-radius: 100%;
+  color: $PRIMARY_BACKGROUND_COLOR;
+  display: block;
+  height: 20px;
+  position: absolute;
+  width: 20px;
+  z-index: 20;
+}
+
+.QueryHint:hover {
+  cursor: pointer;
+  height: 30px;
+  margin-left: -5px;
+  margin-top: -5px;
+  width: 30px;
+  z-index: 21;
+}
+
+.QueryHint:hover > .QueryHintValue {
+  margin-top: 7px;
+}
+
+.QueryHintValue {
+  font-size: $XXSMALL_FONT_SIZE;
+  margin-top: 2px;
+  text-align: center;
+}
+
+.QueryImage {
+  display: block;
+  margin: 0 auto;
+  max-height: 100%;
+  max-width: 100%;
+  position: relative;
+}
+
+/* Test images */
+
+.TestImageContainer {
+  display: inline-block;
+  height: 64px;
+  margin-right: 20px;
+  position: relative;
+  vertical-align: top;
+  width: 64px;
+}
+
+.TestImageContainer:hover {
+  cursor: pointer;
+}
+
+.TestImage {
+  border-radius: 14px;
+  height: calc(100% - 4px);
+  object-fit: cover;
+  padding: 4px;
+  width: calc(100% - 4px);
+}
+
+.TestImageSelected {
+  border: 2px solid #ff6f00;
+  border-radius: 14px;
+  height: calc(100% - 4px);
+  object-fit: cover;
+  padding: 2px;
+  width: calc(100% - 4px);
+}
+
+/* Left footer */
+
+.PublisherThumbnailUrl {
+  border-radius: 100%;
+  display: inline-block;
+  height: 50px;
+  width: 50px;
+}
+
+.PublisherNameContainer {
+  display: inline-block;
+  height: 100%;
+  margin-left: 12px;
+  vertical-align: top;
+}
+
+.PublisherNameHeader {
+  color: $SECONDARY_TEXT_COLOR;
+  font-size: $XXSMALL_FONT_SIZE;
+  height: 17px;
+  margin-top: 7px;
+}
+
+.PublisherNameText {
+  color: $PRIMARY_TEXT_COLOR;
+  font-size: $SMALL_FONT_SIZE;
+  height: 26px;
+}
+
+.PrivacyPolicy {
+  color: $PRIMARY_TEXT_COLOR;
+  cursor: pointer;
+  float: right;
+  font-size: $XXSMALL_FONT_SIZE;
+  margin-top: 28px;
+  padding-right: 8px;
+  text-decoration: none;
+}
+
+.TermsOfService {
+  border-left: solid 1px $BORDER_COLOR;
+  color: $PRIMARY_TEXT_COLOR;
+  cursor: pointer;
+  float: right;
+  font-size: $XXSMALL_FONT_SIZE;
+  margin-top: 28px;
+  padding-left: 8px;
+  text-decoration: none;
+}
+
+/* Input section */
+
+.DragAndDrop {
+  display: inline-block;
+  height: 100%;
+  position: relative;
+  text-align: center;
+  width: 100%;
+}
+
+.DragAndDropText {
+  cursor: pointer;
+  left: 0;
+  position: absolute;
+  top: 50%;
+  text-align: center;
+  transform: translateY(-50%);
+  width: 100%;
+}
+
+.InputSectionUploadIcon {
+  margin-left: 4px;
+  margin-top: -3px;
+  vertical-align: top;
+}
+
+/* Results section */
+
+.Results {
+  height: 100%;
+  width: 100%;
+}
+
+.ResultTitle {
+  color: $SECONDARY_TEXT_COLOR;
+  font-size: $MEDIUM_FONT_SIZE;
+  font-weight: 600;
+  height: 30px;
+}
+
+.ResultSubtitle {
+  color: $SECONDARY_TEXT_COLOR;
+  font-size: $XXSMALL_FONT_SIZE;
+  height: 15px;
+  margin-top: 10px;
+}
+
+.ResultSubtitleType {
+  display: inline-block;
+  float: left;
+}
+
+.ResultSubtitleUnit {
+  display: inline-block;
+  float: right;
+}
+
+.ResultsLatency {
+  color: $SECONDARY_TEXT_COLOR;
+  font-size: $XXSMALL_FONT_SIZE;
+  font-weight: 400;
+  margin-left: 10px;
+}
+
+.ResultList {
+  height: calc(100% - 63px);
+  margin-top: 8px;
+  overflow-y: auto;
+  -webkit-mask-image: -webkit-gradient(linear, left top, left bottom, from(rgba(0,0,0,1)), to(rgba(0,0,0,0.8)));
+  width: 100%;
+}
+
+.ResultBarBackground {
+  background-color: $BORDER_COLOR;
+  height: 2px;
+  margin-top: 5px;
+  width: calc(100% - 2px);
+}
+
+.ResultBarForeground {
+  background-color: $VALUE_COLOR;
+  height: 2px;
+  margin-top: -2px;
+  position: absolute;
+  width: calc(100% - 2px);
+}
+
+.ResultWithOpacity {
+  opacity: 0.5;
+}
+
+/* Classifier results */
+
+.ClassifierResult {
+  font-size: $SMALL_FONT_SIZE;
+  margin-top: 12px;
+  position: relative;
+}
+
+.ClassifierResultDisplayName {
+  display: inline-block;
+  max-width: calc(100% - 55px);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ClassifierResultScorePercent {
+  color: $VALUE_COLOR;
+  display: inline-block;
+  float: right;
+  vertical-align: top;
+}
+
+/* Segmenter results */
+
+.SegmenterResult {
+  cursor: pointer;
+  position: relative;
+}
+
+.SegmenterResultColor {
+  border-color: #424242;
+  border-radius: 100%;
+  display: inline-block;
+  height: 12px;
+  margin-right: 12px;
+  width: 12px;
+}
+
+.SegmenterResultDisplayName {
+  display: inline-block;
+  font-size: $SMALL_FONT_SIZE;
+  max-width: calc(100% - 70px);
+  overflow: hidden;
+  padding-bottom: 6px;
+  padding-top: 10px;
+  text-overflow: ellipsis;
+  vertical-align: top;
+  white-space: nowrap;
+}
+
+.SegmenterResultScorePercent {
+  color: $VALUE_COLOR;
+  display: inline-block;
+  float: right;
+  padding-top: 10px;
+  vertical-align: top;
+}
+
+/* Detector results */
+
+.DetectorThresholdSliderContainer {
+  display: inline-block;
+  margin-top: 4px;
+  position: absolute;
+  right: 0;
+  width: 50%;
+}
+
+.DetectorThresholdSliderExtrema {
+  color: $PRIMARY_TEXT_COLOR;
+  display: inline-block;
+  font-size: $XXSMALL_FONT_SIZE;
+  vertical-align: top;
+}
+
+.DetectorThresholdSliderValue {
+  color: $PRIMARY_TEXT_COLOR;
+  display: inline-block;
+  font-size: $XXSMALL_FONT_SIZE;
+  margin-top: -14px;
+  position: absolute;
+}
+
+.DetectorThresholdSlider {
+  background-color: $TERTIARY_TEXT_COLOR;
+  border-radius: 2px;
+  display: inline-block;
+  height: 2px;
+  margin: 0 7px;
+  margin-top: 7px;
+  opacity: 0.7;
+  outline: none;
+  transition: opacity .2s;
+  vertical-align: top;
+  width: calc(100% - 30px);
+  -webkit-appearance: none;
+  -webkit-transition: .2s;
+}
+
+.DetectorThresholdSlider:hover {
+  opacity: 1;
+}
+
+.DetectorThresholdSlider::-webkit-slider-thumb {
+  background-color: $PRIMARY_TEXT_COLOR;
+  border-radius: 100%;
+  cursor: pointer;
+  height: 12px;
+  width: 12px;
+  -webkit-appearance: none;
+}
+
+.DetectorThresholdSlider::-moz-range-thumb {
+  background-color: $PRIMARY_TEXT_COLOR;
+  border-radius: 100%;
+  cursor: pointer;
+  height: 12px;
+  width: 12px;
+}
+
+.DetectorResult {
+  border-bottom: solid 2px $BORDER_COLOR;
+  padding: 12px 0;
+  position: relative;
+  width: calc(100% - 2px);
+}
+
+.DetectorResultIcon {
+  cursor: pointer;
+  display: inline-block;
+  margin-right: 6px;
+  position: absolute;
+  right: 0;
+}
+
+.DetectorResultLabel {
+  cursor: pointer;
+  font-size: $SMALL_FONT_SIZE;
+  max-width: 100%;
+  overflow: hidden;
+  padding-top: 2px;
+  text-overflow: ellipsis;
+  text-shadow: 1px 1px #bbbbbb;
+  vertical-align: top;
+  white-space: nowrap;
+}
+
+.DetectorResultLabelBoxList {}
+
+.DetectorResultLabelBox {
+  cursor: pointer;
+  margin-top: 10px;
+}
+
+.DetectorResultLabelBoxIndexContainer {
+  border-radius: 100%;
+  color: $PRIMARY_BACKGROUND_COLOR;
+  height: 20px;
+  display: inline-block;
+  width: 20px;
+}
+
+.DetectorResultLabelBoxIndex {
+  font-size: $XXSMALL_FONT_SIZE;
+  margin-top: 3px;
+  text-align: center;
+}
+
+.DetectorResultLabelBoxScore {
+  display: inline-block;
+  float: right;
+  text-shadow: 1px 1px #bbbbbb;
+  vertical-align: top;
+}
+
+/* Right Footer */
+
+.RightFooterAction {
+  color: $PRIMARY_TEXT_COLOR;
+  cursor: pointer;
+  display: inline-block;
+  float: right;
+  font-size: $XSMALL_FONT_SIZE;
+  font-weight: 600;
+  margin-top: 25px;
+  vertical-align: top;
+}
+
+.RightFooterEmbedIcon {
+  margin-left: 4px;
+  margin-top: -2px;
+  vertical-align: top;
+}

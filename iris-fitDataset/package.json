@@ -1,0 +1,33 @@
+{
+  "name": "tfjs-examples-iris",
+  "version": "0.1.0",
+  "description": "",
+  "main": "index.js",
+  "license": "Apache-2.0",
+  "private": true,
+  "engines": {
+    "node": ">=8.9.0"
+  },
+  "dependencies": {
+    "@tensorflow/tfjs": "^2.6.0",
+    "@tensorflow/tfjs-vis": "^1.4.3"
+  },
+  "scripts": {
+    "build": "cross-env NODE_ENV=production parcel build --no-scope-hoist index.html --public-url ./",
+    "watch": "./serve.sh",
+    "link-local": "yalc link"
+  },
+  "devDependencies": {
+    "babel-preset-env": "~1.6.1",
+    "buffer": "^6.0.3",
+    "clang-format": "~1.2.2",
+    "cross-env": "^5.1.6",
+    "parcel": "~2.3.2",
+    "process": "^0.11.10",
+    "yalc": "~1.0.0-pre.53"
+  },
+  "resolutions": {
+    "node-fetch": "2.6.7",
+    "ansi-regex": "5.0.1"
+  }
+}

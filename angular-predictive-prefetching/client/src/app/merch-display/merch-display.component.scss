@@ -1,0 +1,8 @@
+.merch-display {
+  display: grid;
+  grid-template-columns: repeat(3, 33%);
+  grid-auto-rows: auto;
+  place-content: center;
+  
+  overflow-x: none;
+}

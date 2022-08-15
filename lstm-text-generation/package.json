@@ -2,29 +2,43 @@
   "name": "tfjs-examples-lstm-generate-text",
   "version": "0.1.0",
   "description": "",
-  "main": "index.js",
   "license": "Apache-2.0",
   "private": true,
-  "engines": {
-    "node": ">=8.9.0"
-  },
   "dependencies": {
-    "@tensorflow/tfjs": "^0.13.3",
-    "vega-embed": "^3.0.0"
+    "@tensorflow/tfjs": "^3.18.0",
+    "@tensorflow/tfjs-vis": "^1.4.3"
   },
   "scripts": {
     "watch": "cross-env NODE_ENV=development parcel index.html --no-hmr --open",
-    "build": "cross-env NODE_ENV=production parcel build index.html --no-minify --public-url ./",
+    "build": "cross-env NODE_ENV=production parcel build --no-scope-hoist index.html --public-url ./",
+    "gen": "babel-node gen_node.js",
     "link-local": "yalc link",
-    "postinstall": "yarn upgrade --pattern @tensorflow"
+    "test": "babel-node run_tests.js",
+    "train": "babel-node train_node.js"
   },
   "devDependencies": {
-    "@babel/core": "^7.0.0-0",
-    "@babel/plugin-transform-runtime": "^7.1.0",
-    "babel-preset-env": "~1.6.1",
+    "@babel/core": "7.18.2",
+    "@babel/node": "7.17.10",
+    "@babel/preset-env": "7.18.2",
+    "@tensorflow/tfjs-node": "^3.18.0",
+    "@tensorflow/tfjs-node-gpu": "^3.18.0",
+    "argparse": "^1.0.10",
+    "buffer": "^6.0.3",
     "clang-format": "~1.2.2",
     "cross-env": "^5.1.6",
-    "parcel-bundler": "~1.10.3",
-    "yalc": "~1.0.0-pre.22"
+    "events": "^3.3.0",
+    "https-browserify": "^1.0.0",
+    "jasmine": "^3.2.0",
+    "jasmine-core": "^3.2.1",
+    "parcel": "~2.3.2",
+    "process": "^0.11.10",
+    "querystring-es3": "^0.2.1",
+    "stream-http": "^3.2.0",
+    "url": "^0.11.0",
+    "yalc": "~1.0.0-pre.53"
+  },
+  "resolutions": {
+    "node-fetch": "2.6.7",
+    "ansi-regex": "5.0.1"
   }
 }

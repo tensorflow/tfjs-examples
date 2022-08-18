@@ -57,7 +57,7 @@ struct SizeParams {
 @group(0) @binding(1) var mySampler: sampler;
 @group(0) @binding(2) var myTexture: texture_external;
 
-@group(0) @binding(3) var<storage, read_write> buf : array<vec4<f32>>;
+@group(0) @binding(3) var<storage, read> buf : array<vec4<f32>>;
 @group(0) @binding(4) var<uniform> size : SizeParams;
 
 @fragment

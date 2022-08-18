@@ -15,21 +15,23 @@
  * =============================================================================
  */
 
-let video, model, stats, adapter, device;
-let startInferenceTime, numInferences = 0;
-let inferenceTimeSum = 0, lastPanelUpdate = 0;
-
-const imageEl = document.querySelector("img");
-const statusEl = document.querySelector("#status");
-const canvasEl = document.querySelector("canvas");
-const videoWidth = isMobile() ? 480 : 640;
-const videoHeight = isMobile() ? 480 : 480;
-canvasEl.width = videoWidth;
-canvasEl.height = videoHeight;
-canvasEl.style.width = `${videoWidth}px`;
-canvasEl.style.height = `${videoHeight}px`;
-
 async function init() {
+  const customBackendName = 'custom-webgpu';
+
+  const kernels = tf.getKernelsForBackend('webgpu');
+  kernels.forEach(kernelConfig => {
+    const newKernelConfig = { ...kernelConfig, backendName: customBackendName };
+    tf.registerKernel(newKernelConfig);
+  });
+
+  adapter = await navigator.gpu.requestAdapter();
+  device = await adapter.requestDevice();
+
+  tf.registerBackend(customBackendName, async () => {
+    return new tf.WebGPUBackend(device);
+  });
+  await tf.setBackend(customBackendName);
+
   const context = canvasEl.getContext('webgpu');
   const presentationFormat = navigator.gpu.getPreferredCanvasFormat();
   const presentationSize = [
@@ -151,4 +153,9 @@ async function init() {
   requestAnimationFrame(predict);
 }
 
-setupPage();
+async function start() {
+  await tf.ready();
+  setupPage();
+}
+
+start();

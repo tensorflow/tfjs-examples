@@ -14,19 +14,6 @@
  * limitations under the License.
  * =============================================================================
  */
-let video, model, stats;
-let startInferenceTime, numInferences = 0;
-let inferenceTimeSum = 0, lastPanelUpdate = 0;
-
-const imageEl = document.querySelector("img");
-const statusEl = document.querySelector("#status");
-const canvasEl = document.querySelector("canvas");
-const videoWidth = isMobile() ? 480 : 640;
-const videoHeight = isMobile() ? 480 : 480;
-canvasEl.width = videoWidth;
-canvasEl.height = videoHeight;
-canvasEl.style.width = `${videoWidth}px`;
-canvasEl.style.height = `${videoHeight}px`;
 
 async function init() {
   const customBackendName = 'custom-webgl';
@@ -48,7 +35,7 @@ async function init() {
 
   const predict = async () => {
     beginEstimateSegmentationStats();
-      
+
     // Put original video content on the input texture.
     inputTextureFrameBuffer.bindTexture();
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB8, gl.RGB, gl.UNSIGNED_BYTE, video);
@@ -60,7 +47,7 @@ async function init() {
 
     // Get the tensor result and the texture that holds the data.
     // We tell the system to use the video width and height as the tex shape,
-    // this allows the densely packed data to have the same layout as the 
+    // this allows the densely packed data to have the same layout as the
     // original video content, which simplifies the shader logic. This only
     // works if the data shape is [1, height, width, 4].
     const tensor = await segmentation[0].mask.toTensor();
@@ -72,11 +59,11 @@ async function init() {
     // pixels more transparent.
     const result = applyMask.process(inputTextureFrameBuffer, createTexture(
         gl, data.texture, videoWidth, videoHeight));
-    
+
     // Other processing steps can go here.
 
     // Once we're done with all the processing, we can draw the texture on the canvas.
-    
+
     // Making gl.DRAW_FRAMEBUFFER to be null sets rendering back to default framebuffer.
     gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, null);
     // Caching the data of the result texture to be drawn in the gl.READ_FRAMEBUFFER.

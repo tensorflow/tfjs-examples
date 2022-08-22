@@ -12,6 +12,7 @@
     segmentation model</a> from tfjs-models. The output of the model is then fed to
     a mask processing step to mask the background with purple. And then the result
     is painted on the canvas.
+    Currently, this example only supports local built tfjs libs, and the local tfjs directory is the same level as tfjs-examples directory.
     For details on how to keep the tensor data on GPU, see our [optimization doc](https://github.com/tensorflow/tfjs/blob/master/docs/OPTIMIZATION_PURE_GPU_PIPELINE.md).
   </p>
   <p>
@@ -24,7 +25,6 @@
   height: auto;
   ">
 </video>
-<!-- Current, this example only supports local built tfjs libs, and the local tfjs directory is the same level as tfjs-examples directory. -->
 <!-- TODO(xinghua): Support tfjs npm packages -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/stats.js/r16/Stats.min.js"></script>
 <script src="../../../tfjs/dist/bin/tfjs-core/tf-core.js"></script>

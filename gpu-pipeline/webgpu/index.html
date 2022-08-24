@@ -1,0 +1,37 @@
+<div id="status"></div>
+<br/>
+<div class="main">
+  <canvas></canvas>
+</div>
+<div>
+  <h1>A demo of pure webgpu pipeline</h1>
+  <p>
+    This demo shows a high performance webgpu pipeline with TF.js.
+    In this example, the pipeline takes a camera stream as input, then feeds to a
+    <a href="https://github.com/tensorflow/tfjs-models/tree/master/body-segmentation">
+    segmentation model</a> from tfjs-models. The output of the model is then fed to
+    a mask processing step to mask the background with purple. And then the result
+    is painted on the canvas.
+    Currently, this example only supports local built tfjs libs, and the local tfjs directory is the same level as tfjs-examples directory.
+    For details on how to keep the tensor data on GPU, see our [optimization doc](https://github.com/tensorflow/tfjs/blob/master/docs/OPTIMIZATION_PURE_GPU_PIPELINE.md).
+  </p>
+  <p>
+    See the code of this example for details.
+  </p>
+</div>
+<video id="video" playsinline style="
+  visibility: hidden;
+  width: auto;
+  height: auto;
+  ">
+</video>
+<!-- TODO(xinghua): Support tfjs npm packages -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/stats.js/r16/Stats.min.js"></script>
+<script src="../../../tfjs/dist/bin/tfjs-core/tf-core.js"></script>
+<script src="../../../tfjs/dist/bin/tfjs-converter/tf-converter.js"></script>
+<script src="../../../tfjs/dist/bin/tfjs-backend-webgpu/tf-backend-webgpu.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/body-segmentation"></script>
+<script src="./gpu-shaders.js"></script>
+<script src="../ui-util.js"></script>
+<script src="../globals.js"></script>
+<script src="./index.js"></script>

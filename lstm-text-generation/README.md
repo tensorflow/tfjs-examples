@@ -62,7 +62,8 @@ yarn train shakespeare \
 
 - The first argument to `yarn train` (`shakespeare`) specifies what text corpus
   to train the model on. See the console output of `yarn train --help` for a set
-  of supported text data.
+  of supported text data. You can also provide the path to a file containing
+  your own text corpus.
 - The argument `--lstmLayerSize 128,128` specifies that the next-character
   prediction model should contain two LSTM layers stacked on top of each other,
   each with 128 units.

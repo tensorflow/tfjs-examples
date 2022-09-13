@@ -2,7 +2,7 @@
   "name": "tfjs-examples-mnist-node",
   "version": "0.1.1",
   "description": "",
-  "main": "index.js",
+  "main": "main.js",
   "license": "Apache-2.0",
   "private": true,
   "engines": {

@@ -33,10 +33,11 @@ function parseArgs() {
   const parser = argparse.ArgumentParser({
     description: 'Train an lstm-text-generation model.'
   });
-  parser.addArgument('textDatasetName', {
+  parser.addArgument('textDatasetNameOrPath', {
     type: 'string',
-    choices: Object.keys(TEXT_DATA_URLS),
-    help: 'Name of the text dataset'
+    help: 'Name of the text dataset (one of ' +
+      Object.keys(TEXT_DATA_URLS).join(', ') +
+      ') or the path to a text file containing a custom dataset'
   });
   parser.addArgument('modelJSONPath', {
     type: 'string',
@@ -64,7 +65,24 @@ function parseArgs() {
     help: 'Step length: how many characters to skip between one example ' +
     'extracted from the text data to the next.'
   });
-  return parser.parseArgs();
+
+  const args = parser.parseArgs();
+
+  const isDataset = TEXT_DATA_URLS[args.textDatasetNameOrPath];
+  const isFile = fs.existsSync(args.textDatasetNameOrPath)
+    && fs.statSync(args.textDatasetNameOrPath).isFile();
+  if (isDataset) {
+    args.textDatasetName = args.textDatasetNameOrPath;
+    delete args.textDatasetNameOrPath;
+  } else if (isFile) {
+    args.textDatasetPath = args.textDatasetNameOrPath;
+    delete args.textDatasetNameOrPath;
+  } else {
+    parser.error('Argument should be one of ' +
+      Object.keys(TEXT_DATA_URLS).join(', ') +
+      ' or the path to a dataset text file');
+  }
+  return args;
 }
 
 async function main() {
@@ -79,14 +97,18 @@ async function main() {
   }
 
   // Load the model.
-  const model = await tf.loadModel(`file://${args.modelJSONPath}`);
+  const loadModel = tf.loadModel || tf.loadLayersModel;
+  const model = await loadModel(`file://${args.modelJSONPath}`);
 
   const sampleLen = model.inputs[0].shape[1];
 
   // Create the text data object.
-  const textDataURL = TEXT_DATA_URLS[args.textDatasetName].url;
-  const localTextDataPath = path.join(os.tmpdir(), path.basename(textDataURL));
-  await maybeDownload(textDataURL, localTextDataPath);
+  let localTextDataPath = args.textDatasetPath;
+  if (args.textDatasetName) {
+    const textDataURL = TEXT_DATA_URLS[args.textDatasetName].url;
+    localTextDataPath = path.join(os.tmpdir(), path.basename(textDataURL));
+    await maybeDownload(textDataURL, localTextDataPath);
+  }
   const text = fs.readFileSync(localTextDataPath, {encoding: 'utf-8'});
   const textData = new TextData('text-data', text, sampleLen, args.sampleStep);
 

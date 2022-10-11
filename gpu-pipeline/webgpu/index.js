@@ -85,7 +85,7 @@ async function init() {
     usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
   });
 
-  device.queue.writeBuffer(sizeParamBuffer, 0, new Int32Array([sizeParams.width, sizeParams.height,]));
+  device.queue.writeBuffer(sizeParamBuffer, 0, new Int32Array([sizeParams.width, sizeParams.height]));
 
   const predict = async () => {
     beginEstimateSegmentationStats();
@@ -113,6 +113,7 @@ async function init() {
           binding: 3,
           resource: {
             buffer: data.buffer,
+            size: data.bufSize,
           },
         },
         {

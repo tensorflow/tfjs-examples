@@ -24,7 +24,7 @@ import {TextData} from './data';
  *   input to the model.
  * @param {number} charSetSize Size of the character size: how many unique
  *   characters there are.
- * @param {number|numbre[]} lstmLayerSizes Size(s) of the LSTM layers.
+ * @param {number|number[]} lstmLayerSizes Size(s) of the LSTM layers.
  * @return {tf.Model} A next-character prediction model with an input shape
  *   of `[null, sampleLen, charSetSize]` and an output shape of
  *   `[null, charSetSize]`.

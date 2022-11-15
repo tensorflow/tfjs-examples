@@ -1,3 +1,14 @@
+<!-- Copyright 2022 Google LLC. All Rights Reserved.
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+http://www.apache.org/licenses/LICENSE-2.0
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+============================================================================== -->
 <!DOCTYPE html>
 <html>
 
@@ -5,21 +16,18 @@
   <meta charset="UTF-8" />
   <title>Yggdrasil Decision Forests in TensorFlow.JS</title>
 
-  <!-- Import jszip -->
-  <script src="https://cdn.jsdelivr.net/npm/jszip"></script>
   <!-- Import @tensorflow/tfjs-core -->
   <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-core"></script>
   <!-- Adds the CPU backend -->
   <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-backend-cpu"></script>
   <!-- Import @tensorflow/tfjs-converter -->
   <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-converter"></script>
-  <!--
-  Import @tensorflow/tfjs-tfdf
+  <!-- Import @tensorflow/tfjs-tfdf
 
   Note that we need to explicitly load dist/tf-tfdf.min.js so that it can
   locate WASM module files from their default location (dist/). -->
   <!-- TODO: Switch to CDN when package is released. -->
-  <script src="https://storage.googleapis.com/tfjs-testing/tfjs-tfdf5/tf-tfdf.min.js"></script>
+  <script src="https://storage.googleapis.com/tfjs-testing/tfjs-tfdf/tf-tfdf.min.js"></script>
 
   <style>
     .button_box {

@@ -13,47 +13,19 @@
   },
   "scripts": {
     "watch": "cross-env NODE_ENV=development parcel index.html --no-hmr --open",
-    "build": "cross-env NODE_ENV=production parcel build index.html --no-minify --public-url ./",
+    "build": "cross-env NODE_ENV=production parcel build --no-scope-hoist index.html --public-url ./",
     "link-local": "yalc link"
   },
   "devDependencies": {
-    "babel-core": "^6.26.3",
-    "babel-plugin-transform-runtime": "~6.23.0",
-    "babel-polyfill": "~6.26.0",
-    "babel-preset-env": "~1.6.1",
+    "buffer": "^6.0.3",
     "clang-format": "~1.2.2",
     "cross-env": "^5.1.6",
-    "parcel-bundler": "~1.12.5",
+    "parcel": "~2.3.2",
+    "process": "^0.11.10",
     "yalc": "~1.0.0-pre.50"
   },
   "resolutions": {
-    "is-svg": "4.3.1",
-    "node-fetch": "2.6.1",
-    "vega": "5.17.3",
-    "glob-parent": "5.1.2",
-    "postcss": "8.2.10"
-  },
-  "babel": {
-    "presets": [
-      [
-        "env",
-        {
-          "modules": false,
-          "targets": {
-            "browsers": [
-              "> 1%",
-              "last 3 versions",
-              "ie >= 9",
-              "ios >= 8",
-              "android >= 4.2"
-            ]
-          },
-          "useBuiltIns": false
-        }
-      ]
-    ],
-    "plugins": [
-      "transform-runtime"
-    ]
+    "node-fetch": "2.6.7",
+    "ansi-regex": "5.0.1"
   }
 }

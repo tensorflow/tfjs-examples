@@ -76,7 +76,7 @@ export class BostonHousingDataset {
   }
 
   get numFeatures() {
-    // If numFetures is accessed before the data is loaded, raise an error.
+    // If numFeatures is accessed before the data is loaded, raise an error.
     if (this.trainFeatures == null) {
       throw new Error('\'loadData()\' must be called before numFeatures')
     }

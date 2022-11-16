@@ -2,14 +2,14 @@
   "name": "tfjs-examples-mnist-node",
   "version": "0.1.1",
   "description": "",
-  "main": "index.js",
+  "main": "main.js",
   "license": "Apache-2.0",
   "private": true,
   "engines": {
     "node": ">=8.11.0"
   },
   "dependencies": {
-    "@tensorflow/tfjs-node": "3.7.0",
+    "@tensorflow/tfjs-node": "^3.14.0",
     "argparse": "^2.0.1"
   },
   "scripts": {
@@ -17,5 +17,10 @@
   },
   "devDependencies": {
     "clang-format": "~1.2.2"
+  },
+  "resolutions": {
+    "node-fetch": "2.6.7",
+    "ansi-regex": "5.0.1",
+    "tar": "6.1.9"
   }
 }

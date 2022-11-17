@@ -1,0 +1,211 @@
+<!-- Copyright 2022 Google LLC. All Rights Reserved.
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+http://www.apache.org/licenses/LICENSE-2.0
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+============================================================================== -->
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="UTF-8" />
+  <title>Yggdrasil Decision Forests in TensorFlow.JS</title>
+
+  <!-- Import @tensorflow/tfjs-core -->
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-core"></script>
+  <!-- Adds the CPU backend -->
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-backend-cpu"></script>
+  <!-- Import @tensorflow/tfjs-converter -->
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-converter"></script>
+  <!-- Import @tensorflow/tfjs-tfdf
+
+  Note that we need to explicitly load dist/tf-tfdf.min.js so that it can
+  locate WASM module files from their default location (dist/). -->
+  <!-- TODO: Switch to CDN when package is released. -->
+  <script src="https://storage.googleapis.com/tfjs-testing/tfjs-tfdf/tf-tfdf.min.js"></script>
+
+  <style>
+    .button_box {
+      display: flex;
+      justify-content: space-around;
+    }
+
+    .button_box button {
+      width: 100%;
+      margin: 5px;
+    }
+  </style>
+</head>
+
+<body>
+  <h1>Yggdrasil Decision Forests in tensorFlow.JS</h1>
+
+  <p>
+    This example demonstrates how to use run TensorFlow Decision Forest models convereted to TensorFlow.JS model.
+  </p>
+
+  <p>
+    <label for="examples">Input examples:</label><br />
+    <textarea id="examples" name="examples" style="border: 1px solid black; width: 100%" rows="15">
+  {
+    'age': tf.tensor1d([
+
+        39, 40, 40, 35
+
+        ], 'int32'),
+
+    'workclass': tf.tensor1d([
+
+        'State-gov', 'Private', 'Private', 'Federal-gov'
+
+        ], 'string'),
+
+    'fnlwgt': tf.tensor1d([
+
+        77516, 121772, 193524, 76845
+
+        ],'int32'),
+
+    'education': tf.tensor1d([
+
+        'Bachelors', 'Assoc-voc', 'Doctorate', '9th'
+
+        ], 'string'),
+
+    'education_num': tf.tensor1d([
+
+        13, 11, 16, 5
+
+        ], 'int32'),
+
+    'marital_status': tf.tensor1d([
+
+        'Never-married', 'Married-civ-spouse', 'Married-civ-spouse',
+        'Married-civ-spouse'
+
+        ], 'string'),
+
+    'occupation': tf.tensor1d([
+
+        'Adm-clerical', 'Craft-repair', 'Prof-specialty', 'Farming-fishing'
+
+        ], 'string'),
+
+    'relationship': tf.tensor1d([
+
+        'Not-in-family', 'Husband', 'Husband', 'Husband'
+
+        ], 'string'),
+
+    'race': tf.tensor1d([
+
+        'White', 'Asian-Pac-Islander', 'White', 'Black'
+
+        ], 'string'),
+
+    'sex': tf.tensor1d([
+
+        'Male', 'Male', 'Male', 'Male'
+
+        ], 'string'),
+
+    'capital_gain': tf.tensor1d([
+
+        2174, 0, 0, 0
+
+        ], 'int32'),
+
+    'capital_loss': tf.tensor1d([
+
+        0, 0, 0, 0
+
+        ], 'int32'),
+
+    'hours_per_week': tf.tensor1d([
+
+        40, 40, 60, 40
+
+        ], 'int32'),
+
+    'native_country': tf.tensor1d([
+
+        'United-States', '', 'United-States', 'United-States'
+
+      ], 'string')
+}
+  </textarea>
+  </p>
+
+  <div class="button_box">
+    <button id="btn_load_model" type="button">Load model</button>
+    <button id="btn_apply_model" type="button" disabled>Apply model</button>
+    <button id="btn_unload_model" type="button" disabled>Unload model</button>
+  </div>
+
+  <p>
+    <label for="terminal">Logs:</label><br />
+    <textarea id="terminal" name="terminal" style="border: 1px solid black; font-family: monospace; width: 100%"
+      rows="30"></textarea>
+  </p>
+
+
+  <script>
+    // The model (once loaded).
+    let model = null;
+
+    function loadModel() {
+      tfdf.loadTFDFModel('https://storage.googleapis.com/tfjs-testing/adult_gbt_no_regex/model.json').then(loadedModel => {
+        model = loadedModel;
+        document.getElementById("btn_load_model").disabled = true;
+        document.getElementById("btn_apply_model").disabled = false;
+        document.getElementById("btn_unload_model").disabled = false;
+      });
+    }
+
+    function applyModel() {
+      let examples = eval(`(${document.getElementById("examples").value})`);
+      console.log("Examples:", examples);
+
+      model.executeAsync(examples).then(output => {
+        const predictions = output.dataSync();
+
+        console.log("Predictions:", predictions);
+        writeToTerminal("Predictions:");
+        writeToTerminal(Array.from(predictions));
+      });
+    }
+
+    function unloadModel() {
+      model.dispose();
+      model = null;
+
+      writeToTerminal("Model unloaded");
+
+      document.getElementById("btn_load_model").disabled = false;
+      document.getElementById("btn_apply_model").disabled = true;
+      document.getElementById("btn_unload_model").disabled = true;
+    }
+
+    function writeToTerminal(text) {
+      console.log(typeof text);
+      if (typeof text == "object") {
+        text = JSON.stringify(text);
+      }
+      let terminal = document.getElementById("terminal");
+      terminal.value += text + "\n";
+      terminal.scrollTop = terminal.scrollHeight; // focus on bottom
+    }
+
+    document.getElementById("btn_load_model").onclick = loadModel;
+    document.getElementById("btn_apply_model").onclick = applyModel;
+    document.getElementById("btn_unload_model").onclick = unloadModel;
+
+  </script>
+</body>
+
+</html>

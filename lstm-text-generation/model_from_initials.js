@@ -25,7 +25,7 @@ import {TextData} from './data';
  *   assumed to have input shape `[null, sampleLen, charSetSize]` and output
  *   shape `[null, charSetSize]`.
  * @param {number[]} sentenceIndices The character indices in the seed sentence.
- * @param {number} length Length of the sentence to generate.
+ * @param {string} initialLetters First letters or every word in the text to be generated.
  * @param {number} temperature Temperature value. Must be a number >= 0 and
  *   <= 1.
  * @param {(char: string) => Promise<void>} onTextGenerationChar An optinoal
@@ -33,7 +33,7 @@ import {TextData} from './data';
  * @returns {string} The generated sentence.
  */
 export async function generateText(
-    model, textData, sentenceIndices, length, temperature,
+    model, textData, sentenceIndices, initialLetters, temperature,
     onTextGenerationChar) {
   const sampleLen = model.inputs[0].shape[1];
   const charSetSize = model.inputs[0].shape[2];
@@ -42,35 +42,42 @@ export async function generateText(
   sentenceIndices = sentenceIndices.slice();
 
   let generated = '';
-  while (generated.length < length) {
-    // Encode the current input sequence as a one-hot Tensor.
-    const inputBuffer =
-        new tf.TensorBuffer([1, sampleLen, charSetSize]);
-
-    // Make the one-hot encoding of the seeding sentence.
-    for (let i = 0; i < sampleLen; ++i) {
-      inputBuffer.set(1, 0, i, sentenceIndices[i]);
-    }
-    const input = inputBuffer.toTensor();
-
-    // Call model.predict() to get the probability values of the next
-    // character.
-    const output = model.predict(input);
-
-    // Sample randomly based on the probability values.
-    const winnerIndex = sample(tf.squeeze(output), temperature);
-    const winnerChar = textData.getFromCharSet(winnerIndex);
-    if (onTextGenerationChar != null) {
-      await onTextGenerationChar(winnerChar);
-    }
-
-    generated += winnerChar;
+  for (let i = 0; i < initialLetters.length; i++) {
+    if (i > 0) generated += " ";
+    generated += initialLetters[i];
     sentenceIndices = sentenceIndices.slice(1);
-    sentenceIndices.push(winnerIndex);
+    sentenceIndices.push(textData.textToIndices(initialLetters[i])[0]);
 
-    // Memory cleanups.
-    input.dispose();
-    output.dispose();
+    let winnerChar = undefined;
+    do {
+      // Encode the current input sequence as a one-hot Tensor.
+      const inputBuffer = new tf.TensorBuffer([1, sampleLen, charSetSize]);
+
+      // Make the one-hot encoding of the seeding sentence.
+      for (let j = 0; j < sampleLen; ++j) {
+        inputBuffer.set(1, 0, j, sentenceIndices[j]);
+      }
+      const input = inputBuffer.toTensor();
+
+      // Call model.predict() to get the probability values of the next
+      // character.
+      const output = model.predict(input);
+
+      // Sample randomly based on the probability values.
+      const winnerIndex = sample(tf.squeeze(output), temperature);
+      winnerChar = textData.getFromCharSet(winnerIndex);
+      if (onTextGenerationChar != null) {
+        await onTextGenerationChar(winnerChar);
+      }
+
+      generated += winnerChar;
+      sentenceIndices = sentenceIndices.slice(1);
+      sentenceIndices.push(winnerIndex);
+
+        // Memory cleanups.
+        input.dispose();
+        output.dispose();
+    } while (/\s/.test(winnerChar) === false);
   }
   return generated;
 }

@@ -122,7 +122,7 @@ async function main() {
   console.log(`Seed text:\n"${seed}"\n`);
 
   const generated = await generateText(
-      model, textData, seedIndices, args.genLength, args.temperature);
+      model, textData, seedIndices, args.initialLetters, args.temperature);
 
   console.log(`Generated text:\n"${generated}"\n`);
 }

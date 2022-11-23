@@ -12,6 +12,7 @@
     "watch": "cross-env NODE_ENV=development parcel index.html --no-hmr --open",
     "build": "cross-env NODE_ENV=production parcel build --no-scope-hoist index.html --public-url ./",
     "gen": "babel-node gen_node.js",
+    "gen2": "babel-node gen_from_initials_node.js",
     "link-local": "yalc link",
     "test": "babel-node run_tests.js",
     "train": "babel-node train_node.js"

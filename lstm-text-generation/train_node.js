@@ -94,6 +94,16 @@ function parseArgs() {
     help: 'LSTM layer size. Can be a single number or an array of numbers ' +
     'separated by commas (E.g., "256", "256,128")'
   });  // TODO(cais): Support
+  parser.addArgument('--activation', {
+    type: 'string',
+    defaultValue: 'tanh',
+    help: 'Activation function to use. Default: hyperbolic tangent (tanh)'
+  });
+  parser.addArgument('--recurrentActivation', {
+    type: 'string',
+    defaultValue: 'hardSigmoid',
+    help: 'Activation function to use for the recurrent step. Default: sigmoid (sigmoid).'
+  });
 
   const args = parser.parseArgs();
 
@@ -143,7 +153,8 @@ async function main() {
       args.lstmLayerSize.split(',').map(x => Number.parseInt(x));
 
   const model = createModel(
-      textData.sampleLen(), textData.charSetSize(), lstmLayerSize);
+      textData.sampleLen(), textData.charSetSize(), lstmLayerSize,
+      args.activation, args.recurrentActivation);
   compileModel(model, args.learningRate);
 
   // Get a seed text for display in the course of model training.

@@ -17,6 +17,7 @@
 
 import * as tf from '@tensorflow/tfjs';
 import {TextData} from './data';
+import {HardTanh} from './hardTanh';
 
 /**
  * Create a model for next-character prediction.
@@ -29,7 +30,9 @@ import {TextData} from './data';
  *   of `[null, sampleLen, charSetSize]` and an output shape of
  *   `[null, charSetSize]`.
  */
-export function createModel(sampleLen, charSetSize, lstmLayerSizes) {
+export function createModel(
+  sampleLen, charSetSize, lstmLayerSizes,
+  activationFunctionName, recurrentActivationFunctionName) {
   if (!Array.isArray(lstmLayerSizes)) {
     lstmLayerSizes = [lstmLayerSizes];
   }
@@ -39,6 +42,8 @@ export function createModel(sampleLen, charSetSize, lstmLayerSizes) {
     const lstmLayerSize = lstmLayerSizes[i];
     model.add(tf.layers.lstm({
       units: lstmLayerSize,
+      activation: activationFunctionName,
+      recurrentActivation: recurrentActivationFunctionName,
       returnSequences: i < lstmLayerSizes.length - 1,
       inputShape: i === 0 ? [sampleLen, charSetSize] : undefined
     }));

@@ -16,11 +16,8 @@ var __extends = (this && this.__extends) || (function () {
 })();
 exports.__esModule = true;
 exports.HardTanh = exports.Activation = exports.hardTanh = void 0;
-/// <amd-module name="hardTanh" />
 var tfc = require("@tensorflow/tfjs-core");
 var tfjs_core_1 = require("@tensorflow/tfjs-core");
-var tfl = require("@tensorflow/tfjs-layers");
-console.log(tfl);
 function hardTanh(x) {
     return (0, tfjs_core_1.tidy)(function () {
         var y = tfc.mul(.5, x);

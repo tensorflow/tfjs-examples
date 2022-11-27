@@ -80,7 +80,6 @@ export class TextData {
     this.sampleLen_ = sampleLen;
     this.sampleStep_ = sampleStep;
 
-    this.getCharSet_();
     this.convertAllTextToIndices_();
   }
 
@@ -110,22 +109,12 @@ export class TextData {
   }
 
   /**
-   * Get the size of the character set.
-   *
-   * @returns {number} Size of the character set, i.e., how many unique
-   *   characters there are in the training text data.
-   */
-  charSetSize() {
-    return this.charSetSize_;
-  }
-
-  /**
    * Generate the next epoch of data for training models.
    *
    * @param {number} numExamples Number examples to generate.
    * @returns {[tf.Tensor, tf.Tensor]} `xs` and `ys` Tensors.
-   *   `xs` has the shape of `[numExamples, this.sampleLen, this.charSetSize]`.
-   *   `ys` has the shape of `[numExamples, this.charSetSize]`.
+   *   `xs` has the shape of `[numExamples, this.sampleLen]`.
+   *   `ys` has the shape of `[numExamples]`.
    */
   nextDataEpoch(numExamples) {
     this.generateExampleBeginIndices_();
@@ -135,40 +124,30 @@ export class TextData {
     }
 
     const xsBuffer = new tf.TensorBuffer([
-        numExamples, this.sampleLen_, this.charSetSize_]);
-    const ysBuffer  = new tf.TensorBuffer([numExamples, this.charSetSize_]);
+        numExamples, this.sampleLen_]);
+    const ysBuffer  = new tf.TensorBuffer([numExamples]);
     for (let i = 0; i < numExamples; ++i) {
       const beginIndex = this.exampleBeginIndices_[
           this.examplePosition_ % this.exampleBeginIndices_.length];
       for (let j = 0; j < this.sampleLen_; ++j) {
-        xsBuffer.set(1, i, j, this.indices_[beginIndex + j]);
+        xsBuffer.set(this.textString_.charCodeAt(beginIndex + j), i, j);
       }
-      ysBuffer.set(1, i, this.indices_[beginIndex + this.sampleLen_]);
+      ysBuffer.set(this.textString_.charCodeAt(beginIndex + this.sampleLen_), i);
       this.examplePosition_++;
     }
     return [xsBuffer.toTensor(), ysBuffer.toTensor()];
   }
 
   /**
-   * Get the unique character at given index from the character set.
-   *
-   * @param {number} index
-   * @returns {string} The unique character at `index` of the character set.
-   */
-  getFromCharSet(index) {
-    return this.charSet_[index];
-  }
-
-  /**
-   * Convert text string to integer indices.
+   * Convert text string to integer character codes.
    *
    * @param {string} text Input text.
-   * @returns {number[]} Indices of the characters of `text`.
+   * @returns {number[]} Codes of the characters of `text`.
    */
-  textToIndices(text) {
+  textToCharCodes(text) {
     const indices = [];
     for (let i = 0; i < text.length; ++i) {
-      indices.push(this.charSet_.indexOf(text[i]));
+      indices.push(text.charCodeAt(i));
     }
     return indices;
   }
@@ -183,7 +162,7 @@ export class TextData {
     const startIndex =
         Math.round(Math.random() * (this.textLen_ - this.sampleLen_ - 1));
     const textSlice = this.slice_(startIndex, startIndex + this.sampleLen_);
-    return [textSlice, this.textToIndices(textSlice)];
+    return [textSlice, this.textToCharCodes(textSlice)];
   }
 
   /**
@@ -199,23 +178,10 @@ export class TextData {
   }
 
   /**
-   * Get the set of unique characters from text.
-   */
-  getCharSet_() {
-    this.charSet_ = [];
-    for (let i = 0; i < this.textLen_; ++i) {
-      if (this.charSet_.indexOf(this.textString_[i]) === -1) {
-        this.charSet_.push(this.textString_[i]);
-      }
-    }
-    this.charSetSize_ = this.charSet_.length;
-  }
-
-  /**
    * Convert all training text to integer indices.
    */
   convertAllTextToIndices_() {
-    this.indices_ = new Uint16Array(this.textToIndices(this.textString_));
+    this.indices_ = new Uint16Array(this.textToCharCodes(this.textString_));
   }
 
   /**

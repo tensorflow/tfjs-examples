@@ -27,11 +27,11 @@ import {HardTanh} from './hardTanh';
  *   characters there are.
  * @param {number|numbre[]} lstmLayerSizes Size(s) of the LSTM layers.
  * @return {tf.Model} A next-character prediction model with an input shape
- *   of `[null, sampleLen, charSetSize]` and an output shape of
- *   `[null, charSetSize]`.
+ *   of `[null, sampleLen]` and an output shape of
+ *   `[null]`.
  */
 export function createModel(
-  sampleLen, charSetSize, lstmLayerSizes,
+  sampleLen, lstmLayerSizes,
   activationFunctionName, recurrentActivationFunctionName) {
   if (!Array.isArray(lstmLayerSizes)) {
     lstmLayerSizes = [lstmLayerSizes];
@@ -45,11 +45,11 @@ export function createModel(
       activation: activationFunctionName,
       recurrentActivation: recurrentActivationFunctionName,
       returnSequences: i < lstmLayerSizes.length - 1,
-      inputShape: i === 0 ? [sampleLen, charSetSize] : undefined
+      inputShape: i === 0 ? [sampleLen, 1] : undefined
     }));
   }
   model.add(
-      tf.layers.dense({units: charSetSize, activation: 'softmax'}));
+      tf.layers.dense({units: 1, activation: 'linear'}));
 
   return model;
 }
@@ -64,8 +64,8 @@ export function compileModel(model, learningRate) {
 /**
  * Train model.
  * @param {tf.Model} model The next-char prediction model, assumed to have an
- *   input shape of `[null, sampleLen, charSetSize]` and an output shape of
- *   `[null, charSetSize]`.
+ *   input shape of `[null, sampleLen]` and an output shape of
+ *   `[null]`.
  * @param {TextData} textData The TextData object to use during training.
  * @param {number} numEpochs Number of training epochs.
  * @param {number} examplesPerEpoch Number of examples to draw from the
@@ -95,9 +95,9 @@ export async function fitModel(
  * Generate text using a next-char-prediction model.
  *
  * @param {tf.Model} model The model object to be used for the text generation,
- *   assumed to have input shape `[null, sampleLen, charSetSize]` and output
- *   shape `[null, charSetSize]`.
- * @param {number[]} sentenceIndices The character indices in the seed sentence.
+ *   assumed to have input shape `[null, sampleLen]` and output
+ *   shape `[null]`.
+ * @param {number[]} sentenceCharCodes The character indices in the seed sentence.
  * @param {number} length Length of the sentence to generate.
  * @param {number} temperature Temperature value. Must be a number >= 0 and
  *   <= 1.
@@ -106,40 +106,39 @@ export async function fitModel(
  * @returns {string} The generated sentence.
  */
 export async function generateText(
-    model, textData, sentenceIndices, length, temperature,
+    model, textData, sentenceCharCodes, length, temperature,
     onTextGenerationChar) {
   const sampleLen = model.inputs[0].shape[1];
-  const charSetSize = model.inputs[0].shape[2];
 
   // Avoid overwriting the original input.
-  sentenceIndices = sentenceIndices.slice();
+  sentenceCharCodes = sentenceCharCodes.slice();
 
   let generated = '';
   while (generated.length < length) {
     // Encode the current input sequence as a one-hot Tensor.
     const inputBuffer =
-        new tf.TensorBuffer([1, sampleLen, charSetSize]);
+        new tf.TensorBuffer([1, sampleLen]);
 
     // Make the one-hot encoding of the seeding sentence.
     for (let i = 0; i < sampleLen; ++i) {
-      inputBuffer.set(1, 0, i, sentenceIndices[i]);
+      inputBuffer.set(1, 0, i, sentenceCharCodes[i]);
     }
     const input = inputBuffer.toTensor();
 
     // Call model.predict() to get the probability values of the next
     // character.
     const output = model.predict(input);
-
+console.log(output);
     // Sample randomly based on the probability values.
-    const winnerIndex = sample(tf.squeeze(output), temperature);
-    const winnerChar = textData.getFromCharSet(winnerIndex);
+    const winnerCharCode = sample(output, temperature);
+    const winnerChar = String.fromCharCode(winnerCharCode);
     if (onTextGenerationChar != null) {
       await onTextGenerationChar(winnerChar);
     }
 
     generated += winnerChar;
-    sentenceIndices = sentenceIndices.slice(1);
-    sentenceIndices.push(winnerIndex);
+    sentenceCharCodes = sentenceCharCodes.slice(1);
+    sentenceCharCodes.push(winnerCharCode);
 
     // Memory cleanups.
     input.dispose();
@@ -152,19 +151,15 @@ export async function generateText(
  * Draw a sample based on probabilities.
  *
  * @param {tf.Tensor} probs Predicted probability scores, as a 1D `tf.Tensor` of
- *   shape `[charSetSize]`.
+ *   shape `[null]`.
  * @param {tf.Tensor} temperature Temperature (i.e., a measure of randomness
  *   or diversity) to use during sampling. Number be a number > 0, as a Scalar
  *   `tf.Tensor`.
- * @returns {number} The 0-based index for the randomly-drawn sample, in the
- *   range of `[0, charSetSize - 1]`.
+ * @returns {number} just a charcode, lol.
  */
-export function sample(probs, temperature) {
+export function sample(value, temperature) {
   return tf.tidy(() => {
-    const logits = tf.div(tf.log(probs), Math.max(temperature, 1e-6));
-    const isNormalized = false;
-    // `logits` is for a multinomial distribution, scaled by the temperature.
-    // We randomly draw a sample from the distribution.
-    return tf.multinomial(logits, 1, null, isNormalized).dataSync()[0];
+    const x = tf.random.normal([1], value, temperature, tf.float32)
+    return Math.min(Math.max(Math.round(x[0]), 0), 127);
   });
 }

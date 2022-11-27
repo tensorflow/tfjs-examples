@@ -153,12 +153,12 @@ async function main() {
       args.lstmLayerSize.split(',').map(x => Number.parseInt(x));
 
   const model = createModel(
-      textData.sampleLen(), textData.charSetSize(), lstmLayerSize,
+      textData.sampleLen(), lstmLayerSize,
       args.activation, args.recurrentActivation);
   compileModel(model, args.learningRate);
 
   // Get a seed text for display in the course of model training.
-  const [seed, seedIndices] = textData.getRandomSlice();
+  const [seed, seedCharCodes] = textData.getRandomSlice();
   console.log(`Seed text:\n"${seed}"\n`);
 
   const DISPLAY_TEMPERATURES = [0, 0.25, 0.5, 0.75];
@@ -174,7 +174,7 @@ async function main() {
         onTrainEnd: async () => {
           DISPLAY_TEMPERATURES.forEach(async temperature => {
             const generated = await generateText(
-                model, textData, seedIndices, args.displayLength, temperature);
+                model, textData, seedCharCodes, args.displayLength, temperature);
             console.log(
                 `Generated text (temperature=${temperature}):\n` +
                 `"${generated}"\n`);

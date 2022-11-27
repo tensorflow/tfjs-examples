@@ -113,12 +113,12 @@ async function main() {
   const textData = new TextData('text-data', text, sampleLen, args.sampleStep);
 
   // Get a seed text from the text data object.
-  const [seed, seedIndices] = textData.getRandomSlice();
+  const [seed, seedCharCodes] = textData.getRandomSlice();
   
   console.log(`Seed text:\n"${seed}"\n`);
 
   const generated = await generateText(
-      model, textData, seedIndices, args.genLength, args.temperature);
+      model, textData, seedCharCodes, args.genLength, args.temperature);
 
   console.log(`Generated text:\n"${generated}"\n`);
 }

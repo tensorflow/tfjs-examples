@@ -64,7 +64,7 @@ struct SizeParams {
 fn main(@location(0) fragUV : vec2<f32>) -> @location(0) vec4<f32> {
   // The user-facing camera is mirrored, flip horizontally.
   let coord = vec2(1.0 - fragUV.x, fragUV.y);
-  let src_color = textureSampleLevel(myTexture, mySampler, coord);
+  let src_color = textureSampleBaseClampToEdge(myTexture, mySampler, coord);
 
   let rowCol = vec2<i32>(i32(coord.y * f32(size.height)), i32(coord.x * f32(size.width)));
   let probability = (buf[rowCol.x * size.width + rowCol.y]).a;

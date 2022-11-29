@@ -45,7 +45,7 @@ def read_data():
   target_characters = set()
   lines = io.open(FLAGS.data_path, 'r', encoding='utf-8').read().split('\n')
   for line in lines[: min(FLAGS.num_samples, len(lines) - 1)]:
-    input_text, target_text = line.split('\t')
+    input_text, target_text, *_ = line.split('\t')
     # We use "tab" as the "start sequence" character for the targets, and "\n"
     # as "end sequence" character.
     target_text = '\t' + target_text + '\n'

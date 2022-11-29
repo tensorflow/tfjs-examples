@@ -56,22 +56,22 @@ async function run(epochs, batchSize, modelSavePath) {
 
 const parser = new argparse.ArgumentParser({
   description: 'TensorFlow.js-Node MNIST Example.',
-  addHelp: true
+  add_help: true
 });
-parser.addArgument('--epochs', {
+parser.add_argument('--epochs', {
   type: 'int',
-  defaultValue: 20,
+  default: 20,
   help: 'Number of epochs to train the model for.'
 });
-parser.addArgument('--batch_size', {
+parser.add_argument('--batch_size', {
   type: 'int',
-  defaultValue: 128,
+  default: 128,
   help: 'Batch size to be used during model training.'
 })
-parser.addArgument('--model_save_path', {
+parser.add_argument('--model_save_path', {
   type: 'string',
   help: 'Path to which the model will be saved after training.'
 });
-const args = parser.parseArgs();
+const args = parser.parse_args();
 
 run(args.epochs, args.batch_size, args.model_save_path);

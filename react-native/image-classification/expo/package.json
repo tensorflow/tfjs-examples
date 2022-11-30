@@ -1,0 +1,38 @@
+{
+  "name": "image-classification-with-tfjs-react-native-expo",
+  "main": "index.js",
+  "version": "0.0.1",
+  "license": "Apache-2.0",
+  "scripts": {
+    "start": "expo start"
+  },
+  "dependencies": {
+    "@react-native-async-storage/async-storage": "~1.17.3",
+    "@tensorflow/tfjs": "3.18.0",
+    "@tensorflow/tfjs-react-native": "0.8.0",
+    "@tensorflow-models/mobilenet": "2.1.0",
+    "expo": "~45.0.6",
+    "expo-camera": "^12.2.0",
+    "expo-file-system": "^14.0.0",
+    "expo-gl": "^11.3.0",
+    "expo-gl-cpp": "^11.3.0",
+    "react": "17.0.2",
+    "react-dom": "17.0.2",
+    "react-native": "0.68.2",
+    "react-native-fs": "2.14.1",
+    "react-native-gesture-handler": "~2.2.1"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.9.0",
+    "@expo/webpack-config": "^0.15.0",
+    "@types/react": "~16.9.35",
+    "@types/react-native": "~0.63.2",
+    "babel-preset-expo": "~8.3.0",
+    "jest-expo": "~41.0.0",
+    "typescript": "~4.0.0"
+  },
+  "jest": {
+    "preset": "react-native"
+  },
+  "private": true
+}

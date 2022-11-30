@@ -9,3 +9,4 @@ yarn-error.log
 .DS_STORE
 yalc.lock
 *firebase-debug.log
+**/.parcel-cache

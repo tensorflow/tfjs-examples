@@ -1,0 +1,117 @@
+<mat-sidenav-container class="sidenav-container">
+  <mat-sidenav #drawer class="sidenav" fixedInViewport
+      [attr.role]="(isHandset$ | async) || (isSmall$ | async) ? 'dialog' : 'navigation'"
+      [mode]="(isHandset$ | async) || (isSmall$ | async) ? 'over' : 'side'"
+      [opened]="(isHandset$ | async) || (isSmall$ | async) === false">
+    <mat-toolbar>
+      <app-logo></app-logo>
+    </mat-toolbar>
+    <mat-nav-list>
+      <mat-accordion class="" multi
+        displayMode="flat"
+        togglePosition="before">
+        <a mat-list-item routerLink="new">New</a>
+        <mat-expansion-panel>
+          <mat-expansion-panel-header>
+            <mat-panel-title>
+              <a mat-list-item routerLink="apparel">Apparel</a>
+            </mat-panel-title>
+          </mat-expansion-panel-header>
+          <a mat-list-item routerLink="apparel-headgear">Headgear</a>
+          <a mat-list-item routerLink="apparel-kids">Kids</a>
+          <a mat-list-item routerLink="apparel-unisex">Mens/Unisex</a>
+          <a mat-list-item routerLink="apparel-socks">Socks</a>
+          <a mat-list-item routerLink="apparel-womens">Womens</a>
+        </mat-expansion-panel>
+        <mat-expansion-panel>
+          <mat-expansion-panel-header>
+            <mat-panel-title>
+              <a mat-list-item routerLink="lifestyle">Lifestyle</a>
+            </mat-panel-title>
+          </mat-expansion-panel-header>
+          <a mat-list-item routerLink="lifestyle-bags">Bags</a>
+          <a mat-list-item routerLink="lifestyle-drinkware">Drinkware</a>
+          <a mat-list-item routerLink="lifestyle-small">Small Goods</a>
+        </mat-expansion-panel>
+        <mat-expansion-panel>
+          <mat-expansion-panel-header>
+            <mat-panel-title>
+              <a mat-list-item routerLink="stationery">Stationery</a>
+            </mat-panel-title>
+          </mat-expansion-panel-header>
+          <a mat-list-item routerLink="stationery-notebooks">Notebooks</a>
+          <a mat-list-item routerLink="stationery-stickers">Stickers</a>
+          <a mat-list-item routerLink="stationery-writing">Writing</a>
+        </mat-expansion-panel>
+        <a mat-list-item routerLink="eco">Eco Friendly</a>
+        <mat-expansion-panel>
+          <mat-expansion-panel-header>
+            <mat-panel-title>
+              <a mat-list-item routerLink="brand">Shop By Brand</a>
+            </mat-panel-title>
+          </mat-expansion-panel-header>
+          <a mat-list-item routerLink="brand-android">Android</a>
+          <a mat-list-item routerLink="brand-google">Google</a>
+          <a mat-list-item routerLink="brand-cloud">Google Cloud</a>
+          <a mat-list-item routerLink="brand-dino">Chrome Dino</a>
+          <a mat-list-item routerLink="brand-youtube">YouTube</a>
+        </mat-expansion-panel>
+        <a mat-list-item routerLink="sale" color="warn">Sale</a>
+        <a mat-list-item routerLink="campus">Campus Collection</a>
+      </mat-accordion>
+      <!-- <mat-accordion class="" multi
+      displayMode="flat"
+      togglePosition="before">
+        <a mat-list-item routerLink="login">Login</a>
+        <a mat-list-item routerLink="signup">Sign Up</a>
+        <a mat-list-item routerLink="help">Help</a>
+      </mat-accordion> -->
+    </mat-nav-list>
+  </mat-sidenav>
+  <mat-sidenav-content>
+    <mat-toolbar color="primary">
+      <mat-toolbar-row class="main-header">
+        <div class="navbar-icon">
+          <button
+            type="button"
+            aria-label="Toggle sidenav"
+            mat-icon-button
+            class="navbar-icon"
+            (click)="drawer.toggle()"
+            *ngIf="((isHandset$ | async) || (isSmall$ | async)) && this.opened === false">
+            <mat-icon aria-label="Side nav toggle icon">menu</mat-icon>
+          </button>
+          <mat-icon aria-label="White space fix"></mat-icon>
+        </div>
+        <div class="navbar-logo">
+          <app-logo></app-logo>
+        </div>
+        <div class="navbar-icon">
+          <button
+            type="button"
+            aria-label="Search"
+            mat-icon-button>
+            <mat-icon aria-label="Search icon">search</mat-icon>
+          </button>
+          <button
+            type="button"
+            aria-label="Go to cart"
+            mat-icon-button>
+            <mat-icon
+              aria-label="Cart icon"
+              matBadge="15"
+              matBadgeColor="warn">
+              shopping_cart
+            </mat-icon>
+          </button>
+        </div>
+      </mat-toolbar-row>
+      <mat-toolbar-row color="accent" class="announcement-banner">
+        <h6>
+          We are currently restocking all of your favorite items! Please check back soon.
+        </h6>
+      </mat-toolbar-row>
+    </mat-toolbar>
+    <router-outlet></router-outlet>
+  </mat-sidenav-content>
+</mat-sidenav-container>

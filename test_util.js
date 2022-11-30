@@ -16,10 +16,9 @@
  */
 
 /**
- * Execute all unit tests in the current directory. Takes a jasmine_util from
- * tfjs-core so that we use the tfjs-core module from the right test directory.
+ * Execute all unit tests in the current directory.
  */
-function runTests(jasmineUtil, specFiles) {
+function runTests(specFiles) {
   // tslint:disable-next-line:no-require-imports
   const jasmineConstructor = require('jasmine');
 
@@ -29,12 +28,20 @@ function runTests(jasmineUtil, specFiles) {
     throw e;
   });
 
-  jasmineUtil.setTestEnvs(
-      [{name: 'node', factory: jasmineUtil.CPU_FACTORY, features: {}}]);
-
   const runner = new jasmineConstructor();
   runner.loadConfig({spec_files: specFiles, random: false});
   runner.execute();
 }
 
-module.exports = {runTests};
+function expectArraysClose(actual, expected) {
+  const actualValues = actual instanceof Array ? actual : actual.dataSync();
+  const expectedValues = expected instanceof Array ? expected : expected.dataSync();
+
+  expect(actualValues.length).toBe(expectedValues.length);
+  const PRECISION = 3; // corresponds to 1e-3.
+  for (let i = 0; i < actualValues.length; i++) {
+    expect(actualValues[i]).toBeCloseTo(expectedValues[i], PRECISION);
+  }
+}
+
+module.exports = {runTests, expectArraysClose};

@@ -9,6 +9,12 @@
     "build-css": "node-sass tfjs-examples.scss tfjs-examples.css"
   },
   "dependencies": {
-    "node-sass": "^4.9.4"
+    "node-sass": "^7.0.1"
+  },
+  "devDependencies": {
+    "cssnano": "^5.1.4"
+  },
+  "resolutions": {
+    "json-schema": "0.4.0"
   }
 }

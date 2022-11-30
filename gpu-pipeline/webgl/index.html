@@ -1,0 +1,38 @@
+<div id="status"></div>
+<br/>
+<div class="main">
+  <canvas></canvas>
+</div>
+<div>
+  <h1>A demo of pure GPU pipeline</h1>
+  <p>
+    This demo shows a high performance GPU pipeline with TF.js.
+    In this example, the pipeline takes a camera stream as input, then feeds to a
+    <a href="https://github.com/tensorflow/tfjs-models/tree/master/body-segmentation">
+    segmentation model</a> from tfjs-models. The output of the model is then fed to
+    a mask processing step to mask the background with purple. And then the result
+    is painted on the canvas.
+    For details on how to keep the tensor data on GPU, see our [optimization doc](https://github.com/tensorflow/tfjs/blob/master/docs/OPTIMIZATION_PURE_GPU_PIPELINE.md).
+  </p>
+  <p>
+    See the code of this example for details.
+  </p>
+</div>
+<video id="video" playsinline style="
+  visibility: hidden;
+  width: auto;
+  height: auto;
+  ">
+</video>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/stats.js/r16/Stats.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-core"></script>
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-converter"></script>
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-backend-webgl"></script>
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/body-segmentation"></script>
+<script src="./gl-shaders.js"></script>
+<script src="./gl-class.js"></script>
+<script src="./gl-util.js"></script>
+<script src="../ui-util.js"></script>
+<script src="../globals.js"></script>
+<script src="./index.js"></script>

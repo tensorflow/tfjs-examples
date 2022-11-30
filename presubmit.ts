@@ -32,7 +32,13 @@ const dirs = fs.readdirSync(dir)
 
 dirs.forEach(dir => {
   shell.cd(dir);
-  const packageJSON: {} =
+
+  if (!fs.existsSync('./package.json')) {
+    shell.cd('../');
+    return;
+  }
+
+  const packageJSON: {'scripts': {[key: string]: string}} =
       JSON.parse(fs.readFileSync('./package.json', {encoding: 'utf-8'}));
   if (packageJSON['scripts']['test'] != null) {
     console.log(`~~~~~~~~~~~~ Testing ${dir} ~~~~~~~~~~~~`);

@@ -53,6 +53,17 @@ to another project.
     <td></td>
   </tr>
   <tr>
+    <td><a href="./angular-predictive-prefetching">angular-predictive-prefetching</a></td>
+    <td></td>
+    <td>Numeric</td>
+    <td>Multiclass predictor</td>
+    <td>DNN</td>
+    <td></td>
+    <td>Browser: Service Worker</td>
+    <td>Layers</td>
+    <td></td>
+  </tr>
+  <tr>
     <td><a href="./baseball-node">baseball-node</a></td>
     <td></td>
     <td>Numeric</td>
@@ -161,6 +172,17 @@ to another project.
     <td>Browser</td>
     <td>Layers</td>
     <td>Export trained model from tfjs-node and load it in browser</td>
+  </tr>
+  <tr>
+    <td><a href="./interactive-visualizers">interactive-visualizers</a></td>
+    <td></td>
+    <td>Image</td>
+    <td>Multiclass classification, object detection, segmentation</td>
+    <td></td>
+    <td></td>
+    <td>Browser</td>
+    <td></td>
+    <td></td>
   </tr>
   <tr>
     <td><a href="./iris">iris</a></td>

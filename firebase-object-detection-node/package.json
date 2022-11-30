@@ -5,6 +5,6 @@
     "start": "node app.js"
   },
   "dependencies": {
-    "firebase-tools": "^7.8.1"
+    "firebase-tools": "^11.3.0"
   }
 }

@@ -1,0 +1,12 @@
+{
+  "name": "pose-detection-expo",
+  "displayName": "pose-detection-expo",
+  "expo": {
+    "name": "pose-detection-expo",
+    "slug": "pose-detection-expo",
+    "version": "1.0.0",
+    "assetBundlePatterns": [
+      "**/*"
+    ]
+  }
+}

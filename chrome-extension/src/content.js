@@ -22,6 +22,13 @@ const TEXT_DIV_CLASSNAME = 'tfjs_mobilenet_extension_text';
 const HIGH_CONFIDENCE_THRESHOLD = 0.5;
 const LOW_CONFIDENCE_THRESHOLD = 0.1;
 
+// Size of the image expected by mobilenet.
+const IMAGE_SIZE = 224;
+
+// The minimum image size to consider classifying.  Below this limit the
+// extension will refuse to classify the image.
+const MIN_IMG_SIZE = 128;
+
 /**
  * Produces a short text string summarizing the prediction
  * Input prediction should be a list of {className: string, prediction: float}
@@ -89,7 +96,7 @@ function addTextElementToImageNode(imgNode, textContent) {
   const container = document.createElement('div');
   container.style.position = 'relative';
   container.style.textAlign = 'center';
-  container.style.colore = 'white';
+  container.style.color = 'white';
   const text = document.createElement('div');
   text.className = 'tfjs_mobilenet_extension_text';
   text.style.position = 'absolute';
@@ -119,14 +126,27 @@ function addTextElementToImageNode(imgNode, textContent) {
 //
 // message: {action, url, predictions}
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-  if (message && message.action === 'IMAGE_CLICK_PROCESSED' && message.url &&
-      message.predictions) {
-    // Get the list of images with this srcUrl.
-    const imgElements = getImageElementsWithSrcUrl(message.url);
-    for (const imgNode of imgElements) {
-      const textContent = textContentFromPrediction(message.predictions);
-      addTextElementToImageNode(imgNode, textContent);
-    }
+  if (!message) {
+    return;
+  }
+
+  switch (message.action) {
+    case 'IMAGE_CLICKED':
+      loadImageAndSendDataBack(message.url, sendResponse);
+      // This is needed to make sendResponse work properly.
+      return true;
+    case 'IMAGE_CLICK_PROCESSED':
+      if (message.url && message.predictions) {
+        // Get the list of images with this srcUrl.
+        const imgElements = getImageElementsWithSrcUrl(message.url);
+        for (const imgNode of imgElements) {
+          const textContent = textContentFromPrediction(message.predictions);
+          addTextElementToImageNode(imgNode, textContent);
+        }
+      }
+      break;
+    default:
+      break;
   }
 });
 
@@ -141,4 +161,40 @@ function clickHandler(mouseEvent) {
   if (mouseEvent.button == 0) {
     removeTextElements();
   }
+}
+
+function loadImageAndSendDataBack(src, sendResponse) {
+  // Load image (with crossOrigin set to anonymouse so that it can be used in a
+  // canvas later).
+  const img = new Image();
+  img.crossOrigin = 'anonymous';
+  img.onerror = function(e) {
+    console.warn(`Could not load image from external source ${src}.`);
+    sendResponse({rawImageData: undefined});
+    return;
+  };
+  img.onload = function(e) {
+    if ((img.height && img.height > MIN_IMG_SIZE) ||
+        (img.width && img.width > MIN_IMG_SIZE)) {
+      img.width = IMAGE_SIZE;
+      img.height = IMAGE_SIZE;
+      // When image is loaded, render it to a canvas and send its ImageData back
+      // to the service worker.
+      const canvas = new OffscreenCanvas(img.width, img.height);
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0);
+      const imageData = ctx.getImageData(0, 0, img.width, img.height);
+      sendResponse({
+        rawImageData: Array.from(imageData.data),
+        width: img.width,
+        height: img.height,
+      });
+      return;
+    }
+    // Fail out if either dimension is less than MIN_IMG_SIZE.
+    console.warn(`Image size too small. [${img.height} x ${
+        img.width}] vs. minimum [${MIN_IMG_SIZE} x ${MIN_IMG_SIZE}]`);
+    sendResponse({rawImageData: undefined});
+  };
+  img.src = src;
 }

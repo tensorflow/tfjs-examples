@@ -1,0 +1,284 @@
+<!--
+Copyright 2018 Google LLC. All Rights Reserved.
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+http://www.apache.org/licenses/LICENSE-2.0
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+==============================================================================
+-->
+
+<!-- Template for initially rendering the app. -->
+<ng-template #render>
+  <div class="HeaderSection">
+    <ng-container *ngTemplateOutlet="headerSection"></ng-container>
+  </div>
+  <div class="BodyContainer">
+    <div class="LeftSide">
+      <!-- Currently selected query -->
+      <div class="QuerySection"
+           id="query-section"
+           (dragover)="dragOver($event)"
+           (dragleave)="dragLeave()"
+           (drop)="dragDrop($event)">
+        <ng-container *ngIf="queryImageDataURL != null">
+          <div class="QueryCanvasOverlayContainer">
+            <!-- Spot for overlaying a canvas on top of the query image -->
+            <canvas class="QueryCanvasOverlay"
+                    id="query-canvas-overlay"
+                    (click)="canvasOverlayLeft()"
+                    (mouseout)="canvasOverlayLeft()">
+            </canvas>
+          </div>
+          <div class="QueryCanvasOverlayContainer">
+            <!-- Spot for overlaying detection hints on top of the query image -->
+            <div class="QueryHintsContainer"
+                 style="height: {{ queryImageHeight }}px; width: {{ queryImageWidth }}px">
+              <!-- Display detection hints -->
+              <ng-container *ngIf="hoveredDetectionResultLabel == null && hoveredDetectionResultId == null">
+                <ng-container *ngFor="let label of detectionLabels">
+                  <ng-container *ngFor="let box of label.boxes; let i = index">
+                    <div *ngIf="box.score >= detectionScoreThreshold"
+                         class="QueryHint"
+                         style="top: {{ queryImageHeight * (box.rect[0] + box.rect[2]) / 2 - 10 }}px;
+                                left: {{ queryImageWidth * (box.rect[1] + box.rect[3]) / 2 - 10 }}px;
+                                background-color: {{ label.color }}"
+                         (click)="detectorHintClicked(box.id)">
+                      <div class="QueryHintValue">
+                        {{ i + 1 }}
+                      </div>
+                    </div>
+                  </ng-container>
+                </ng-container>
+              </ng-container>
+            </div>
+          </div>
+          <div class="QueryImageContainer">
+            <img src="{{ queryImageDataURL }}"
+                 class="QueryImage"
+                 id="query-image"
+                 alt="">
+          </div>
+        </ng-container>
+      </div>
+
+      <!-- Render test data once available -->
+      <div class="TestImages">
+        <!-- Test images. -->
+        <div class="TestImageContainer" *ngFor="let testImage of testImages; let i = index"
+             (click)="testImageSelected(testImage.imageUrl, i)">
+          <img [ngClass]="{'TestImage': imageSelectedIndex !== i, 'TestImageSelected': imageSelectedIndex === i}"
+               src="{{ testImage.thumbnailUrl }}">
+        </div>
+        <!-- Uploaded images. -->
+        <div class="TestImageContainer" *ngFor="let uploadedImage of uploadedImages; let i = index"
+             (click)="testImageSelected(uploadedImage, testImages.length + i)">
+          <img [ngClass]="{'TestImage': imageSelectedIndex !== testImages.length + i, 'TestImageSelected': imageSelectedIndex === testImages.length + i}"
+               src="{{ uploadedImage }}">
+        </div>
+      </div>
+
+      <div class="LeftFooter">
+        <img *ngIf="publisherThumbnailUrl"
+             class="PublisherThumbnailUrl"
+             src="{{ publisherThumbnailUrl }}"
+             alt="">
+        <div *ngIf="publisherName"
+             class="PublisherNameContainer">
+          <div class="PublisherNameHeader">
+            Published by:
+          </div>
+          <div class="PublisherNameText">
+            {{ publisherName }}
+          </div>
+        </div>
+        <a class="TermsOfService"
+           href="https://www.google.com/intl/en/policies/terms/"
+           target="_blank">
+          Terms of Service
+        </a>
+        <a class="PrivacyPolicy"
+           href="https://www.google.com/intl/en/policies/privacy/"
+           target="_blank">
+          Privacy Policy
+        </a>
+      </div>
+
+    </div>
+    <div class="RightSide">
+      <div class="InputSection">
+        <ng-container *ngTemplateOutlet="inputSection"></ng-container>
+      </div>
+      <div class="ResultsSection">
+        <div class="Results">
+          <ng-container *ngIf="classifierResults != null">
+            <ng-container *ngTemplateOutlet="classifierResultsTemplate"></ng-container>
+          </ng-container>
+          <ng-container *ngIf="detectorResults != null">
+            <ng-container *ngTemplateOutlet="detectorResultsTemplate"></ng-container>
+          </ng-container>
+          <ng-container *ngIf="segmenterPredictions != null">
+            <ng-container *ngTemplateOutlet="segmenterResultsTemplate"></ng-container>
+          </ng-container>
+        </div>
+      </div>
+      <div class="RightFooter">
+        <div class="RightFooterAction"
+             (click)="copyEmbedUrl()">
+          Embed
+          <svg class="RightFooterEmbedIcon" xmlns="https://www.w3.org/2000/svg" height="24px" viewBox="0 0 24 24" width="24px" fill="#425066"><path d="M0 0h24v24H0V0z" fill="none"/><path d="M18 16c-.79 0-1.5.31-2.03.81L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.53.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.48.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.05 4.12c-.05.22-.09.45-.09.69 0 1.66 1.34 3 3 3s3-1.34 3-3-1.34-3-3-3zm0-12c.55 0 1 .45 1 1s-.45 1-1 1-1-.45-1-1 .45-1 1-1zM6 13c-.55 0-1-.45-1-1s.45-1 1-1 1 .45 1 1-.45 1-1 1zm12 7c-.55 0-1-.45-1-1s.45-1 1-1 1 .45 1 1-.45 1-1 1z"/></svg>
+        </div>
+      </div>
+    </div>
+  </div>
+</ng-template>
+
+<!-- Template for rendering the header section. -->
+<ng-template #headerSection>
+  <div class="HeaderModelName">
+      {{ modelDisplayName }}
+  </div>
+</ng-template>
+
+<!-- Template for rendering the input section. -->
+<ng-template #inputSection>
+  <div class="DragAndDrop"
+       (dragover)="dragOver($event)"
+       (dragleave)="dragLeave()"
+       (drop)="dragDrop($event)">
+    <input type="file" id="file" style="display:none" multiple
+           (change)="imageFilesSelected($event)">
+    <label for="file" class="DragAndDropText">
+      Drag/click to upload image
+      <svg class="InputSectionUploadIcon" xmlns="https://www.w3.org/2000/svg" height="24px" viewBox="0 0 24 24" width="24px" fill="#425066"><path d="M0 0h24v24H0V0z" fill="none"/><path d="M17.92 10.02C17.45 7.18 14.97 5 12 5 9.82 5 7.83 6.18 6.78 8.06 4.09 8.41 2 10.74 2 13.5 2 16.53 4.47 19 7.5 19h10c2.48 0 4.5-2.02 4.5-4.5 0-2.34-1.79-4.27-4.08-4.48zM17.5 17h-10C5.57 17 4 15.43 4 13.5c0-1.89 1.54-3.46 3.44-3.49l.64-.01.26-.59C8.97 7.94 10.41 7 12 7c2.21 0 4 1.79 4 4v1h1.5c1.38 0 2.5 1.12 2.5 2.5S18.88 17 17.5 17zm-4.79-7.29l2.79 2.79-1.41 1.41L13 12.83v2.67h-2v-2.67l-1.09 1.09L8.5 12.5l2.79-2.79L12 9l.71.71z"/></svg>
+    </label>
+  </div>
+</ng-template>
+
+<ng-template #classifierResultsTemplate>
+  <ng-container *ngTemplateOutlet="resultsHeader"></ng-container>
+  <div class="ResultList">
+    <div class="ResultBarBackground"></div>
+    <div class="ClassifierResult" *ngFor="let result of classifierResults">
+      <div class="ClassifierResultDisplayName">
+        {{ result.displayName }}
+      </div>
+      <div class="ClassifierResultScorePercent">
+        {{ result.score | number:'1.1-3' }}
+      </div>
+      <div class="ResultBarBackground"></div>
+      <div class="ResultBarForeground"
+           style="width: {{ 100 * result.score | number }}%">
+      </div>
+    </div>
+  </div>
+</ng-template>
+
+<ng-template #segmenterResultsTemplate>
+  <ng-container *ngTemplateOutlet="resultsHeader"></ng-container>
+  <div class="ResultList">
+    <div class="ResultBarBackground"></div>
+    <div *ngFor="let label of segmenterLabelList"
+         class="SegmenterResult"
+         (mouseenter)="segmenterResultHovered(label.index)"
+         (mouseleave)="segmenterResultLeft()"
+         [ngClass]="{'ResultWithOpacity': hoveredSegmentationLabel != null && hoveredSegmentationLabel != label.index}">
+      <div class="SegmenterResultDisplayName"
+           style="color: {{ label.color }}">
+        {{ label.displayName }}
+      </div>
+      <div class="SegmenterResultScorePercent"
+           style="color: {{ label.color }}">
+        {{ label.frequencyPercent }}%
+      </div>
+      <div class="ResultBarBackground"></div>
+      <div class="ResultBarForeground"
+           style="width: {{ label.frequencyPercent | number }}%;
+                  background-color: {{ label.color }}">
+      </div>
+    </div>
+</div>
+</ng-template>
+
+<ng-template #detectorResultsTemplate>
+  <ng-container *ngTemplateOutlet="resultsHeader"></ng-container>
+  <div class="ResultList">
+    <div class="ResultBarBackground"></div>
+    <ng-container *ngFor="let label of detectionLabels">
+      <div *ngIf="label.boxes.length > 0 && label.boxes[0].score >= detectionScoreThreshold"
+           class="DetectorResult"
+           style="color: {{ label.color }}">
+        <div class="DetectorResultIcon"
+             (click)="detectorResultLabelClicked(label.label)">
+          <svg *ngIf="!collapsedDetectionLabels.has(label.label)" xmlns="https://www.w3.org/2000/svg" height="12px" viewBox="0 0 24 24" width="12px" fill="#425066"><path d="M0 0h24v24H0V0z" fill="none"/><path d="M18.59 16.41L20 15l-8-8-8 8 1.41 1.41L12 9.83"/></svg>
+          <svg *ngIf="collapsedDetectionLabels.has(label.label)" xmlns="https://www.w3.org/2000/svg" height="12px" viewBox="0 0 24 24" width="12px" fill="#425066"><path d="M5.41 7.59L4 9l8 8 8-8-1.41-1.41L12 14.17"/><path d="M24 24H0V0h24v24z" fill="none" opacity=".87"/></svg>
+        </div>
+        <div class="DetectorResultLabel"
+             (mouseenter)="detectorResultLabelHovered(label.label)"
+             (mouseleave)="canvasOverlayLeft()"
+             (click)="detectorResultLabelClicked(label.label)">
+          {{ label.displayName }}
+        </div>
+        <div *ngIf="!collapsedDetectionLabels.has(label.label)"
+             class="DetectorResultLabelBoxList">
+          <div *ngFor="let box of label.boxes; let i = index"
+               class="DetectorResultLabelBox"
+               (mouseenter)="detectorResultIdHovered(box.id)"
+               (mouseleave)="canvasOverlayLeft()">
+            <ng-container *ngIf="box.score >= detectionScoreThreshold">
+              <div class="DetectorResultLabelBoxIndexContainer"
+                   style="background-color: {{ label.color }}">
+                <div class="DetectorResultLabelBoxIndex">
+                  {{ i + 1 }}
+                </div>
+              </div>
+              <div class="DetectorResultLabelBoxScore"
+                   style="color: {{ label.color }}">
+                {{ box.score | number:'1.1-2' }}
+              </div>
+            </ng-container>
+          </div>
+        </div>
+      </div>
+    </ng-container> 
+  </div>
+</ng-template>
+
+<ng-template #resultsHeader>
+  <div class="ResultTitle">
+    Results <span class="ResultsLatency">Latency: {{ resultsLatency }}ms</span>
+    <ng-container *ngIf="detectorResults != null">
+      <div class="DetectorThresholdSliderContainer">
+        <div class="DetectorThresholdSliderExtrema">
+          0
+        </div>
+        <div class="DetectorThresholdSliderValue"
+             id="threshold-slider-value">
+          {{ detectionScoreThreshold }}
+        </div>
+        <input class="DetectorThresholdSlider"
+               type="range" min="0" max="100" value="{{ detectionScoreThreshold * 100 | number:'1.0' }}"
+               (input)="detectionScoreThresholdChanged($event)">
+        <div class="DetectorThresholdSliderExtrema">
+          1
+        </div>
+      </div>
+    </ng-container>
+  </div>
+  <ng-container *ngIf="resultsKeyName != null && resultsValueName != null">
+    <div class="ResultSubtitle">
+      <div class="ResultSubtitleType">
+        {{ resultsKeyName }}
+      </div>
+      <div class="ResultSubtitleUnit">
+        {{ resultsValueName }}
+      </div>
+    </div>
+  </ng-container>
+</ng-template>
+
+<ng-container *ngTemplateOutlet="render"></ng-container>

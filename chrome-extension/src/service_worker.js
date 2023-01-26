@@ -30,17 +30,17 @@ const FIVE_SECONDS_IN_MS = 5000;
  * sent back here. After that, imageClassifier's analyzeImage method.
  */
 function clickMenuCallback(info, tab) {
-  const message = {action: 'IMAGE_CLICKED', url: info.srcUrl};
+  const message = { action: 'IMAGE_CLICKED', url: info.srcUrl };
   chrome.tabs.sendMessage(tab.id, message, (resp) => {
     if (!resp.rawImageData) {
       console.error(
-          'Failed to get image data. ' +
-          'The image might be too small or failed to load. ' +
-          'See console logs for errors.');
+        'Failed to get image data. ' +
+        'The image might be too small or failed to load. ' +
+        'See console logs for errors.');
       return;
     }
     const imageData = new ImageData(
-        Uint8ClampedArray.from(resp.rawImageData), resp.width, resp.height);
+      Uint8ClampedArray.from(resp.rawImageData), resp.width, resp.height);
     imageClassifier.analyzeImage(imageData, info.srcUrl, tab.id);
   });
 }
@@ -49,10 +49,12 @@ function clickMenuCallback(info, tab) {
  * Adds a right-click menu option to trigger classifying the image.
  * The menu option should only appear when right-clicking an image.
  */
-chrome.contextMenus.create({
-  id: 'contextMenu0',
-  title: 'Classify image with TensorFlow.js ',
-  contexts: ['image'],
+chrome.runtime.onInstalled.addListener(() => {
+  chrome.contextMenus.create({
+    id: 'contextMenu0',
+    title: 'Classify image with TensorFlow.js ',
+    contexts: ['image'],
+  });
 });
 
 chrome.contextMenus.onClicked.addListener(clickMenuCallback);
@@ -76,7 +78,7 @@ class ImageClassifier {
     console.log('Loading model...');
     const startTime = performance.now();
     try {
-      this.model = await mobilenet.load({version: 2, alpha: 1.00});
+      this.model = await mobilenet.load({ version: 2, alpha: 1.00 });
       // Warms up the model by causing intermediate tensor values
       // to be built and pushed to GPU.
       tf.tidy(() => {
@@ -107,7 +109,7 @@ class ImageClassifier {
     if (!this.model) {
       console.log('Waiting for model to load...');
       setTimeout(
-          () => {this.analyzeImage(imageData, url, tabId)}, FIVE_SECONDS_IN_MS);
+        () => { this.analyzeImage(imageData, url, tabId) }, FIVE_SECONDS_IN_MS);
       return;
     }
     console.log('Predicting...');
@@ -115,7 +117,7 @@ class ImageClassifier {
     const predictions = await this.model.classify(imageData, TOPK_PREDICTIONS);
     const totalTime = performance.now() - startTime;
     console.log(`Done in ${totalTime.toFixed(1)} ms `);
-    const message = {action: 'IMAGE_CLICK_PROCESSED', url, predictions};
+    const message = { action: 'IMAGE_CLICK_PROCESSED', url, predictions };
     chrome.tabs.sendMessage(tabId, message);
   }
 }

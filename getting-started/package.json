@@ -13,8 +13,8 @@
     "build": "mkdir -p dist/ && cp index.html dist/ && cp index.js dist/"
   },
   "devDependencies": {
-    "clang-format": "~1.2.2",
-    "http-server": "^14.1.0"
+    "clang-format": "^1.8.0",
+    "http-server": "^14.1.1"
   },
   "resolutions": {
     "follow-redirects": "1.14.8"

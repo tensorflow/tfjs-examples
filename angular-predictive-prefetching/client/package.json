@@ -22,7 +22,7 @@
     "@angular/platform-browser": "~11.2.4",
     "@angular/platform-browser-dynamic": "~11.2.4",
     "@angular/router": "~11.2.4",
-    "express": "^4.17.1",
+    "express": "^4.17.3",
     "material-components-web": "11.0.0-canary.3201cae47.0",
     "rxjs": "~6.5.5",
     "tslib": "^2.0.0",

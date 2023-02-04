@@ -9,6 +9,7 @@
     "node": ">=8.9.0"
   },
   "scripts": {
+    //i don't see any github issues or a way to submit feedback. this does not work for me on windows; it would be nice to have another example
     "watch": "npm run build && node_modules/http-server/bin/http-server dist -p 1234 ",
     "build": "mkdir -p dist/ && cp index.html dist/ && cp index.js dist/"
   },

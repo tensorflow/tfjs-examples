@@ -42,11 +42,11 @@ const predict = async (path, userId) => {
     session_index: sessionIndex,
   });
   const values = result.dataSync();
-  const orders = sortWithIndeces(values).slice(0, 5);
+  const orders = sortWithIndices(values).slice(0, 5);
   return orders;
 };
 
-const sortWithIndeces = (toSort) => {
+const sortWithIndices = (toSort) => {
   const sorted = [];
   for (var i = 0; i < toSort.length; i++) {
     sorted[i] = [toSort[i], pages[i]];

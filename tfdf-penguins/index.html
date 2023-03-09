@@ -133,6 +133,7 @@ limitations under the License.
 
     async function applyModel() {
       const inputs = {};
+      const toDispose = [];
 
       for (const {name, dtype} of model.inputs) {
         if (dtype === null) {
@@ -140,15 +141,26 @@ limitations under the License.
         }
         const defaultVal = dtype === 'string' ? '' : 0;
         inputs[name] = tf.tensor1d(data.map(d => d[name] ?? defaultVal), dtype);
+        toDispose.push(inputs[name]);
       }
 
       const predictions = await model.executeAsync(inputs);
-      const classificationIndices = tf.argMax(predictions, 1);
+      toDispose.push(predictions);
+
+      const [classificationsTensor, confidencesTensor] = tf.tidy(() => {
+        const classificationIndices = tf.argMax(predictions, 1);
+        const classifications = classificationIndices.sub(3);
+        const confidences = tf.gather(predictions, classificationIndices, 1, 1);
+
+        return [classifications, confidences]
+      });
+
+      toDispose.push(classificationsTensor, confidencesTensor);
+
       const classNames = ['Adelie', 'Gentoo', 'Chinstrap'];
-      const classifications = (await classificationIndices.sub(3).array())
+      const classifications = (await classificationsTensor.array())
             .map(index => classNames[index]);
-      const confidences = await tf.gather(predictions,
-                                          classificationIndices, 1, 1).array();
+      const confidences = await confidencesTensor.array();
 
       const dataCopy = structuredClone(data); // Make a copy of the data
       for (let i = 0; i < confidences.length; i++) {
@@ -156,6 +168,12 @@ limitations under the License.
         record['Pred:species'] = classifications[i];
         record['Pred:Conf.species'] = confidences[i];
       }
+
+      // Clean up tensors
+      for (const inputTensor of toDispose) {
+        inputTensor.dispose();
+      }
+
       renderTable(dataCopy);
     }
 

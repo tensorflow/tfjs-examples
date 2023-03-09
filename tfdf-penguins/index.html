@@ -117,16 +117,17 @@ limitations under the License.
       }
     }
 
+    // Parse the CSV data
     const {data} = Papa.parse(dataset, {header: true});
     renderTable(data);
 
-    function loadModel() {
-      tfdf.loadTFDFModel('http://localhost:8000/tfjs_model/model.json').then(loadedModel => {
-        model = loadedModel;
-        const button = document.getElementById("btn_apply_model");
-        button.disabled = false;
-        button.innerText = "Classify Penguins!";
-      });
+    async function loadModel() {
+      //tfdf.loadTFDFModel('http://localhost:8000/tfdf_penguins_example/model.json').then(loadedModel => {
+      const loadedModel = await tfdf.loadTFDFModel('https://storage.googleapis.com/tfjs-testing/tfdf_penguins_example/model.json');
+      model = loadedModel;
+      const button = document.getElementById("btn_apply_model");
+      button.disabled = false;
+      button.innerText = "Classify Penguins!";
     }
     loadModel();
 

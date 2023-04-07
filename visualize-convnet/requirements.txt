@@ -1,2 +1,2 @@
-tensorflow==2.9.3
+tensorflow==2.11.1
 tensorflowjs==3.14.0

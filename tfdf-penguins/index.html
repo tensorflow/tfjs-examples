@@ -17,14 +17,13 @@ limitations under the License.
   <title>Yggdrasil Decision Forests in TensorFlow.JS</title>
 
   <!-- Import @tensorflow/tfjs -->
-  <!-- <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script> -->
-  <script src="./node_modules/@tensorflow/tfjs/dist/tf.js"></script>
-  <!-- Import @tensorflow/tfjs-tfdf
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
 
+  <!-- Import @tensorflow/tfjs-tfdf
   Note that we need to explicitly load dist/tf-tfdf.min.js so that it can
   locate WASM module files from their default location (dist/). -->
-  <!-- TODO: Switch to CDN when package is released. -->
-  <script src="https://storage.googleapis.com/tfjs-testing/tfjs-tfdf/tf-tfdf.min.js"></script>
+  <!-- TODO: Make TFDF search for WASM path relative to ./dist/ instead of ./ -->
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-tfdf/dist/tf-tfdf.min.js"></script>
 
   <!-- Import papaparse to parse the penguins csv file -->
   <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.0/papaparse.min.js"></script>
@@ -122,9 +121,7 @@ limitations under the License.
     renderTable(data);
 
     async function loadModel() {
-      //tfdf.loadTFDFModel('http://localhost:8000/tfdf_penguins_example/model.json').then(loadedModel => {
-      const loadedModel = await tfdf.loadTFDFModel('https://storage.googleapis.com/tfjs-testing/tfdf_penguins_example/model.json');
-      model = loadedModel;
+      model = await tfdf.loadTFDFModel('http://localhost:8000/tfjs_model/model.json');
       const button = document.getElementById("btn_apply_model");
       button.disabled = false;
       button.innerText = "Classify Penguins!";

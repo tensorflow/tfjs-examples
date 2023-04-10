@@ -121,7 +121,7 @@ limitations under the License.
     renderTable(data);
 
     async function loadModel() {
-      model = await tfdf.loadTFDFModel('https://storage.googleapis.com/tfjs-examples/tfdf-penguins/tfjs_model/');
+      model = await tfdf.loadTFDFModel('https://storage.googleapis.com/tfjs-examples/tfdf-penguins/tfjs_model/model.json');
       const button = document.getElementById("btn_apply_model");
       button.disabled = false;
       button.innerText = "Classify Penguins!";

@@ -131,8 +131,8 @@ export function displaySimulation(sample, featuresAndLabel) {
   newDiv.innerText = sample.player1Win;
   resultRow.appendChild(newDiv);
 
-  const features = featuresAndLabel.features.dataSync();
-  const label = featuresAndLabel.label.dataSync();
+  const features = featuresAndLabel.xs.dataSync();
+  const label = featuresAndLabel.ys.dataSync();
   document.getElementById('sim-features').innerText =
       JSON.stringify(featuresAndLabelsToPrettyString(features));
   document.getElementById('sim-label').innerText = label;
@@ -159,8 +159,8 @@ export async function displayBatches(arr) {
     // TODO(bileschi): Style this better.
     featuresDiv.className = 'divTableCell';
     labelDiv.className = 'divTableCell';
-    featuresDiv.textContent = batch.features;
-    labelDiv.textContent = batch.label
+    featuresDiv.textContent = batch.xs;
+    labelDiv.textContent = batch.ys;
     oneKeyRow.appendChild(featuresDiv);
     oneKeyRow.appendChild(labelDiv);
     // add the div child to updateSampleRowOutput

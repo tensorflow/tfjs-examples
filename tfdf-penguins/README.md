@@ -1,4 +1,4 @@
-# Tensorflow Decision Forests Adult GBT Demo
+# Tensorflow Decision Forests Penguins Demo
 
 [See this example live!](https://storage.googleapis.com/tfjs-examples/tfdf-penguins/index.html)
 

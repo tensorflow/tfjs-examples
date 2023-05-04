@@ -148,7 +148,7 @@ limitations under the License.
         const classifications = classificationIndices.sub(3);
         const confidences = tf.gather(predictions, classificationIndices, 1, 1);
 
-        return [classifications, confidences]
+        return [classifications, confidences];
       });
 
       toDispose.push(classificationsTensor, confidencesTensor);
@@ -166,9 +166,7 @@ limitations under the License.
       }
 
       // Clean up tensors
-      for (const inputTensor of toDispose) {
-        inputTensor.dispose();
-      }
+      tf.dispose(toDispose);
 
       renderTable(dataCopy);
     }

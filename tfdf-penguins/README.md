@@ -4,8 +4,8 @@
 
 ## Contents
 
-The demo shows how to use the Tensorflow.JS decision forests package
-to run a convereted model.
+The demo shows how to use the Tensorflow.js decision forests package
+to run a converted model.
 
 ## Converting Model
 

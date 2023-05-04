@@ -113,7 +113,6 @@ async function init() {
           binding: 3,
           resource: {
             buffer: data.buffer,
-            size: data.buffer.size,
           },
         },
         {

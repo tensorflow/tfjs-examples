@@ -1,9 +1,9 @@
 steps:
-  - name: 'node:12'
+  - name: 'gcr.io/learnjs-174218/release'
     entrypoint: 'yarn'
     id: 'yarn'
     args: ['install']
-  - name: 'node:12'
+  - name: 'gcr.io/learnjs-174218/release'
     entrypoint: 'yarn'
     id: 'test'
     args: ['presubmit']

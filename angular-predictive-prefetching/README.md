@@ -1,6 +1,6 @@
 # Angular Predictive Prefetching
 
-This examples shows a sample implementation of predictive prefetching with TensorFlow.js and Angular. You can find more information about how the entire end-to-end solution works in the blog post "[Speed-up your sites with web-page prefetching using Machine Learning](https://blog.tensorflow.org/2021/05/optimize-your-website-with-machine-learning.html)."
+This examples shows a sample implementation of predictive prefetching with TensorFlow.js and Angular. You can find more information about how the entire end-to-end solution works in the blog post "[Speed-up your sites with web-page prefetching using Machine Learning](https://blog.tensorflow.org/2021/05/speed-up-your-sites-with-web-page-prefetching-using-ml.html)."
 
 *The demo is inspired by the Google Merchandise Store, but does not share any data nor implementation details with it.*
 

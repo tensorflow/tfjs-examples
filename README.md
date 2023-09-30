@@ -460,6 +460,6 @@ yarn presubmit
 ```
 
 The `yarn presubmit` command executes the unit tests and lint checks of all
-the exapmles that contain the `yarn test` and/or `yarn lint` scripts. You
-may also run the tests for individual exampls by cd'ing into their respective
+the examples that contain the `yarn test` and/or `yarn lint` scripts. You
+may also run the tests for individual examples by cd'ing into their respective
 subdirectory and executing `yarn`, followed by `yarn test` and/or `yarn lint`.

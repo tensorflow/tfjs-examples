@@ -33,7 +33,10 @@ async function train() {
 async function test() {
   const testExamples = 50;
   const batch = data.nextTestBatch(testExamples);
+  let begin = Date.now();
   const predictions = model.predict(batch.xs);
+  let end = Date.now();
+  console.log(`${end - begin}`);
   const labels = model.classesFromLabel(batch.labels);
 
   ui.showTestResults(batch, predictions, labels);

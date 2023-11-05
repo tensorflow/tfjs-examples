@@ -19,7 +19,7 @@ control problem, which was originally proposed in:
   Ph.D. Dissertation, Department of Computer and Information Science,
   University of Massachusetts, Amherst, 1984.
 
-It later became one of OpenAI's gym environmnets:
+It later became one of OpenAI's gym environment:
   https://github.com/openai/gym/blob/master/gym/envs/classic_control/cartpole.py
 
 The gist of the RL algorithm in this example (see [index.js](./index.js)) is:
@@ -45,8 +45,7 @@ For a more graphical illustration of the cart-pole problem, see:
 
 ### Features:
 
-- Allows user to specify the architecture of the policy network, in particular,
-  the number of the neural networks's layers and their sizes (# of units).
+- Allows the user to specify the architecture of the policy network, specifically the number of layers in the neural network and their sizes (number of units).
 - Allows training of the policy network in the browser, optionally with
   simultaneous visualization of the cart-pole system.
 - Allows testing in the browser, with visualization.

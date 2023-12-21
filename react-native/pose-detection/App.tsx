@@ -2,6 +2,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import { StyleSheet, Text, View, Dimensions, Platform } from 'react-native';
 
 import { Camera } from 'expo-camera';
+import { CameraType } from 'expo-camera/build/Camera.types';
 
 import * as tf from '@tensorflow/tfjs';
 import * as posedetection from '@tensorflow-models/pose-detection';
@@ -12,7 +13,6 @@ import {
 } from '@tensorflow/tfjs-react-native';
 import Svg, { Circle } from 'react-native-svg';
 import { ExpoWebGLRenderingContext } from 'expo-gl';
-import { CameraType } from 'expo-camera/build/Camera.types';
 
 // tslint:disable-next-line: variable-name
 const TensorCamera = cameraWithTensors(Camera);
@@ -56,7 +56,7 @@ export default function App() {
   const [orientation, setOrientation] =
     useState<ScreenOrientation.Orientation>();
   const [cameraType, setCameraType] = useState<CameraType>(
-    Camera.Constants.Type.front
+    CameraType.front
   );
   // Use `useRef` so that changing it won't trigger a re-render.
   //
@@ -164,7 +164,7 @@ export default function App() {
         .filter((k) => (k.score ?? 0) > MIN_KEYPOINT_SCORE)
         .map((k) => {
           // Flip horizontally on android or when using back camera on iOS.
-          const flipX = IS_ANDROID || cameraType === Camera.Constants.Type.back;
+          const flipX = IS_ANDROID || cameraType === CameraType.back;
           const x = flipX ? getOutputTensorWidth() - k.x : k.x;
           const y = k.y;
           const cx =
@@ -208,17 +208,17 @@ export default function App() {
       >
         <Text>
           Switch to{' '}
-          {cameraType === Camera.Constants.Type.front ? 'back' : 'front'} camera
+          {cameraType === CameraType.front ? 'back' : 'front'} camera
         </Text>
       </View>
     );
   };
 
   const handleSwitchCameraType = () => {
-    if (cameraType === Camera.Constants.Type.front) {
-      setCameraType(Camera.Constants.Type.back);
+    if (cameraType === CameraType.front) {
+      setCameraType(CameraType.back);
     } else {
-      setCameraType(Camera.Constants.Type.front);
+      setCameraType(CameraType.front);
     }
   };
 
@@ -261,9 +261,9 @@ export default function App() {
       case ScreenOrientation.Orientation.PORTRAIT_DOWN:
         return 180;
       case ScreenOrientation.Orientation.LANDSCAPE_LEFT:
-        return cameraType === Camera.Constants.Type.front ? 270 : 90;
+        return cameraType === CameraType.front ? 270 : 90;
       case ScreenOrientation.Orientation.LANDSCAPE_RIGHT:
-        return cameraType === Camera.Constants.Type.front ? 90 : 270;
+        return cameraType === CameraType.front ? 90 : 270;
       default:
         return 0;
     }
@@ -276,20 +276,35 @@ export default function App() {
       </View>
     );
   } else {
+    let textureDims;
+    if (Platform.OS === 'ios') {
+        textureDims = {
+            height: 1920,
+            width: 1080,
+        };
+    } else {
+        textureDims = {
+            height: 1200,
+            width: 1600,
+        };
+    }
+
     return (
-      // Note that you don't need to specify `cameraTextureWidth` and
-      // `cameraTextureHeight` prop in `TensorCamera` below.
       <View
         style={
           isPortrait() ? styles.containerPortrait : styles.containerLandscape
         }
       >
         <TensorCamera
+          // Standard Camera props
           ref={cameraRef}
           style={styles.camera}
           autorender={AUTO_RENDER}
           type={cameraType}
           // tensor related props
+          useCustomShadersToResize={true}
+          cameraTextureHeight={textureDims.height}
+          cameraTextureWidth={textureDims.width}
           resizeWidth={getOutputTensorWidth()}
           resizeHeight={getOutputTensorHeight()}
           resizeDepth={3}

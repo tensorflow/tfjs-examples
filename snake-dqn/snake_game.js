@@ -128,6 +128,10 @@ export class SnakeGame {
     let newHeadY;
     let newHeadX;
 
+    // Check if the head goes over the snake's body, in which case the
+    // game will end.
+    let beenThere = [];
+	  
     this.updateDirection_(action);
     if (this.snakeDirection_ === 'l') {
       newHeadY = headY;
@@ -149,12 +153,13 @@ export class SnakeGame {
 
     // Check if the head goes over the snake's body, in which case the
     // game will end.
-    for (let i = 1; i < this.snakeSquares_.length; ++i) {
-      if (this.snakeSquares_[i][0] === newHeadY &&
-          this.snakeSquares_[i][1] === newHeadX) {
-        done = true;
+    // Check if the head goes over the snake's body, in which case the
+    // game will end.
+    beenThere.forEach((square) => {
+      if(square[0] === newHeadY && square[1] === newHeadX){
+	      done = true;
       }
-    }
+    })
 
     let fruitEaten = false;
     if (done) {

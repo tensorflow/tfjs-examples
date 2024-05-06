@@ -158,7 +158,7 @@ class MnistDataset {
       labelsIndex = 3;
     }
     const size = this.dataset[imagesIndex].length;
-    tf.util.assert(
+    assert(
         this.dataset[labelsIndex].length === size,
         `Mismatch in the number of images (${size}) and ` +
             `the number of labels (${this.dataset[labelsIndex].length})`);

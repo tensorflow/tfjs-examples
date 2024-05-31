@@ -39,7 +39,7 @@ const SUNY_CSV_URL =
 
 /**
  * Builds a CSV Dataset object using the URL specified in the UI.  Then iterates
- * over all eleemnts in that dataset to count them.  Updates the UI accordingly.
+ * over all elements in that dataset to count them.  Updates the UI accordingly.
  */
 async function countRowsHandler() {
   const url = ui.getQueryElement().value;

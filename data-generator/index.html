@@ -123,9 +123,9 @@
   This demo is meant to illustrate how to train a model using a tf.data.Dataset
   constructed from a generator using <pre>tf.data.generator()</pre>.
   In this case, we will predict the likelihood of
-  winning a game. The game itself is described below, and implmented in game.js.
-  The game exports a function we will use as a "generator" function to create a
-  dataset. We will then fit a model to this dataset using
+  winning a game. The game itself is described below, and implemented in game.
+  js.The game exports a function we will use as a "generator" function to
+  create a dataset. We will then fit a model to this dataset using
   <pre>model.fitDataset()</pre>, with the goal of predicting
   the "win" state from features calculated from Player 1's hand.  The output
   logit value will be larger for hands which the model considers more likely

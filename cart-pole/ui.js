@@ -87,7 +87,7 @@ export function onGameEnd(gameCount, totalGames) {
 }
 
 /**
- * A function invokved at the end of a training iteration.
+ * A function invoked at the end of a training iteration.
  *
  * @param {number} iterationCount A count of how many iterations has completed
  *   so far in the current round of training.

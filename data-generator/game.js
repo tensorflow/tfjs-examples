@@ -41,7 +41,7 @@ export const GAME_STATE = {
   // Constants defining the range of card values.
   min_card_value: 1,
   max_card_value: 13,
-  // Controls how many cards per hand.  Controlable from a UI element.
+  // Controls how many cards per hand.  Controllable from a UI element.
   num_cards_per_hand: 3
 };
 

@@ -207,7 +207,7 @@ class PolicyNetwork {
 
       // Get the probability of the leftward action.
       const leftProb = tf.sigmoid(logits);
-      // Probabilites of the left and right actions.
+      // Probabilities of the left and right actions.
       const leftRightProbs = tf.concat([leftProb, tf.sub(1, leftProb)], 1);
       const actions = tf.multinomial(leftRightProbs, 1, null, true);
       return [logits, actions];
@@ -269,7 +269,7 @@ export class SaveablePolicyNetwork extends PolicyNetwork {
   }
 
   /**
-   * Load the model fom IndexedDB.
+   * Load the model from IndexedDB.
    *
    * @returns {SaveablePolicyNetwork} The instance of loaded
    *   `SaveablePolicyNetwork`.

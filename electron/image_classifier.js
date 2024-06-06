@@ -39,7 +39,7 @@ export class ImageClassifier {
    * Perform classification on a batch of image tensors.
    *
    * @param {tf.Tensor} images Batch image tensor of shape
-   *   `[numExamples, height, width, channels]`. The values of `heigth`,
+   *   `[numExamples, height, width, channels]`. The values of `height`,
    *   `width` and `channel` must match the underlying MobileNetV2 model
    *   (default: 224, 224, 3).
    * @param {number} topK How many results with top probability / logit values

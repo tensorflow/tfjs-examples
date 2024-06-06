@@ -164,7 +164,7 @@ function clickHandler(mouseEvent) {
 }
 
 function loadImageAndSendDataBack(src, sendResponse) {
-  // Load image (with crossOrigin set to anonymouse so that it can be used in a
+  // Load image (with crossOrigin set to anonymous so that it can be used in a
   // canvas later).
   const img = new Image();
   img.crossOrigin = 'anonymous';

@@ -4,7 +4,7 @@ This demo shows how to perform transfer learning using the Layers API of
 TensorFlow.js.
 
 It follows the procedure outlined in the Keras
-[mnist_transfer_cnn](https://github.com/keras-team/keras/blob/master/examples/mnist_transfer_cnn.py)
+[mnist_transfer_cnn](https://github.com/tensorflow/tfjs-examples/blob/master/mnist-transfer-cnn/python/mnist_transfer_cnn.py)
 example.
 
  * A simple convnet was trained in Python Keras on only the first 5 digits [0..4] from the MNIST dataset.  The resulting model is hosted at a URL and loaded into TensorFlow.js using

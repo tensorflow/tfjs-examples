@@ -184,7 +184,7 @@ function vaeLoss(inputs, outputs) {
     const zLogVar = outputs[2];
 
     // First we compute a 'reconstruction loss' terms. The goal of minimizing
-    // tihs term is to make the model outputs match the input data.
+    // this term is to make the model outputs match the input data.
     const reconstructionLoss =
         tf.losses.meanSquaredError(inputs, decoderOutput).mul(originalDim);
 

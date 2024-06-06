@@ -67,7 +67,7 @@ import('./data.js').then(exports => {
   // instead of the more typical model.fit. We thus need to define an optimizer
   // and manage batching the data ourselves.
 
-  // Cteate the optimizer
+  // Create the optimizer
   const optimizer = tf.train.adam();
 
   // Group the data into batches.

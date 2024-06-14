@@ -63,10 +63,10 @@ const optimizer = tf.train.sgd(learningRate);
 function predict(x) {
   // y = a * x ^ 3 + b * x ^ 2 + c * x + d
   return tf.tidy(() => {
-    return a.mul(x.pow(tf.scalar(3, 'int32')))
-      .add(b.mul(x.square()))
-      .add(c.mul(x))
-      .add(d);
+    return a.mul(x.pow(tf.scalar(3))) // a * x ^ 3
+      .add(b.mul(x.square())) // + b * x ^ 2
+      .add(c.mul(x)) // + c * x
+      .add(d); // + d
   });
 }
 

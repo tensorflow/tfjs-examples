@@ -41,7 +41,7 @@ The model was trained in Node.js with Tensorflow.js, which the model code is con
 python python/translation.py ${DATA_PATH}
 ```
 
-The model was trained in Python Keras, based on the [lstm_seq2seq](https://github.com/keras-team/keras/blob/master/examples/lstm_seq2seq.py)
+The model was trained in Python Keras, based on the [lstm_seq2seq](https://github.com/keras-team/keras-io/blob/master/examples/nlp/lstm_seq2seq.py)
 example.
 
 ## LAUNCH DEMO

@@ -27,7 +27,7 @@ export function generateData(numPoints, coeff, sigma = 0.04) {
     const xs = tf.randomUniform([numPoints], -1, 1);
 
     // Generate polynomial data
-    const three = tf.scalar(3, 'int32');
+    const three = tf.scalar(3);
     const ys = a.mul(xs.pow(three))
       .add(b.mul(xs.square()))
       .add(c.mul(xs))

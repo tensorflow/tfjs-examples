@@ -1,0 +1,896 @@
+<!DOCTYPE html>
+<html>
+<head></head>
+<body>
+
+<h1>Audio processing basics webapp</h1>
+<ol type="A">
+	<li>Enter the url of an audio file.</li>
+	<li>View timeseries, frequency, or spectrogram of audio signal.</li>
+</ol>
+
+
+<h3>A. Select audio from url</h3>
+<br>
+<p id="instructions_audio_url" style="display:block;">Enter a vaild url (DEMO url: https://interactive-examples.mdn.mozilla.net/media/cc0-audio/t-rex-roar.mp3)</p>
+<input id="audio_url" type="text" value="" placeholder="audio_url" rows="10" cols="100" style="display:block; text-align: left; width: 600px;">
+<br>
+<h3>B. Click on one of the buttons to view the respective time and/or frequency analysis</h3>
+<br>
+<button id="audio_to_timeseries" onclick="audio_to_timeseries()" style="display:block;">audio_to_timeseries</button>
+<br>
+<button id="audio_to_frequency_domain" onclick="audio_to_frequency_domain()" style="display:block;">audio_to_frequency_domain</button>
+<br>
+<button id="audio_to_spectrogram" onclick="audio_to_spectrogram()" style="display:block;">audio_to_spectrogram</button>
+
+<div id="data_display_container"></div>
+
+
+
+<!-- --------------------------------------------------- -->
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js" integrity="sha512-v2CJ7UaYy4JwqLDIrZUI/4hqeoQieOmAZNXBeQyjo21dadnwR+8ZaIJVT8EE2iyI61OV8e6M8PP2/4hpQINQ/g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest"></script>
+
+<script src="https://cdn.plot.ly/plotly-2.30.0.min.js" charset="utf-8"></script>
+
+<script>
+
+
+// var url = "https://interactive-examples.mdn.mozilla.net/media/cc0-audio/t-rex-roar.mp3";
+
+// -------------------------------------------------
+
+var audio_information = {};
+
+async function audio_to_timeseries() {
+
+	var url = document.getElementById("audio_url").value;
+
+	// Create audioElement
+	var audioElement = await load_audio_from_url(url, mode="nocors");
+
+	// -----------------------------------------------
+
+	// Obtain audio information
+	audio_information = await evaluate_audioElement();
+	console.log('audio_information: ', audio_information);
+	// {channels: channels, fs: fs, time_length: time_length, frameCount: frameCount, time_sample_rate_OR_timePeriod: time_sample_rate_OR_timePeriod}
+
+	// -----------------------------------------------
+
+	// Fetch binaryString of audio data
+	var settings = {
+		type : 'GET',
+		async: true,
+		crossDomain: true,
+		xhrFields: {responseType: 'arrayBuffer'},
+		dataType: 'binary',
+		beforeSend: function(xhr) {xhr.withCredentials = true;},
+		success: function(response) { console.log('Success'); },
+		error: function(xhr, status, error) { console.log('Error:', error); }
+	};
+
+	var binaryString = await $.ajax(url, [,settings]).done(function(response) { return response; });
+	console.log('binaryString: ', binaryString);
+
+	// -----------------------------------------------
+
+	// Normalize the audio data
+	const normalArray_normalized = await decodeAudioData_from_binaryString_to_uint8Array(binaryString);
+	const t0 = Array.from({ length: normalArray_normalized.length }, (_, i) => i * audio_information.time_sample_rate_OR_timePeriod);
+
+	// await plot_line_graph_dataObject(t0, normalArray_normalized, "Timeseries: both channels");
+
+	// --------------------
+
+	// Separate the channels of the audio data
+	const [channel1, channel2] = await separate_stero_channels(normalArray_normalized)
+
+	console.log('channel1.length : ', channel1.length);
+	console.log('channel2.length : ', channel2.length);
+
+	const t1 = Array.from({ length: normalArray_normalized.length }, (_, i) => i * audio_information.time_sample_rate_OR_timePeriod);
+
+	// await plot_line_graph_dataObject(t1, channel1, "Timeseries: channel 1");
+	// await plot_line_graph_dataObject(t1, channel2, "Timeseries: channel 2");
+
+	// --------------------
+
+	// Average the audio data channels
+	const x_avg = await channel1.map((val, ind) => { return (val + channel2.at(ind))/2; });
+	console.log('x_avg.length : ', x_avg.length);
+
+	// await plot_line_graph_dataObject(t1, x_avg, "Timeseries: channels averaged");
+	// OR
+	const obj = {};
+	obj.trace_x = t1;
+	obj.trace_y = x_avg;
+	obj.title_text = "Timeseries: channels averaged";
+	obj.x_text_trace = "Time (s)";
+	obj.y_text_trace = "Audio amplitude";
+	obj.unique_div_name = "time0";
+	await plotly_line_chart(obj);
+
+	return [t1, x_avg];
+}
+
+
+// -------------------------------------------------
+
+
+async function audio_to_frequency_domain() {
+
+	const [t1, x_avg] = await audio_to_timeseries();
+
+	// --------------------
+
+	// Compute frequency response/domain
+	var freq_response = await tensorflow_FFT(x_avg);
+	console.log('freq_response : ', freq_response);
+
+	// --------------------
+
+	// Magnitude of frequency response
+	var Xn_mag = tf.real(freq_response).abs();
+	console.log('Xn_mag : ', Xn_mag);
+
+	// Convert to JavaScript
+	Xn_mag = Xn_mag.arraySync()[0];  // arraySync creates an array in an array
+	console.log('Xn_mag : ', Xn_mag);
+
+	// --------------------
+
+	// Phase of frequency response
+	var Xn_phase = tf.imag(freq_response);
+	console.log('Xn_phase : ', Xn_phase);
+
+	// Convert to JavaScript
+	Xn_phase = Xn_phase.arraySync()[0];  // arraySync creates an array in an array
+	console.log('Xn_phase : ', Xn_phase);
+
+	// --------------------
+
+	// Calculate frequency: start from zero
+	const f = Array.from({ length: Xn_mag.length }, (_, i) => (i-1) * 2 * Math.PI * 1/audio_information.time_sample_rate_OR_timePeriod);
+	console.log('f : ', f);
+
+	const N = f.length;
+
+	// --------------------
+
+	// (Optional) Put the frequency response in the correct order : fft gives the result on a circle but mapped to a line it give the negative part first and then the positive part.
+
+	// Magnitude
+	const negative_part_mag = Xn_mag.slice(Math.floor(N/2), N);
+	const positive_part_mag = Xn_mag.slice(0, Math.floor(N/2));
+	const Xn_mag_correct_order = negative_part_mag.concat(positive_part_mag);
+
+	// Phase
+	const negative_part_phase = Xn_phase.slice(Math.floor(N/2), N);
+	const positive_part_phase = Xn_phase.slice(0, Math.floor(N/2));
+	const Xn_phase_correct_order = negative_part_phase.concat(positive_part_phase);
+
+	// frequency
+	const positive_part_f = f.slice(0, Math.floor(N/2));
+	const negative_part_f = positive_part_f.reverse();
+
+	// --------------------
+
+	// remove last value, the zero
+	negative_part_f.pop();
+	var f_correct_order = negative_part_f.concat(positive_part_f);
+
+	// Add one value on the end to make f the same length as magnitude and phase
+	f_correct_order = f_correct_order.concat((2 * Math.PI * N/2)/N); // it reduces to PI, but for clarity of how it is obtained the entire equation is written
+
+	// --------------------
+
+	// Verify the length of signals
+	console.log("Xn_mag_correct_order.length: ", Xn_mag_correct_order.length);
+	console.log("Xn_phase_correct_order.length: ", Xn_phase_correct_order.length);
+	console.log("f_correct_order.length: ", f_correct_order.length);
+
+	// --------------------
+
+	var which_freq_plot = "subplot"; // "subplot", "individual_plots", "none"
+
+	// Plot both the [negative, positive] parts of the frequency response in hertz
+	if (which_freq_plot === "subplot") {
+		const obj0 = {};
+		obj0.title_text = "[negative, positive] parts of the frequency response in correct order: Hz";
+		obj0.x_text_trace0 = "Frequency";
+		obj0.y_text_trace0 = "Magnitude (Hz)";
+		obj0.x_text_trace1 = "Frequency";
+		obj0.y_text_trace1 = "Phase (deg)";
+		obj0.trace0_x = f_correct_order;
+		obj0.trace0_y = Xn_mag_correct_order;
+		obj0.trace1_x = f_correct_order;
+		obj0.trace1_y = Xn_phase_correct_order
+		obj0.unique_div_name = "subplot_freq0";
+		await plotly_line_subplot(obj0);
+
+	} else if (which_freq_plot === "individual_plots") {
+
+		// Trace 0
+		const obj0_0 = {};
+		obj0_0.trace_x = f_correct_order;
+		obj0_0.trace_y = Xn_mag_correct_order;
+		obj0_0.title_text = "[negative, positive] parts: Magnitude frequency response (Hz)";
+		obj0_0.x_text_trace = "Frequency";
+		obj0_0.y_text_trace = "Magnitude (Hz)";
+		obj0_0.unique_div_name = "freq0";
+		await plotly_line_chart(obj0_0);
+
+		// Trace 1
+		const obj0_1 = {};
+		obj0_1.trace_x = f_correct_order;
+		obj0_1.trace_y = Xn_phase_correct_order;
+		obj0_1.title_text = "[negative, positive] parts: Phase frequency response (deg)";
+		obj0_1.x_text_trace = "Frequency";
+		obj0_1.y_text_trace = "Phase (deg)";
+		obj0_1.unique_div_name = "freq1";
+		await plotly_line_chart(obj0_1);
+  	}
+
+	// --------------------
+
+	which_freq_plot = "subplot"; // "subplot", "individual_plots", "none"
+
+	// Plot only positive part of frequency response in Hz
+	if (which_freq_plot === "subplot") {
+		const obj1 = {};
+		obj1.title_text = "[positive] part of the frequency response (Hz)";
+		obj1.x_text_trace0 = "Frequency";
+		obj1.y_text_trace0 = "Magnitude (Hz)";
+		obj1.x_text_trace1 = "Frequency";
+		obj1.y_text_trace1 = "Phase (deg)";
+		obj1.trace0_x = positive_part_f;
+		obj1.trace0_y = positive_part_mag;
+		obj1.trace1_x = positive_part_f;
+		obj1.trace1_y = positive_part_phase;
+		obj1.unique_div_name = "subplot_freq1";
+		await plotly_line_subplot(obj1);  // It plots them incorrectly on the same plot instead of a subplot
+
+	} else if (which_freq_plot === "individual_plots") {
+
+		// Trace 0
+		const obj1_0 = {};
+		obj1_0.trace_x = positive_part_f;
+		obj1_0.trace_y = positive_part_mag;
+		obj1_0.title_text = "[positive] part: Magnitude frequency response (Hz)";
+		obj1_0.x_text_trace = "Frequency";
+		obj1_0.y_text_trace = "Magnitude (Hz)";
+		obj1_0.unique_div_name = "freq2";
+		await plotly_line_chart(obj1_0);
+
+		// Trace 1
+		const obj1_1 = {};
+		obj1_1.trace_x = positive_part_f;
+		obj1_1.trace_y = positive_part_phase;
+		obj1_1.title_text = "[positive] part: Phase frequency response (deg)";
+		obj1_1.x_text_trace = "Frequency";
+		obj1_1.y_text_trace = "Phase (deg)";
+		obj1_1.unique_div_name = "freq3";
+		await plotly_line_chart(obj1_1);
+	}
+
+	// --------------------
+
+	// Put the frequency response in the correct order : fft gives the result on a circle but mapped to a line it gives the negative part first and then the positive part. Only select the positive part.
+	const Xn_mag_positive_part_db = positive_part_mag.map((val, ind) => { return 20 * Math.log10(val); });
+
+	// --------------------
+
+	// Verify the length of signals
+	console.log("Xn_mag_positive_part_db.length: ", Xn_mag_positive_part_db.length);
+	console.log("positive_part_phase.length: ", positive_part_phase.length);
+	console.log("positive_part_f.length: ", positive_part_f.length);
+
+	// --------------------
+
+	which_freq_plot = "subplot"; // "subplot", "individual_plots", "none"
+
+	// Plot only positive part of frequency response in decibels
+	if (which_freq_plot === "subplot") {
+		const obj2 = {};
+		obj2.title_text = "Frequency response in decibels: dB";
+		obj2.x_text_trace0 = "Frequency";
+		obj2.y_text_trace0 = "Magnitude (dB)";
+		obj2.x_text_trace1 = "Frequency";
+		obj2.y_text_trace1 = "Phase (deg)";
+		obj2.trace0_x = positive_part_f;
+		obj2.trace0_y = Xn_mag_positive_part_db;
+		obj2.trace1_x = positive_part_f;
+		obj2.trace1_y = positive_part_phase;
+		obj2.unique_div_name = "subplot_freq2";
+		await plotly_line_subplot(obj2);  // It plots them incorrectly on the same plot instead of a subplot
+
+	} else if (which_freq_plot === "individual_plots") {
+
+		// Trace 0
+		const obj2_0 = {};
+		obj2_0.trace_x = positive_part_f;
+		obj2_0.trace_y = Xn_mag_positive_part_db;
+		obj2_0.title_text = "Magnitude frequency response (decibels: dB)";
+		obj2_0.x_text_trace = "Frequency";
+		obj2_0.y_text_trace = "Magnitude (dB)";
+		obj2_0.unique_div_name = "freq4";
+		await plotly_line_chart(obj2_0);
+
+		// Trace 1
+		const obj2_1 = {};
+		obj2_1.trace_x = positive_part_f;
+		obj2_1.trace_y = positive_part_phase;
+		obj2_1.title_text = "Phase frequency response (deg)";
+		obj2_1.x_text_trace = "Frequency";
+		obj2_1.y_text_trace = "Phase (deg)";
+		obj2_1.unique_div_name = "freq5";
+		await plotly_line_chart(obj2_1);
+	}
+
+	// --------------------
+
+}
+
+
+async function plotly_line_subplot(obj) {
+
+	// xaxis: 'x2', yaxis: 'y2' is key to plotting each of the traces in their own subplot
+
+	trace0 = {x: obj.trace0_x, y: obj.trace0_y, type: 'line'};
+	trace1 = {x: obj.trace1_x, y: obj.trace1_y, xaxis: 'x2', yaxis: 'y2', type: 'line'};
+	data = [trace0, trace1];
+	layout = {grid: {rows: 2, columns: 1, pattern: 'independent'}, title: obj.title_text, xaxis: {title: obj.x_text_trace0}, yaxis: {title: obj.y_text_trace0}, xaxis2: {title: obj.x_text_trace1}, yaxis2: {title: obj.y_text_trace1}};
+
+	// Create a new div element to display data on
+	const div = document.createElement('div');
+	div.id = "data_display" + "_" + obj.unique_div_name;
+	div.style = "display:block; text-align: left; width: 600px; height: 600px";
+	document.getElementById("data_display_container").appendChild(div);
+
+	Plotly.newPlot(div.id, data, layout);
+}
+
+// -----------------------------------------------
+
+async function plotly_line_chart(obj) {
+
+        const trace_items = { x: obj.trace_x, y: obj.trace_y, type: 'line' };
+        const layout = {title: obj.title_text, xaxis: {title: obj.x_text_trace}, yaxis: {title: obj.y_text_trace} };
+
+	// Create a new div element to display data on
+	const div = document.createElement('div');
+	div.id = "data_display" + "_" + obj.unique_div_name;
+	div.style = "display:block; text-align: left; width: 600px; height: 600px";
+	document.getElementById("data_display_container").appendChild(div);
+
+        Plotly.newPlot(div.id, [trace_items], layout);
+}
+
+// -----------------------------------------------
+
+async function audio_to_spectrogram() {
+
+	const [t1, x_avg] = await audio_to_timeseries();
+
+	// --------------------
+	// Spectrogram is x (time) by y (frequency).
+	// Chunk the time series and then compute the FFT per [time series chunk]
+	// --------------------
+
+	// Calculate spectrogram
+	var frameLength = 255;  // fftSize or nfft, Length of each window/frame segment - frequency data will be binned by nfft/2
+	var frameStep = 128;  // The number of samples to shift between frames.
+	// var windowFn = tf.signal.hann_window; // The window function to apply to each frame before computing the FFT; to smooth the data
+
+	// --------------------
+
+	// For plotting
+	var plot_width_time = [];
+	var max_freq = 0;
+
+	// --------------------
+
+	var num_of_nonOverlapingBatches = Math.floor(x_avg.length/frameLength);
+  	var num_of_times_to_slide = 2*num_of_nonOverlapingBatches - 1; // the minus one removes the [last batch value starting from x_avg.length-frameStep]
+	console.log('num_of_times_to_slide : ', num_of_times_to_slide);
+
+	// --------------------
+
+	var spectrogram_timeWidth_freqHeight = [];
+
+	for (var time_width=0; time_width<num_of_times_to_slide; time_width++) {
+
+		var st = time_width * frameStep;
+		var stop = st + frameLength;
+		var x_time_chunk = x_avg.slice(st, stop);
+		// console.log('x_time_chunk : ', x_time_chunk);
+
+		// --------------------
+
+		// console.log('x_time_chunk.length : ', x_time_chunk.length); // verified that it was frameLength
+
+		// --------------------
+
+		plot_width_time.push(st);
+
+		// --------------------
+
+		// Compute frequency response/domain for a time_chunk
+		var freq_response = await tensorflow_FFT(x_time_chunk);
+		// console.log('freq_response : ', freq_response);
+
+		// --------------------
+
+		// Magnitude of frequency response
+		var Xn_mag = tf.real(freq_response).abs();
+		// console.log('Xn_mag : ', Xn_mag);
+
+		// Convert to JavaScript
+		Xn_mag = Xn_mag.arraySync()[0];  // arraySync creates an array in an array
+		var positive_part_mag = Xn_mag.slice(0, Math.floor(Xn_mag.length/2));
+		// console.log('positive_part_mag : ', positive_part_mag);
+
+		// positive_part_mag is an array that has length [frameLength/2 or nfft/2].
+
+		// Next, need to bin this array like a histogram
+
+		// --------------------
+
+		var freq_histogram = await array_to_histogram(positive_part_mag);
+		// freq_histogram will have length positive_part_mag, which is [frameLength/2 or nfft/2]
+		// console.log('freq_histogram : ', freq_histogram);
+
+		// --------------------
+
+		const max_freqhist = await freq_histogram.sort().at(freq_histogram.length-1);
+		// console.log('max_freqhist : ', max_freqhist);
+		if (max_freqhist > max_freq) {
+			max_freq = max_freqhist;
+		}
+
+		// --------------------
+
+		spectrogram_timeWidth_freqHeight.push(freq_histogram);
+
+		// --------------------
+	}
+
+	console.log('spectrogram_timeWidth_freqHeight : ', spectrogram_timeWidth_freqHeight);
+
+	// --------------------
+
+	const normalize_spectrogram = "none"; // "none", "normalize"
+	if (normalize_spectrogram == "normalize") {
+		// Normalize values from 0 to 1
+		var spectrogram_timeWidth_freqHeight_normalized = [];
+		for (var i=0; i<spectrogram_timeWidth_freqHeight.length; i++) {
+			var col = spectrogram_timeWidth_freqHeight.at(i).map((val, ind) => { return val/max_freq; });
+			spectrogram_timeWidth_freqHeight_normalized.push(col);
+		}
+		console.log('spectrogram_timeWidth_freqHeight_normalized: ', spectrogram_timeWidth_freqHeight_normalized);
+	}
+
+	// --------------------
+
+	// Transpose: spectrogram_timeWidth_freqHeight is 2D (rows=width=time, columns=height=frequency), convert to spectrogram_freqHeight_timeWidth (rows=height=frequency, columns=width=time)
+	const spectrogram_freqHeight_timeWidth = await transpose(spectrogram_timeWidth_freqHeight);
+
+	// --------------------
+
+	console.log('plot_width_time: ', plot_width_time);
+	console.log('max_freq: ', max_freq);
+
+	// --------------------
+
+	const y_freq = Array.from({ length: spectrogram_freqHeight_timeWidth.length }, (_, i) => i * max_freq/spectrogram_freqHeight_timeWidth.length);
+	console.log('y_freq: ', y_freq);
+
+	const y_freq_normalized = Array.from({ length: spectrogram_freqHeight_timeWidth.length }, (_, i) => i/spectrogram_freqHeight_timeWidth.length);
+	console.log('y_freq_normalized: ', y_freq_normalized);
+
+	// --------------------
+
+	var data = [
+	  {
+	    z: spectrogram_freqHeight_timeWidth,
+            x: plot_width_time,
+            y: y_freq,
+	    type: 'heatmap',
+	    hoverongaps: false
+	  }
+	];
+
+	var layout = {title: 'Heatmap of Spectrogram',  xaxis: {title: "Time (s)"}, yaxis: {title: "Frequency (Hz)"}};
+
+	// Create a new div element to display data on
+	const div = document.createElement('div');
+	div.id = "data_display" + "_" + "spec";
+	div.style = "display:block; text-align: left; width: 600px; height: 600px";
+	document.getElementById("data_display_container").appendChild(div);
+
+        Plotly.newPlot(div.id, data, layout);
+}
+
+// -----------------------------------------------
+
+
+async function array_to_histogram(arr) {
+
+	// Round the values of arr so that there will be more common values
+	const arr_integer = arr.map((val, ind) => { return Number(Math.floor(val)); });
+
+	// --------------------
+
+	// Bin the signal
+	var bin = 4;	// Need to know how many bins to divide each array, tensorflow.js did bin=2
+	var histogram = [];
+	var out = arr_integer.at(0); // initialize
+
+	for (var i=0; i<arr_integer.length; i++) {
+		if (i % bin == 0) {
+			out = arr_integer[i];
+		}
+		histogram.push(out);
+	}
+
+	// --------------------
+
+	return histogram;
+}
+
+// -----------------------------------------------
+
+async function transpose(arr) {
+
+	var transpose_colNum = arr.length;
+	var transpose_rowNum = arr.at(0).length;
+	var transpose_arr = [];
+	for (var i=0; i<transpose_rowNum ; i++) {
+		const col = Array.from({ length: transpose_colNum }, (_, i) => 0);
+		transpose_arr.push(col);
+	}
+
+	for (var i=0; i<arr.length; i++) {
+		for (var j=0; j<arr.at(i).length; j++) {
+			transpose_arr[j][i] = arr[i][j];
+		}
+	}
+	return transpose_arr;
+}
+
+// -----------------------------------------------
+
+
+
+
+
+// -------------------------------------------------
+// IMAGE SUBFUNCTIONS
+// -------------------------------------------------
+async function create_dynamic_canvasElement(w) {
+
+  	const index = 0;
+
+	// Create a canvas element
+	var canvasElement = document.createElement('canvas');
+
+	// Set the width and height of the canvas
+	canvasElement.width = w;
+	canvasElement.height = canvasElement.width;
+
+	// Get the 2D rendering context of the canvas
+	var ctx = canvasElement.getContext("2d");
+
+	if (index == 0) {
+		canvasElement.style.left = 40+'px';
+	} else {
+		let tot = index*canvasElement.width + 40;
+		canvasElement.style.left = tot+'px';
+	}
+
+	// Add the canvas to the document body or any other desired element
+	document.getElementById('data_display_container').appendChild(canvasElement);
+
+	return ctx;
+}
+
+// -------------------------------------------------
+
+
+
+
+
+
+// -------------------------------------------------
+// AUDIO SUBFUNCTIONS
+// -------------------------------------------------
+async function play_sound_from_a_blob_object(blob_object, file_type) {
+
+	// ie: file_type = "audio/mp3"
+
+	// Putting an array, or mediastream event.data in a blob resulted in a Security Error
+	var file_blob_object = new File ([blob_object], 'recorded_audio', {type: file_type});
+	var url_file_blob_object = URL.createObjectURL(file_blob_object);
+
+	await load_audio_from_url(url_file_blob_object, mode="nocors");
+
+	URL.revokeObjectURL(url_file_blob_object);
+
+}
+
+// -------------------------------------------------
+
+async function load_audio_from_url(url, mode="nocors") {
+
+	// Create an AudioElement
+	const audioElement = document.createElement('audio');
+
+	audioElement.src = url;
+	audioElement.id = "audio track";
+	audioElement.autoplay = true;
+	audioElement.setAttribute("controls", true);
+	audioElement.setAttribute('preload', "auto");
+
+	if (mode == "cors") {
+		audioElement.setAttribute('crossOrigin', "anonymous");
+	}
+
+  	// Create an SourceElement (audioSourceNode)
+	// var sourceElement = document.createElement('source');
+	// sourceElement.setAttribute("src", url);
+	// console.log('sourceElement: ', sourceElement);
+
+	// audioElement.appendChild(sourceElement);
+
+	document.getElementById('data_display_container').appendChild(audioElement);
+
+	return audioElement;
+}
+
+// -------------------------------------------------
+
+async function evaluate_audioElement() {
+
+	// It appears that if the audioElement is in memory, these functions can be used
+
+	// -----------------------------------------------
+
+	// Create an AudioContext
+	// var audioContext = new (window.AudioContext || window.webkitAudioContext)();
+	// audioContext = new AudioContext();
+	// OR
+	var audioContext = new AudioContext();
+
+	// -----------------------------------------------
+
+	// Create an AnalyserNode: some signal information was more reliable with analyserNode than audioContext
+	var analyserNode = audioContext.createAnalyser();
+	// console.log('analyserNode: ', analyserNode);
+
+	var channels = audioContext.channelCount;
+	if (channels == undefined) {
+		channels = analyserNode.channelCount;
+	}
+	// console.log('channels: ', channels);
+
+	var fs = audioContext.sampleRate;
+	if (fs == undefined) {
+		fs = analyserNode.context.sampleRate; // 48000
+	}
+	// console.log('fs: ', fs);
+
+	let time_length = analyserNode.context.currentTime;   // 354.976
+	// console.log('time_length: ', time_length);
+
+	// -----------------------------------------------
+
+	const frameCount = fs * 2.0;
+
+	var time_sample_rate_OR_timePeriod = (1/fs) * 1000; // every time_sample_rate there is a data point, 0.020833333333333333
+	// console.log('time_sample_rate_OR_timePeriod: ', time_sample_rate_OR_timePeriod);
+
+	// -----------------------------------------------
+
+	return {channels: channels, fs: fs, time_length: time_length, frameCount: frameCount, time_sample_rate_OR_timePeriod: time_sample_rate_OR_timePeriod};
+}
+
+// -------------------------------------------------
+
+
+
+
+
+// -------------------------------------------------
+// AUDIO PRE-PROCESSING SUBFUNCTIONS
+// -------------------------------------------------
+async function decodeAudioData_from_binaryString_to_uint8Array(binaryString) {
+
+	// -----------------------------------------------
+	// Decode the binaryString response
+	// -----------------------------------------------
+	var character_array = binaryString.split('');
+	console.log("character_array: ", character_array);
+	// Array(38190) [ "�", "�", "�", "d", "\u0000", "\u0000", "\u0000", "\u0000", "\u0000", "\u0000", … ]
+
+	// Map each [binary string character; a subset of binary string characters is UTF-8] as an [ASCII number; a number from 0 to number_of_characters]
+	var byteArray = character_array.map((character) => { return character.charCodeAt(0); });
+	console.log("byteArray: ", byteArray);
+	// byteArray:  Array(38190) [ 65533, 65533, 65533, 100, 0, 0, 0, 0, 0, 0, … ]
+
+	// The importance of this mapping is to limit the array values from 0 to 255.
+	var uint8Array = new Uint8Array(byteArray);
+	console.log('uint8Array: ', uint8Array);
+	// uint8Array:  Uint8Array(38190) [ 253, 253, 253, 100, 0, 0, 0, 0, 0, 0, … ]
+
+	// In some ways a uint8Array is an arrayBuffer because the size is "fixed" meaning that no more data will be appended to the array after the UTF-8 characters. And, it is a "fixed" array because the values of the array are limited to a certain range of numbers, from 0 to 255.
+
+	// Convert UTF-8 array [non-fixed length array] to a binary arrayBuffer [fixed-length array]
+	const arrayBuffer = uint8Array.buffer;
+	console.log('arrayBuffer: ', arrayBuffer);
+
+	// Determine the length of the typedArray_arrayBuffer
+	console.log('arrayBuffer.byteLength: ', arrayBuffer.byteLength);
+
+	// --------------------
+
+	// Convert the TypedArray into a normal array
+	const normalArray = await Array.from(uint8Array);
+	console.log('normalArray: ', normalArray);
+
+	// Determine the length of the normalArray.length
+	console.log('normalArray.length: ', normalArray.length);
+
+	var arr_char = await obtain_array_characteristics(normalArray);
+	console.log('arr_char: ', arr_char);
+
+	// --------------------
+
+	// Normalize the audio data in arrayBuffer from [-1, 1]
+	// var normalArray_normalized = await normalArray.map((val, ind) => { return val/arr_char.max_amp; });  // gave wrong results
+	// var normalArray_normalized = await normalArray.map((val, ind) => { return val/255; });
+	// console.log('normalArray max min: ', [normalArray_normalized.sort().shift(), normalArray_normalized.sort().pop()])
+	// RESULT: it gives a value from 0 to 2.5656... not exactly what was expected
+
+	// OR
+
+	// Try with Tensorflow library
+	const tf_normalArray = tf.tensor1d(normalArray);
+	var normalArray_normalized_tf = await tf_normalArray.div(tf.scalar(255));
+
+	// --------------------
+
+	// Convert Tensorflow_array to Array
+	const normalArray_normalized = normalArray_normalized_tf.arraySync();
+	console.log('normalArray max min: ', [normalArray_normalized.sort().shift(), normalArray_normalized.sort().pop()])
+
+	// --------------------
+
+	// Only for verification
+	var arr_char_normalized = await obtain_array_characteristics(normalArray_normalized);
+	console.log('arr_char_normalized: ', arr_char_normalized);
+
+	// --------------------
+
+	return normalArray_normalized;
+}
+
+// -----------------------------------------------
+
+async function separate_stero_channels(normalArray_normalized) {
+
+  // Audio files with two channels are interleaved, meaning that [channel0_datapoint0, channel1_datapoint0, channel0_datapoint1, channel1_datapoint1, ...channel0_datapointn-1, channel1_datapointn-1]
+  var channel1 = [];
+	var channel2 = normalArray_normalized.map((val, ind) => {
+		if (ind % 2 == 0) {
+			channel1.push(val);
+			return '';
+		} else {
+			return val;
+		}
+	});
+	const NonEmptyVals_toKeep = (x) => x.length != 0;
+	channel2 = channel2.filter(NonEmptyVals_toKeep);
+
+  return [channel1, channel2];
+}
+
+// -----------------------------------------------
+
+async function obtain_array_characteristics(arr) {
+
+	var arr_char = {};
+
+	arr_char.mu = await mean(arr);
+	arr_char.sigma = await std(arr);
+
+	const arr_sort = arr.sort();
+	arr_char.max_val = arr_sort.at(arr.length-1);
+	arr_char.min_val = arr_sort.at(0);
+
+	// Maximum amplitude
+	arr_char.max_amp = [Math.abs(arr_char.min_val), arr_char.max_val].sort().pop();
+
+	return arr_char;
+}
+
+// -----------------------------------------------
+
+async function sum(arr) {
+	return arr.reduce((accumulator, currentValue) => accumulator + currentValue, 0);
+}
+
+// -----------------------------------------------
+
+async function mean(arr) {
+	return await sum(arr)/arr.length;
+}
+
+// -----------------------------------------------
+
+async function std(arr) {
+	const mu =  await mean(arr);
+	// console.log('mu: ', mu);
+
+	var arr1 = arr.map((x) => { return x-mu; });
+	const summ = await sum(arr1);
+	// console.log('summ: ', summ);
+
+	const out = Math.sqrt( Math.pow(summ, 2)/arr.length );
+	// console.log('out: ', out);
+
+	return out;
+}
+
+// -------------------------------------------------
+
+async function tensorflow_FFT(x) {
+
+	// Discrete Fourier Transform:  1/sqrt(N) * sum_{0}^{N-1}(x(n) exp^{-j * omega * n}), where omega = 2 * pi * k/N for k=0...N-1
+	const N = x.length;
+
+	var real = [];
+	var imag_plus = [];
+	var imag_minus = [];
+
+	for (var k=0; k<N; k++) {
+		var real_accumulated = 0;
+		var imag_plus_accumulated = 0;
+		var imag_minus_accumulated = 0;
+
+		for (var n=0; n<N; n++) {
+
+			var omega = 2 * Math.PI * k/N;
+			var theta = omega * n;
+
+			// Break the equation down into real and imaginary parts, and sum directly instead of a vector sum at the end of the function
+			real_accumulated = real_accumulated + (x.at(n) * -Math.cos(theta));
+			imag_plus_accumulated = imag_plus_accumulated + (x.at(n) * Math.sin(theta));
+			imag_minus_accumulated = imag_minus_accumulated + (x.at(n) * -Math.sin(theta));
+		}
+
+		// Save the [accumulated sum of real and imaginary values across n] for each k
+		real.push(real_accumulated);
+		imag_plus.push(imag_plus_accumulated);
+		imag_minus.push(imag_minus_accumulated);
+	}
+
+	// Call the tensorflow function to compute the sum of real and imaginary values normalized: (1/Math.sqrt(N) * (real + imag_minus))
+	const real_tf = tf.tensor1d(real);
+	const imag_tf = tf.tensor1d(imag_minus); // it was suggested that imag_minus should be used instead of imag_plus, but both are correct
+	const x_tf = tf.cast(tf.complex(real_tf, imag_tf), 'complex64');
+
+	return tf.spectral.fft(x_tf);
+}
+
+// -------------------------------------------------
+
+
+// -------------------------------------------------
+
+</script>
+
+</body>
+</html>

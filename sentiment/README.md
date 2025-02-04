@@ -13,7 +13,7 @@ sentiment.  This dataset is
 and the models were trained in Keras as well, based on the
 [imdb_cnn](https://github.com/keras-team/keras/blob/master/examples/imdb_cnn.py)
 and
-[imdb_lstm](https://github.com/keras-team/keras/blob/master/examples/imdb_lstm.py)
+[imdb_lstm](https://github.com/keras-team/keras/blob/master/examples/keras_io/nlp/bidirectional_lstm_imdb.py)
 examples.
 
 To launch the demo, do

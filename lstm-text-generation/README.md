@@ -27,13 +27,13 @@ stacked LSTM layers.
 
 This example also illustrates how to save a trained model in the browser's
 IndexedDB using TensorFlow.js's
-[model saving API](https://js.tensorflow.org/tutorials/model-save-load.html),
+[model saving API](https://www.tensorflow.org/js/guide/save_load),
 so that the result of the training
 may persist across browser sessions. Once a previously-trained model is loaded
 from the IndexedDB, it can be used in text generation and/or further training.
 
 This example is inspired by the LSTM text generation example from Keras:
-https://github.com/keras-team/keras/blob/master/examples/lstm_text_generation.py
+https://github.com/keras-team/keras-io/blob/master/examples/generative/lstm_character_level_text_generation.py
 
 ## Usage
 

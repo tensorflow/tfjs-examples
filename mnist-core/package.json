@@ -20,7 +20,7 @@
   "devDependencies": {
     "@babel/core": "^7.0.0-0",
     "@babel/plugin-transform-runtime": "^7.1.0",
-    "babel-preset-env": "~1.6.1",
+    "babel-preset-env": "^0.0.0",
     "buffer": "^6.0.3",
     "clang-format": "~1.2.2",
     "cross-env": "^5.1.6",

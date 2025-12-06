@@ -13,3 +13,23 @@ sprited, and the code in `data.js` is responsible for converting it into
 `Tensor`s. This will become much simpler in the near future.
 
 [See this example live!](https://storage.googleapis.com/tfjs-examples/mnist/dist/index.html)
+[See this example live!](https://storage.googleapis.com/tfjs-examples/mnist/dist/index.html)
+
+## Run locally
+
+If you want to run this example on your computer:
+
+1. Install dependencies:
+   ```
+   npm install
+   ```
+2. Start the local development server:
+   ```
+   npm run start
+   ```
+3. Open your browser and go to:
+   ```
+   http://localhost:8080
+   ```
+
+This helps beginners quickly test and understand the MNIST demo.

@@ -49,9 +49,9 @@ for i in $EXAMPLES; do
   rm -rf dist .cache
   yarn build
   # Remove files in the example directory (but not sub-directories).
-  gsutil -m rm gs://tfjs-examples/$EXAMPLE_NAME/*
+  gcloud storage rm gs://tfjs-examples/$EXAMPLE_NAME/*
   # Gzip and copy all the dist files.
   # The trailing slash is important so we get $EXAMPLE_NAME/dist/.
-  gsutil -m cp -Z -r dist gs://tfjs-examples/$EXAMPLE_NAME/
+  gcloud storage cp --gzip-local-all --recursive dist gs://tfjs-examples/$EXAMPLE_NAME/
   cd ..
 done

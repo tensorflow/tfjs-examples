@@ -30,6 +30,6 @@ echo 'current version: ' $PACKAGE_VERSION
 # remove the pre-built addon tarball if it already exist
 if [ "$1" = "for-publish" ]; then
   echo 'copying ...'
-  gsutil -m cp $VISUALIZER_PACKAGE_DIR gs://$PACKAGE_HOST/$PACKAGE_VERSION
-  gsutil -m cp $PLAYGROUND_PACKAGE_DIR gs://$PACKAGE_HOST/$PACKAGE_VERSION/playground
+  gcloud storage cp $VISUALIZER_PACKAGE_DIR gs://$PACKAGE_HOST/$PACKAGE_VERSION
+  gcloud storage cp $PLAYGROUND_PACKAGE_DIR gs://$PACKAGE_HOST/$PACKAGE_VERSION/playground
 fi

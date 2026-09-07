@@ -21,4 +21,4 @@ set -e
 SRC_PATH="dist/object_detection_model"
 DEST_GS_URL="gs://tfjs-examples/simple-object-detection/dist"
 
-gsutil cp -r "${SRC_PATH}" "${DEST_GS_URL}"
+gcloud storage cp --recursive "${SRC_PATH}" "${DEST_GS_URL}"

@@ -18,7 +18,7 @@
     "watch": "cross-env NODE_ENV=development parcel index.html --no-hmr --open"
   },
   "devDependencies": {
-    "@babel/core": "^7.0.0-0",
+    "@babel/core": "^7.29.6",
     "@babel/plugin-transform-runtime": "^7.1.0",
     "@tensorflow/tfjs-node": "^2.6.0",
     "@tensorflow/tfjs-node-gpu": "^2.6.0",

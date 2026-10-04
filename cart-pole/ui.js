@@ -169,7 +169,7 @@ function renderCartPole(cartPole, canvas) {
   // Draw the pole.
   const angle = cartPole.theta + Math.PI / 2;
   const poleTopX =
-      halfW + scale * (cartPole.x + Math.cos(angle) * cartPole.length);
+      halfW + scale * (cartPole.x - Math.cos(angle) * cartPole.length);
   const poleTopY = railY -
       scale * (cartPole.cartHeight / 2 + Math.sin(angle) * cartPole.length);
   context.beginPath();

@@ -30,7 +30,7 @@
     "parcel": "~2.6.0",
     "process": "^0.11.10",
     "shelljs": "^0.8.5",
-    "tmp": "^0.0.33",
+    "tmp": "^0.2.6",
     "yalc": "~1.0.0-pre.53"
   },
   "resolutions": {

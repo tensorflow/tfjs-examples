@@ -233,6 +233,11 @@
   resolved "https://registry.yarnpkg.com/@protobufjs/codegen/-/codegen-2.0.4.tgz#7ef37f0d010fb028ad1ad59722e506d9262815cb"
   integrity sha512-YyFaikqM5sH0ziFZCN3xDC7zeGaB/d0IUb9CATugHWbd1FRFwWwt4ld4OYMPWu5a3Xe01mGAULCdqhMlPl29Jg==
 
+"@protobufjs/codegen@^2.0.5":
+  version "2.0.5"
+  resolved "https://registry.yarnpkg.com/@protobufjs/codegen/-/codegen-2.0.5.tgz#d9315ad7cf3f30aac70bda3c068443dc6f143659"
+  integrity sha512-zgXFLzW3Ap33e6d0Wlj4MGIm6Ce8O89n/apUaGNB/jx+hw+ruWEp7EwGUshdLKVRCxZW12fp9r40E1mQrf/34g==
+
 "@protobufjs/eventemitter@^1.1.0":
   version "1.1.0"
   resolved "https://registry.yarnpkg.com/@protobufjs/eventemitter/-/eventemitter-1.1.0.tgz#355cbc98bafad5978f9ed095f397621f1d066b70"
@@ -246,6 +251,13 @@
     "@protobufjs/aspromise" "^1.1.1"
     "@protobufjs/inquire" "^1.1.0"
 
+"@protobufjs/fetch@^1.1.1":
+  version "1.1.1"
+  resolved "https://registry.yarnpkg.com/@protobufjs/fetch/-/fetch-1.1.1.tgz#4d6fc00c8fb64016a5c81b469d549046350f1065"
+  integrity sha512-GpptLrs57adMSuHi3VNj0mAF8dwh36LMaYF6XyJ6JMWlVsc+t42tm1HSEDmOs3A8fC9yyeisgLhsTVQokOZ0zw==
+  dependencies:
+    "@protobufjs/aspromise" "^1.1.1"
+
 "@protobufjs/float@^1.0.2":
   version "1.0.2"
   resolved "https://registry.yarnpkg.com/@protobufjs/float/-/float-1.0.2.tgz#5e9e1abdcb73fc0a7cb8b291df78c8cbd97b87d1"
@@ -255,6 +267,11 @@
   version "1.1.0"
   resolved "https://registry.yarnpkg.com/@protobufjs/inquire/-/inquire-1.1.0.tgz#ff200e3e7cf2429e2dcafc1140828e8cc638f089"
   integrity sha512-kdSefcPdruJiFMVSbn801t4vFK7KB/5gd2fYvrxhuJYg8ILrmn9SKSX2tZdV6V+ksulWqS7aXjBcRXl3wHoD9Q==
+
+"@protobufjs/inquire@^1.1.2":
+  version "1.1.2"
+  resolved "https://registry.yarnpkg.com/@protobufjs/inquire/-/inquire-1.1.2.tgz#ae64fbc014ff44c8bfad03dd4c93cd2d6a4c82db"
+  integrity sha512-pa0vFRuws4wkvaXKK1uXZMAwAX4/t8ANaJo45iw/oQHNQ9q5xUzwgFmVJGXiga2BeN+zpX7Vf9vmsiIa2J+MUw==
 
 "@protobufjs/path@^1.1.2":
   version "1.1.2"
@@ -270,6 +287,11 @@
   version "1.1.0"
   resolved "https://registry.yarnpkg.com/@protobufjs/utf8/-/utf8-1.1.0.tgz#a777360b5b39a1a2e5106f8e858f2fd2d060c570"
   integrity sha512-Vvn3zZrhQZkkBE8LSuW3em98c0FwgO4nxzv6OdSxPKJIEKY2bGbHn+mhGIPerzI4twdxaP8/0+06HBpwf345Lw==
+
+"@protobufjs/utf8@^1.1.1":
+  version "1.1.1"
+  resolved "https://registry.yarnpkg.com/@protobufjs/utf8/-/utf8-1.1.1.tgz#eaee5900122c110a3dbcb728c0597014a2621774"
+  integrity sha512-oOAWABowe8EAbMyWKM0tYDKi8Yaox52D+HWZhAIJqQXbqe0xI/GV7FhLWqlEKreMkfDjshR5FKgi3mnle0h6Eg==
 
 "@tensorflow/tfjs-backend-cpu@3.21.0":
   version "3.21.0"
@@ -1792,6 +1814,11 @@ long@^5.0.0:
   resolved "https://registry.yarnpkg.com/long/-/long-5.2.1.tgz#e27595d0083d103d2fa2c20c7699f8e0c92b897f"
   integrity sha512-GKSNGeNAtw8IryjjkhZxuKB3JzlcLTwjtiQCHKvqQet81I93kXslhDQruGI/QsddO83mcDToBVy7GqGS/zYf/A==
 
+long@^5.3.2:
+  version "5.3.2"
+  resolved "https://registry.yarnpkg.com/long/-/long-5.3.2.tgz#1d84463095999262d7d7b7f8bfd4a8cc55167f83"
+  integrity sha512-mNAgZ1GmyNhD7AuqnTG3/VQ26o760+ZYBPKjPvugO8+nLbYfX6TVpJPseBvopbdY+qpZ/lKUnmEc1LeZYS3QAA==
+
 lru-cache@^6.0.0:
   version "6.0.0"
   resolved "https://registry.yarnpkg.com/lru-cache/-/lru-cache-6.0.0.tgz#6d6fe6570ebd96aaf90fcad1dafa3b2566db3a94"
@@ -2180,22 +2207,22 @@ protobufjs@7.1.2:
     long "^5.0.0"
 
 protobufjs@^7.0.0:
-  version "7.2.0"
-  resolved "https://registry.yarnpkg.com/protobufjs/-/protobufjs-7.2.0.tgz#ca6b1ceb9a9efe21186ba96178089ec563011a5e"
-  integrity sha512-hYCqTDuII4iJ4stZqiuGCSU8xxWl5JeXYpwARGtn/tWcKCAro6h3WQz+xpsNbXW0UYqpmTQFEyFWO0G0Kjt64g==
+  version "7.6.0"
+  resolved "https://registry.yarnpkg.com/protobufjs/-/protobufjs-7.6.0.tgz#61e42285beec2708a9c84d7abbb5f22e2ddc54d4"
+  integrity sha512-LtESOsMPTZgyYtwxhvdgdjGL0HmXEaRA/hVD6sol4zA60hVXXXP/SGmxnqDbgGE8gy7pYex7cym+5vYPcmaXBQ==
   dependencies:
     "@protobufjs/aspromise" "^1.1.2"
     "@protobufjs/base64" "^1.1.2"
-    "@protobufjs/codegen" "^2.0.4"
+    "@protobufjs/codegen" "^2.0.5"
     "@protobufjs/eventemitter" "^1.1.0"
-    "@protobufjs/fetch" "^1.1.0"
+    "@protobufjs/fetch" "^1.1.1"
     "@protobufjs/float" "^1.0.2"
-    "@protobufjs/inquire" "^1.1.0"
+    "@protobufjs/inquire" "^1.1.2"
     "@protobufjs/path" "^1.1.2"
     "@protobufjs/pool" "^1.1.0"
-    "@protobufjs/utf8" "^1.1.0"
+    "@protobufjs/utf8" "^1.1.1"
     "@types/node" ">=13.7.0"
-    long "^5.0.0"
+    long "^5.3.2"
 
 proxy-addr@~2.0.7:
   version "2.0.7"
